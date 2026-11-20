@@ -50,7 +50,7 @@ def forecast(cfg):
 class Engine:
     def __init__(self, cfg, stub):
         self.cfg, self.stub = cfg, stub
-        self.owner = None
+        self.unit = None
         if not stub:
             for p in cfg['x8']:
                 sys.path.insert(0, p)
@@ -65,8 +65,8 @@ class Engine:
             self.mod = importlib.import_module(z[0])
             if getattr(self.mod, z[1]) != z[2]:
                 raise ValueError('E06')
-            self.owner = getattr(self.mod, z[3])(cfg['xb'])
-            self.owner._load()
+            self.unit = getattr(self.mod, z[3])(cfg['xb'])
+            self.unit._load()
             self.convert = getattr(importlib.import_module(z[4]), z[5])
 
     def run(self, row, arm):
@@ -94,10 +94,10 @@ class Engine:
                     frames.append(im.convert('RGB'))
             self.pt.cuda.reset_peak_memory_stats()
             z = self.cfg['xd']
-            setattr(self.owner, z[0], len(ids))
+            setattr(self.unit, z[0], len(ids))
             batch = {z[1]: frames, z[2]: self.np.array(ids), z[3]: self.np.array(slots),
                      z[4]: self.np.array(row['x4'][0]['x0'])}
-            value = self.owner.run(batch)
+            value = self.unit.run(batch)
             if getattr(value, z[5]).shape != (len(ids), 9):
                 raise ValueError('E10')
             r, t, _ = self.convert(getattr(value, z[5]), self.np.asarray(row['x2']))
@@ -124,6 +124,8 @@ def run(cfg, stub=False, only=None):
         load = time.monotonic()
         engine = Engine(cfg, stub)
         result['load_seconds'] = time.monotonic()-load
+        result['load_peak_bytes'] = 0 if stub else engine.pt.cuda.max_memory_allocated()
+        result['load_reserved_bytes'] = 0 if stub else engine.pt.cuda.max_memory_reserved()
         for row in cfg['x3'][:only]:
             out = dict(key=row['x0'], arms=[])
             result['rows'].append(out)

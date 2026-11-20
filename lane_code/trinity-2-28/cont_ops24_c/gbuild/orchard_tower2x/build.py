@@ -45,6 +45,8 @@ def build():
         source = fm[capture]
         dense = dm['captures']['d3/'+id_]
         old = t1['captures'][capture]
+        for f in source['frames']:
+            assert f['path'] == f['sha256'][:2]+'/'+f['sha256']+'.png'
         assert old['source_indices'] == source['anchor_indices'] == gt[capture]['source_indices']
         assert [dense['frames'][s]['sha256'] for s in dense['anchor_slots']] == [f['sha256'] for f in source['frames']]
         a = dict(x0=source['anchor_indices'], x1=[f['sha256'] for f in source['frames']], x2=list(range(32)))
@@ -147,8 +149,7 @@ printf '%s\\n' "$job"
 /usr/bin/python3 -I -s -B "$P/0.py" 2 "$P"
 q=$(squeue -u jjyeung -p general -h)
 test -z "$q"
-reply=('''+submit+''')
-'''.replace('reply=('+submit+')\n','')+'''reply=$('''+submit+''' --gres=gpu:1 --cpus-per-task=16 --mem=200G --time=00:30:00 --no-requeue --export=NONE --chdir=/tmp --output=/dev/null --error=/dev/null "$P/BATCH.sh")
+reply=$('''+submit+''' --gres=gpu:1 --cpus-per-task=16 --mem=200G --time=00:30:00 --no-requeue --export=NONE --chdir=/tmp --output=/dev/null --error=/dev/null "$P/BATCH.sh")
 job=${reply%%;*}; [[ "$job" =~ ^[0-9]+$ ]]
 (set -C; printf '%s\\n' "$job" > "$P/7.txt")
 printf '%s\\n' "$job"

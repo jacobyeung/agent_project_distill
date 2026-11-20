@@ -1,0 +1,286 @@
+{
+  "status": "conditional; recipe and placement unresolved",
+  "scenarios": {
+    "exact_ABC": {
+      "full_seconds": 2243.220699051446,
+      "admitted_seconds": 1461.3444939667825,
+      "admitted_tasks": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          3,
+          0
+        ],
+        [
+          4,
+          0
+        ],
+        [
+          5,
+          0
+        ],
+        [
+          6,
+          0
+        ],
+        [
+          7,
+          0
+        ],
+        [
+          8,
+          0
+        ],
+        [
+          9,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          2,
+          1
+        ],
+        [
+          3,
+          1
+        ],
+        [
+          4,
+          1
+        ],
+        [
+          5,
+          1
+        ],
+        [
+          6,
+          1
+        ],
+        [
+          7,
+          1
+        ],
+        [
+          8,
+          1
+        ],
+        [
+          9,
+          1
+        ]
+      ]
+    },
+    "exact_AB": {
+      "full_seconds": 1461.3444939667825,
+      "admitted_seconds": 1461.3444939667825,
+      "admitted_tasks": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          3,
+          0
+        ],
+        [
+          4,
+          0
+        ],
+        [
+          5,
+          0
+        ],
+        [
+          6,
+          0
+        ],
+        [
+          7,
+          0
+        ],
+        [
+          8,
+          0
+        ],
+        [
+          9,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          2,
+          1
+        ],
+        [
+          3,
+          1
+        ],
+        [
+          4,
+          1
+        ],
+        [
+          5,
+          1
+        ],
+        [
+          6,
+          1
+        ],
+        [
+          7,
+          1
+        ],
+        [
+          8,
+          1
+        ],
+        [
+          9,
+          1
+        ]
+      ]
+    },
+    "nonexact_A_Aprime_B": {
+      "full_seconds": 1760.3119722067204,
+      "admitted_seconds": 1468.97821039884,
+      "admitted_tasks": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          3,
+          0
+        ],
+        [
+          4,
+          0
+        ],
+        [
+          5,
+          0
+        ],
+        [
+          6,
+          0
+        ],
+        [
+          7,
+          0
+        ],
+        [
+          8,
+          0
+        ],
+        [
+          9,
+          0
+        ],
+        [
+          0,
+          3
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          3
+        ],
+        [
+          3,
+          3
+        ],
+        [
+          4,
+          3
+        ],
+        [
+          5,
+          3
+        ],
+        [
+          6,
+          3
+        ],
+        [
+          7,
+          3
+        ],
+        [
+          8,
+          3
+        ],
+        [
+          9,
+          3
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          1
+        ]
+      ]
+    }
+  },
+  "stage_allowance_seconds": 600,
+  "load_allowance_seconds": 78.20981346699409,
+  "observed_32_seconds": 17.93116521599586,
+  "observed_64_seconds": 22.27781348399003,
+  "assumed_94_seconds": 50.12508033897757,
+  "safety_factor": 1.5,
+  "decode_allowance_per_task_seconds": 3,
+  "return_reserve_seconds": 120,
+  "source": "orchard_tower2x/FORECAST.json",
+  "source_sha256": "847b4eb13d32254628b960c612a00444f8db0ab82d4cc1ea76a60c4a2e04e926",
+  "caveats": [
+    "63 uses the measured 64-frame cost; 94 uses 2.25 times that cost.",
+    "Staging, decode allowance and 94-frame GPU memory/runtime are unmeasured.",
+    "Admission accepts the prefix forecast only. Remaining tasks require sufficient measured remaining time within the 30-minute allocation."
+  ]
+}

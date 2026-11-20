@@ -47,6 +47,16 @@ def alarm(*args):
     raise TimeoutError('E22')
 
 
+def admit(c):
+    p = Path(c['xg'])
+    if sha(p/'0.tgz') != c['xh'] or sha(p/'a/1.json') != c['xi']:
+        raise ValueError('E34')
+    for a in load(p/'a/1.json')['archives']:
+        for item in a['parts']:
+            if Path(item['path']).stat().st_size != item['bytes']:
+                raise ValueError('E35')
+
+
 def execute(p, c, m):
     start = time.time()
     job = os.environ.get('SLURM_JOB_ID', '')
@@ -103,7 +113,8 @@ def execute(p, c, m):
     if not (root/'5.json').is_file():
         raise ValueError('E28')
     data = load(root/'5.json')
-    data.update(staging_seconds=stage_start and elapsed, total_seconds=time.time()-start,
+    data['complete'] = data['complete'] and completed.returncode == 0
+    data.update(staging_seconds=elapsed, total_seconds=time.time()-start,
                 exit_code=completed.returncode)
     return data
 
@@ -112,6 +123,7 @@ def main():
     mode, p = int(sys.argv[1]), Path(sys.argv[2])
     c, m = verify(p)
     if mode == 0:
+        admit(c)
         result = m.run(c, stub=True, only=1)
         if not result['complete'] or len(result['rows']) != 1:
             raise ValueError('E29')
@@ -119,6 +131,7 @@ def main():
                            files=load(p/'3.json'), estimate_seconds=m.forecast(c)))
         return 0
     if mode == 2:
+        admit(c)
         check = load(p/'4.json')
         if check['files'] != load(p/'3.json') or check['input_sha256'] != sha(p/'1.json') or not check['passed']:
             raise ValueError('E30')
@@ -133,6 +146,8 @@ def main():
         result['error'] = type(e).__name__
     finally:
         signal.alarm(0)
+        if len(json.dumps(result, separators=(',', ':')).encode()) > 500_000:
+            result = dict(schema=1, token=c['x0'], stub=False, complete=False, rows=[], error='E33')
         raw = m.write(p/'5.json', result)
         put(p/'5.1.json', dict(schema=1, token=c['x0'], input_sha256=sha(p/'1.json'),
             sha256=hashlib.sha256(raw).hexdigest(), bytes=len(raw), complete=result['complete'],

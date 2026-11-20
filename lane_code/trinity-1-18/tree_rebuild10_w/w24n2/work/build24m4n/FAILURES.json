@@ -1,0 +1,11 @@
+{
+  "cluster_kill": false,
+  "records": [
+    {
+      "output": "q PASS\nn PASS\nn_go PASS\nTraceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24n2/work/build24m4n/bootstrap.py\", line 12, in <module>\n    runpy.run_path(str(script),run_name=\"__main__\")\n  File \"<frozen runpy>\", line 287, in run_path\n  File \"<frozen runpy>\", line 98, in _run_module_code\n  File \"<frozen runpy>\", line 88, in _run_code\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24n2/work/build24m4n/scans.py\", line 6, in <module>\n    full=scan(kit(name),name);raw=json.dumps(full,sort_keys=True).encode();target=D/(\"SCAN_\"+name+\".json.gz\");target.write_bytes(gzip.compress(raw,mtime=0))\n         ^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24n2/work/build24m4n/support.py\", line 29, in scan\n    result=mod.scan_decoded(k)\n           ^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24n2/work/build24m4n/naming24m1_qd.py\", line 259, in scan_decoded\n    for relative,tree in python_sources:scan_python(tree,name,relative)\n                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24n2/work/build24m4n/environment21f.py\", line 400, in scan_python\n    refuse(node, 'dynamic attribute lookup may hide an environment capability')\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24n2/work/build24m4n/environment21f.py\", line 32, in refuse\n    raise ValueError(f'ENV_UNRESOLVED:{doc}:{getattr(node, \"lineno\", 0)}:environment:{reason}: {ast.unparse(node)}')\nValueError: ENV_UNRESOLVED:b/f0.py:8:environment:dynamic attribute lookup may hide an environment capability: getattr(processor, 'tokenizer', None)\n",
+      "path": "work/build24m4n/scans.log",
+      "resolved_by": "Explicit attribute accesses and native function signatures; qd_scan_final.log passes with unchanged scanner."
+    }
+  ],
+  "status": "RESOLVED"
+}

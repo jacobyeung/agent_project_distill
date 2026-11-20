@@ -1,0 +1,13 @@
+W=/scratch/jjyeung/orch_n30/tree_rebuild10_w; J=$W/w24j; L=$W/w24l; M=$W/w24m; P=/scratch/jjyeung/envs/p1cpu/bin/python; N=/scratch/jjyeung/orch_n30/n_review; R=$N/r1e; T=$R/tcpp
+date -u +%TZ; cp -n $N/r1b/ident2.py $R/ident2.py; sha256sum $R/ident2.py $N/r1b/ident2.py
+sha256sum $M/out/tree_rebuild_b24m4m_598cadf7.tar; cat $M/out/tree_rebuild_b24m4m_598cadf7.tar.sha256; ls $M/work | head -30; ls $M/work/build24/kits 2>&1
+ls $M/work/tree_r1c* -d 2>&1; for t in $M/work/tree_r1*; do (cd $t && nice -n 10 $P -I -s -B -c "import sys; sys.path.insert(0,'.'); from student_pilot.source_seal import inventory; from student_pilot.p3_provenance import digest; f=inventory('.'); print('$t',len(f), digest(f))"); done
+echo "== kit seals"; for k in $M/work/build24/kits/q $M/work/build24/kits/n $M/out/kit_n_go $M/out/kit_qd; do echo "$k sums=$(sha256sum < $k/SHA256SUMS.txt|cut -c1-64) GO=$(grep -o '"GO": *[a-z]*' $k/BUILD.json 2>/dev/null)"; (cd $T && nice -n 10 $P -I -s -B -c "import sys; sys.path.insert(0,'.'); from launch_r1.build import verify; print('verify',verify('$k'))" 2>&1 | tail -1); done
+echo "== sums diffs 24m4j -> 24m4m"; for p in work/build24/kits/q work/build24/kits/n out/kit_n_go out/kit_qd; do echo "-- $p"; diff <(sort -k2 $J/$p/SHA256SUMS.txt) <(sort -k2 $M/$p/SHA256SUMS.txt); done
+echo "== sums diffs 24m4l -> 24m4m"; for p in work/build24/kits/q work/build24/kits/n out/kit_n_go out/kit_qd; do echo "-- $p"; diff <(sort -k2 $L/$p/SHA256SUMS.txt) <(sort -k2 $M/$p/SHA256SUMS.txt); done
+echo "== qd vs n_go b/"; diff <(sort -k2 $M/out/kit_qd/SHA256SUMS.txt) <(sort -k2 $M/out/kit_n_go/SHA256SUMS.txt) | grep ' b/'
+echo "== q vs n vs n_go b/"; diff <(grep ' b/' $M/work/build24/kits/q/SHA256SUMS.txt|sort -k2) <(grep ' b/' $M/out/kit_n_go/SHA256SUMS.txt|sort -k2); diff <(grep ' b/' $M/work/build24/kits/n/SHA256SUMS.txt|sort -k2) <(grep ' b/' $M/out/kit_n_go/SHA256SUMS.txt|sort -k2)
+echo "== identity"
+for k in $M/out/kit_n_go $J/out/kit_n_go; do
+nice -n 10 bwrap --ro-bind / / --tmpfs /home --tmpfs /data --tmpfs /data2 --tmpfs /data3 --tmpfs /scratch/jjyeung --ro-bind /scratch/jjyeung/envs/p1cpu /scratch/jjyeung/envs/p1cpu --ro-bind /scratch/jjyeung/uv-python /scratch/jjyeung/uv-python --tmpfs /tmp --ro-bind $T /tmp/x/tree --ro-bind $k/k /tmp/x/k --ro-bind $R/ident2.py /tmp/x/ident2.py --dev /dev --proc /proc --unshare-net --chdir /tmp/x env -i PATH=/usr/bin:/bin OMP_NUM_THREADS=2 $P -I -s -B /tmp/x/ident2.py > $R/ident_$(basename $(dirname $(dirname $k)))_cpp.json 2>&1; done
+sha256sum $R/ident_*_cpp.json; cat $R/ident_w24m_cpp.json; grep -A3 '"c"' $R/ident_w24j_cpp.json | head -5

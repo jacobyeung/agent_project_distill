@@ -1,0 +1,3 @@
+# usage (on 3-30): bash up24m4m.sh  -> streams W/work/s24m4m.tar from 1-18 to Orchard x_22c714e1/s24m4m.tar without landing on 3-30, then extracts
+B=/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30
+timeout 300 bash $B/tools/tssh.sh trinity-1-18 cat /scratch/jjyeung/orch_n30/tree_rebuild10_w/work/s24m4m.tar | timeout 300 bash $B/tools/ossh.sh 'X=/project/community/jjyeung/okh7/x_22c714e1; test -e $X/s24m4m.tar && exit 3; date -u +%TZ; cat > $X/s24m4m.tar; sha256sum $X/s24m4m.tar; mkdir -m 700 $X/s24m4m && tar xf $X/s24m4m.tar -C $X/s24m4m && find $X/s24m4m -type f | wc -l'

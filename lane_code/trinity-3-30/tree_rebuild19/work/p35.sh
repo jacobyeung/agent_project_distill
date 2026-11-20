@@ -1,0 +1,1 @@
+W=/scratch/jjyeung/orch_n30/tree_rebuild10_w; date -u +%TZ; tmux kill-session -t tr19_b24m4n; tmux kill-session -t tr19_rev24m4m; sleep 2; tmux ls | grep tr19; ps -u $USER -o pid,etime,args | grep -E "rev24m4m|24m4n" | grep -v grep | cut -c1-200 | head

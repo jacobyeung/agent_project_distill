@@ -1,0 +1,18 @@
+{
+  "estimate_seconds": 1461.3444939667825,
+  "estimate_minutes": 24.355741566113043,
+  "stage_seconds": 600.0,
+  "load_seconds": 78.20981346699409,
+  "inference_safety_factor": 1.5,
+  "measured_32_seconds": 17.93116521599586,
+  "measured_64_seconds": 22.27781348399003,
+  "count_per_arm": 10,
+  "decode_seconds": 60.0,
+  "return_reserve_seconds": 120.0,
+  "execution_order": [
+    0,
+    1
+  ],
+  "formula": "600 + load + 1.5 * 10 * (measured32 + measured64) + 20 * 3 + 120",
+  "note": "The 63-frame estimate uses the measured 64-frame time; real staging and GPU runtime/memory remain unmeasured."
+}

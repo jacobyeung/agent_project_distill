@@ -21,3 +21,12 @@
 - Round 9 DONE: ARKit GT binds to reader frames (same-frame IoU 0.618 vs 0.083 best alt; 0/38 change). Rotation accurate-pose loss read (small-angle MRA precision; copy 32/32). RESULT events/cont_ops/*_RESULT_ARKit_GT_binds_*; files_cam/{REPORT9,BINDING_R9,ROTATION_ACCURATE_POSE_LOSS}.md. Record D/TOWER_CAMERA_FAILURES_20261120.md + INDEX line.
 - K2 kit build RUNNING (tmux c25_k2 on 2-28; gbuild/BRIEF_K2.md; outputs gbuild/orchard_tower2x, cap/score_tower2x, REPORT_K2.md). After it: place/CPU check/submit on general per REPORT_K2 (one job on general at a time; check squeue first), ledger in cont_ops25/work/ORCHARD_LEDGER.jsonl, 1-min monitoring.
 - Then: Astra review of S2 table (BRIEF_REV1.md, review preset).
+## 09:52Z
+- K2 DONE: Orchard holds only 32 anchors for the 10 ARKit captures (kit gbuild/orchard_tower2x usable for arm A only). trinity-2-28's 8 GPUs all held by user yimingg2 (14 h) -> GPU route Orchard. QUESTION event 0948Z states the route (default proceeding).
+- Staged: governed stream cont_ops25_arkit_lowres (done; record .done.1795168190): 1,250 lowres_wide PNGs + 10 traj, 88.7 MB, /data3 ARKitScenes 3dod -> 2-28 /scratch/jjyeung/orch_n30/cont_ops25_c/arkit_lowres (stream sha 19bf2d7e… both ends). Selection: lane work/SELECTION.json (+ 2-28 cont_ops25_c/SELECTION.json).
+- K3 RUNNING (tmux c25_k3 on 2-28; gbuild/BRIEF_K3.md): recipe verification vs /scratch/jjyeung/devs1_frames, kit gbuild/orchard_tower2x_b (arms A 32, B 63, C 94), scorer cap/score_tower2x_b (similarity scale, gravity transport).
+- Then: place/CPU/submit on general (one job), fetch, score, RESULT; then Astra review of S2 table (BRIEF_REV1.md).
+- ORCH NOTE 0933Z item 1 (ARKit counted again; funnel pooled and by dataset): pooled = REPORT7, by dataset = REPORT9 tables; state in next RESULT.
+## 10:30Z
+- ORCH ANSWER 0948Z: route approved. K3: served PNGs not in /scratch/jjyeung/devs1_frames; found in /scratch/jjyeung/orch_n30/nvkey1/work/c0stage/devs1_frames. K3b: no pixel-exact recipe; near-exact = Up/Down unrotated, Left rotated CW, 2.5x upscale (mean abs err 1.08/255, max 124); Down=180 is wrong. A+A'+B forecast 29.3 min > 25.
+- K3c RUNNING (tmux c25_k3c on 2-28; gbuild/BRIEF_K3C.md): arms A' (recipe anchors) + B (63 frames); control A' vs T1 served cameras (<=1.0 deg on >=8/10); verdict B vs A'; one place.tar via a governed byte stream (io-weight 1) through tools/ossh.sh from 3-30 (/dev/shm staging, file >5 MB only in /dev/shm).

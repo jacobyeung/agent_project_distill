@@ -15,3 +15,4 @@ trinity-1-18 W=/scratch/jjyeung/orch_n30/tree_rebuild10_w (43 GB of 40 GB cap; n
 - Orchard x_22c714e1/s24m4j/ (empty dirs after overlay), s24m4j.tar 348 KB; a24m4j/ (superseded kit files, rcj_x_24m4j.py, rcj_x_cbc240f8.py, rcj_x_a5e54c7d.py).
 - trinity-3-30 tree_rebuild19/work/s24m4j.tar 348 KB and x24m4j/ (extracted copy) after N launches.
 - trinity-1-18 W/work/rcj24m4j, rcj24m4j3 (superseded helper copies; rcj24m4j4 is current), W/work/up24m4j + s24m4j.tar after N launches.
+- trinity-1-18 W/w24n (partial untar, broken), W/work/up24m4m (empty), 2-28 n30_mirror/tree_rebuild19/tree_rebuild_b24m4m_598cadf7.tar (partial, invalid).

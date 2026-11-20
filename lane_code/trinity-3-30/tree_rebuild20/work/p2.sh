@@ -1,0 +1,1 @@
+W=/scratch/jjyeung/orch_n30/tree_rebuild10_w; date -u +%TZ; grep -E 'rcj/|SHA256SUMS' $W/work/up24m4m2.sha | cut -c1-16,65-; echo; cat $W/w24m/out/RCJ_USAGE.md | head -60; echo ==; cat $W/w24m/out/BUILD24M4M_REPORT.md; echo ==; head -40 $W/w24m/out/QD_STEP1.md

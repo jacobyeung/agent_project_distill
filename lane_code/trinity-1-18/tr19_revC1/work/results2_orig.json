@@ -1,0 +1,1030 @@
+{
+ "coverage_b8_preparation.py": {
+  "run": 0,
+  "import_error": "FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/tr19_revC1/fixtures/work/build6/INIT_INPUT.json'",
+  "ok": false,
+  "seconds": 1.2
+ },
+ "ground_backend_real.py": {
+  "run": 0,
+  "failures": [],
+  "errors": [],
+  "skipped": 0,
+  "ok": true,
+  "seconds": 0.0
+ },
+ "test_batched_routed_benchmark.py": {
+  "run": 3,
+  "failures": [],
+  "errors": [],
+  "skipped": 0,
+  "ok": true,
+  "seconds": 0.0
+ },
+ "test_c1_blockers.py": {
+  "run": 9,
+  "failures": [
+   [
+    "test_exhausted_resume_saves_the_same_step_under_each_attempt (test_c1_blockers.BlockerTests.test_exhausted_resume_saves_the_same_step_under_each_attempt)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_c1_blockers.py\", line 298, in test_exhausted_resume_saves_the_same_step_under_each_attempt\n    self.assertTrue(all(call.kwargs == {'rotate': True} for call in save.call_args_list))\nAssertionError: False is not true\n"
+   ]
+  ],
+  "errors": [
+   [
+    "test_allocation_resume_across_m200_keeps_model_optimizer_rng_and_schedule (test_c1_blockers.BlockerTests.test_allocation_resume_across_m200_keeps_model_optimizer_rng_and_schedule)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_c1_blockers.py\", line 178, in test_allocation_resume_across_m200_keeps_model_optimizer_rng_and_schedule\n    expected_report = run.run_steps(reference, reference, optimizer, rows, {'pose': 37},\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/carrier_c1_run.py\", line 2462, in run_steps\n    export(output/f'm{step}',wrapped,model,cfg,step,optimizer=optimizer,disk_guard=disk_budget)\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py\", line 1139, in __call__\n    return self._mock_call(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py\", line 1143, in _mock_call\n    return self._execute_mock_call(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py\", line 1204, in _execute_mock_call\n    result = effect(*args, **kwargs)\n             ^^^^^^^^^^^^^^^^^^^^^^^\nTypeError: BlockerTests.test_allocation_resume_across_m200_keeps_model_optimizer_rng_and_schedule.<locals>.publish() got an unexpected keyword argument 'optimizer'\n"
+   ],
+   [
+    "test_allocations_reach_all_gates_without_repeating_dense_rows (test_c1_blockers.BlockerTests.test_allocations_reach_all_gates_without_repeating_dense_rows)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_c1_blockers.py\", line 227, in test_allocations_reach_all_gates_without_repeating_dense_rows\n    report = run.run_steps(None, None, None, None, {'pose': 37}, root, cfg, {},\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/carrier_c1_run.py\", line 2462, in run_steps\n    export(output/f'm{step}',wrapped,model,cfg,step,optimizer=optimizer,disk_guard=disk_budget)\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py\", line 1139, in __call__\n    return self._mock_call(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py\", line 1143, in _mock_call\n    return self._execute_mock_call(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py\", line 1204, in _execute_mock_call\n    result = effect(*args, **kwargs)\n             ^^^^^^^^^^^^^^^^^^^^^^^\nTypeError: BlockerTests.test_allocations_reach_all_gates_without_repeating_dense_rows.<locals>.<lambda>() got an unexpected keyword argument 'optimizer'\n"
+   ]
+  ],
+  "skipped": 0,
+  "ok": false,
+  "seconds": 5.1
+ },
+ "test_c1_masked_uv.py": {
+  "run": 4,
+  "failures": [
+   [
+    "test_a_rank_that_raises_mid_step_exits_without_teardown (test_c1_masked_uv.MaskedOffFrameUv.test_a_rank_that_raises_mid_step_exits_without_teardown)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_c1_masked_uv.py\", line 137, in test_a_rank_that_raises_mid_step_exits_without_teardown\n    self.assertEqual((caught.exception.error_index, caught.exception.exit_code), (1, 1))\nAssertionError: Tuples differ: (0, 1) != (1, 1)\n\nFirst differing element 0:\n0\n1\n\n- (0, 1)\n?  ^\n\n+ (1, 1)\n?  ^\n\n"
+   ]
+  ],
+  "errors": [
+   [
+    "test_two_ranks_train_two_steps_on_a1_only_and_a3_batches (test_c1_masked_uv.MaskedOffFrameUv.test_two_ranks_train_two_steps_on_a1_only_and_a3_batches)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_c1_masked_uv.py\", line 125, in test_two_ranks_train_two_steps_on_a1_only_and_a3_batches\n    mp.spawn(_two_rank_worker, args=(root, results), nprocs=2, join=True)\n  File \"/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/torch/multiprocessing/spawn.py\", line 340, in spawn\n    return start_processes(fn, args, nprocs, join, daemon, start_method=\"spawn\")\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/torch/multiprocessing/spawn.py\", line 296, in start_processes\n    while not context.join():\n              ^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/torch/multiprocessing/spawn.py\", line 200, in join\n    raise ProcessExitedException(\ntorch.multiprocessing.spawn.ProcessExitedException: process 1 terminated with exit code 1\n"
+   ]
+  ],
+  "skipped": 0,
+  "ok": false,
+  "seconds": 0.6
+ },
+ "test_c1_pose_mix_division.py": {
+  "run": 17,
+  "failures": [],
+  "errors": [],
+  "skipped": 0,
+  "ok": true,
+  "seconds": 0.1
+ },
+ "test_c1_pose_warm.py": {
+  "run": 6,
+  "failures": [],
+  "errors": [
+   [
+    "test_steps_read_the_donor_order_after_its_last_step_and_resume_exactly (test_c1_pose_warm.Offset.test_steps_read_the_donor_order_after_its_last_step_and_resume_exactly)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_c1_pose_warm.py\", line 99, in test_steps_read_the_donor_order_after_its_last_step_and_resume_exactly\n    second = run.run_steps(None, None, None, None, counts, root, cfg, {}, torch.device('cpu'),\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/carrier_c1_run.py\", line 2462, in run_steps\n    export(output/f'm{step}',wrapped,model,cfg,step,optimizer=optimizer,disk_guard=disk_budget)\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py\", line 1139, in __call__\n    return self._mock_call(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py\", line 1143, in _mock_call\n    return self._execute_mock_call(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py\", line 1204, in _execute_mock_call\n    result = effect(*args, **kwargs)\n             ^^^^^^^^^^^^^^^^^^^^^^^\nTypeError: Offset.test_steps_read_the_donor_order_after_its_last_step_and_resume_exactly.<locals>.<lambda>() got an unexpected keyword argument 'optimizer'\n"
+   ],
+   [
+    "test_pose_only_receiver_equals_the_exported_donor (test_c1_pose_warm.WarmStart.test_pose_only_receiver_equals_the_exported_donor)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_c1_pose_warm.py\", line 124, in test_pose_only_receiver_equals_the_exported_donor\n    run.export(root/'m800', donor, donor, cfg, 800)\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/carrier_c1_run.py\", line 2079, in export\n    version_metadata=metadata(cfg)\n                     ^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/trace_version.py\", line 24, in metadata\n    return {KEY: require(config.get(KEY)), 'trace_version_binding': 1}\n                 ^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/trace_version.py\", line 5, in require\n    if value is None:raise ProgramRefusal('trace_program_version_missing')\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\ntrace_format.program_errors.ProgramRefusal: trace_program_version_missing\n"
+   ]
+  ],
+  "skipped": 0,
+  "ok": false,
+  "seconds": 0.1
+ },
+ "test_c1_provenance.py": {
+  "run": 2,
+  "failures": [],
+  "errors": [],
+  "skipped": 0,
+  "ok": true,
+  "seconds": 11.4
+ },
+ "test_c1_validation_slice.py": {
+  "run": 15,
+  "failures": [],
+  "errors": [
+   [
+    "test_prepare_keeps_validation_out_of_training_counts (test_c1_validation_slice.ValidationPreparation.test_prepare_keeps_validation_out_of_training_counts)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_c1_validation_slice.py\", line 141, in test_prepare_keeps_validation_out_of_training_counts\n    cfg, receipt = self.preparation_fixture()\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_c1_validation_slice.py\", line 136, in preparation_fixture\n    receipt = run.prepare(cfg)\n              ^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/carrier_c1_run.py\", line 470, in prepare\n    version_metadata = metadata(cfg)\n                       ^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/trace_version.py\", line 24, in metadata\n    return {KEY: require(config.get(KEY)), 'trace_version_binding': 1}\n                 ^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/trace_version.py\", line 5, in require\n    if value is None:raise ProgramRefusal('trace_program_version_missing')\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\ntrace_format.program_errors.ProgramRefusal: trace_program_version_missing\n"
+   ],
+   [
+    "test_prepared_refuses_changed_pins_and_authenticates_validation_files (test_c1_validation_slice.ValidationPreparation.test_prepared_refuses_changed_pins_and_authenticates_validation_files)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_c1_validation_slice.py\", line 149, in test_prepared_refuses_changed_pins_and_authenticates_validation_files\n    cfg, receipt = self.preparation_fixture()\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_c1_validation_slice.py\", line 136, in preparation_fixture\n    receipt = run.prepare(cfg)\n              ^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/carrier_c1_run.py\", line 470, in prepare\n    version_metadata = metadata(cfg)\n                       ^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/trace_version.py\", line 24, in metadata\n    return {KEY: require(config.get(KEY)), 'trace_version_binding': 1}\n                 ^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/trace_version.py\", line 5, in require\n    if value is None:raise ProgramRefusal('trace_program_version_missing')\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\ntrace_format.program_errors.ProgramRefusal: trace_program_version_missing\n"
+   ],
+   [
+    "test_native_loop_reads_after_export_and_smoke_never_reads (test_c1_validation_slice.ValidationRead.test_native_loop_reads_after_export_and_smoke_never_reads)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_c1_validation_slice.py\", line 325, in test_native_loop_reads_after_export_and_smoke_never_reads\n    report = run.run_steps(None, None, None, rows, dict(pose=9, vqa=9, pointing=9), directory(), cfg, {},\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/carrier_c1_run.py\", line 2462, in run_steps\n    export(output/f'm{step}',wrapped,model,cfg,step,optimizer=optimizer,disk_guard=disk_budget)\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py\", line 1139, in __call__\n    return self._mock_call(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py\", line 1143, in _mock_call\n    return self._execute_mock_call(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py\", line 1204, in _execute_mock_call\n    result = effect(*args, **kwargs)\n             ^^^^^^^^^^^^^^^^^^^^^^^\nTypeError: ValidationRead.test_native_loop_reads_after_export_and_smoke_never_reads.<locals>.<lambda>() got an unexpected keyword argument 'optimizer'\n"
+   ],
+   [
+    "test_two_rank_fsdp_padding_best_tie_reuse_and_shared_skip (test_c1_validation_slice.ValidationRead.test_two_rank_fsdp_padding_best_tie_reuse_and_shared_skip)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_c1_validation_slice.py\", line 219, in test_two_rank_fsdp_padding_best_tie_reuse_and_shared_skip\n    mp.spawn(_validation_worker, args=(str(root),), nprocs=2, join=True)\n  File \"/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/torch/multiprocessing/spawn.py\", line 340, in spawn\n    return start_processes(fn, args, nprocs, join, daemon, start_method=\"spawn\")\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/torch/multiprocessing/spawn.py\", line 296, in start_processes\n    while not context.join():\n              ^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/torch/multiprocessing/spawn.py\", line 200, in join\n    raise ProcessExitedException(\ntorch.multiprocessing.spawn.ProcessExitedException: process 1 terminated with exit code 1\n"
+   ]
+  ],
+  "skipped": 0,
+  "ok": false,
+  "seconds": 1.4
+ },
+ "test_carrier_c1_clip.py": {
+  "run": 4,
+  "failures": [],
+  "errors": [],
+  "skipped": 0,
+  "ok": true,
+  "seconds": 0.4
+ },
+ "test_carrier_c1_cp2.py": {
+  "run": 11,
+  "failures": [],
+  "errors": [
+   [
+    "test_revision_3_11_rows_rerender_closest_as_one_min_line (test_carrier_c1_cp2.TraceRevisionCalculator.test_revision_3_11_rows_rerender_closest_as_one_min_line)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_carrier_c1_cp2.py\", line 88, in test_revision_3_11_rows_rerender_closest_as_one_min_line\n    DerivgenRows.setUpClass()\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_carrier_c1_routing.py\", line 106, in setUpClass\n    cls.rows = [json.loads(line) for line in POOL.open()]\n                                             ^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py\", line 1013, in open\n    return io.open(self, mode, buffering, encoding, errors, newline)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nFileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_cd/derivgen/review_pool/POOL.jsonl'\n"
+   ]
+  ],
+  "skipped": 0,
+  "ok": false,
+  "seconds": 0.1
+ },
+ "test_carrier_c1_final.py": {
+  "run": 13,
+  "failures": [],
+  "errors": [],
+  "skipped": 2,
+  "ok": true,
+  "seconds": 1.6
+ },
+ "test_carrier_c1_layout.py": {
+  "run": 8,
+  "failures": [],
+  "errors": [],
+  "skipped": 0,
+  "ok": true,
+  "seconds": 1.7
+ },
+ "test_carrier_c1_memory.py": {
+  "run": 10,
+  "failures": [],
+  "errors": [
+   [
+    "test_cpu_accumulation_and_checkpoint_resume_without_sockets (test_carrier_c1_memory.MemoryTests.test_cpu_accumulation_and_checkpoint_resume_without_sockets)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_carrier_c1_memory.py\", line 230, in test_cpu_accumulation_and_checkpoint_resume_without_sockets\n    run.export(root / 'export', model, model, {'base_identity': 'fixture'}, 2)\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/carrier_c1_run.py\", line 2079, in export\n    version_metadata=metadata(cfg)\n                     ^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/trace_version.py\", line 24, in metadata\n    return {KEY: require(config.get(KEY)), 'trace_version_binding': 1}\n                 ^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/trace_version.py\", line 5, in require\n    if value is None:raise ProgramRefusal('trace_program_version_missing')\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\ntrace_format.program_errors.ProgramRefusal: trace_program_version_missing\n"
+   ],
+   [
+    "test_offload_gloo_accumulation_resume_export (test_carrier_c1_memory.MemoryTests.test_offload_gloo_accumulation_resume_export)",
+    "ratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_carrier_c1_memory.py\", line 50, in offload_worker\n    run.optimize_step(wrapped, optimizer, rows, plans[0], rank, torch.device('cpu'), 1, True)\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/carrier_c1_run.py\", line 1587, in optimize_step\n    (result['loss']/len(plan)).backward()\n  File \"/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/torch/_tensor.py\", line 631, in backward\n    torch.autograd.backward(\n  File \"/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/torch/autograd/__init__.py\", line 381, in backward\n    _engine_run_backward(\n  File \"/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/torch/autograd/graph.py\", line 869, in _engine_run_backward\n    return Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/torch/utils/_contextlib.py\", line 124, in decorate_context\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/torch/distributed/fsdp/_runtime_utils.py\", line 1111, in _post_backward_final_callback\n    state._device_handle.current_stream().synchronize()\n    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAttributeError: 'Stream' object has no attribute 'synchronize'\n\n"
+   ]
+  ],
+  "skipped": 0,
+  "ok": false,
+  "seconds": 3.4
+ },
+ "test_carrier_c1_prefix.py": {
+  "run": 1,
+  "failures": [],
+  "errors": [
+   [
+    "test_06_full_scale_virtual_store_native_prepare (test_carrier_c1_prefix.PrefixTests.test_06_full_scale_virtual_store_native_prepare)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_carrier_c1_prefix.py\", line 97, in test_06_full_scale_virtual_store_native_prepare\n    prepared=candidate.prepare(cfg)\n             ^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/carrier_c1_run.py\", line 470, in prepare\n    version_metadata = metadata(cfg)\n                       ^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/trace_version.py\", line 24, in metadata\n    return {KEY: require(config.get(KEY)), 'trace_version_binding': 1}\n                 ^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/trace_version.py\", line 5, in require\n    if value is None:raise ProgramRefusal('trace_program_version_missing')\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\ntrace_format.program_errors.ProgramRefusal: trace_program_version_missing\n"
+   ]
+  ],
+  "skipped": 0,
+  "ok": false,
+  "seconds": 0.3
+ },
+ "test_carrier_c1_run.py": {
+  "run": 13,
+  "failures": [],
+  "errors": [],
+  "skipped": 0,
+  "ok": true,
+  "seconds": 5.0
+ },
+ "test_carrier_c1_single_image.py": {
+  "run": 6,
+  "failures": [],
+  "errors": [
+   [
+    "test_prepare_skips_paired_layout_only_for_single_images (test_carrier_c1_single_image.SingleImageTests.test_prepare_skips_paired_layout_only_for_single_images)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_carrier_c1_single_image.py\", line 228, in test_prepare_skips_paired_layout_only_for_single_images\n    prepared = run.prepare(cfg)\n               ^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/carrier_c1_run.py\", line 470, in prepare\n    version_metadata = metadata(cfg)\n                       ^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/trace_version.py\", line 24, in metadata\n    return {KEY: require(config.get(KEY)), 'trace_version_binding': 1}\n                 ^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/trace_version.py\", line 5, in require\n    if value is None:raise ProgramRefusal('trace_program_version_missing')\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\ntrace_format.program_errors.ProgramRefusal: trace_program_version_missing\n"
+   ]
+  ],
+  "skipped": 0,
+  "ok": false,
+  "seconds": 0.8
+ },
+ "test_carrier_c1_sweep.py": {
+  "run": 12,
+  "failures": [],
+  "errors": [],
+  "skipped": 0,
+  "ok": true,
+  "seconds": 3.9
+ },
+ "test_carrier_c1_t0.py": {
+  "run": 24,
+  "failures": [
+   [
+    "test_export_leg_needs_a_resume_pin_and_no_smoke (test_carrier_c1_t0.ExportLeg.test_export_leg_needs_a_resume_pin_and_no_smoke)",
+    "trace_format.program_errors.ProgramRefusal: trace_program_version_missing\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_carrier_c1_t0.py\", line 325, in test_export_leg_needs_a_resume_pin_and_no_smoke\n    with self.assertRaisesRegex(ValueError, 'export leg'):\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: \"export leg\" does not match \"trace_program_version_missing\"\n"
+   ],
+   [
+    "test_export_resume_state_reuses_an_existing_export (test_carrier_c1_t0.ExportLeg.test_export_resume_state_reuses_an_existing_export)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_carrier_c1_t0.py\", line 340, in test_export_resume_state_reuses_an_existing_export\n    export.assert_called_once_with(Path(root)/'m1234', 'wrapped', 'model', {'c': 1}, 1234)\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py\", line 961, in assert_called_once_with\n    return self.assert_called_with(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py\", line 949, in assert_called_with\n    raise AssertionError(_error_message()) from cause\nAssertionError: expected call not found.\nExpected: export(PosixPath('/scratch/jjyeung/orch_n30/tr19_revC1/work/tmp_orig/tmpxyof8gor/m1234'), 'wrapped', 'model', {'c': 1}, 1234)\n  Actual: export(PosixPath('/scratch/jjyeung/orch_n30/tr19_revC1/work/tmp_orig/tmpxyof8gor/m1234'), 'wrapped', 'model', {'c': 1}, 1234, optimizer=None, disk_guard=None)\n"
+   ],
+   [
+    "test_records_finite_rows_substitutions_and_failures (test_carrier_c1_t0.FirstBatchCheck.test_records_finite_rows_substitutions_and_failures)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_carrier_c1_t0.py\", line 451, in test_records_finite_rows_substitutions_and_failures\n    self.assertTrue(all(r['finite'] for r in records))\nAssertionError: False is not true\n"
+   ],
+   [
+    "test_head_graft_loads_pose_only_and_refuses_key_or_placement_drift (test_carrier_c1_t0.T0Teacher.test_head_graft_loads_pose_only_and_refuses_key_or_placement_drift)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_carrier_c1_t0.py\", line 288, in test_head_graft_loads_pose_only_and_refuses_key_or_placement_drift\n    self.assertEqual((report['kept'], receiver.inherited_head_params),\nAssertionError: Tuples differ: (['depth', 'depth_readout', 'heading'], ['embed_po[41 chars]s1']) != (['depth'], ['embed_pose.bias', 'token_norm.weight[13 chars]s1'])\n\nFirst differing element 0:\n['depth', 'depth_readout', 'heading']\n['depth']\n\n- (['depth', 'depth_readout', 'heading'],\n-  ['embed_pose.bias', 'token_norm.weight', 'trunk.0.ls1'])\n+ (['depth'], ['embed_pose.bias', 'token_norm.weight', 'trunk.0.ls1'])\n? +++++++++++\n\n"
+   ]
+  ],
+  "errors": [
+   [
+    "test_pose_mix_receives_the_union_and_other_streams_do_not (test_carrier_c1_t0.PoseExclusions.test_pose_mix_receives_the_union_and_other_streams_do_not)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_carrier_c1_t0.py\", line 498, in test_pose_mix_receives_the_union_and_other_streams_do_not\n    run.prepare(cfg)\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/carrier_c1_run.py\", line 470, in prepare\n    version_metadata = metadata(cfg)\n                       ^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/trace_version.py\", line 24, in metadata\n    return {KEY: require(config.get(KEY)), 'trace_version_binding': 1}\n                 ^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/trace_version.py\", line 5, in require\n    if value is None:raise ProgramRefusal('trace_program_version_missing')\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\ntrace_format.program_errors.ProgramRefusal: trace_program_version_missing\n"
+   ],
+   [
+    "test_fetch_substitutes_then_skips_and_checks_rows (test_carrier_c1_t0.T0Guards.test_fetch_substitutes_then_skips_and_checks_rows)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_carrier_c1_t0.py\", line 63, in test_fetch_substitutes_then_skips_and_checks_rows\n    batch, _, audit = run.fetch(StubRows({0, 1}), 'routing', 0, model)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/carrier_c1_run.py\", line 1419, in fetch\n    raise ValueError(f'Final-mode row failure: stream={stream}, index={index}, local_errors={errors}; no substitution')\nValueError: Final-mode row failure: stream=routing, index=0, local_errors=['ValueError: Complete routing row exceeds 16384 tokens']; no substitution\n"
+   ],
+   [
+    "test_rank_synced_decisions_over_gloo (test_carrier_c1_t0.T0Guards.test_rank_synced_decisions_over_gloo)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_carrier_c1_t0.py\", line 79, in test_rank_synced_decisions_over_gloo\n    mp.spawn(_fetch_worker, args=(2, str(Path(root)/'rdzv'), results), nprocs=2, join=True)\n  File \"/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/torch/multiprocessing/spawn.py\", line 340, in spawn\n    return start_processes(fn, args, nprocs, join, daemon, start_method=\"spawn\")\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/torch/multiprocessing/spawn.py\", line 296, in start_processes\n    while not context.join():\n              ^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/torch/multiprocessing/spawn.py\", line 200, in join\n    raise ProcessExitedException(\ntorch.multiprocessing.spawn.ProcessExitedException: process 0 terminated with exit code 1\n"
+   ]
+  ],
+  "skipped": 0,
+  "ok": false,
+  "seconds": 9.3
+ },
+ "test_e2e_ground_tokens.py": {
+  "run": 6,
+  "failures": [],
+  "errors": [
+   [
+    "test_public_decode_attach_binds_and_loads_trained_opener_rows (test_e2e_ground_tokens.GroundTokens.test_public_decode_attach_binds_and_loads_trained_opener_rows)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_e2e_ground_tokens.py\", line 217, in test_public_decode_attach_binds_and_loads_trained_opener_rows\n    model,_,_=fixture(frames=2,lora_rank=4)\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_stageb_mdg.py\", line 48, in fixture\n    head = MaskGroundingHead(head_config(lm_dim=32, vit_dim=32, phrase_max=8))\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/mask_grounding_head.py\", line 163, in __init__\n    self.stem = _Stem(cfg, _load_pretrained)\n                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/mask_grounding_head.py\", line 119, in __init__\n    from torchvision.models import resnet18\nModuleNotFoundError: No module named 'torchvision'\n"
+   ],
+   [
+    "test_reserved_rows_initialize_once_and_export_weights_restore_exactly (test_e2e_ground_tokens.GroundTokens.test_reserved_rows_initialize_once_and_export_weights_restore_exactly)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_e2e_ground_tokens.py\", line 95, in test_reserved_rows_initialize_once_and_export_weights_restore_exactly\n    model, batch, _ = fixture(frames=2, lora_rank=4)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_stageb_mdg.py\", line 48, in fixture\n    head = MaskGroundingHead(head_config(lm_dim=32, vit_dim=32, phrase_max=8))\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/mask_grounding_head.py\", line 163, in __init__\n    self.stem = _Stem(cfg, _load_pretrained)\n                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/mask_grounding_head.py\", line 119, in __init__\n    from torchvision.models import resnet18\nModuleNotFoundError: No module named 'torchvision'\n"
+   ],
+   [
+    "test_standalone_bundle_restores_the_two_learned_rows_without_training_inputs (test_e2e_ground_tokens.GroundTokens.test_standalone_bundle_restores_the_two_learned_rows_without_training_inputs)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_e2e_ground_tokens.py\", line 176, in test_standalone_bundle_restores_the_two_learned_rows_without_training_inputs\n    Runtime.setUpClass()\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_mdg_runtime.py\", line 76, in setUpClass\n    c1.export(cls.artifact_dir, trained, trained, cls.native, 1)\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/carrier_c1_run.py\", line 2085, in export\n    dist.get_rank(), dist.get_world_size(), budget, export_named=export_named, kind='export')\n                     ^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/torch/distributed/distributed_c10d.py\", line 2507, in get_world_size\n    return _get_group_size(group)\n           ^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/torch/distributed/distributed_c10d.py\", line 1135, in _get_group_size\n    default_pg = _get_default_group()\n                 ^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/torch/distributed/distributed_c10d.py\", line 1362, in _get_default_group\n    raise ValueError(\nValueError: Default process group has not been initialized, please make sure to call init_process_group.\n"
+   ],
+   [
+    "test_training_and_native_decode_gate_the_same_atomic_call_positions (test_e2e_ground_tokens.GroundTokens.test_training_and_native_decode_gate_the_same_atomic_call_positions)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_e2e_ground_tokens.py\", line 30, in test_training_and_native_decode_gate_the_same_atomic_call_positions\n    model, batch, _ = fixture(frames=2, lora_rank=4)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_stageb_mdg.py\", line 48, in fixture\n    head = MaskGroundingHead(head_config(lm_dim=32, vit_dim=32, phrase_max=8))\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/mask_grounding_head.py\", line 163, in __init__\n    self.stem = _Stem(cfg, _load_pretrained)\n                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/mask_grounding_head.py\", line 119, in __init__\n    from torchvision.models import resnet18\nModuleNotFoundError: No module named 'torchvision'\n"
+   ],
+   [
+    "test_two_opener_rows_train_with_a_frozen_lm_and_reload (test_e2e_ground_tokens.GroundTokens.test_two_opener_rows_train_with_a_frozen_lm_and_reload)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_e2e_ground_tokens.py\", line 125, in test_two_opener_rows_train_with_a_frozen_lm_and_reload\n    model, batch, _ = fixture(frames=2, lora_rank=4)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_stageb_mdg.py\", line 48, in fixture\n    head = MaskGroundingHead(head_config(lm_dim=32, vit_dim=32, phrase_max=8))\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/mask_grounding_head.py\", line 163, in __init__\n    self.stem = _Stem(cfg, _load_pretrained)\n                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/mask_grounding_head.py\", line 119, in __init__\n    from torchvision.models import resnet18\nModuleNotFoundError: No module named 'torchvision'\n"
+   ]
+  ],
+  "skipped": 0,
+  "ok": false,
+  "seconds": 0.4
+ },
+ "test_e2e_inputs.py": {
+  "run": 1,
+  "failures": [],
+  "errors": [],
+  "skipped": 1,
+  "ok": true,
+  "seconds": 0.0
+ },
+ "test_e2e_merge.py": {
+  "run": 7,
+  "failures": [],
+  "errors": [
+   [
+    "test_mdg_limit_counts_the_longest_grounding_suffix (test_e2e_merge.Integrated.test_mdg_limit_counts_the_longest_grounding_suffix)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_e2e_merge.py\", line 148, in test_mdg_limit_counts_the_longest_grounding_suffix\n    model, batch, target = fixture()\n                           ^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_stageb_mdg.py\", line 48, in fixture\n    head = MaskGroundingHead(head_config(lm_dim=32, vit_dim=32, phrase_max=8))\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/mask_grounding_head.py\", line 163, in __init__\n    self.stem = _Stem(cfg, _load_pretrained)\n                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/mask_grounding_head.py\", line 119, in __init__\n    from torchvision.models import resnet18\nModuleNotFoundError: No module named 'torchvision'\n"
+   ],
+   [
+    "test_native_optimizer_runs_all_five_streams_with_half_reference_groups (test_e2e_merge.Integrated.test_native_optimizer_runs_all_five_streams_with_half_reference_groups)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_e2e_merge.py\", line 133, in test_native_optimizer_runs_all_five_streams_with_half_reference_groups\n    model, rows = fixture_rows(cfg, bf16=False)\n                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tools/e2e_cpu_first_batch.py\", line 20, in fixture_rows\n    model, mdg_batch, mdg_target = fixture(lora_rank=config['mdg']['lora_rank'])\n                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_stageb_mdg.py\", line 48, in fixture\n    head = MaskGroundingHead(head_config(lm_dim=32, vit_dim=32, phrase_max=8))\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/mask_grounding_head.py\", line 163, in __init__\n    self.stem = _Stem(cfg, _load_pretrained)\n                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/mask_grounding_head.py\", line 119, in __init__\n    from torchvision.models import resnet18\nModuleNotFoundError: No module named 'torchvision'\n"
+   ]
+  ],
+  "skipped": 0,
+  "ok": false,
+  "seconds": 0.1
+ },
+ "test_e2e_pose_source_guard.py": {
+  "run": 4,
+  "failures": [],
+  "errors": [],
+  "skipped": 0,
+  "ok": true,
+  "seconds": 0.0
+ },
+ "test_e2e_shared_rows.py": {
+  "run": 5,
+  "failures": [],
+  "errors": [
+   [
+    "test_export_artifact_warm_start_preserves_the_shared_rows (test_e2e_shared_rows.SharedRows.test_export_artifact_warm_start_preserves_the_shared_rows)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_e2e_shared_rows.py\", line 90, in test_export_artifact_warm_start_preserves_the_shared_rows\n    model, _, _ = fixture(frames=2, lora_rank=4)\n                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_stageb_mdg.py\", line 48, in fixture\n    head = MaskGroundingHead(head_config(lm_dim=32, vit_dim=32, phrase_max=8))\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/mask_grounding_head.py\", line 163, in __init__\n    self.stem = _Stem(cfg, _load_pretrained)\n                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/mask_grounding_head.py\", line 119, in __init__\n    from torchvision.models import resnet18\nModuleNotFoundError: No module named 'torchvision'\n"
+   ],
+   [
+    "test_frozen_lm_routing_ce_trains_both_shared_input_and_output_rows (test_e2e_shared_rows.SharedRows.test_frozen_lm_routing_ce_trains_both_shared_input_and_output_rows)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_e2e_shared_rows.py\", line 59, in test_frozen_lm_routing_ce_trains_both_shared_input_and_output_rows\n    model, batch, _ = fixture(frames=2, lora_rank=4)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_stageb_mdg.py\", line 48, in fixture\n    head = MaskGroundingHead(head_config(lm_dim=32, vit_dim=32, phrase_max=8))\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/mask_grounding_head.py\", line 163, in __init__\n    self.stem = _Stem(cfg, _load_pretrained)\n                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/mask_grounding_head.py\", line 119, in __init__\n    from torchvision.models import resnet18\nModuleNotFoundError: No module named 'torchvision'\n"
+   ],
+   [
+    "test_main_and_query_share_rows_and_only_two_embedding_rows_change (test_e2e_shared_rows.SharedRows.test_main_and_query_share_rows_and_only_two_embedding_rows_change)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_e2e_shared_rows.py\", line 18, in test_main_and_query_share_rows_and_only_two_embedding_rows_change\n    model, _, _ = fixture(frames=2, lora_rank=4)\n                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_stageb_mdg.py\", line 48, in fixture\n    head = MaskGroundingHead(head_config(lm_dim=32, vit_dim=32, phrase_max=8))\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/mask_grounding_head.py\", line 163, in __init__\n    self.stem = _Stem(cfg, _load_pretrained)\n                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/mask_grounding_head.py\", line 119, in __init__\n    from torchvision.models import resnet18\nModuleNotFoundError: No module named 'torchvision'\n"
+   ],
+   [
+    "test_main_full_routing_suffix_logits_equal_without_adapters (test_e2e_shared_rows.SharedRows.test_main_full_routing_suffix_logits_equal_without_adapters)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_e2e_shared_rows.py\", line 117, in test_main_full_routing_suffix_logits_equal_without_adapters\n    model, batch, _ = fixture(frames=2, lora_rank=0)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_stageb_mdg.py\", line 48, in fixture\n    head = MaskGroundingHead(head_config(lm_dim=32, vit_dim=32, phrase_max=8))\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/mask_grounding_head.py\", line 163, in __init__\n    self.stem = _Stem(cfg, _load_pretrained)\n                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/mask_grounding_head.py\", line 119, in __init__\n    from torchvision.models import resnet18\nModuleNotFoundError: No module named 'torchvision'\n"
+   ],
+   [
+    "test_warm_full_export_retains_learned_rows (test_e2e_shared_rows.SharedRows.test_warm_full_export_retains_learned_rows)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_e2e_shared_rows.py\", line 45, in test_warm_full_export_retains_learned_rows\n    model, _, _ = fixture(frames=2, lora_rank=4)\n                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_stageb_mdg.py\", line 48, in fixture\n    head = MaskGroundingHead(head_config(lm_dim=32, vit_dim=32, phrase_max=8))\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/mask_grounding_head.py\", line 163, in __init__\n    self.stem = _Stem(cfg, _load_pretrained)\n                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/mask_grounding_head.py\", line 119, in __init__\n    from torchvision.models import resnet18\nModuleNotFoundError: No module named 'torchvision'\n"
+   ]
+  ],
+  "skipped": 0,
+  "ok": false,
+  "seconds": 0.2
+ },
+ "test_gf1_cache.py": {
+  "run": 12,
+  "failures": [
+   [
+    "test_parity_cached_vs_online (test_gf1_cache.CachedBank.test_parity_cached_vs_online)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_gf1_cache.py\", line 309, in test_parity_cached_vs_online\n    self.assertEqual(failures, [])\nAssertionError: Lists differ: [('bf16_tower_bf16_base_bf16_cache_pre_lm'[206 chars]se})] != []\n\nFirst list contains 1 additional elements.\nFirst extra element 0:\n('bf16_tower_bf16_base_bf16_cache_pre_lm', 'grad.norms.2.weight', {'max_abs': 1.5396857634186745e-05, 'max_rel': 0.017092852841054485, 'ref_max': 0.0009007775224745274, 'tolerance_rel': 0.015625, 'bf16_floor_rel': 0.016455502265547733, 'pass': False})\n\n+ []\n- [('bf16_tower_bf16_base_bf16_cache_pre_lm',\n-   'grad.norms.2.weight',\n-   {'bf16_floor_rel': 0.016455502265547733,\n-    'max_abs': 1.5396857634186745e-05,\n-    'max_rel': 0.017092852841054485,\n-    'pass': False,\n-    'ref_max': 0.0009007775224745274,\n-    'tolerance_rel': 0.015625})]\n"
+   ]
+  ],
+  "errors": [],
+  "skipped": 0,
+  "ok": false,
+  "seconds": 63.0
+ },
+ "test_gf1_contracts.py": {
+  "run": 9,
+  "failures": [],
+  "errors": [],
+  "skipped": 0,
+  "ok": true,
+  "seconds": 1.2
+ },
+ "test_gf1_review.py": {
+  "run": 6,
+  "failures": [],
+  "errors": [
+   [
+    "test_nonzero_camera_base_tree_step_zero_logits (test_gf1_review.ReviewRegression.test_nonzero_camera_base_tree_step_zero_logits)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_gf1_review.py\", line 136, in test_nonzero_camera_base_tree_step_zero_logits\n    model.auxiliary_heads.pose.cam_token_connector.mlp[2].weight.normal_(std=.01)\n    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAttributeError: 'NoneType' object has no attribute 'mlp'\n"
+   ],
+   [
+    "test_unpatched_dense64_non_square_impulse_to_input_id (test_gf1_review.ReviewRegression.test_unpatched_dense64_non_square_impulse_to_input_id)",
+    "s.py\", line 208, in encode_frames\n    batch = processor(text=[prompt], videos=[arrays], video_metadata=[metadata], do_sample_frames=False,\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_gf1_review.py\", line 52, in __call__\n    packed=self.video_processor(videos=videos,video_metadata=video_metadata,**kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/transformers/video_processing_utils.py\", line 178, in __call__\n    return self.preprocess(videos, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/transformers/video_processing_utils.py\", line 369, in preprocess\n    preprocessed_videos = self._preprocess(videos=videos, **kwargs)\n                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/transformers/models/qwen3_vl/video_processing_qwen3_vl.py\", line 191, in _preprocess\n    stacked_videos = self.convert_to_rgb(stacked_videos)\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/transformers/video_processing_utils.py\", line 195, in convert_to_rgb\n    video = tvF.grayscale_to_rgb(video)\n            ^^^\nNameError: name 'tvF' is not defined\n"
+   ]
+  ],
+  "skipped": 0,
+  "ok": false,
+  "seconds": 3.9
+ },
+ "test_gf1_trainer.py": {
+  "run": 10,
+  "failures": [],
+  "errors": [],
+  "skipped": 0,
+  "ok": true,
+  "seconds": 21.2
+ },
+ "test_grounding_eval.py": {
+  "run": 7,
+  "failures": [],
+  "errors": [
+   [
+    "test_actual_scorer_accepts_record_schema_and_parses (test_grounding_eval.GroundingEval.test_actual_scorer_accepts_record_schema_and_parses)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_grounding_eval.py\", line 34, in setUp\n    self.pm = evaluation.pointing_module()\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/grounding_eval.py\", line 30, in pointing_module\n    spec.loader.exec_module(module)\n  File \"<frozen importlib._bootstrap_external>\", line 995, in exec_module\n  File \"<frozen importlib._bootstrap_external>\", line 1132, in get_code\n  File \"<frozen importlib._bootstrap_external>\", line 1190, in get_data\nFileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_cd/evalx/work/aws_vg/evaluator/evalpath/__init__.py'\n"
+   ],
+   [
+    "test_failed_items_resume_and_changed_binding_refuses (test_grounding_eval.GroundingEval.test_failed_items_resume_and_changed_binding_refuses)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_grounding_eval.py\", line 34, in setUp\n    self.pm = evaluation.pointing_module()\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/grounding_eval.py\", line 31, in pointing_module\n    return importlib.import_module(name+'.pointing_markers')\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/importlib/__init__.py\", line 90, in import_module\n    return _bootstrap._gcd_import(name[level:], package, level)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<frozen importlib._bootstrap>\", line 1387, in _gcd_import\n  File \"<frozen importlib._bootstrap>\", line 1360, in _find_and_load\n  File \"<frozen importlib._bootstrap>\", line 1324, in _find_and_load_unlocked\nModuleNotFoundError: No module named '_grounding_evalpath_c518c8501c4755a6.pointing_markers'\n"
+   ],
+   [
+    "test_group_one_prefill_and_resume (test_grounding_eval.GroundingEval.test_group_one_prefill_and_resume)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_grounding_eval.py\", line 34, in setUp\n    self.pm = evaluation.pointing_module()\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/grounding_eval.py\", line 31, in pointing_module\n    return importlib.import_module(name+'.pointing_markers')\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/importlib/__init__.py\", line 90, in import_module\n    return _bootstrap._gcd_import(name[level:], package, level)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<frozen importlib._bootstrap>\", line 1387, in _gcd_import\n  File \"<frozen importlib._bootstrap>\", line 1360, in _find_and_load\n  File \"<frozen importlib._bootstrap>\", line 1324, in _find_and_load_unlocked\nModuleNotFoundError: No module named '_grounding_evalpath_c518c8501c4755a6.pointing_markers'\n"
+   ],
+   [
+    "test_group_sharding_and_missing_merge (test_grounding_eval.GroundingEval.test_group_sharding_and_missing_merge)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_grounding_eval.py\", line 34, in setUp\n    self.pm = evaluation.pointing_module()\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/grounding_eval.py\", line 31, in pointing_module\n    return importlib.import_module(name+'.pointing_markers')\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/importlib/__init__.py\", line 90, in import_module\n    return _bootstrap._gcd_import(name[level:], package, level)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<frozen importlib._bootstrap>\", line 1387, in _gcd_import\n  File \"<frozen importlib._bootstrap>\", line 1360, in _find_and_load\n  File \"<frozen importlib._bootstrap>\", line 1324, in _find_and_load_unlocked\nModuleNotFoundError: No module named '_grounding_evalpath_c518c8501c4755a6.pointing_markers'\n"
+   ],
+   [
+    "test_runtime_uses_routed_loaders_and_binds_gh_to_t0 (test_grounding_eval.GroundingEval.test_runtime_uses_routed_loaders_and_binds_gh_to_t0)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_grounding_eval.py\", line 34, in setUp\n    self.pm = evaluation.pointing_module()\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/grounding_eval.py\", line 31, in pointing_module\n    return importlib.import_module(name+'.pointing_markers')\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/importlib/__init__.py\", line 90, in import_module\n    return _bootstrap._gcd_import(name[level:], package, level)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<frozen importlib._bootstrap>\", line 1387, in _gcd_import\n  File \"<frozen importlib._bootstrap>\", line 1360, in _find_and_load\n  File \"<frozen importlib._bootstrap>\", line 1324, in _find_and_load_unlocked\nModuleNotFoundError: No module named '_grounding_evalpath_c518c8501c4755a6.pointing_markers'\n"
+   ],
+   [
+    "test_selection_and_metadata_guards (test_grounding_eval.GroundingEval.test_selection_and_metadata_guards)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_grounding_eval.py\", line 34, in setUp\n    self.pm = evaluation.pointing_module()\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/grounding_eval.py\", line 31, in pointing_module\n    return importlib.import_module(name+'.pointing_markers')\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/importlib/__init__.py\", line 90, in import_module\n    return _bootstrap._gcd_import(name[level:], package, level)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<frozen importlib._bootstrap>\", line 1387, in _gcd_import\n  File \"<frozen importlib._bootstrap>\", line 1360, in _find_and_load\n  File \"<frozen importlib._bootstrap>\", line 1324, in _find_and_load_unlocked\nModuleNotFoundError: No module named '_grounding_evalpath_c518c8501c4755a6.pointing_markers'\n"
+   ],
+   [
+    "test_to_ground_harness_format (test_grounding_eval.GroundingEval.test_to_ground_harness_format)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_grounding_eval.py\", line 34, in setUp\n    self.pm = evaluation.pointing_module()\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/grounding_eval.py\", line 31, in pointing_module\n    return importlib.import_module(name+'.pointing_markers')\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/importlib/__init__.py\", line 90, in import_module\n    return _bootstrap._gcd_import(name[level:], package, level)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<frozen importlib._bootstrap>\", line 1387, in _gcd_import\n  File \"<frozen importlib._bootstrap>\", line 1360, in _find_and_load\n  File \"<frozen importlib._bootstrap>\", line 1324, in _find_and_load_unlocked\nModuleNotFoundError: No module named '_grounding_evalpath_c518c8501c4755a6.pointing_markers'\n"
+   ]
+  ],
+  "skipped": 0,
+  "ok": false,
+  "seconds": 0.0
+ },
+ "test_grounding_train.py": {
+  "run": 17,
+  "failures": [],
+  "errors": [
+   [
+    "test_routed_loading_refuses_identity_drift (test_grounding_train.Trainer.test_routed_loading_refuses_identity_drift)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_grounding_train.py\", line 432, in test_routed_loading_refuses_identity_drift\n    train.load_runtime(cfg, torch.device('cpu'))\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/grounding_train.py\", line 45, in load_runtime\n    resolve(load(pinned(cfg['base_artifact'])),cfg)\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/trace_version.py\", line 15, in resolve\n    return require(requested)  # Pre-field exports require an explicit run setting.\n           ^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/trace_version.py\", line 5, in require\n    if value is None:raise ProgramRefusal('trace_program_version_missing')\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\ntrace_format.program_errors.ProgramRefusal: trace_program_version_missing\n"
+   ]
+  ],
+  "skipped": 0,
+  "ok": false,
+  "seconds": 7.8
+ },
+ "test_gx_carrier.py": {
+  "run": 39,
+  "failures": [],
+  "errors": [
+   [
+    "test_two_rank_gxp_first_batch_forward_backward (test_gx_carrier.GXPTests.test_two_rank_gxp_first_batch_forward_backward)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_gx_carrier.py\", line 1404, in test_two_rank_gxp_first_batch_forward_backward\n    run_workers(patch_distributed_worker, (str(directory),))\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/retained_workers.py\", line 34, in run_workers\n    raise RuntimeError(\"Native CPU test workers failed: \"+str([worker.exitcode for worker in workers]))\nRuntimeError: Native CPU test workers failed: [1, 1]\n"
+   ],
+   [
+    "test_native_layout_matches_vendor_on_augmented_viewpoints (test_gx_carrier.GXTests.test_native_layout_matches_vendor_on_augmented_viewpoints) (layout='duplicate')",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_gx_carrier.py\", line 308, in test_native_layout_matches_vendor_on_augmented_viewpoints\n    augmented = augment(source, jitter)\n                ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/pose_samples.py\", line 156, in augment\n    from torchvision.transforms.v2 import functional as TF\nModuleNotFoundError: No module named 'torchvision'\n"
+   ],
+   [
+    "test_native_layout_matches_vendor_on_augmented_viewpoints (test_gx_carrier.GXTests.test_native_layout_matches_vendor_on_augmented_viewpoints) (layout='paired')",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_gx_carrier.py\", line 308, in test_native_layout_matches_vendor_on_augmented_viewpoints\n    augmented = augment(source, jitter)\n                ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/pose_samples.py\", line 156, in augment\n    from torchvision.transforms.v2 import functional as TF\nModuleNotFoundError: No module named 'torchvision'\n"
+   ],
+   [
+    "test_production_meta_header_and_strict_safetensors (test_gx_carrier.GXTests.test_production_meta_header_and_strict_safetensors)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_gx_carrier.py\", line 538, in test_production_meta_header_and_strict_safetensors\n    header = load('/scratch/jjyeung/orch_cd/gx_build/work/aws_probe/g3t_header.json')['header']\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/p3_provenance.py\", line 33, in load\n    value = json.loads(Path(path).read_text(), object_pairs_hook=unique,\n                       ^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py\", line 1027, in read_text\n    with self.open(mode='r', encoding=encoding, errors=errors) as f:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py\", line 1013, in open\n    return io.open(self, mode, buffering, encoding, errors, newline)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nFileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_cd/gx_build/work/aws_probe/g3t_header.json'\n"
+   ],
+   [
+    "test_student_frames_real_processor_and_square_padding (test_gx_carrier.GXTests.test_student_frames_real_processor_and_square_padding)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_gx_carrier.py\", line 253, in test_student_frames_real_processor_and_square_padding\n    batch = processor(videos=[arrays], video_metadata=[metadata], do_sample_frames=False,\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/transformers/video_processing_utils.py\", line 178, in __call__\n    return self.preprocess(videos, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/transformers/video_processing_utils.py\", line 369, in preprocess\n    preprocessed_videos = self._preprocess(videos=videos, **kwargs)\n                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/transformers/models/qwen3_vl/video_processing_qwen3_vl.py\", line 205, in _preprocess\n    stacked_videos = self.resize(\n                     ^^^^^^^^^^^^\n  File \"/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/transformers/image_processing_backends.py\", line 230, in resize\n    interpolation = pil_torch_interpolation_mapping[resample]\n                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^\nTypeError: 'NoneType' object is not subscriptable\n"
+   ],
+   [
+    "test_two_rank_fsdp_replicas_checkpoint_and_exports (test_gx_carrier.GXTests.test_two_rank_fsdp_replicas_checkpoint_and_exports)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_gx_carrier.py\", line 572, in test_two_rank_fsdp_replicas_checkpoint_and_exports\n    run_workers(distributed_worker, (str(directory),))\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/retained_workers.py\", line 34, in run_workers\n    raise RuntimeError(\"Native CPU test workers failed: \"+str([worker.exitcode for worker in workers]))\nRuntimeError: Native CPU test workers failed: [1, 1]\n"
+   ],
+   [
+    "test_vendor_bytes_digest_and_import_origin (test_gx_carrier.GXTests.test_vendor_bytes_digest_and_import_origin)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_gx_carrier.py\", line 181, in test_vendor_bytes_digest_and_import_origin\n    self.assertEqual(path.read_bytes(), (source/path.relative_to(gx.VENDOR/'vggt')).read_bytes())\n                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py\", line 1019, in read_bytes\n    with self.open(mode='rb') as f:\n         ^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py\", line 1013, in open\n    return io.open(self, mode, buffering, encoding, errors, newline)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nFileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_cd/c1r/work/D/g3t_src/vggt/__init__.py'\n"
+   ]
+  ],
+  "skipped": 0,
+  "ok": false,
+  "seconds": 29.6
+ },
+ "test_gx_s6.py": {
+  "run": 11,
+  "failures": [],
+  "errors": [],
+  "skipped": 0,
+  "ok": true,
+  "seconds": 0.6
+ },
+ "test_gx_s7.py": {
+  "run": 11,
+  "failures": [],
+  "errors": [],
+  "skipped": 0,
+  "ok": true,
+  "seconds": 0.6
+ },
+ "test_gx_s8.py": {
+  "run": 6,
+  "failures": [],
+  "errors": [],
+  "skipped": 0,
+  "ok": true,
+  "seconds": 0.6
+ },
+ "test_gxp_mix.py": {
+  "run": 28,
+  "failures": [
+   [
+    "test_absent_keys_preserve_normalized_identity_and_fp32_output_bytes (test_gxp_mix.MemoryFallback.test_absent_keys_preserve_normalized_identity_and_fp32_output_bytes)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_gxp_mix.py\", line 742, in test_absent_keys_preserve_normalized_identity_and_fp32_output_bytes\n    self.assertEqual(hashes, expected + (['522e752c60b3f4eb1807285d985e443bd48e9492288f853a99681312161ebad8'] if fusion else []))\nAssertionError: Lists differ: ['a0091842f66e3306d0caf1c2acf0e495d82cf0212[156 chars]73b'] != ['657308f57b5a02d3a14add15e07a6e41c37419830[156 chars]30f']\n\nFirst differing element 0:\n'a0091842f66e3306d0caf1c2acf0e495d82cf0212d2c6eb4c1b00ea681eb4b9e'\n'657308f57b5a02d3a14add15e07a6e41c374198304a37d016df1ab34ac27ac69'\n\n- ['a0091842f66e3306d0caf1c2acf0e495d82cf0212d2c6eb4c1b00ea681eb4b9e',\n-  'd3c11a82d17e8d00e29aba137a71a7215653f34217d4cb7b3c89fcaf04bd9f32',\n-  '1c00a7df7d61fef2482af1b02705e0e9048f91326a294a965ce6f93f41ca273b']\n+ ['657308f57b5a02d3a14add15e07a6e41c374198304a37d016df1ab34ac27ac69',\n+  '82668c672c6df471df1f81390b9c025961842e5a7f0d83e46c46d38b72131cbc',\n+  'd5213e36cf4ca7c2b4e0a4df2361e2a02e13490817a4b6a517a851034386530f']\n"
+   ]
+  ],
+  "errors": [
+   [
+    "test_world_four_full_no_grad_forward (test_gxp_mix.Distributed.test_world_four_full_no_grad_forward)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_gxp_mix.py\", line 953, in test_world_four_full_no_grad_forward\n    mp.spawn(gloo_worker, args=(str(root),), nprocs=4, join=True)\n  File \"/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/torch/multiprocessing/spawn.py\", line 340, in spawn\n    return start_processes(fn, args, nprocs, join, daemon, start_method=\"spawn\")\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/torch/multiprocessing/spawn.py\", line 296, in start_processes\n    while not context.join():\n              ^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/torch/multiprocessing/spawn.py\", line 200, in join\n    raise ProcessExitedException(\ntorch.multiprocessing.spawn.ProcessExitedException: process 0 terminated with exit code 1\n"
+   ],
+   [
+    "test_bf16_exports_checkpoints_record_dtype_and_reject_mismatch (test_gxp_mix.MemoryFallback.test_bf16_exports_checkpoints_record_dtype_and_reject_mismatch)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_gxp_mix.py\", line 895, in test_bf16_exports_checkpoints_record_dtype_and_reject_mismatch\n    run.export(root/'export', model, model, {'base_identity': 'fixture'}, 0)\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/carrier_c1_run.py\", line 2079, in export\n    version_metadata=metadata(cfg)\n                     ^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/trace_version.py\", line 24, in metadata\n    return {KEY: require(config.get(KEY)), 'trace_version_binding': 1}\n                 ^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/trace_version.py\", line 5, in require\n    if value is None:raise ProgramRefusal('trace_program_version_missing')\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\ntrace_format.program_errors.ProgramRefusal: trace_program_version_missing\n"
+   ],
+   [
+    "test_cp1_m800_pose_and_depth_warm_start_keeps_step_zero_exact (test_gxp_mix.NativeForward.test_cp1_m800_pose_and_depth_warm_start_keeps_step_zero_exact)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_gxp_mix.py\", line 350, in test_cp1_m800_pose_and_depth_warm_start_keeps_step_zero_exact\n    run.export(root/'m800', donor, donor, {'base_identity': 'fixture'}, 800)\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/carrier_c1_run.py\", line 2079, in export\n    version_metadata=metadata(cfg)\n                     ^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/trace_version.py\", line 24, in metadata\n    return {KEY: require(config.get(KEY)), 'trace_version_binding': 1}\n                 ^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/trace_version.py\", line 5, in require\n    if value is None:raise ProgramRefusal('trace_program_version_missing')\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\ntrace_format.program_errors.ProgramRefusal: trace_program_version_missing\n"
+   ],
+   [
+    "test_export_has_only_encoder_pins_and_reloads_strictly (test_gxp_mix.NativeForward.test_export_has_only_encoder_pins_and_reloads_strictly)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_gxp_mix.py\", line 295, in test_export_has_only_encoder_pins_and_reloads_strictly\n    run.export(directory_/'m0', model, model, {'base_identity': 'fixture'}, 0)\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/carrier_c1_run.py\", line 2079, in export\n    version_metadata=metadata(cfg)\n                     ^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/trace_version.py\", line 24, in metadata\n    return {KEY: require(config.get(KEY)), 'trace_version_binding': 1}\n                 ^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/trace_version.py\", line 5, in require\n    if value is None:raise ProgramRefusal('trace_program_version_missing')\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\ntrace_format.program_errors.ProgramRefusal: trace_program_version_missing\n"
+   ],
+   [
+    "test_frozen_checkpoint_contains_no_encoder_tensors_or_optimizer_state (test_gxp_mix.NativeForward.test_frozen_checkpoint_contains_no_encoder_tensors_or_optimizer_state)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_gxp_mix.py\", line 326, in test_frozen_checkpoint_contains_no_encoder_tensors_or_optimizer_state\n    pin = run.checkpoint(root/'checkpoint', model, optimizer, {}, 1)\n          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/carrier_c1_run.py\", line 1954, in checkpoint\n    version_metadata=metadata({'trace_program_version':getattr(model,'trace_program_version',None)})\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/trace_version.py\", line 24, in metadata\n    return {KEY: require(config.get(KEY)), 'trace_version_binding': 1}\n                 ^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/trace_version.py\", line 5, in require\n    if value is None:raise ProgramRefusal('trace_program_version_missing')\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\ntrace_format.program_errors.ProgramRefusal: trace_program_version_missing\n"
+   ],
+   [
+    "setUpClass (test_gxp_mix.R6Regressions)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_gxp_mix.py\", line 556, in setUpClass\n    source = subprocess.run(['git', 'show', f'e6456bc:student_pilot/{name}.py'],\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/subprocess.py\", line 571, in run\n    raise CalledProcessError(retcode, process.args,\nsubprocess.CalledProcessError: Command '['git', 'show', 'e6456bc:student_pilot/carrier_c1_data.py']' returned non-zero exit status 128.\n"
+   ]
+  ],
+  "skipped": 0,
+  "ok": false,
+  "seconds": 294.7
+ },
+ "test_host24j.py": {
+  "run": 15,
+  "failures": [],
+  "errors": [],
+  "skipped": 1,
+  "ok": true,
+  "seconds": 16.3
+ },
+ "test_host24l.py": {
+  "run": 12,
+  "failures": [],
+  "errors": [],
+  "skipped": 0,
+  "ok": true,
+  "seconds": 0.5
+ },
+ "test_host24l3.py": {
+  "run": 7,
+  "failures": [],
+  "errors": [],
+  "skipped": 0,
+  "ok": true,
+  "seconds": 0.2
+ },
+ "test_host24n.py": {
+  "run": 10,
+  "failures": [],
+  "errors": [],
+  "skipped": 3,
+  "ok": true,
+  "seconds": 0.3
+ },
+ "test_live_adapter_r3.py": {
+  "run": 0,
+  "import_error": "ValueError: Legacy reader has no authenticated R2 bank adapter: rk/programs.py:import",
+  "ok": false,
+  "seconds": 0.0
+ },
+ "test_mdg_runtime.py": {
+  "run": 4,
+  "failures": [
+   [
+    "test_sourced_environment_keeps_cuda_and_orders_native_packages_first (test_mdg_runtime.HostLauncher.test_sourced_environment_keeps_cuda_and_orders_native_packages_first)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_mdg_runtime.py\", line 301, in test_sourced_environment_keeps_cuda_and_orders_native_packages_first\n    self.assertTrue(lines[1].startswith('/scratch/jjyeung/envs/sam3_capretry_native_v1/lib/python3.12/site-packages:/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages'))\nAssertionError: False is not true\n"
+   ]
+  ],
+  "errors": [
+   [
+    "setUpClass (test_mdg_runtime.Runtime)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_mdg_runtime.py\", line 76, in setUpClass\n    c1.export(cls.artifact_dir, trained, trained, cls.native, 1)\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/carrier_c1_run.py\", line 2085, in export\n    dist.get_rank(), dist.get_world_size(), budget, export_named=export_named, kind='export')\n                     ^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/torch/distributed/distributed_c10d.py\", line 2507, in get_world_size\n    return _get_group_size(group)\n           ^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/torch/distributed/distributed_c10d.py\", line 1135, in _get_group_size\n    default_pg = _get_default_group()\n                 ^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/torch/distributed/distributed_c10d.py\", line 1362, in _get_default_group\n    raise ValueError(\nValueError: Default process group has not been initialized, please make sure to call init_process_group.\n"
+   ]
+  ],
+  "skipped": 0,
+  "ok": false,
+  "seconds": 0.3
+ },
+ "test_merge11.py": {
+  "run": 5,
+  "failures": [],
+  "errors": [
+   [
+    "test_real_9fix_export_has_bound_constants (test_merge11.MergeReview.test_real_9fix_export_has_bound_constants)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_merge11.py\", line 24, in test_real_9fix_export_has_bound_constants\n    nodes=[n for n in ast.parse(source.read_text()).body if isinstance(n,ast.FunctionDef) and n.name=='export']\n                                ^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py\", line 1027, in read_text\n    with self.open(mode='r', encoding=encoding, errors=errors) as f:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py\", line 1013, in open\n    return io.open(self, mode, buffering, encoding, errors, newline)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nFileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/tr19_revC1/work/merge11/legacy9fix_source.py'\n"
+   ]
+  ],
+  "skipped": 0,
+  "ok": false,
+  "seconds": 0.0
+ },
+ "test_orchard_w4.py": {
+  "run": 9,
+  "failures": [],
+  "errors": [],
+  "skipped": 0,
+  "ok": true,
+  "seconds": 0.0
+ },
+ "test_r1_build13.py": {
+  "run": 14,
+  "failures": [],
+  "errors": [
+   [
+    "test_absent_card_cell (test_r1_build13.PopulationTests.test_absent_card_cell)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_r1_build13.py\", line 15, in setUp\n    self.root=Path(os.environ['R2_PROOFS'])/'population13'/self._testMethodName\n                   ~~~~~~~~~~^^^^^^^^^^^^^\n  File \"<frozen os>\", line 714, in __getitem__\nKeyError: 'R2_PROOFS'\n"
+   ],
+   [
+    "test_base_cells_refused (test_r1_build13.PopulationTests.test_base_cells_refused)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_r1_build13.py\", line 15, in setUp\n    self.root=Path(os.environ['R2_PROOFS'])/'population13'/self._testMethodName\n                   ~~~~~~~~~~^^^^^^^^^^^^^\n  File \"<frozen os>\", line 714, in __getitem__\nKeyError: 'R2_PROOFS'\n"
+   ],
+   [
+    "test_binding_changed (test_r1_build13.PopulationTests.test_binding_changed)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_r1_build13.py\", line 15, in setUp\n    self.root=Path(os.environ['R2_PROOFS'])/'population13'/self._testMethodName\n                   ~~~~~~~~~~^^^^^^^^^^^^^\n  File \"<frozen os>\", line 714, in __getitem__\nKeyError: 'R2_PROOFS'\n"
+   ],
+   [
+    "test_composition_refusals (test_r1_build13.PopulationTests.test_composition_refusals)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_r1_build13.py\", line 15, in setUp\n    self.root=Path(os.environ['R2_PROOFS'])/'population13'/self._testMethodName\n                   ~~~~~~~~~~^^^^^^^^^^^^^\n  File \"<frozen os>\", line 714, in __getitem__\nKeyError: 'R2_PROOFS'\n"
+   ],
+   [
+    "test_composition_replaces_base (test_r1_build13.PopulationTests.test_composition_replaces_base)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_r1_build13.py\", line 15, in setUp\n    self.root=Path(os.environ['R2_PROOFS'])/'population13'/self._testMethodName\n                   ~~~~~~~~~~^^^^^^^^^^^^^\n  File \"<frozen os>\", line 714, in __getitem__\nKeyError: 'R2_PROOFS'\n"
+   ],
+   [
+    "test_membership_refusals (test_r1_build13.PopulationTests.test_membership_refusals)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_r1_build13.py\", line 15, in setUp\n    self.root=Path(os.environ['R2_PROOFS'])/'population13'/self._testMethodName\n                   ~~~~~~~~~~^^^^^^^^^^^^^\n  File \"<frozen os>\", line 714, in __getitem__\nKeyError: 'R2_PROOFS'\n"
+   ],
+   [
+    "test_native_composition_envelopes (test_r1_build13.PopulationTests.test_native_composition_envelopes)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_r1_build13.py\", line 15, in setUp\n    self.root=Path(os.environ['R2_PROOFS'])/'population13'/self._testMethodName\n                   ~~~~~~~~~~^^^^^^^^^^^^^\n  File \"<frozen os>\", line 714, in __getitem__\nKeyError: 'R2_PROOFS'\n"
+   ],
+   [
+    "test_native_mixture_and_bound_producer (test_r1_build13.PopulationTests.test_native_mixture_and_bound_producer)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_r1_build13.py\", line 15, in setUp\n    self.root=Path(os.environ['R2_PROOFS'])/'population13'/self._testMethodName\n                   ~~~~~~~~~~^^^^^^^^^^^^^\n  File \"<frozen os>\", line 714, in __getitem__\nKeyError: 'R2_PROOFS'\n"
+   ],
+   [
+    "test_overlap (test_r1_build13.PopulationTests.test_overlap)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_r1_build13.py\", line 15, in setUp\n    self.root=Path(os.environ['R2_PROOFS'])/'population13'/self._testMethodName\n                   ~~~~~~~~~~^^^^^^^^^^^^^\n  File \"<frozen os>\", line 714, in __getitem__\nKeyError: 'R2_PROOFS'\n"
+   ],
+   [
+    "test_scene_subset (test_r1_build13.PopulationTests.test_scene_subset)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_r1_build13.py\", line 15, in setUp\n    self.root=Path(os.environ['R2_PROOFS'])/'population13'/self._testMethodName\n                   ~~~~~~~~~~^^^^^^^^^^^^^\n  File \"<frozen os>\", line 714, in __getitem__\nKeyError: 'R2_PROOFS'\n"
+   ],
+   [
+    "test_slice_identity (test_r1_build13.PopulationTests.test_slice_identity)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_r1_build13.py\", line 15, in setUp\n    self.root=Path(os.environ['R2_PROOFS'])/'population13'/self._testMethodName\n                   ~~~~~~~~~~^^^^^^^^^^^^^\n  File \"<frozen os>\", line 714, in __getitem__\nKeyError: 'R2_PROOFS'\n"
+   ],
+   [
+    "test_trinity_full_audit_refusal (test_r1_build13.PopulationTests.test_trinity_full_audit_refusal)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_r1_build13.py\", line 15, in setUp\n    self.root=Path(os.environ['R2_PROOFS'])/'population13'/self._testMethodName\n                   ~~~~~~~~~~^^^^^^^^^^^^^\n  File \"<frozen os>\", line 714, in __getitem__\nKeyError: 'R2_PROOFS'\n"
+   ],
+   [
+    "test_type_table_and_single_facing (test_r1_build13.PopulationTests.test_type_table_and_single_facing)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_r1_build13.py\", line 15, in setUp\n    self.root=Path(os.environ['R2_PROOFS'])/'population13'/self._testMethodName\n                   ~~~~~~~~~~^^^^^^^^^^^^^\n  File \"<frozen os>\", line 714, in __getitem__\nKeyError: 'R2_PROOFS'\n"
+   ],
+   [
+    "test_unassigned_type (test_r1_build13.PopulationTests.test_unassigned_type)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_r1_build13.py\", line 15, in setUp\n    self.root=Path(os.environ['R2_PROOFS'])/'population13'/self._testMethodName\n                   ~~~~~~~~~~^^^^^^^^^^^^^\n  File \"<frozen os>\", line 714, in __getitem__\nKeyError: 'R2_PROOFS'\n"
+   ]
+  ],
+  "skipped": 0,
+  "ok": false,
+  "seconds": 0.0
+ },
+ "test_r1_build14.py": {
+  "run": 0,
+  "import_error": "FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/tr19_revC1/fixtures/work/build6/INIT_INPUT.json'",
+  "ok": false,
+  "seconds": 0.0
+ },
+ "test_r1_build15.py": {
+  "run": 0,
+  "import_error": "FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/tr19_revC1/fixtures/work/build6/INIT_INPUT.json'",
+  "ok": false,
+  "seconds": 0.0
+ },
+ "test_r1_build16.py": {
+  "run": 0,
+  "import_error": "FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/tr19_revC1/fixtures/work/build6/INIT_INPUT.json'",
+  "ok": false,
+  "seconds": 0.0
+ },
+ "test_r1_build19.py": {
+  "run": 0,
+  "import_error": "FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/tr19_revC1/fixtures/work/build6/INIT_INPUT.json'",
+  "ok": false,
+  "seconds": 0.0
+ },
+ "test_r1_export17.py": {
+  "run": 0,
+  "import_error": "FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/tr19_revC1/fixtures/work/build6/INIT_INPUT.json'",
+  "ok": false,
+  "seconds": 0.0
+ },
+ "test_r1_processor_compat.py": {
+  "run": 0,
+  "import_error": "FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_r1_processor_compat.py'",
+  "ok": false,
+  "seconds": 0.0
+ },
+ "test_r2_build12.py": {
+  "run": 0,
+  "import_error": "FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/tr19_revC1/fixtures/work/build6/INIT_INPUT.json'",
+  "ok": false,
+  "seconds": 0.0
+ },
+ "test_r2_build3.py": {
+  "run": 0,
+  "import_error": "FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/tr19_revC1/fixtures/work/build6/INIT_INPUT.json'",
+  "ok": false,
+  "seconds": 0.0
+ },
+ "test_r2_build3b.py": {
+  "run": 0,
+  "import_error": "FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/tr19_revC1/fixtures/work/build6/INIT_INPUT.json'",
+  "ok": false,
+  "seconds": 0.0
+ },
+ "test_r2_build5_coverage.py": {
+  "run": 0,
+  "import_error": "FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/tr19_revC1/fixtures/work/build6/INIT_INPUT.json'",
+  "ok": false,
+  "seconds": 0.0
+ },
+ "test_r2_build7.py": {
+  "run": 13,
+  "failures": [],
+  "errors": [],
+  "skipped": 0,
+  "ok": true,
+  "seconds": 0.5
+ },
+ "test_r2_build8.py": {
+  "run": 0,
+  "import_error": "FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/tr19_revC1/fixtures/work/build6/INIT_INPUT.json'",
+  "ok": false,
+  "seconds": 0.0
+ },
+ "test_r2_build8_cache.py": {
+  "run": 0,
+  "import_error": "FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/tr19_revC1/fixtures/work/build6/INIT_INPUT.json'",
+  "ok": false,
+  "seconds": 0.0
+ },
+ "test_r2_build8_direct.py": {
+  "run": 0,
+  "import_error": "FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/tr19_revC1/fixtures/work/build6/INIT_INPUT.json'",
+  "ok": false,
+  "seconds": 0.0
+ },
+ "test_r2_build8_frames.py": {
+  "run": 0,
+  "import_error": "FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/tr19_revC1/fixtures/work/build6/INIT_INPUT.json'",
+  "ok": false,
+  "seconds": 0.0
+ },
+ "test_r2_build9_cpu.py": {
+  "run": 0,
+  "import_error": "FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/tr19_revC1/fixtures/work/build6/INIT_INPUT.json'",
+  "ok": false,
+  "seconds": 0.0
+ },
+ "test_r2_build9_recovery.py": {
+  "run": 0,
+  "import_error": "FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/tr19_revC1/fixtures/work/build6/INIT_INPUT.json'",
+  "ok": false,
+  "seconds": 0.0
+ },
+ "test_r2_build9_requirements.py": {
+  "run": 3,
+  "failures": [],
+  "errors": [
+   [
+    "test_native_kit_records_named_refusals (test_r2_build9_requirements.RequiredTrainingRows.test_native_kit_records_named_refusals)",
+    "est_r2_build9_requirements.py\", line 32, in test_native_kit_records_named_refusals\n    from tests.test_r2_build import inputs\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_r2_build.py\", line 11, in <module>\n    from tests.test_r2_data_path import PROOFS, directory, LANE, fixture\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_r2_data_path.py\", line 358, in <module>\n    from tests.r2_init_fixture import INIT\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/r2_init_fixture.py\", line 5, in <module>\n    PIN = file_pin(ROOT/'work/build6/INIT_INPUT.json')\n          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/p3_provenance.py\", line 62, in file_pin\n    return {'path': str(Path(path).resolve()), 'sha256': sha256(path)}\n                                                         ^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/p3_provenance.py\", line 9, in sha256\n    with Path(path).open('rb') as f:\n         ^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py\", line 1013, in open\n    return io.open(self, mode, buffering, encoding, errors, newline)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nFileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/tr19_revC1/fixtures/work/build6/INIT_INPUT.json'\n"
+   ]
+  ],
+  "skipped": 0,
+  "ok": false,
+  "seconds": 0.0
+ },
+ "test_r2_build9fix.py": {
+  "run": 5,
+  "failures": [],
+  "errors": [
+   [
+    "test_native_stream_and_bound_scene_gate (test_r2_build9fix.Fixes.test_native_stream_and_bound_scene_gate)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_r2_build9fix.py\", line 93, in test_native_stream_and_bound_scene_gate\n    from tests.test_r2_data_path import fixture,directory,RECORDS,SOURCES\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_r2_data_path.py\", line 358, in <module>\n    from tests.r2_init_fixture import INIT\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/r2_init_fixture.py\", line 5, in <module>\n    PIN = file_pin(ROOT/'work/build6/INIT_INPUT.json')\n          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/p3_provenance.py\", line 62, in file_pin\n    return {'path': str(Path(path).resolve()), 'sha256': sha256(path)}\n                                                         ^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/p3_provenance.py\", line 9, in sha256\n    with Path(path).open('rb') as f:\n         ^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py\", line 1013, in open\n    return io.open(self, mode, buffering, encoding, errors, newline)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nFileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/tr19_revC1/fixtures/work/build6/INIT_INPUT.json'\n"
+   ]
+  ],
+  "skipped": 0,
+  "ok": false,
+  "seconds": 0.1
+ },
+ "test_r2_build_n1.py": {
+  "run": 0,
+  "import_error": "FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/tr19_revC1/fixtures/work/build6/INIT_INPUT.json'",
+  "ok": false,
+  "seconds": 0.0
+ },
+ "test_r2_data_path.py": {
+  "run": 0,
+  "import_error": "FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/tr19_revC1/fixtures/work/build6/INIT_INPUT.json'",
+  "ok": false,
+  "seconds": 0.0
+ },
+ "test_r2_families.py": {
+  "run": 0,
+  "import_error": "FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/tr19_revC1/fixtures/work/build6/INIT_INPUT.json'",
+  "ok": false,
+  "seconds": 0.0
+ },
+ "test_r2_host_runtime.py": {
+  "run": 0,
+  "import_error": "FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/tr19_revC1/fixtures/work/build6/INIT_INPUT.json'",
+  "ok": false,
+  "seconds": 0.0
+ },
+ "test_r2_launch_dispatch.py": {
+  "run": 0,
+  "import_error": "FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/tr19_revC1/fixtures/work/build6/INIT_INPUT.json'",
+  "ok": false,
+  "seconds": 0.0
+ },
+ "test_r2_n1fix.py": {
+  "run": 0,
+  "import_error": "FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/tr19_revC1/fixtures/work/build6/INIT_INPUT.json'",
+  "ok": false,
+  "seconds": 0.0
+ },
+ "test_r2_n1fix2.py": {
+  "run": 0,
+  "import_error": "FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/tr19_revC1/fixtures/work/build6/INIT_INPUT.json'",
+  "ok": false,
+  "seconds": 0.0
+ },
+ "test_r2_n1fix3.py": {
+  "run": 0,
+  "import_error": "FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/tr19_revC1/fixtures/work/build6/INIT_INPUT.json'",
+  "ok": false,
+  "seconds": 0.0
+ },
+ "test_r2_native_config.py": {
+  "run": 0,
+  "import_error": "FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/tr19_revC1/fixtures/work/build6/INIT_INPUT.json'",
+  "ok": false,
+  "seconds": 0.0
+ },
+ "test_r2_portable.py": {
+  "run": 0,
+  "import_error": "FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/tr19_revC1/fixtures/work/build6/INIT_INPUT.json'",
+  "ok": false,
+  "seconds": 0.0
+ },
+ "test_r2_preparation.py": {
+  "run": 0,
+  "import_error": "FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/tr19_revC1/fixtures/work/build6/INIT_INPUT.json'",
+  "ok": false,
+  "seconds": 0.0
+ },
+ "test_rehearsal_guards.py": {
+  "run": 8,
+  "failures": [],
+  "errors": [],
+  "skipped": 0,
+  "ok": true,
+  "seconds": 0.2
+ },
+ "test_s1_checkpoint_buffers.py": {
+  "run": 10,
+  "failures": [],
+  "errors": [],
+  "skipped": 0,
+  "ok": true,
+  "seconds": 0.1
+ },
+ "test_s1_first_step.py": {
+  "run": 5,
+  "failures": [],
+  "errors": [],
+  "skipped": 0,
+  "ok": true,
+  "seconds": 0.0
+ },
+ "test_s1_launch_kit.py": {
+  "run": 18,
+  "failures": [],
+  "errors": [],
+  "skipped": 1,
+  "ok": true,
+  "seconds": 1.0
+ },
+ "test_s1_pool_rows.py": {
+  "run": 3,
+  "failures": [],
+  "errors": [],
+  "skipped": 3,
+  "ok": true,
+  "seconds": 0.0
+ },
+ "test_s1_remove_admission.py": {
+  "run": 2,
+  "failures": [],
+  "errors": [],
+  "skipped": 1,
+  "ok": true,
+  "seconds": 0.0
+ },
+ "test_s1_routing.py": {
+  "run": 4,
+  "failures": [],
+  "errors": [
+   [
+    "setUpClass (test_s1_routing.NativeMaterializationTests)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_s1_routing.py\", line 63, in setUpClass\n    samples = load(cls.lane / \"inputs/pool_s1_samples.json\")[\"samples\"]\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/p3_provenance.py\", line 33, in load\n    value = json.loads(Path(path).read_text(), object_pairs_hook=unique,\n                       ^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py\", line 1027, in read_text\n    with self.open(mode='r', encoding=encoding, errors=errors) as f:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py\", line 1013, in open\n    return io.open(self, mode, buffering, encoding, errors, newline)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nFileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_cd/leg_s1_tree/inputs/pool_s1_samples.json'\n"
+   ],
+   [
+    "test_unflagged_vqa_keeps_every_direct_default_and_drops_every_routed_type (test_s1_routing.RoutingMaterializationTests.test_unflagged_vqa_keeps_every_direct_default_and_drops_every_routed_type)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_s1_routing.py\", line 21, in test_unflagged_vqa_keeps_every_direct_default_and_drops_every_routed_type\n    table = load(Path(\"/scratch/jjyeung/orch_cd/leg_s1_tree/out/ROUTING_POLICY_FROZEN_NO_FLAG.json\"))\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/p3_provenance.py\", line 33, in load\n    value = json.loads(Path(path).read_text(), object_pairs_hook=unique,\n                       ^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py\", line 1027, in read_text\n    with self.open(mode='r', encoding=encoding, errors=errors) as f:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py\", line 1013, in open\n    return io.open(self, mode, buffering, encoding, errors, newline)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nFileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_cd/leg_s1_tree/out/ROUTING_POLICY_FROZEN_NO_FLAG.json'\n"
+   ]
+  ],
+  "skipped": 0,
+  "ok": false,
+  "seconds": 0.0
+ },
+ "test_s1_trained_groups.py": {
+  "run": 8,
+  "failures": [],
+  "errors": [],
+  "skipped": 0,
+  "ok": true,
+  "seconds": 0.0
+ },
+ "test_stageb_mdg.py": {
+  "run": 19,
+  "failures": [],
+  "errors": [
+   [
+    "test_absent_preparation_receipt_bytes_and_streams (test_stageb_mdg.StageB.test_absent_preparation_receipt_bytes_and_streams)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_stageb_mdg.py\", line 403, in test_absent_preparation_receipt_bytes_and_streams\n    receipt = run.prepare(cfg)\n              ^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/carrier_c1_run.py\", line 470, in prepare\n    version_metadata = metadata(cfg)\n                       ^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/trace_version.py\", line 24, in metadata\n    return {KEY: require(config.get(KEY)), 'trace_version_binding': 1}\n                 ^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/trace_version.py\", line 5, in require\n    if value is None:raise ProgramRefusal('trace_program_version_missing')\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\ntrace_format.program_errors.ProgramRefusal: trace_program_version_missing\n"
+   ],
+   [
+    "test_attach_init_artifact_and_export_identity (test_stageb_mdg.StageB.test_attach_init_artifact_and_export_identity)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_stageb_mdg.py\", line 498, in test_attach_init_artifact_and_export_identity\n    model, batch, target = fixture()\n                           ^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_stageb_mdg.py\", line 48, in fixture\n    head = MaskGroundingHead(head_config(lm_dim=32, vit_dim=32, phrase_max=8))\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/mask_grounding_head.py\", line 163, in __init__\n    self.stem = _Stem(cfg, _load_pretrained)\n                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/mask_grounding_head.py\", line 119, in __init__\n    from torchvision.models import resnet18\nModuleNotFoundError: No module named 'torchvision'\n"
+   ],
+   [
+    "test_first_batch_ranks (test_stageb_mdg.StageB.test_first_batch_ranks)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_stageb_mdg.py\", line 452, in test_first_batch_ranks\n    model, batch, target = fixture()\n                           ^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_stageb_mdg.py\", line 48, in fixture\n    head = MaskGroundingHead(head_config(lm_dim=32, vit_dim=32, phrase_max=8))\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/mask_grounding_head.py\", line 163, in __init__\n    self.stem = _Stem(cfg, _load_pretrained)\n                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/mask_grounding_head.py\", line 119, in __init__\n    from torchvision.models import resnet18\nModuleNotFoundError: No module named 'torchvision'\n"
+   ],
+   [
+    "test_fsdp_lifecycle_with_fake_group_is_not_gloo_proof (test_stageb_mdg.StageB.test_fsdp_lifecycle_with_fake_group_is_not_gloo_proof)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_stageb_mdg.py\", line 580, in test_fsdp_lifecycle_with_fake_group_is_not_gloo_proof\n    model, batch, target = fixture(lora_rank=4)\n                           ^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_stageb_mdg.py\", line 48, in fixture\n    head = MaskGroundingHead(head_config(lm_dim=32, vit_dim=32, phrase_max=8))\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/mask_grounding_head.py\", line 163, in __init__\n    self.stem = _Stem(cfg, _load_pretrained)\n                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/mask_grounding_head.py\", line 119, in __init__\n    from torchvision.models import resnet18\nModuleNotFoundError: No module named 'torchvision'\n"
+   ],
+   [
+    "test_lora_artifact_pins_and_rank_mismatch (test_stageb_mdg.StageB.test_lora_artifact_pins_and_rank_mismatch)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_stageb_mdg.py\", line 307, in test_lora_artifact_pins_and_rank_mismatch\n    model, _, _ = fixture(frames=2, lora_rank=4)\n                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_stageb_mdg.py\", line 48, in fixture\n    head = MaskGroundingHead(head_config(lm_dim=32, vit_dim=32, phrase_max=8))\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/mask_grounding_head.py\", line 163, in __init__\n    self.stem = _Stem(cfg, _load_pretrained)\n                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/mask_grounding_head.py\", line 119, in __init__\n    from torchvision.models import resnet18\nModuleNotFoundError: No module named 'torchvision'\n"
+   ],
+   [
+    "test_lora_fsdp_mixed_precision_keeps_fp32_adapters (test_stageb_mdg.StageB.test_lora_fsdp_mixed_precision_keeps_fp32_adapters)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_stageb_mdg.py\", line 328, in test_lora_fsdp_mixed_precision_keeps_fp32_adapters\n    model, batch, target = fixture(frames=2, lora_rank=4)\n                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_stageb_mdg.py\", line 48, in fixture\n    head = MaskGroundingHead(head_config(lm_dim=32, vit_dim=32, phrase_max=8))\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/mask_grounding_head.py\", line 163, in __init__\n    self.stem = _Stem(cfg, _load_pretrained)\n                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/mask_grounding_head.py\", line 119, in __init__\n    from torchvision.models import resnet18\nModuleNotFoundError: No module named 'torchvision'\n"
+   ],
+   [
+    "test_lora_gate_skips_prefix_and_padding_and_restores_after_error (test_stageb_mdg.StageB.test_lora_gate_skips_prefix_and_padding_and_restores_after_error)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_stageb_mdg.py\", line 267, in test_lora_gate_skips_prefix_and_padding_and_restores_after_error\n    model, _, _ = fixture(frames=2, lora_rank=4)\n                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_stageb_mdg.py\", line 48, in fixture\n    head = MaskGroundingHead(head_config(lm_dim=32, vit_dim=32, phrase_max=8))\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/mask_grounding_head.py\", line 163, in __init__\n    self.stem = _Stem(cfg, _load_pretrained)\n                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/mask_grounding_head.py\", line 119, in __init__\n    from torchvision.models import resnet18\nModuleNotFoundError: No module named 'torchvision'\n"
+   ],
+   [
+    "test_lora_gradients_cache_and_optimizer_isolation (test_stageb_mdg.StageB.test_lora_gradients_cache_and_optimizer_isolation)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_stageb_mdg.py\", line 227, in test_lora_gradients_cache_and_optimizer_isolation\n    model, batch, target = fixture(frames=2, lora_rank=4)\n                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_stageb_mdg.py\", line 48, in fixture\n    head = MaskGroundingHead(head_config(lm_dim=32, vit_dim=32, phrase_max=8))\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/mask_grounding_head.py\", line 163, in __init__\n    self.stem = _Stem(cfg, _load_pretrained)\n                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/mask_grounding_head.py\", line 119, in __init__\n    from torchvision.models import resnet18\nModuleNotFoundError: No module named 'torchvision'\n"
+   ],
+   [
+    "test_lora_prefix_init_and_non_mdg_streams_are_bitwise_equal (test_stageb_mdg.StageB.test_lora_prefix_init_and_non_mdg_streams_are_bitwise_equal)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_stageb_mdg.py\", line 174, in test_lora_prefix_init_and_non_mdg_streams_are_bitwise_equal\n    model, batch, target = fixture(frames=2)\n                           ^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_stageb_mdg.py\", line 48, in fixture\n    head = MaskGroundingHead(head_config(lm_dim=32, vit_dim=32, phrase_max=8))\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/mask_grounding_head.py\", line 163, in __init__\n    self.stem = _Stem(cfg, _load_pretrained)\n                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/mask_grounding_head.py\", line 119, in __init__\n    from torchvision.models import resnet18\nModuleNotFoundError: No module named 'torchvision'\n"
+   ],
+   [
+    "test_lora_serial_resume_export_and_predict (test_stageb_mdg.StageB.test_lora_serial_resume_export_and_predict)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_stageb_mdg.py\", line 647, in test_lora_serial_resume_export_and_predict\n    self.test_serial_native_optimizer_checkpoint_resume_and_milestone(lora_rank=4)\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_stageb_mdg.py\", line 617, in test_serial_native_optimizer_checkpoint_resume_and_milestone\n    model, batch, target = fixture(lora_rank=lora_rank)\n                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_stageb_mdg.py\", line 48, in fixture\n    head = MaskGroundingHead(head_config(lm_dim=32, vit_dim=32, phrase_max=8))\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/mask_grounding_head.py\", line 163, in __init__\n    self.stem = _Stem(cfg, _load_pretrained)\n                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/mask_grounding_head.py\", line 119, in __init__\n    from torchvision.models import resnet18\nModuleNotFoundError: No module named 'torchvision'\n"
+   ],
+   [
+    "test_native_forward_backward_modes_and_base_isolation (test_stageb_mdg.StageB.test_native_forward_backward_modes_and_base_isolation)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_stageb_mdg.py\", line 413, in test_native_forward_backward_modes_and_base_isolation\n    model, batch, target = fixture()\n                           ^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_stageb_mdg.py\", line 48, in fixture\n    head = MaskGroundingHead(head_config(lm_dim=32, vit_dim=32, phrase_max=8))\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/mask_grounding_head.py\", line 163, in __init__\n    self.stem = _Stem(cfg, _load_pretrained)\n                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/mask_grounding_head.py\", line 119, in __init__\n    from torchvision.models import resnet18\nModuleNotFoundError: No module named 'torchvision'\n"
+   ],
+   [
+    "test_no_init_calibrates_only_the_reserved_training_slice (test_stageb_mdg.StageB.test_no_init_calibrates_only_the_reserved_training_slice)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_stageb_mdg.py\", line 597, in test_no_init_calibrates_only_the_reserved_training_slice\n    model, batch, _ = fixture()\n                      ^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_stageb_mdg.py\", line 48, in fixture\n    head = MaskGroundingHead(head_config(lm_dim=32, vit_dim=32, phrase_max=8))\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/mask_grounding_head.py\", line 163, in __init__\n    self.stem = _Stem(cfg, _load_pretrained)\n                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/mask_grounding_head.py\", line 119, in __init__\n    from torchvision.models import resnet18\nModuleNotFoundError: No module named 'torchvision'\n"
+   ],
+   [
+    "test_rank_zero_prefix_and_other_stream_bitwise_equal (test_stageb_mdg.StageB.test_rank_zero_prefix_and_other_stream_bitwise_equal)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_stageb_mdg.py\", line 432, in test_rank_zero_prefix_and_other_stream_bitwise_equal\n    model, batch, target = fixture()\n                           ^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_stageb_mdg.py\", line 48, in fixture\n    head = MaskGroundingHead(head_config(lm_dim=32, vit_dim=32, phrase_max=8))\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/mask_grounding_head.py\", line 163, in __init__\n    self.stem = _Stem(cfg, _load_pretrained)\n                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/mask_grounding_head.py\", line 119, in __init__\n    from torchvision.models import resnet18\nModuleNotFoundError: No module named 'torchvision'\n"
+   ],
+   [
+    "test_serial_native_optimizer_checkpoint_resume_and_milestone (test_stageb_mdg.StageB.test_serial_native_optimizer_checkpoint_resume_and_milestone)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_stageb_mdg.py\", line 617, in test_serial_native_optimizer_checkpoint_resume_and_milestone\n    model, batch, target = fixture(lora_rank=lora_rank)\n                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_stageb_mdg.py\", line 48, in fixture\n    head = MaskGroundingHead(head_config(lm_dim=32, vit_dim=32, phrase_max=8))\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/mask_grounding_head.py\", line 163, in __init__\n    self.stem = _Stem(cfg, _load_pretrained)\n                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/mask_grounding_head.py\", line 119, in __init__\n    from torchvision.models import resnet18\nModuleNotFoundError: No module named 'torchvision'\n"
+   ],
+   [
+    "test_standalone_stageb_bundle_loads_without_training_inputs (test_stageb_mdg.StageB.test_standalone_stageb_bundle_loads_without_training_inputs)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_stageb_mdg.py\", line 522, in test_standalone_stageb_bundle_loads_without_training_inputs\n    Runtime.setUpClass()\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_mdg_runtime.py\", line 76, in setUpClass\n    c1.export(cls.artifact_dir, trained, trained, cls.native, 1)\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/carrier_c1_run.py\", line 2085, in export\n    dist.get_rank(), dist.get_world_size(), budget, export_named=export_named, kind='export')\n                     ^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/torch/distributed/distributed_c10d.py\", line 2507, in get_world_size\n    return _get_group_size(group)\n           ^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/torch/distributed/distributed_c10d.py\", line 1135, in _get_group_size\n    default_pg = _get_default_group()\n                 ^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/torch/distributed/distributed_c10d.py\", line 1362, in _get_default_group\n    raise ValueError(\nValueError: Default process group has not been initialized, please make sure to call init_process_group.\n"
+   ],
+   [
+    "test_suffix_call_count_is_equal_across_label_counts (test_stageb_mdg.StageB.test_suffix_call_count_is_equal_across_label_counts)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_stageb_mdg.py\", line 558, in test_suffix_call_count_is_equal_across_label_counts\n    model, batch, _ = fixture()\n                      ^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_stageb_mdg.py\", line 48, in fixture\n    head = MaskGroundingHead(head_config(lm_dim=32, vit_dim=32, phrase_max=8))\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/mask_grounding_head.py\", line 163, in __init__\n    self.stem = _Stem(cfg, _load_pretrained)\n                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/mask_grounding_head.py\", line 119, in __init__\n    from torchvision.models import resnet18\nModuleNotFoundError: No module named 'torchvision'\n"
+   ],
+   [
+    "test_world_four_checkpoint_resume_export (test_stageb_mdg.StageB.test_world_four_checkpoint_resume_export)",
+    "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_stageb_mdg.py\", line 655, in test_world_four_checkpoint_resume_export\n    fixture()\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/tests/test_stageb_mdg.py\", line 48, in fixture\n    head = MaskGroundingHead(head_config(lm_dim=32, vit_dim=32, phrase_max=8))\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/mask_grounding_head.py\", line 163, in __init__\n    self.stem = _Stem(cfg, _load_pretrained)\n                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/student_pilot/mask_grounding_head.py\", line 119, in __init__\n    from torchvision.models import resnet18\nModuleNotFoundError: No module named 'torchvision'\n"
+   ]
+  ],
+  "skipped": 0,
+  "ok": false,
+  "seconds": 1.4
+ }
+}

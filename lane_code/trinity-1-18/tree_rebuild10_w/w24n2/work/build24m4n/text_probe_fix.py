@@ -1,0 +1,12 @@
+from common import *
+p=L/'out/rcj/pc.py';s=p.read_text()
+s=s.replace('from student_pilot import carrier_c1_data as data, pose_samples','from student_pilot import carrier_c1_data as data, carrier_c1_routing as routing, pose_samples')
+s=s.replace("        try:\n            with patch.object(pose_samples", "        try:\n            if sample['key'][0]=='routing':\n                row=routing.tool_mode(row,cfg.get('tool_mode_flag'))\n                if 'routing' in row:\n                    target,_,_=routing.render_full(row['routing']['events'],row['routing']['answer'])\n                    row={**row,'target':target}\n            with patch.object(pose_samples")
+replace(p,s)
+p=D/'pc_integration.py';s=p.read_text().replace('import shutil,importlib.util,subprocess,copy','import shutil,importlib.util,subprocess,copy,sqlite3')
+s=s.replace(" vqa_db=q/'v.sqlite'", " with sqlite3.connect(q/'selection/rows.sqlite') as c:\n  for i,raw in c.execute('SELECT i,row FROM rows').fetchall():\n   row=json.loads(raw);row['routing']=dict(category='route',events=[dict(kind='plan',text='Check')],answer='A');row['target']='stale fixture target'\n   c.execute('UPDATE rows SET row=? WHERE i=?',(json.dumps(row),i))\n vqa_db=q/'v.sqlite'")
+s=s.replace(" assert value['count']==80", " assert value['rows'][0]['n']['values']['target_ids']!=[ord(c)+10 for c in 'stale fixture target']\n assert value['count']==80")
+replace(p,s)
+(D/'pc_integration').rename(L/'attic/build24m4n/pc_integration3')
+replace(D/'rcj_scan.py',(D/'rcj_scan.py').read_text().replace("files=['rcj/rcj.sh','rcj/x.py']","files=sorted('rcj/'+p.name for p in (L/'out/rcj').iterdir() if p.is_file())"))
+print('Text probe follows native routing flag and target renderer')

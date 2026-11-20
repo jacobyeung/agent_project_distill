@@ -1,0 +1,22 @@
+--- a/tests/test_host24j.py	1969-12-31 19:00:00.000000000 -0500
++++ b/tests/test_host24j.py	2026-11-20 04:33:55.790164546 -0500
+@@ -273,7 +273,7 @@
+         cfg = config()
+         cfg.pop('checkpoint_disk_guard')
+         cfg.update(base_identity='fixture', trace_program_version='3.13', heading_plane_min=.3, frame_layout='duplicate',
+-                   frame_count=32, frame_markers=True, max_pixels=4096, min_pixels=1024,
++                   frame_count=32, frame_markers=True, max_pixels=None, min_pixels=None,
+                    depth_fov_source='private', routing_opener_init='keep', geometry_connector='none',
+                    carrier_placement='append_after_temporal_group_video_tokens_v1',
+                    camera_overrides=dict(weight_scale=.04, weight_focal=2.))
+@@ -349,6 +349,10 @@
+         cfg['preparation'] = put('admitted_preparation.json', prepared)
+         self.assertEqual(prepared['r1_training'], cfg['r1_training'])
+         self.assertEqual(entry.admit(cfg), 400)
++        explicit = deepcopy(cfg)
++        explicit.update(max_pixels=147456, min_pixels=16384)
++        with self.assertRaisesRegex(ValueError, 'R1_LEGACY_PROCESSOR_PIXELS_MUST_USE_DEFAULTS'):
++            entry.admit(explicit)
+         absent = deepcopy(cfg)
+         absent['r1_training'].pop('host_receipt')
+         with self.assertRaisesRegex(ValueError, 'R1_HOST_ADMISSION_MISSING'):

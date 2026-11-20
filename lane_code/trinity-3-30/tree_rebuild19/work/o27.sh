@@ -580,5 +580,5 @@ JFJPT1QiCg==
 B64
 chmod 600 rcj/x.py; chmod 700 rcj/rcj.sh; sha256sum rcj/* | cut -c1-16; ls -ld c7d31ddd 2>/dev/null; ls -d /project/community/jjyeung/c7d31ddd/venvs
 squeue -u $USER -h -o "%j" | grep -q d1efc29326c7 && { echo QUEUED; exit 1; }
-cd qd && [ "$(sha256sum SHA256SUMS.txt | cut -c1-16)" = 259c14de1ff04938 ] && [ "$(sha256sum ../rcj/x.py | cut -c1-16)" = d6e4707eb50d3616 ] && [ "$(sha256sum ../rcj/rcj.sh | cut -c1-16)" = b23393f2db4dfe65 ] && sbatch --job-name=a15_cot_apd1efc29326c7 ../rcj/rcj.sh r; sleep 15
+cd qd && [ "$(sha256sum SHA256SUMS.txt | cut -c1-16)" = 259c14de1ff04938 ] && [ "$(sha256sum ../rcj/x.py | cut -c1-16)" = 7b9d646994904cca ] && [ "$(sha256sum ../rcj/rcj.sh | cut -c1-16)" = b23393f2db4dfe65 ] && sbatch --job-name=a15_cot_apd1efc29326c7 ../rcj/rcj.sh r; sleep 15
 squeue -u $USER -o "%.10i %.10P %.24j %.8T %.10M %R"

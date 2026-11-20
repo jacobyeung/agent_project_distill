@@ -32,7 +32,7 @@ def selected(database, count, rng, stream):
 def evaluate(processor, cfg, samples):
     import numpy as np
     from unittest.mock import patch
-    from student_pilot import carrier_c1_data as data, pose_samples
+    from student_pilot import carrier_c1_data as data, carrier_c1_routing as routing, pose_samples
     from student_pilot.batches import training_text
     records = []
     for sample in samples:
@@ -41,8 +41,8 @@ def evaluate(processor, cfg, samples):
             prompt, suffix = training_text(proc, question, options, target)
             tok = proc.tokenizer
             captured.append(dict(pixels=list(pixels), encoder_size=dict(shortest_edge=len(arrays)*pixels[0],
-                longest_edge=len(arrays)*pixels[1]), frame_count=getattr(tok, '_c1_frame_count', 32),
-                frame_markers=getattr(tok, '_c1_frame_markers', False),
+                longest_edge=len(arrays)*pixels[1]), frame_count=tok._c1_frame_count if hasattr(tok, '_c1_frame_count') else 32,
+                frame_markers=tok._c1_frame_markers if hasattr(tok, '_c1_frame_markers') else False,
                 frame_layout=cfg.get('frame_layout', 'spread'), encoded_frames=len(arrays),
                 frame_indices=list(metadata.frames_indices), b7_layout=hasattr(proc, '_b7_layout'),
                 prompt_ids=tok.encode(prompt, add_special_tokens=False),
@@ -50,6 +50,11 @@ def evaluate(processor, cfg, samples):
                 combined_ids=tok.encode(prompt+suffix, add_special_tokens=False)))
             return {}, {}
         try:
+            if sample['key'][0]=='routing':
+                row=routing.tool_mode(row,cfg.get('tool_mode_flag'))
+                if 'routing' in row:
+                    target,_,_=routing.render_full(row['routing']['events'],row['routing']['answer'])
+                    row={**row,'target':target}
             with patch.object(pose_samples, 'load_frames', side_effect=lambda inputs:np.zeros((len(inputs['frames']),1,1,3), dtype=np.uint8)), patch.object(pose_samples, 'encode_frames', side_effect=capture):
                 data.encode_layout_row(processor, row, cfg.get('frame_layout', 'spread'), cfg.get('frame_pair_gap_seconds'))
             if len(captured)!=1:raise ValueError('E92')
@@ -112,7 +117,7 @@ def run_bound(kit, root):
     from student_pilot.source_seal import inventory
     from student_pilot.p3_provenance import digest
     cfg=load(q/'n.json');pcontrol=load(q/'base_input.json');mounts=load(q/'base_mounts.json')
-    output=root/'proc_check.json'
+    output=root/'proc_check.json';samples=None;scope={}
     try:
         vqa=None;reason='E94'
         try:
@@ -142,13 +147,13 @@ def run_bound(kit, root):
                 at=cmd.index('--chdir');cmd[at:at]=['--ro-bind','/scratch','/scratch','--ro-bind',str(root),str(root),'--bind',str(q),str(q)]
             cmd[-3:]=[str(script),str(control),str(source)]
             with (root/('pc_'+side+'.log')).open('xb') as log:
-                child=subprocess.run(cmd,stdout=log,stderr=subprocess.STDOUT,check=False)
+                child=subprocess.run(cmd,stdout=log,stderr=-2,check=False)
             if child.returncode:raise ValueError('E95:'+side+':'+str(child.returncode))
             results[side]=load(result)
         value=compare(samples,results['n'],results['p'],scope)
     except Exception as error:
         value=dict(status='FAIL',seed=SEED,reason=type(error).__name__+':'+str(error))
-        if 'samples' in locals():
+        if samples is not None:
             keys=sorted(s['key'] for s in samples)
             value.update(sample_sha256=hashlib.sha256(json.dumps(keys,separators=(',',':'),ensure_ascii=False).encode()).hexdigest(),
                          count=len(samples),scope=scope,rows=[dict(key=s['key'],status='FAIL',reason='E95') for s in samples])

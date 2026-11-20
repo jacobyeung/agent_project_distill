@@ -1,0 +1,16 @@
+G=/scratch/jjyeung/orch_n30/cont_ops24_c/gbuild
+cat > $G/BRIEF_K3B.md <<'BRIEFEOF'
+# Round K3b (cont_ops25): finish K3 with the served PNGs found and C dropped
+
+Same workspace, limits and write roots as gbuild/BRIEF_K3.md (read it and orchard_tower2x_b/REPORT_K3.md first; keep everything K3 built and passed).
+1. The served anchor PNGs are in the content-addressed store /scratch/jjyeung/orch_n30/nvkey1/work/c0stage/devs1_frames/<2 hex>/<sha256>.png (read-only; verified for c5a2ecad…). Set K3_SERVED_ROOT to it and run recipe.py on all 320 anchors. Report pixel equality, max difference and PNG-byte equality per recipe; select the recipe only if it reproduces every anchor pixel-exactly. Also report what the served frames are: lowres_wide 192x256 upscaled 2.5x (filter) and rotated by sky direction, or something else.
+2. Decision: drop arm C. Run arms A (served anchors) and B (63 frames: anchors + 3/6 points), plus A' only if the recipe is not pixel-exact (then B decodes its anchors by the recipe too). Keep the /project placement under 50 MB and the forecast under 25 min; if A' makes either fail, say so and stop before packaging.
+3. Produce the runnable package, scorer and tests as BRIEF_K3 sections 3-4 specify, and finish REPORT_K3.md (append a K3b section) with exact lane commands (place, CPU check, submit, fetch, score), bytes added, forecast and SHA256SUMS_K3b.
+4. One more question for the report: could a served read decode these extra ARKit frames itself from files Orchard already holds, or would they have to be shipped per capture? Check the existing package inputs K2 inventoried (AVAILABILITY.json) for any lowres_wide or other source recording; cite what exists.
+Final message: recipe verdict, arms, bytes, forecast, commands.
+BRIEFEOF
+md5sum $G/BRIEF_K3B.md
+sed -e 's/BRIEF_K3.md/BRIEF_K3B.md/g; s/c25_k3/c25_k3c/g; s/K3_DONE/K3B_DONE/' /scratch/jjyeung/orch_n30/cont_ops25_c/k3_run.sh | sed -e 's#--writable-root /scratch/jjyeung/orch_n30/cont_ops25_c/arkit_lowres"#--writable-root /scratch/jjyeung/orch_n30/cont_ops25_c/arkit_lowres"#' > /scratch/jjyeung/orch_n30/cont_ops25_c/k3b_run.sh
+grep dispatch /scratch/jjyeung/orch_n30/cont_ops25_c/k3b_run.sh
+tmux new-session -d -s c25_k3b "bash /scratch/jjyeung/orch_n30/cont_ops25_c/k3b_run.sh > /scratch/jjyeung/orch_n30/cont_ops25_c/k3b_run.log 2>&1"
+sleep 2; tmux ls
