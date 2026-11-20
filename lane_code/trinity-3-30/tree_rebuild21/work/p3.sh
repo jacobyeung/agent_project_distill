@@ -1,0 +1,1 @@
+W=/scratch/jjyeung/orch_n30/tree_rebuild10_w; date -u +%TZ; tmux ls 2>/dev/null | grep tr2; C=/home/jjyeung/agent_project_distill/agent/scratch/codex_runs; d=$(ls -d $C/*_tree_rebuild_rev24m4r | tail -1); echo $d; ls -la $d | tail -4; test -f $d/final_message.md && cat $d/final_message.md; tail -c 600 $W/work/rev24m4r.log
