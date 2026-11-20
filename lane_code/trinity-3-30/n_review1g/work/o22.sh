@@ -1,6 +1,6 @@
 X=/project/community/jjyeung/okh7/x_22c714e1; J=${J:-173912}; O=$X/o/$J; TZ=UTC date +%TZ; df -h /project/community | tail -1
 ls -la $O | head -80; ls -la $O/live 2>&1 | head -40; ls $O/rd0 2>&1 | head
-sha256sum $O/k_* $O/live/* $O/*.json 2>/dev/null | cut -c1-200
+sha256sum $O/k_* $O/live/* $O/*.json $X/o/173881/receipt.json $X/o/173881/routing_selection.json 2>/dev/null | cut -c1-200; cat $O/db_bytes.json; echo
 J=$J nice -n 10 python3 -I -s -B - <<'PY'
 import json,os,glob,hashlib
 X='/project/community/jjyeung/okh7/x_22c714e1'; O=X+'/o/'+os.environ['J']

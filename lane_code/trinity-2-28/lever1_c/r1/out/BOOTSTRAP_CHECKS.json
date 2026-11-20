@@ -1,0 +1,171 @@
+{
+  "delivery_sha256": "bb5315a268af467e2015a590f9fbe383e604e22c9accb1f40cc5e0b81fb0f2a4",
+  "cases": [
+    {
+      "case": "stale_40_minute_receipt_rejected",
+      "passed": true
+    },
+    {
+      "case": "clean_export_none",
+      "passed": true,
+      "seconds": 3000,
+      "real_job_main": true,
+      "filesystem_admission": true,
+      "job_environment": true,
+      "external_staging_stub": true
+    },
+    {
+      "case": "first_line_production_fetch",
+      "passed": true,
+      "traceback": {
+        "lines": [
+          "Traceback (most recent call last):",
+          "  File \"/scratch/jjyeung/orch_n30/lever1_c/r1/tests/local_bootstrap.py\", line 66, in <module>",
+          "    runpy.run_path(sys.argv[0],run_name='__main__')",
+          "  File \"<frozen runpy>\", line 287, in run_path",
+          "  File \"<frozen runpy>\", line 98, in _run_module_code",
+          "  File \"<frozen runpy>\", line 88, in _run_code",
+          "  File \"/scratch/jjyeung/orch_n30/lever1_c/r1/tests/boot_fdd6tuic/work/a173925a6f198d3c7b20/0.py\", line 1, in <module>",
+          "    raise RuntimeError('injected first line')",
+          "RuntimeError: injected first line"
+        ],
+        "limit": 200,
+        "width": 2048
+      },
+      "fetched_sha256": "d9689e8355b54a477b3b6b62910f25589403f51b8dd29d33908c4a2c026b2462",
+      "fetched": "/scratch/jjyeung/orch_n30/lever1_c/r1/tests/boot_fdd6tuic/package/a/f/0.tgz",
+      "package_pins": true,
+      "plan_pin": true,
+      "receipt_pins": true
+    },
+    {
+      "case": "missing_env_production_fetch",
+      "passed": true,
+      "traceback": {
+        "lines": [
+          "Traceback (most recent call last):",
+          "  File \"/scratch/jjyeung/orch_n30/lever1_c/r1/tests/local_bootstrap.py\", line 66, in <module>",
+          "    runpy.run_path(sys.argv[0],run_name='__main__')",
+          "  File \"<frozen runpy>\", line 287, in run_path",
+          "  File \"<frozen runpy>\", line 98, in _run_module_code",
+          "  File \"<frozen runpy>\", line 88, in _run_code",
+          "  File \"/scratch/jjyeung/orch_n30/lever1_c/r1/tests/boot_9ogi7md6/work/a173925a6f198d3c7b20/0.py\", line 54, in <module>",
+          "    if __name__=='__main__':main()",
+          "                            ^^^^^^",
+          "  File \"/scratch/jjyeung/orch_n30/lever1_c/r1/tests/boot_9ogi7md6/work/a173925a6f198d3c7b20/0.py\", line 50, in main",
+          "    scope['allocation'](shared,public,sha)",
+          "  File \"<string>\", line 6, in allocation",
+          "KeyError: 'USER'"
+        ],
+        "limit": 200,
+        "width": 2048
+      },
+      "fetched_sha256": "ccce48519bab993356f7f809e767cb57db1646ebdab92964acf56ef7fe132168",
+      "fetched": "/scratch/jjyeung/orch_n30/lever1_c/r1/tests/boot_9ogi7md6/package/a/f/0.tgz",
+      "package_pins": true,
+      "plan_pin": true,
+      "receipt_pins": true
+    },
+    {
+      "case": "oversize_production_fetch",
+      "passed": true,
+      "traceback": {
+        "lines": [
+          "Traceback (most recent call last):",
+          "  File \"/scratch/jjyeung/orch_n30/lever1_c/r1/tests/boot_4pgvreas/work/a173925a6f198d3c7b20/p/orchard_h10/vendor/orchard_results.py\", line 116, in publish",
+          "    for name,path in sorted(S.members(source).items()):tf.add(path,arcname=name,recursive=False)",
+          "                                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
+          "  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/tarfile.py\", line 2233, in add",
+          "    self.addfile(tarinfo, f)",
+          "  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/tarfile.py\", line 2261, in addfile",
+          "    copyfileobj(fileobj, self.fileobj, tarinfo.size, bufsize=bufsize)",
+          "  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/tarfile.py\", line 254, in copyfileobj",
+          "    dst.write(buf)",
+          "  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/gzip.py\", line 314, in write",
+          "    return self._buffer.write(data)",
+          "           ^^^^^^^^^^^^^^^^^^^^^^^^",
+          "  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/gzip.py\", line 137, in write",
+          "    return gzip_file._write_raw(data)",
+          "           ^^^^^^^^^^^^^^^^^^^^^^^^^^",
+          "  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/gzip.py\", line 326, in _write_raw",
+          "    self.fileobj.write(self.compress.compress(data))",
+          "  File \"/scratch/jjyeung/orch_n30/lever1_c/r1/tests/boot_4pgvreas/work/a173925a6f198d3c7b20/p/orchard_h10/vendor/chain_save.py\", line 56, in write",
+          "    raise BudgetError('Compressed archive exceeds the transfer-safe file limit')",
+          "chain_save.BudgetError: Compressed archive exceeds the transfer-safe file limit",
+          "",
+          "During handling of the above exception, another exception occurred:",
+          "",
+          "Traceback (most recent call last):",
+          "  File \"/scratch/jjyeung/orch_n30/lever1_c/r1/tests/boot_4pgvreas/work/a173925a6f198d3c7b20/p/orchard_h10/budget.py\", line 58, in finish",
+          "    returned=results.publish(out,cfg['pool'],token,cfg['plan_sha256'],1 if failed else 0)",
+          "             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
+          "  File \"/scratch/jjyeung/orch_n30/lever1_c/r1/tests/boot_4pgvreas/work/a173925a6f198d3c7b20/p/orchard_h10/vendor/orchard_results.py\", line 115, in publish",
+          "    with tarfile.open(fileobj=S.LimitedWriter(raw,min(S.ARCHIVE_LIMIT,cap-(1_000_000 if mode=='proof' else EXIT_RESERVE)-1)),mode='w:gz',compresslevel=6) as tf:",
+          "         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
+          "  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/tarfile.py\", line 2907, in __exit__",
+          "    self.fileobj.close()",
+          "  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/gzip.py\", line 370, in close",
+          "    self._buffer.flush()",
+          "  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/gzip.py\", line 137, in write",
+          "    return gzip_file._write_raw(data)",
+          "           ^^^^^^^^^^^^^^^^^^^^^^^^^^",
+          "  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/gzip.py\", line 326, in _write_raw",
+          "    self.fileobj.write(self.compress.compress(data))",
+          "  File \"/scratch/jjyeung/orch_n30/lever1_c/r1/tests/boot_4pgvreas/work/a173925a6f198d3c7b20/p/orchard_h10/vendor/chain_save.py\", line 56, in write",
+          "    raise BudgetError('Compressed archive exceeds the transfer-safe file limit')",
+          "chain_save.BudgetError: Compressed archive exceeds the transfer-safe file limit",
+          "",
+          "During handling of the above exception, another exception occurred:",
+          "",
+          "Traceback (most recent call last):",
+          "  File \"/scratch/jjyeung/orch_n30/lever1_c/r1/tests/local_bootstrap.py\", line 66, in <module>",
+          "    runpy.run_path(sys.argv[0],run_name='__main__')",
+          "  File \"<frozen runpy>\", line 287, in run_path",
+          "  File \"<frozen runpy>\", line 98, in _run_module_code",
+          "  File \"<frozen runpy>\", line 88, in _run_code",
+          "  File \"/scratch/jjyeung/orch_n30/lever1_c/r1/tests/boot_4pgvreas/work/a173925a6f198d3c7b20/0.py\", line 54, in <module>",
+          "    if __name__=='__main__':main()",
+          "                            ^^^^^^",
+          "  File \"/scratch/jjyeung/orch_n30/lever1_c/r1/tests/boot_4pgvreas/work/a173925a6f198d3c7b20/0.py\", line 51, in main",
+          "    job.main(root)",
+          "  File \"/scratch/jjyeung/orch_n30/lever1_c/r1/tests/boot_4pgvreas/work/a173925a6f198d3c7b20/p/orchard_h10/job.py\", line 271, in main",
+          "    finish(root,cfg,out,return_token,R,end,upload_capture,write,failed)",
+          "  File \"/scratch/jjyeung/orch_n30/lever1_c/r1/tests/boot_4pgvreas/work/a173925a6f198d3c7b20/p/orchard_h10/budget.py\", line 71, in finish",
+          "    raise RuntimeError('E74')",
+          "RuntimeError: E74"
+        ],
+        "limit": 200,
+        "width": 2048
+      },
+      "fetched_sha256": "71ceed46b5f472d03ae042c25de457a4cf7a49d4411282f92b1eabcc736cb389",
+      "fetched": "/scratch/jjyeung/orch_n30/lever1_c/r1/tests/boot_4pgvreas/package/a/f/0.tgz",
+      "package_pins": true,
+      "plan_pin": true,
+      "receipt_pins": true
+    },
+    {
+      "case": "archive_production_fetch",
+      "passed": true,
+      "traceback": {
+        "lines": [
+          "Traceback (most recent call last):",
+          "  File \"<string>\", line 36, in supervise",
+          "  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/tarfile.py\", line 1862, in open",
+          "    raise ReadError(f\"file could not be opened successfully:\\n{error_msgs_summary}\")",
+          "tarfile.ReadError: file could not be opened successfully:",
+          "- method gz: ReadError('not a gzip file')",
+          "- method bz2: ReadError('not a bzip2 file')",
+          "- method xz: ReadError('not an lzma file')",
+          "- method tar: ReadError('truncated header')"
+        ],
+        "limit": 200,
+        "width": 2048
+      },
+      "fetched_sha256": "70aa4dc63a66e98d59a7b139b34ba24cf3a83721572b94b644884bca365dd946",
+      "fetched": "/scratch/jjyeung/orch_n30/lever1_c/r1/tests/boot_8cd2wo0b/package/a/f/0.tgz",
+      "package_pins": true,
+      "plan_pin": true,
+      "receipt_pins": true
+    }
+  ]
+}

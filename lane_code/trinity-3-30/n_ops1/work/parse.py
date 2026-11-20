@@ -205,6 +205,11 @@ if J!='0':
         if last_s>t and 'm%d'%t not in gd:
           due.setdefault(str(t),now)
           if now-due[str(t)]>=2700:flags.append('NO_EXPORT_m%d %d min after step %d'%(t,(now-due[str(t)])/60,t+1))
+  # ORCH RULING 2232Z item 3: an export exists (m<t>/artifact.json) and no upload receipt 10 min later
+  rc_h,_=sec('RCPT'); exps=sorted(set(re.findall(r'\b(m\d+)/artifact\.json',sec('CK')[1])))
+  if exps and rc_h is not None and rc_h.isdigit():
+    S.setdefault('exp1_t',now); info['receipts']=int(rc_h); info['exports_seen']=exps
+    if int(rc_h)==0 and now-S['exp1_t']>=600:flags.append('NO_RECEIPT_10MIN after export %s'%exps[0])
   if stop:flags.append('STOP_BAR')
 else:
   info['adv_jobs']=[q[0]+':'+q[1]+':'+q[3] for q in adv]

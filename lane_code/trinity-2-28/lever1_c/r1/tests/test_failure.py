@@ -126,7 +126,9 @@ class FailureTests(unittest.TestCase):
         self.assertEqual(p.returncode,1)
         self.assertTrue(any('Traceback' in s for s in j.loads((out/'metadata/8.json').read_bytes())['lines']))
         for path in (out/'metadata').iterdir():
-            raw=path.read_bytes();self.assertEqual(set(j.wire_loads(raw)),{'a0'})
+            raw=path.read_bytes()
+            if path.suffix=='.0':bytes.fromhex(raw.decode().replace('\n',''))
+            else:self.assertEqual(set(j.wire_loads(raw)),{'a0'})
             self.assertFalse(any(word in raw.decode().lower() for word in ('g3t','tower','depth','student','reader')))
         S,J,R,*_=job.template()
         job.write(out/'FAILED.json',dict(error='E98'))

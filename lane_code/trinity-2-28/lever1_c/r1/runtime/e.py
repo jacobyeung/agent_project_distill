@@ -14,7 +14,10 @@ WIDTH = 2048
 def save(path, lines):
     path=Path(path);path.parent.mkdir(parents=True,exist_ok=True)
     value=dict(lines=list(lines)[-LIMIT:],limit=LIMIT,width=WIDTH)
-    with open(path,'wb') as stream:stream.write(j.pack(j.wire_dumps(value)))
+    raw=j.pack(j.wire_dumps(value))
+    while len(raw)>262144:
+        value['lines']=value['lines'][1:];raw=j.pack(j.wire_dumps(value))
+    with open(path,'wb') as stream:stream.write(raw)
 
 
 def exception(path, error):
@@ -25,8 +28,11 @@ def exception(path, error):
 
 
 @contextmanager
-def capture(path):
+def capture(path, mirror=None):
     """Drain a child continuously without retaining raw logs or blocking a pipe."""
+    path=Path(path);path.parent.mkdir(parents=True,exist_ok=True)
+    durable=path.with_suffix('.0')
+    with durable.open('ab'):pass
     read,write=os.pipe();lines=deque(maxlen=LIMIT)
     def drain():
         pending=b''
@@ -34,6 +40,12 @@ def capture(path):
             while True:
                 block=os.read(read,8192)
                 if not block:break
+                for target in (durable, Path(mirror) if mirror else None):
+                    if target is None:continue
+                    left=max(0,131072-(target.stat().st_size if target.exists() else 0))
+                    data=(block.hex()+'\n').encode()[:left]
+                    if data:
+                        with target.open('ab',buffering=0) as disk:disk.write(data);os.fsync(disk.fileno())
                 parts=(pending+block).split(b'\n')
                 lines.extend(p[-WIDTH:].decode('utf-8','replace') for p in parts[:-1])
                 pending=parts[-1][-WIDTH:]

@@ -98,6 +98,18 @@ def audit(delivery=None, overrides=None):
             else:files[key]=value
     for name, content in outer.items():
         if name.endswith('.py'): files['outer/'+name]=content
+    # Submitted bootstrap and recovery imports are part of the executable closure.
+    batch=outer['BATCH.sh'].decode().split("<<'A'\n",1)[1].rsplit('\nA',1)[0]
+    batch_tree=ast.parse(batch)
+    blob=next(bytes.fromhex(ast.literal_eval(n.value.args[0])) for n in batch_tree.body
+              if isinstance(n,ast.Assign) and any(isinstance(t,ast.Name) and t.id=='b' for t in n.targets))
+    for name,content in unpack(blob).items():
+        if name.endswith('.py'):files['outer/bundle/'+name]=content
+    call=batch_tree.body[-1].value
+    supervisor=bytes.fromhex(ast.literal_eval(call.args[0].args[0]))
+    files['outer/supervisor.py']=supervisor
+    recovery=ast.literal_eval(ast.parse(supervisor).body[0].value)
+    for name,encoded in recovery.items():files['outer/recovery/'+name+'.py']=bytes.fromhex(encoded)
     build = json.loads((HERE/'out/BUILD.json').read_text())
     assert sha(raw) == build['delivery_sha256']
     assert sha(outer['0.tgz']) == build['payload_sha256']

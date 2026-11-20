@@ -383,7 +383,8 @@ class FixTests(unittest.TestCase):
             if action=='publish':raise TimeoutError('0')
             return pool_io.operate(action,*a)
         with patch.dict(os.environ,dict(PATH='/usr/bin:/bin',HOME='/tmp/a0',USER='0'),clear=True),patch.object(subprocess,'run',side_effect=slow),patch.object(results,'pool_operation',side_effect=pool),patch.object(results,'GCS_ROOT','gs://a0'),patch.object(results,'CLOUD_CONFIG','/tmp/a0'):
-            budget.finish(root,cfg,out,'a'+'0'*20,results,3000,job.upload_capture,job.write,False,clock=lambda:now[0])
+            with self.assertRaisesRegex(RuntimeError,'E74'):
+                budget.finish(root,cfg,out,'a'+'0'*20,results,3000,job.upload_capture,job.write,False,clock=lambda:now[0])
         self.assertEqual([c['timeout'] for c in calls],[150,80,8])
         self.assertLess(now[0],3000)
         copied=json.loads((root/'q'/('a'+'0'*20)/'RETURN_RECEIPT.json').read_text())

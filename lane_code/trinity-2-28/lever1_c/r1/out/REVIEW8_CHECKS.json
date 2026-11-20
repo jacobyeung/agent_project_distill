@@ -1,0 +1,100 @@
+{
+  "token": "a6f198d3c7b20",
+  "delivery_sha256": "bb5315a268af467e2015a590f9fbe383e604e22c9accb1f40cc5e0b81fb0f2a4",
+  "delivery_bytes": 3719932,
+  "payload_sha256": "2d9cc4946ab278dfc1209e4941c7f2c24d874b93bf17dee97583cdab966e8bf1",
+  "plan_sha256": "b942eda2ebdb6ca9294cd52f16c1953089b8444be9704b0f1ab6ed61795bb862",
+  "durable": {
+    "passed": true,
+    "stream_before_exit": true,
+    "stream_cap": 131072,
+    "shell_first_command": true,
+    "err_exit_records": [
+      "1 6",
+      "1 1"
+    ]
+  },
+  "environment": {
+    "passed": true,
+    "reads": 368,
+    "files_parsed": 379,
+    "scope": "Conservative superset: every delivered Python source, including retained serving modules, deferred branches, embedded bootstrap and recovery. External library implementation internals belong to the pinned environment, not this source inventory."
+  },
+  "disk_admission": {
+    "passed": true,
+    "accepted": [
+      "ext4"
+    ],
+    "rejected": [
+      "tmpfs",
+      "xfs",
+      "btrfs"
+    ]
+  },
+  "submission": {
+    "passed": true,
+    "cpu_argv": [
+      "sbatch",
+      "--parsable",
+      "--account=mt01",
+      "--partition=general",
+      "--nodes=1",
+      "--ntasks=1",
+      "--cpus-per-task=16",
+      "--mem=200G",
+      "--exclude=orchard-community-4",
+      "--time=00:50:00",
+      "--signal=B:USR1@120",
+      "--no-requeue",
+      "--export=NONE",
+      "--output=/project/community/jjyeung/a6f198d3c7b20/a/19",
+      "--error=/project/community/jjyeung/a6f198d3c7b20/a/19",
+      "--open-mode=append",
+      "--chdir=/tmp",
+      "--job-name=a15_cot_apa6f198d3c7b20"
+    ],
+    "gpu_argv": [
+      "sbatch",
+      "--parsable",
+      "--account=mt01",
+      "--partition=general",
+      "--nodes=1",
+      "--ntasks=1",
+      "--gres=gpu:1",
+      "--cpus-per-task=16",
+      "--mem=200G",
+      "--exclude=orchard-community-4",
+      "--time=00:50:00",
+      "--signal=B:USR1@120",
+      "--no-requeue",
+      "--export=NONE",
+      "--output=/project/community/jjyeung/a6f198d3c7b20/a/19",
+      "--error=/project/community/jjyeung/a6f198d3c7b20/a/19",
+      "--open-mode=append",
+      "--chdir=/tmp",
+      "--job-name=a15_cot_apa6f198d3c7b20"
+    ],
+    "identical_environment": true,
+    "identical_batch": true,
+    "differences": [
+      "--gres=gpu:1 omitted for CPU allocation"
+    ]
+  },
+  "metadata_budget": {
+    "passed": true,
+    "cap": 2000000,
+    "prewrite_reservation": true,
+    "counts_ledger_writes": true
+  },
+  "project_budget": {
+    "passed": true,
+    "total": 48000000,
+    "placement": 10000000,
+    "shell_diagnostics": 2000000,
+    "python_metadata_and_diagnostics": 2000000,
+    "pool": 12000000,
+    "fetch": 20000000,
+    "scheduler_control_and_reserve": 2000000,
+    "recovery_working_directory": "assigned job directory"
+  }
+}

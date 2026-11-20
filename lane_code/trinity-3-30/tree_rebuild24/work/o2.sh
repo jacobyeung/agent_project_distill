@@ -1,0 +1,1 @@
+export TZ=UTC; X=/project/community/jjyeung/okh7/x_22c714e1; cd $X; ls -l --time-style=+%s u | awk '{print $5, $7}'; echo ===QD; ls qd qd/k; sha256sum qd/SHA256SUMS.txt jd6.sh dbb3.py rdiff.py | cut -c1-80; ls

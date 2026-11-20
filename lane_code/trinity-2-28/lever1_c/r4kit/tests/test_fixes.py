@@ -86,6 +86,62 @@ def scan(root):
 
 
 class Fixes(unittest.TestCase):
+    def test_20_cache_environment_and_namespace(self):
+        import orchard_job as J
+        p,cfg,_=package(); root=p/'z'; root.mkdir(); local=root/'p'; local.mkdir()
+        for n,v in FILES.items(): (local/n).write_bytes(v)
+        M=types.SimpleNamespace(supervise=lambda *a:0)
+        environments=[]
+        for mode in ('c','g'):
+            with patch.dict(os.environ,dict(USER='a',SLURM_JOB_ID='123',CUDA_VISIBLE_DEVICES='0',
+                    HOME='/project/bad',TMPDIR='/project/bad',TRITON_CACHE_DIR='/project/bad')), \
+                 patch.object(ctl,'monitor',return_value=M), patch.object(M,'supervise',return_value=0) as run:
+                ctl.launch(root,local,cfg,mode,time.time()+30,J)
+            argv,env=run.call_args.args[:2]
+            for key in C.CACHE_PATHS:
+                self.assertTrue(Path(env[key]).is_relative_to(root))
+                self.assertTrue(Path(env[key]).is_dir())
+                ctl.opaque([env[key]])
+            self.assertFalse(any(argv[i:i+3]==['--bind','/tmp','/tmp'] for i in range(len(argv))))
+            self.assertFalse(any(x == '/project' or x.startswith('/project/') for x in argv))
+            self.assertEqual(env['CUDA_CACHE_DISABLE'],'1')
+            self.assertEqual(env['PYTORCH_KERNEL_CACHE'],'0')
+            environments.append(env)
+        for key in C.CACHE_PATHS+list(C.CACHE_FLAGS):
+            self.assertEqual(environments[0][key],environments[1][key])
+        EVIDENCE['cache_environment']=dict(paths=C.CACHE_PATHS,flags=C.CACHE_FLAGS,
+            modes=['c','g'],inherited_overrides_replaced=True,whole_tmp_mount_removed=True)
+
+    def test_21_clean_preflight_write_inventory(self):
+        sandbox=fresh(); job=sandbox/'j'; job.mkdir(); project=sandbox/'p'; project.mkdir()
+        library=job/'0.so'; trace=job/'0.log'
+        compiled=subprocess.run(['cc','-shared','-fPIC','-O2','-Wall','-Werror',
+            str(ROOT/'tests/write_audit.c'),'-ldl','-o',str(library)],
+            env=dict(PATH='/usr/bin:/bin',TMPDIR=str(job)),
+            stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=30)
+        self.assertEqual(compiled.returncode,0,compiled.stderr.decode())
+        result=subprocess.run([sys.executable,'-I','-s','-B',str(ROOT/'tests/cache_preflight.py'),
+            str(job),str(project)],cwd=job,env=dict(PATH='/usr/bin:/bin',CUDA_VISIBLE_DEVICES='',
+            OPENBLAS_NUM_THREADS='1',OMP_NUM_THREADS='2',LD_PRELOAD=str(library),A_TRACE=str(trace)),
+            stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=120)
+        self.assertEqual(result.returncode,0,result.stderr.decode()[-6000:])
+        evidence=json.loads((job/'1.json').read_text())
+        public_names={'a/'+name for name in FILES} | {
+            'a/a/12.lock','a/a/12.jsonl','a/a/4.json','a/a/c/0.tgz','a/a/c/1.json',
+            'f/0.stream','f/0.log','f/0.tgz.partial','f/0.tgz','f/0.tgz.receipt.json','f/1.json'}
+        self.assertEqual(set(evidence['public_files']),public_names)
+        allowed={str(project/name) for name in public_names}
+        self.assertEqual(set(evidence['observed_public_writes']),allowed)
+        native={line for line in trace.read_text().splitlines() if not Path(line).is_relative_to(job)}
+        self.assertTrue(native)
+        self.assertFalse(native-allowed,native-allowed)
+        evidence.update(outside_job_files=sorted(allowed),unexpected_files=[],native_outside_job_files=sorted(native),
+            native_trace=str(trace.relative_to(ROOT)),
+            method='Fresh environment; native libc writable-open audit, Python file mutation audit and complete public-tree inventory checked against a fixed allowlist',
+            scope='Actual CPU runtime with tiny authenticated export and processor/RGB/head-shape doubles; real finalize and fetch')
+        EVIDENCE['clean_preflight_writes']=evidence
+        (ROOT/'out/CACHE_CHECKS.json').write_text(json.dumps(evidence,indent=2)+'\n')
+
     @classmethod
     def setUpClass(cls):
         cls.code=fresh();C.materialize(cls.code,SOURCES)
@@ -109,7 +165,7 @@ class Fixes(unittest.TestCase):
                 p,cfg,current=package();root=p/'z'
                 S=types.SimpleNamespace(room=lambda *a:None,extract_stream=lambda *a,**k:None,
                     copy_parts=lambda *a,**k:None,unpack=lambda *a,**k:None)
-                J=types.SimpleNamespace(storage_proof=lambda *a,**k:None)
+                J=types.SimpleNamespace(storage_proof=lambda *a,**k:dict(filesystem='ext4'))
                 injected=[]
                 def failed(*args,**kwargs):
                     injected.append(case);raise RuntimeError(case)
@@ -118,7 +174,7 @@ class Fixes(unittest.TestCase):
                 S.extract_stream=extracting
                 def prepare(p,root,cfg,job,end):
                     if case in ('launch','worker','timeout','alarm'):
-                        (root/'p/a').mkdir(parents=True)
+                        (root/'p/a').mkdir(parents=True,exist_ok=True)
                         # A finished pair must survive all later failures.
                         with (root/'p/a/0.jsonl').open('wb') as f:
                             for a in (0,1):f.write(C.pack(json.dumps(dict(i='a',a=a,text='<ground',n=1))))
@@ -167,17 +223,18 @@ class Fixes(unittest.TestCase):
 
     def test_03_bounded_launch_and_staging(self):
         src=(ROOT/'src/control.py').read_text()
-        self.assertIn('timeout=remaining',src);self.assertIn('timeout=60',src)
+        self.assertIn('supervise(argv',src);self.assertIn('timeout=60',src)
         with self.assertRaises(ctl.Deadline):
             with ctl.bounded(time.time()+.01):time.sleep(.02)
         for n in ('room','storage_proof','copy_parts','unpack','extract_stream'):
             self.assertIn(n,src)
         p,cfg,_=package();root=p/'z';root.mkdir();local=root/'p';local.mkdir()
         J=types.SimpleNamespace(environment=lambda r:{'PATH':'/usr/bin'},namespace=lambda r:['0'])
-        with patch.dict(os.environ,{'CUDA_VISIBLE_DEVICES':'0'}),patch.object(ctl.subprocess,'run',return_value=types.SimpleNamespace(returncode=0)) as run:
+        M=types.SimpleNamespace(supervise=lambda *a:0)
+        with patch.dict(os.environ,{'CUDA_VISIBLE_DEVICES':'0'}), patch.object(ctl,'monitor',return_value=M), patch.object(ctl,'codec',return_value=C), patch.object(M,'supervise',return_value=0) as run:
             ctl.launch(root,local,cfg,'g',time.time()+30,J)
-            self.assertGreater(run.call_args.kwargs['timeout'],0)
-            self.assertLessEqual(run.call_args.kwargs['timeout'],30)
+            self.assertGreater(run.call_args.args[-1],time.time())
+            self.assertLessEqual(run.call_args.args[-1],time.time()+30)
 
     def test_04_native_cpu_batch_parity(self):
         import torch
@@ -406,6 +463,217 @@ class Fixes(unittest.TestCase):
             self.assertTrue(all((result[j]['a'],result[j+1]['a'])==(0,1) for j in range(0,len(result),2)))
             scan(p/'f')
             EVIDENCE['batch_admission_'+str(slow)]=dict(timing=timing,complete_pairs=progress[0]//2,real_fetch=True)
+
+    def test_11_death_diagnostics_real_launch_and_fetch(self):
+        results=[]
+        for mode, termination in itertools.product(('c','g'), ('signal', 'term', 'exit', 'timeout')):
+            p,cfg,current=package(); root=p/'z'; local=root/'p'; local.mkdir(parents=True)
+            for n,v in FILES.items(): (local/n).write_bytes(v)
+            # The requested destructive test affects only this new synthetic child.
+            ending = {'signal':'os.kill(os.getpid(), signal.SIGKILL)', 'term':'os.kill(os.getpid(), signal.SIGTERM)', 'exit':'os._exit(17)', 'timeout':'import time; time.sleep(60)'}[termination]
+            script = """import os, sys, signal, importlib.util
+from pathlib import Path
+p=Path(sys.argv[1])
+def load(name):
+ s=importlib.util.spec_from_file_location('a'+name,p/(name+'.py'));m=importlib.util.module_from_spec(s);s.loader.exec_module(m);return m
+C=load('9');M=load('11')
+M.mark(C,p/'a','mid_restore')
+os.write(2,b'x'*30000+b'ground stderr sentinel\\n')
+""" + ending + '\n'
+            (local/'5.py').write_text(script)
+            # Use real launch + inner supervisor. Only namespace/environment differ
+            # from Orchard; no bubblewrap, external staging or Slurm is invoked.
+            cfg['inputs']['python']=sys.executable
+            J=types.SimpleNamespace(namespace=lambda r:[],environment=lambda r:dict(PATH='/usr/bin:/bin'))
+            with patch.dict(os.environ,{'CUDA_VISIBLE_DEVICES':'0'}):
+                code=ctl.launch(root,local,cfg,mode,time.time()+(10.5 if termination=='timeout' else 20),J)
+            ctl.finalize(p,local/'a',cfg,mode,'123',time.time(),code)
+            ctl.fetch(p,p/'f',mode)
+            returned=members((p/'f/0.tgz').read_bytes())
+            value=C.loads(returned['4.json'])['execution']
+            self.assertEqual(value['returncode'],{'signal':-9, 'term':-15, 'exit':17, 'timeout':-9}[termination])
+            self.assertEqual(value['signal'],{'signal':9, 'term':15, 'exit':None, 'timeout':9}[termination])
+            self.assertEqual(value['last_stage']['stage'],'mid_restore')
+            if termination=='timeout': self.assertEqual(value['reason'],'deadline')
+            self.assertGreater(value['peak_rss_bytes'],0)
+            self.assertLessEqual(value['stderr_bytes_retained'],24000)
+            self.assertIn(b'ground stderr sentinel',bytes.fromhex(value['stderr_tail_hex']))
+            self.assertEqual(C.loads(returned['1.json'])['execution'],value)
+            scan(p/'f')
+            results.append(dict(mode=mode,termination=termination,execution=value))
+        EVIDENCE['worker_deaths']=results
+
+    def test_12_active_mount_rejects_tmpfs(self):
+        import orchard_job as J
+        text='10 1 0:1 / /tmp rw - tmpfs tmpfs rw\n11 1 8:1 /job_tmp/123 /tmp rw - ext4 /dev/sda rw\n'
+        with patch.object(J,'active_mount',return_value=dict(mount_id=11,probe_path='/tmp')):
+            proof=J.storage_proof('/tmp',mountinfo=text,job='123')
+            self.assertEqual(proof['filesystem'],'ext4')
+        fake=types.SimpleNamespace(storage_proof=lambda *a,**k:dict(filesystem='tmpfs'))
+        with self.assertRaisesRegex(ValueError,'ext4'):ctl.disk_proof(fake,Path('/tmp'),'123')
+        # A shadowed tmpfs must not win merely because it occurs later in the text.
+        with patch.object(J,'active_mount',return_value=dict(mount_id=11,probe_path='/tmp')):
+            proof=J.storage_proof('/tmp',mountinfo='\n'.join(reversed(text.splitlines())),job='123')
+            self.assertEqual(proof['mount_id'],11)
+        EVIDENCE['storage']=dict(active_mount_id=11,filesystem='ext4',tmpfs_rejected=True)
+
+    def test_13_head_shape_check_has_no_tensor_storage(self):
+        import torch
+        from parity_kit import stage_restore
+        p=fresh()/'0.pt';torch.save({'depth.a':torch.ones(2,3)},p)
+        real=torch.load
+        seen=[]
+        def loading(*a,**k):
+            state=real(*a,**k)
+            self.assertTrue(all(t.is_meta for t in state.values()))
+            seen.append(k);return state
+        with patch.object(stage_restore,'depth_shapes',return_value={'depth.a':(2,3)}), patch.object(torch,'load',side_effect=loading):
+            proof=stage_restore.prove_depth(p,None,{})
+        self.assertEqual(proof['depth_shapes'],{'depth.a':[2,3]})
+        self.assertEqual(seen[0]['map_location'],'meta')
+        EVIDENCE['head_metadata_only']=dict(load=seen[0],passed=True)
+
+    def test_14_both_streams_early_failure_real_fetch(self):
+        evidence=[]
+        for mode, layer in itertools.product(('c','g'), ('controller','worker')):
+            p,cfg,current=package();root=p/'z';local=root/'p'
+            if layer == 'controller':
+                def fail(*args):
+                    os.write(1,b'ground stdout early sentinel\n')
+                    os.write(2,b'tower stderr early sentinel\n')
+                    raise RuntimeError('early')
+                with patch.dict(os.environ,{'A_M':mode,'SLURM_JOB_ID':'123'}), patch.object(ctl,'check',side_effect=fail):
+                    self.assertEqual(ctl.work(p,root),1)
+            else:
+                local.mkdir(parents=True)
+                for name,raw in FILES.items():(local/name).write_bytes(raw)
+                (local/'5.py').write_text("import os\nos.write(1,b'ground stdout early sentinel\\n')\nos.write(2,b'tower stderr early sentinel\\n')\nraise SystemExit(17)\n")
+                (local/'5.py').write_bytes(B.wrap((local/'5.py').read_bytes()))
+                cfg['inputs']['python']=sys.executable
+                J=types.SimpleNamespace(namespace=lambda r:[],environment=lambda r:dict(PATH='/usr/bin:/bin'))
+                with patch.dict(os.environ,{'CUDA_VISIBLE_DEVICES':'0'}):
+                    code=ctl.launch(root,local,cfg,mode,time.time()+20,J)
+                ctl.finalize(p,local/'a',cfg,mode,'123',time.time(),code)
+            ctl.fetch(p,p/'f',mode)
+            returned=members((p/'f/0.tgz').read_bytes())
+            execution=C.loads(returned['1.json'])['execution']
+            for name in ('stdout','stderr'):
+                tail=bytes.fromhex(execution[name+'_tail_hex'])
+                self.assertIn((name+' early sentinel').encode(),tail)
+                self.assertLessEqual(len(tail),16000)
+            self.assertGreater(execution['peak_rss_bytes'],0)
+            self.assertIn('gpu_max_allocated_bytes',execution)
+            scan(p/'f');scan(root)
+            evidence.append(dict(mode=mode,layer=layer,execution=execution,real_fetch=True))
+        EVIDENCE['early_streams']=evidence
+
+    def test_15_aggregate_budget_refuses_before_write(self):
+        p,cfg,_=package();records=p/'z/p/a';records.mkdir(parents=True)
+        with (records/'0.jsonl').open('wb') as stream:
+            for i in range(12):
+                for a in (0,1):stream.write(C.pack(json.dumps(dict(i=str(i),a=a,text='x'*60000))))
+        C.store(records/'1.json',dict(passed=True,records=24))
+        receipt=ctl.finalize(p,records,cfg,'g','123',time.time(),0)
+        self.assertFalse(receipt['passed']);self.assertEqual(receipt['code'],1)
+        ctl.fetch(p,p/'f','g')
+        summary=C.loads(members((p/'f/0.tgz').read_bytes())['1.json'])
+        self.assertEqual(summary['status'],'project_budget')
+        with self.assertRaises(ctl.BudgetError):ctl.fetch(p,p/'f2','g')
+        self.assertFalse((p/'f2').exists())
+        with self.assertRaises(ctl.BudgetError):ctl.public_write(p,p/'a/99.bin',b'x'*1000001)
+        self.assertFalse((p/'a/99.bin').exists())
+        with self.assertRaises(ctl.BudgetError):ctl.account(p,'rx',1)
+        entries=[C.loads(line) for line in (p/'a/12.jsonl').read_bytes().splitlines()]
+        self.assertLessEqual(sum(e['bytes'] for e in entries),23000000)
+        self.assertEqual(ctl.PROJECT_BUDGET['enforced_max_bytes'],44000000)
+        self.assertLessEqual((ROOT/'out/delivery.tgz').stat().st_size+sum(len(v) for v in FILES.values()),20000000)
+        EVIDENCE['project_budget']=dict(policy=ctl.PROJECT_BUDGET,oversize_return_failed=True,duplicate_fetch_refused=True,oversize_write_refused=True,entries=entries)
+
+    def test_16_charged_memory_guard_both_modes(self):
+        M=mod('guard_monitor',ROOT/'src/monitor.py');evidence=[]
+        for mode in ('c','g'):
+            p,cfg,_=package();records=p/'z/p/a';records.mkdir(parents=True)
+            counter={'memory.current':str(M.memory_limit(mode)+1),'memory.max':str(200*1024**3)}
+            with patch.object(M,'cgroup_memory',return_value=counter):
+                code=M.supervise([sys.executable,'-I','-s','-B','-c','import time; time.sleep(10)'],dict(os.environ,A_M=mode),records,C,time.time()+20)
+            self.assertEqual(code,-9)
+            ctl.finalize(p,records,cfg,mode,'123',time.time(),code)
+            ctl.fetch(p,p/'f',mode)
+            execution=C.loads(members((p/'f/0.tgz').read_bytes())['1.json'])['execution']
+            self.assertEqual(execution['reason'],'memory_budget')
+            self.assertEqual(execution['charged_memory_stop_bytes'],M.memory_limit(mode))
+            self.assertLess(M.memory_limit(mode),200*1024**3)
+            evidence.append(dict(mode=mode,execution=execution,real_fetch=True))
+        with patch.object(M,'cgroup_memory',return_value={}):
+            with self.assertRaises(MemoryError):M.memory_over('g',strict=True)
+        EVIDENCE['memory_guard']=evidence
+
+    def test_17_memory_telemetry_batches_and_end(self):
+        runtime=mod('memory_runtime',ROOT/'src/runtime.py');runtime.C=C
+        p,cfg,_=package();out=p/'z/p/a';out.mkdir(parents=True)
+        readings=[1234];resets=[]
+        cuda=types.SimpleNamespace(is_initialized=lambda:True,max_memory_allocated=lambda:readings[0],reset_peak_memory_stats=lambda:resets.append(True))
+        rows=[dict(i=str(i//2),r='a',a=i%2) for i in range(8)]
+        def generate(group,emit,deadline,metrics):
+            readings[0]=5678
+            for i in range(len(group)):emit(i,dict(text='x',n=1,tokens=[1]))
+        with patch.dict(sys.modules,{'torch':types.SimpleNamespace(cuda=cuda)}):
+            status=runtime.run_batches(out,rows,[0],time.time()+120,lambda group:group,generate,lambda:None)
+        self.assertEqual(status,'complete');self.assertEqual(len(resets),1)
+        timing=C.loads((out/'3.jsonl').read_bytes())
+        self.assertEqual(timing['gpu_max_allocated_bytes'],5678)
+        self.assertEqual(timing['batch_gpu_max_allocated_bytes'],5678)
+        self.assertGreater(timing['peak_rss_bytes'],0)
+        C.store(out/'1.json',dict(passed=False,records=8))
+        ctl.finalize(p,out,cfg,'g','123',time.time(),0);ctl.fetch(p,p/'f','g')
+        end=C.loads(members((p/'f/0.tgz').read_bytes())['1.json'])['execution']
+        self.assertEqual(end['gpu_max_allocated_bytes'],5678)
+        EVIDENCE['memory_telemetry']=dict(timing=timing,end=end,cuda_double=True,real_fetch=True)
+
+    def test_18_stream_capture_success_partial_and_cap(self):
+        M=mod('stream_monitor',ROOT/'src/monitor.py');evidence=[]
+        for mode, state in itertools.product(('c','g'), ('success','partial','cap')):
+            p,cfg,_=package();records=p/'z/p/a';records.mkdir(parents=True)
+            script="import os\nos.write(1,b'ground stdout end\\n')\nos.write(2,b'tower stderr end\\n')\n"
+            if state=='cap':script+="os.write(1,b'x'*300000)\n"
+            code=M.supervise([sys.executable,'-I','-s','-B','-c',script],dict(os.environ,A_M=mode),records,C,time.time()+20)
+            C.store(records/'1.json',dict(passed=state=='success',records=0,status=state))
+            ctl.finalize(p,records,cfg,mode,'123',time.time(),code)
+            ctl.fetch(p,p/'f',mode)
+            summary=C.loads(members((p/'f/0.tgz').read_bytes())['1.json'])
+            execution=summary['execution']
+            self.assertEqual(summary['passed'],state=='success')
+            for name in ('stdout','stderr'):self.assertIn(name+'_tail_hex',execution)
+            if state=='cap':self.assertEqual(execution['reason'],'log_budget')
+            else:
+                self.assertIn(b'stdout end',bytes.fromhex(execution['stdout_tail_hex']))
+                self.assertIn(b'stderr end',bytes.fromhex(execution['stderr_tail_hex']))
+            self.assertLess((records/'8.log').stat().st_size,530000)
+            scan(p/'f');scan(records)
+            evidence.append(dict(mode=mode,state=state,real_fetch=True))
+        EVIDENCE['all_stream_outcomes']=evidence
+
+    def test_19_scorer_entrypoint_all_outcomes(self):
+        evidence=[];logs=[]
+        data=C.loads(FILES['1.json'])
+        for state,count in (('success',580),('partial',8),('failure',0)):
+            p,cfg,_=package();records=p/'z/p/a';records.mkdir(parents=True)
+            rows=[dict(i=r['i'],r=r['r'],a=r['a'],text='<ground',tokens=[27,1884],n=2,g=True,o=[],finish='call') for r in data['rows'][:count]]
+            (records/'0.jsonl').write_bytes(b''.join(C.pack(json.dumps(row)) for row in rows))
+            C.store(records/'1.json',dict(passed=state=='success',records=count,mode='g',status=state))
+            (records/'3.jsonl').write_bytes(C.pack(json.dumps(dict(batch=0,completed_pairs=count//2))))
+            error=RuntimeError('forced') if state=='failure' else None
+            ctl.finalize(p,records,cfg,'g','123',time.time(),int(state!='success'),error)
+            ctl.fetch(p,p/'f','g')
+            result=subprocess.run([sys.executable,'-I','-s','-B',str(ROOT/'score.py'),str(p/'f/0.tgz'),'--out',str(p/'a/90.json')],stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=60)
+            self.assertEqual(result.returncode,0,result.stderr.decode())
+            value=json.loads(result.stdout)
+            self.assertEqual(value['gate'],'no change' if state=='success' else 'incomplete; no verdict')
+            evidence.append(dict(state=state,records=count,gate=value['gate'],real_finalize=True,real_fetch=True,real_scorer=True))
+            logs.append(result.stdout.decode())
+        EVIDENCE['scorer_entrypoint']=evidence
+        (ROOT/'out/FIX3_CHECKS.json').write_text(json.dumps(dict(passed=True,delivery=B.pin((ROOT/'out/delivery.tgz').read_bytes()),cases=evidence),indent=2)+'\n')
+        (ROOT/'out/test_scorer_entrypoint.log').write_text(''.join(logs))
 
 
 

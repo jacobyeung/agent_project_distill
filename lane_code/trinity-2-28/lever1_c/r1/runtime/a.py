@@ -2,6 +2,8 @@
 def allocation(shared, public, sha):
     import json
     import os
+    for key in ('USER','SLURM_JOB_ID'):
+        if not os.environ.get(key):raise KeyError(key)
     cpu=json.loads((shared/'2.json').read_text())
     if (cpu.get('passed') is not True or cpu.get('plan')!=public['plan_sha256']
             or cpu.get('inputs')!=sha(shared/'a/1.json')

@@ -9,6 +9,43 @@ import pathlib
 import sys
 import types
 import traceback
+import os
+
+# Library-owned files are ephemeral, never members of a public return.
+CACHE_PATHS = '''HOME XDG_CACHE_HOME XDG_CONFIG_HOME XDG_DATA_HOME XDG_STATE_HOME
+XDG_RUNTIME_DIR TMPDIR TMP TEMP HF_HOME HF_HUB_CACHE HUGGINGFACE_HUB_CACHE
+HF_DATASETS_CACHE HF_ASSETS_CACHE HUGGINGFACE_ASSETS_CACHE HF_XET_CACHE HF_MODULES_CACHE TRANSFORMERS_CACHE
+PYTORCH_TRANSFORMERS_CACHE PYTORCH_PRETRAINED_BERT_CACHE TORCH_HOME
+TORCHINDUCTOR_CACHE_DIR TORCH_EXTENSIONS_DIR TORCH_COMPILE_DEBUG_DIR
+TRITON_CACHE_DIR TRITON_DUMP_DIR TRITON_OVERRIDE_DIR CUDA_CACHE_PATH
+PYTORCH_KERNEL_CACHE_PATH MPLCONFIGDIR NUMBA_CACHE_DIR CUPY_CACHE_DIR
+TILELANG_CACHE_DIR TILELANG_TMP_DIR FLASHINFER_WORKSPACE_BASE PIP_CACHE_DIR PYTHONPYCACHEPREFIX
+WANDB_DIR WANDB_CACHE_DIR WANDB_CONFIG_DIR WANDB_DATA_DIR'''.split()
+CACHE_FLAGS = dict(HF_HUB_OFFLINE='1', HF_DATASETS_OFFLINE='1', TRANSFORMERS_OFFLINE='1',
+    HF_HUB_DISABLE_TELEMETRY='1', HF_HUB_DISABLE_XET='1', DO_NOT_TRACK='1',
+    CUDA_CACHE_DISABLE='1', PYTORCH_KERNEL_CACHE='0', PYTHONDONTWRITEBYTECODE='1',
+    PYTHONNOUSERSITE='1', PIP_NO_CACHE_DIR='1', WANDB_DISABLED='true', WANDB_MODE='disabled',
+    VLLM_NO_USAGE_STATS='1', TOKENIZERS_PARALLELISM='false', TRITON_KERNEL_DUMP='0',
+    TRITON_KERNEL_OVERRIDE='0', TORCHINDUCTOR_FX_GRAPH_REMOTE_CACHE='0',
+    TORCHINDUCTOR_AUTOTUNE_REMOTE_CACHE='0')
+
+
+def job_environment(root, base=None):
+    root = pathlib.Path(root).resolve()
+    # Never inherit caller cache overrides, credentials, preload hooks or PYTHONPATH.
+    base = os.environ if base is None else base
+    env = {k:base[k] for k in ('PATH', 'USER', 'SLURM_JOB_ID', 'SLURM_JOB_END_TIME',
+        'CUDA_VISIBLE_DEVICES', 'A_M', 'A_G', 'OMP_NUM_THREADS', 'MKL_NUM_THREADS',
+        'OPENBLAS_NUM_THREADS') if k in base}
+    env.setdefault('PATH', '/usr/local/bin:/usr/bin:/bin')
+    for i, key in enumerate(CACHE_PATHS):
+        path = root/'0'/str(i)
+        path.mkdir(mode=0o700, parents=True, exist_ok=True)
+        if not path.resolve().is_relative_to(root):
+            raise ValueError('E11')
+        env[key] = str(path)
+    env.update(CACHE_FLAGS)
+    return env
 
 DENY = 'split vsi revsi scannet arkit sam g3t depth distill qwen ground dev bench mask tower reader student teacher k1 t1 word template'.split()
 

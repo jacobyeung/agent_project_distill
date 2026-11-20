@@ -1,12 +1,12 @@
 #!/bin/bash
 set -euo pipefail
 umask 077
-S=$(mktemp /tmp/aa784b94c2e6af3.XXXXXXXX)
+S=$(mktemp /tmp/aa6f198d3c7b203.XXXXXXXX)
 cat > "$S" <<'BODY'
 #!/bin/bash
 set -euo pipefail
 umask 077
-P=/project/community/jjyeung/a784b94c2e6af
+P=/project/community/jjyeung/a6f198d3c7b20
 cd "$P"
 (set -C; : > a/2.lock)
 job=$(cat a/8.txt); [[ "$job" =~ ^[0-9]+$ ]]
@@ -40,10 +40,12 @@ with tarfile.open(dest/'0.tgz') as t:
     rid=json.load(t.extractfile('metadata/RETURN_ID.json'))
     if rid['token']!=token or str(rid['job'])!=job:raise ValueError('inner identity differs')
     for name in ('CAPTURE.json','PARITY.json'):
-        raw=t.extractfile('metadata/'+name).read()
+        raw=t.extractfile('metadata/'+name).read(200001)
+        if len(raw)>200000:raise ValueError('E75')
         with (dest/({'CAPTURE.json':'4.json','PARITY.json':'5.json'}[name])).open('xb') as f:f.write(raw)
         print(hashlib.sha256(raw).hexdigest())
 PY
 BODY
-nohup setsid bash "$S" > "$S.log" 2>&1 < /dev/null &
+nohup setsid bash "$S" > "$S.log" 2>&1 <<'A_EOF' &
+A_EOF
 printf 'pid=%s log=%s\n' "$!" "$S.log"

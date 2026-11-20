@@ -27,7 +27,13 @@ steps=[max(positions[m['source_id']] for m in mapping[i:i+4]) for i in range(0,l
 fixed_worker=f['model_load_s']+580*(f['per_item_other_mean_s']+f['prefill_mean_s'])
 decode=sum(steps)*2*f['tool_free_decode_s_per_token'];worker=fixed_worker+decode;total=f['base_other_s']+worker
 f.update(token=build['token'], delivery=build['delivery'],
-    batch_timing_return='3.jsonl: packed per-batch preparation, prefill, slowest synchronized token-step, total seconds, completed pairs, admission estimate and remaining time',
+    project_budget=build['project_budget'], gpu_memory=build['gpu_memory'],
+    submission_parity=dict(export_policy='A_M only; c/g selects mode',chdir='/tmp',entry='4.sh executes /usr/bin/python3 -I -s -B 3.py work',output='/tmp/<opaque job name>-%j.8.log and .9.log',differences=['GPU adds --gres=gpu:1','A_M=c versus A_M=g selects the preflight/read'],time='00:30:00 in both modes'),
+    cpu_preflight=dict(worker_address_space_limit_bytes=32*1024**3,
+        charged_memory_stop_bytes=110*1024**3, staging_filesystem='ext4',
+        tensors='meta shapes only; processor and two CPU prompt batches',
+        production_measured=False, diagnostic='DEBUG.md'),
+    batch_timing_return='3.jsonl: packed per-batch preparation, prefill, slowest synchronized token-step, total seconds, completed pairs, admission estimate, remaining time, host peak RSS and GPU max allocated bytes',
     batch_admission='First batch requires 60 seconds plus a 10-second reserve. Later batches require the maximum of 60 seconds, 1.25 times every observed batch elapsed time, and 1.25 times (preparation + prefill + 64 times slowest token-step seconds), plus the reserve. Whole pair batches only; estimates cannot guarantee future speed or prevent an external interruption.',
     batch_size=8,batches=len(steps),batch_forward_multiplier=2.0,
     batch_decode_ticks=sum(steps),batch_decode_s=decode,predicted_worker_s=worker,
@@ -41,7 +47,7 @@ f.update(token=build['token'], delivery=build['delivery'],
     ordering='ORIG, REVSI for each item; four consecutive complete pairs per batch; final batch has two pairs',
     inference='D400 [27,1884] opening positions, duplicated across the two arms; group maxima account for unequal stops. Both arms assumed to open as early as D400.',
     batching_assumption='An eight-row token forward costs twice a serial token forward. This GPU estimate is unmeasured; CPU timing is not used as a GPU speed estimate.',
-    caveat='Full-checkpoint GPU numerical parity, batch memory use and speed are unmeasured. Slow openings/staging can still yield a partial return with no gate verdict.',
+    caveat='Full-checkpoint GPU numerical parity, batch memory use, speed and ext4 sync/supervisor overhead are unmeasured. Slow openings/staging can still yield a partial return with no gate verdict.',
     cpu_parity_evidence='out/FIX_CHECKS.json:evidence.native_cpu_parity',
     code_pins={str(p.relative_to(ROOT)):B.pin(p.read_bytes()) for p in (ROOT/'src/batch.py',ROOT/'src/runtime.py')})
 assert f['headroom_requirement_passed'];save('FORECAST.json',f)
@@ -81,15 +87,26 @@ exceptions=[
     dict(value='Pinned external binary checkpoints, RGBs, tokenizer/config/tensor-index files under d/b, d/m400/full_weights, d/f and their unchanged links/copies under d/e/base and d/e/full_weights; original manifest tar under d/o',
          reason='Native tokenizer/model readers and export authentication require the exact upstream vocabulary, architecture and tensor identifiers. These immutable external inputs cannot be text-renamed without changing the frozen checkpoint or breaking native readers.'),
     dict(value='Authenticated external archive bytes temporarily copied into the numeric staging directory',
-         reason='These are the previously placed pinned inputs, authenticated before extraction. They retain original binary contents; retained job metadata is encoded during extraction and excluded roots are never extracted.')]
+         reason='These are the previously placed pinned inputs, authenticated before extraction. They retain original binary contents; retained job metadata is encoded during extraction and excluded roots are never extracted.'),
+    dict(value='Library-owned cache internals under <ext4 job root>/0/<number> only',
+         reason='Native cache formats may retain library identifiers. Every cache root is opaque and job-local; Orchard teardown removes it. These files are excluded from all public package/return/fetch outputs, and /project is absent from the worker namespace.')]
 audit=dict(passed=True,deny_list=B.DENY,case_sensitive=False,match='literal substring',delivery=build['delivery'],token=build['token'],
     checks=inventory,source_files=len(source_paths),renamed_source_paths=sum(a!=b for a,b in source_paths.items()),source_paths=source_paths,
     source_storage='Every authored source/resource is stored in an a0 hex envelope at a path whose components pass the deny-list. Import names and decoded program text exist only in memory; __file__ uses the opaque path.',
     json_storage='Job metadata and returned JSON/JSONL use a0 hex envelopes. Scans check raw text and JSON-decoded keys/strings (including escaped Unicode). Intentional hex payload decoding occurs only in memory or in the local scorer.',
     archive_scanning='Archive names and decompressed members are scanned recursively; compressed binary byte coincidences are not textual identifiers.',
     cpu_rehearsal=checks['evidence']['cpu_rehearsal'],remaining_external_interfaces=exceptions,
-    logs='The numeric worker/controller redirect native stdout/stderr before imports. Controller and worker tracebacks retain the last 200 lines, capped at 120 characters per line and 24,000 ASCII bytes, inside a0 hex envelopes. The saved transport stream is also hex-packed.',
-    limitations='The CPU rehearsal uses tiny pinned export inputs, a head-shape proof double, and processor/RGB doubles. GPU library-generated cache contents and production external assets were not executed or rescanned here.')
+    logs='Controller, namespace supervisor and worker capture both streams as they arrive into opaque hex journals on job_tmp. Each stream keeps a 16,000-byte tail and caps its journal at 262,144 raw bytes; overflow fails the job. Every return carries both tails. Controller and worker tracebacks retain the last 200 lines, capped at 120 characters per line and 24,000 ASCII bytes, inside a0 hex envelopes. The saved transport stream is also hex-packed.',
+    cache_isolation=dict(closed=True,paths=checks['evidence']['cache_environment']['paths'],
+        flags=checks['evidence']['cache_environment']['flags'],
+        placement='Every cache/temp override points to <ext4 job root>/0/<number>; controller sets this before staging and launch resets every override for both modes. Inherited environment is allowlisted.',
+        lifetime='The assigned ext4 job_tmp is owned and removed by Orchard job teardown. Cache files are excluded from all return/fetch member lists and are never copied to /project.',
+        namespace='Only the job root is bound at its /tmp path; the worker cannot see /project. Other writable scratch/lustre aliases resolve to subdirectories of that same job root.',
+        native_file_policy='Third-party cache internals may retain native identifiers only within the ephemeral job directory; public package, return and fetch names and contents retain the deny scan.',
+        audited_sources=['orchard_job.environment','e2e_reader.parity.make_real write_roots','student_pilot.common kernel cache paths','step0_runtime_v1.run_cell','run_clean_offline_tests','Hugging Face constants and transformers hub','torch cpp_extension and inductor cache_dir_utils'],
+        inactive_overrides='The allowlist drops STUDENT_KERNEL_CACHE_ROOT/TAG and STUDENT_MEMORY_PROBE_CACHE, so optional persistent kernel/probe overrides cannot replace the job-local paths.',
+        clean_preflight=checks['evidence']['clean_preflight_writes']),
+    limitations='The CPU rehearsal uses tiny pinned export inputs, a head-shape proof double, and processor/RGB doubles. The clean CPU process uses native libc writable-open auditing, Python mutation auditing and a complete public-tree inventory checked against a fixed allowlist. Direct native syscalls are outside the preload audit; no GPU execution is claimed. GPU computation and native cache contents remain unexecuted; GPU mode uses the same checked cache environment and namespace containment.')
 save('NAMING_AUDIT.json',audit)
 sha=build['delivery']['sha256'];size=build['delivery']['bytes'];token=build['token'];package=build['package'];frozen=build['frozen']
 dest='/project/community/jjyeung/okh7/ad'+token+'/0.tgz';ret='/project/community/jjyeung/okh7/af'+token
@@ -120,7 +137,7 @@ with tarfile.open(src) as archive:
         assert entry.isfile() and not rel.is_absolute() and '..' not in rel.parts
         assert entry.name not in seen
         seen.add(entry.name); total += entry.size
-        assert total <= 32*1024**2
+        assert total <= 32*1024**2 and total+src.stat().st_size <= 20000000
         target = dest/entry.name
         target.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
         with target.open('xb') as output:
@@ -134,6 +151,8 @@ print('OK')
 PYPLACE
 /usr/bin/python3 -I -s -B "$P/3.py" check
 ```
+
+The CPU preflight uses the assigned ext4 job_tmp bind at `/tmp`; it refuses tmpfs before copying archives. It hashes all staged inputs, checks head metadata and meta model shapes, and exercises the processor on two prompts. It loads no resident full-model weights. The CPU worker has a 32 GiB address-space ceiling and a 110 GiB charged-memory stop. Production execution refuses to proceed without readable cgroup memory counters. The production peak remains unmeasured. `DEBUG.md` records the cause analysis and evidence.
 
 Submit the CPU preflight once:
 
@@ -157,7 +176,7 @@ P={package}
 /usr/bin/python3 -I -s -B "$P/3.py" submit
 ```
 
-The resource arguments fix general, one GPU, 16 CPUs, 200G, 30 minutes, `--exclude=orchard-community-4` and `--no-requeue`. The CPU job omits the GPU request. Submission-attempt markers prevent duplicate submissions. A killed job must not be retried without the user's answer.
+The resource arguments fix general, one GPU, 16 CPUs, 200G, 30 minutes, `--exclude=orchard-community-4` and `--no-requeue`. Both modes use the same `--export=A_M=...` policy, `--chdir=/tmp`, output/error paths under `/tmp`, 30-minute limit, 200G request, sanitized submission environment and `4.sh` entry into `/usr/bin/python3 -I -s -B 3.py work`. The only submission differences are `A_M=c` versus `A_M=g` to select the workload and `--gres=gpu:1` for GPU mode. Inside the namespace, CPU hides CUDA, uses a 32 GiB address-space cap and a 110 GiB charged-memory stop, and returns after processor checks; GPU exposes its assigned device, loads the full model and uses a 180 GiB stop. These differences keep preflight light while checking the same staging and launch path. Submission-attempt markers prevent duplicate submissions. A killed job must not be retried without the user's answer.
 
 Fetch the GPU success or failure return:
 
@@ -167,7 +186,7 @@ R={ret}
 /usr/bin/python3 -I -s -B "$P/3.py" fetch "$R" g
 ```
 
-The authenticated archive is `$R/0.tgz`; its receipt is `$R/1.json`. JSON receipts and result lines use `{{"a0":"<hex bytes>"}}`. Return members are paired results `0.jsonl`, summary `1.json`, optional controller traceback `2.json`, per-batch timings `3.jsonl`, and optional worker traceback `4.json`. Tracebacks retain the last 200 lines, capped at 120 characters per line and 24,000 ASCII bytes before packing. Controller and worker errors have separate files so both survive. The saved `0.stream` is hex-packed; the original framed protocol still authenticates the archive in memory. Both expanded and compressed returns stay below 50 MB. Every completed arm pair is flushed and synced immediately; an interrupted final pair is omitted during finalization. The scorer decodes envelopes locally. Decode diagnostics only after bringing the archive back locally:
+The authenticated archive is `$R/0.tgz`; its receipt is `$R/1.json`. JSON receipts and result lines use `{{"a0":"<hex bytes>"}}`. Return members are paired results `0.jsonl`, summary `1.json`, optional controller traceback `2.json`, per-batch timings `3.jsonl`, and worker failure diagnostics `4.json` (traceback when available, exact return code/signal, last stage, peak host RSS, GPU max allocated bytes, and hex-packed stdout/stderr tails at each execution layer). Tracebacks retain the last 200 lines, capped at 120 characters per line and 24,000 ASCII bytes before packing. Controller and worker errors have separate files so both survive. The saved `0.stream` is hex-packed; the original framed protocol still authenticates the archive in memory. Both expanded and compressed returns are capped at 2 MB. A result-budget overflow returns a capped failure; it never publishes an oversized archive. A one-use reservation ledger caps cumulative project writes, including interrupted attempts and both fetches; retries cannot consume new slots. Every completed arm pair is flushed and synced immediately; an interrupted final pair is omitted during finalization. The scorer decodes envelopes locally. Decode diagnostics only after bringing the archive back locally:
 
 ```bash
 nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B - out/return.tgz <<'PYDIAG'
@@ -194,9 +213,9 @@ The central forecast is **{total:.1f} seconds ({total/60:.2f} minutes)**, includ
 
 Eight-row batches retain serial video prefills, then left-pad and merge the native hybrid caches for greedy token forwards. Prompts remain pair-interleaved. The forecast assumes each eight-row token forward costs twice a serial forward and both arms open as early as D400. GPU throughput, memory use and full-checkpoint numerical parity remain unmeasured. The all-64-token estimate is {f['all_64_token_total_s']:.1f} seconds and assumes the same unmeasured cost. Each admitted batch records preparation, prefill, slowest synchronized token-step and total time, plus complete-pair counts. Admission requires a full batch estimate plus 10 seconds: initially 60 seconds; thereafter the maximum of 60 seconds, 1.25 times observed batch duration, and 1.25 times (preparation + prefill + 64 slowest token steps). The worker stops admitting batches if that estimate will not fit. An unexpected slowdown can still interrupt a batch; only complete pairs are returned. The tiny native CPU model produced identical tokens for eight unequal-length prompts, including EOS and 64-token stops. `FORECAST.json` records the model and its limits.
 
-All **{tests['tests']+checks['tests']} CPU tests pass**. They include eleven injected failures in each of CPU and GPU modes followed by real fetch, real delivered-worker subprocess failures with locally decoded tracebacks, bounded diagnostic and output scans, slow/fast batch admission with fetched timing records, interrupted-pair retention, the real staging allowance, native batch parity, and the actual CPU runtime/restore with tiny pinned inputs and processor doubles. `out/FIX_CHECKS.json` records every file scanned during that rehearsal. Expanded delivery: {build['expanded_delivery_bytes']:,} bytes; inner payload: {build['expanded_payload_bytes']:,} bytes, both below 32 MiB.
+All **{tests['tests']+checks['tests']} CPU tests pass**. They include eleven injected failures in each of CPU and GPU modes followed by real fetch, real delivered-worker subprocess failures with locally decoded tracebacks, SIGKILL/SIGTERM/hard-exit/deadline diagnostics through real fetch in both modes, active-mount checks and metadata-only head loading, bounded diagnostic and output scans, slow/fast batch admission with fetched timing records, interrupted-pair retention, the real staging allowance, native batch parity, and the actual CPU runtime/restore with tiny pinned inputs and processor doubles. `out/FIX_CHECKS.json` records every file scanned during that rehearsal. Expanded delivery: {build['expanded_delivery_bytes']:,} bytes; inner payload: {build['expanded_payload_bytes']:,} bytes, both below 32 MiB.
 
-`NAMING_AUDIT.json` records opaque physical source names and raw/JSON-decoded output scans. Logical names and generated text are decoded only in memory. Its remaining exceptions are limited to fixed kernel/CUDA interfaces and immutable external runtime/model assets required by native libraries; each has a stated reason. Production GPU cache contents were not exercised here.
+`NAMING_AUDIT.json` records opaque physical source names and raw/JSON-decoded output scans. Logical names and generated text are decoded only in memory. Its remaining exceptions cover fixed kernel/CUDA interfaces, immutable external runtime/model assets, and native cache internals confined to the ephemeral job directory; each has a stated reason. Production GPU cache contents were not exercised here.
 
 Reproduce locally:
 
@@ -207,30 +226,62 @@ nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B tests/test_fixes.py
 nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B finish.py
 ```
 '''
+contract=f"""
+The aggregate `/project` write ceiling is **44,000,000 bytes (44 MB)** for the entire CPU-plus-GPU lifecycle, below 50 MB per job.
+
+| Component | Reserved bytes |
+| --- | ---: |
+| Delivery plus extraction | 20,000,000 |
+| CPU and GPU returns, including receipts | 6,000,000 |
+| Both fetched archives, hex transport streams and receipts | 16,000,000 |
+| Operator metadata and reservation ledger | 2,000,000 |
+| Logs on `/project` | 0 |
+| **Total** | **44,000,000** |
+
+Delivery plus extraction actually uses **{build['delivery']['bytes']+build['expanded_delivery_bytes']:,} bytes**. Placement checks that sum before each extracted-file write. Each return is capped at 2 MB. Each fetch reserves 8 MB before creating files: at most 2 MB for its archive, about 5.34 MB for hex/base64 transport, and bounded receipts. The transport's `.partial` and final archive are hard links to the same bytes.
+
+The locked ledger reserves writes before they occur. Each mode gets one finalization and one fetch; interrupted reservations remain spent. Metadata has a separate byte cap, and the ledger permits at most 128 entries. Oversized returns become capped failures. Repeated fetches and excess metadata writes fail before writing their outputs.
+
+Bulk staging, extracted assets, caches and stream journals use only the assigned **ext4 job_tmp at `/tmp`**. The controller rejects tmpfs before bulk copying. Slurm bootstrap logs also use `/tmp`; no logs are written to `/project`. Both package levels pass the existing 32 MiB extraction allowance.
+
+Every library cache and temporary directory points to an opaque numbered directory under the job root, including HOME, all XDG locations, Hugging Face, PyTorch/Inductor/extensions, Triton, CUDA, kernel, Matplotlib, Numba, CuPy, TileLang and FlashInfer caches. The controller sets the environment before staging; CPU and GPU launches reset the same overrides before imports. Hugging Face stays offline with telemetry disabled; CUDA and PyTorch kernel disk caches are disabled. Python bytecode and experiment tracking are disabled. No caller cache override survives.
+
+The worker namespace exposes only this job's temporary directory and cannot see `/project`. Orchard removes the ext4 job_tmp with the job; native cache files never enter a return or fetch. `out/CACHE_CHECKS.json` lists every file written outside the job directory during a fresh-process CPU rehearsal with native libc writable-open auditing, Python mutation auditing and a complete public-tree inventory. The only files are the fixed budgeted package, ledger, CPU return and fetch allowlist; the unexpected-file list is empty. The rehearsal uses tiny authenticated inputs and processor/RGB/head-shape doubles. GPU cache contents remain unexecuted, with the same cache-location policy tested in both modes.
+
+The GPU job requests **200G (200 GiB)**. Its conservative planning peak is **187 GB (174.2 GiB)**: approximately 96 GB host RSS from the old full-load preflight, 71 GB of potentially charged staged-file page cache, and 20 GB for batch buffers and overhead. The full-model GPU peak remains unmeasured.
+
+Both supervisors poll charged memory every 50 ms and stop their child at **180 GiB (193,273,528,320 bytes)**, leaving 20 GiB below the request. Staging phases also check memory. Missing production counters cause a failure. The controller returns the memory-stop reason and both stream tails. External node/controller death or a spike faster than polling can still prevent finalization.
+
+Every batch records host RSS high-water and GPU max allocated bytes. Every return includes the final observations. A 200 ms sampler covers model loading; abrupt death returns the last sampled GPU peak with `gpu_peak_complete=false`, while wait4 supplies peak host RSS. Normal completion and Python exceptions record the final CUDA peak. CPU and pre-CUDA failures report zero GPU allocation with `gpu_measured=false`.
+
+Controller, namespace-supervisor and worker output enters opaque hex `8.log`/`9.log` journals as bytes arrive. Each stream admits at most 262,144 raw bytes; overflow fails the job. Every return carries **16,000-byte stdout and stderr tails**. Success, partial results, early failures in both modes, memory stops and log overflow pass real fetch. `out/FIX_CHECKS.json` records this evidence.
+"""
+place += contract
 (ROOT/'PLACE.md').write_text(place)
-report=f'''The delivery contains the three fixes and passes {tests['tests']+checks['tests']} CPU tests. No placement, submission, network access or GPU execution occurred.
+report=f"""The delivery passes **{tests['tests']+checks['tests']} local CPU tests**, including forced early failures in both modes through real authenticated fetch. No placement, submission, network access or GPU execution occurred.
 
 Token: `{token}`. Job: `a15_cot_ap{token}`.
 Delivery: **{size:,} bytes**. SHA-256: `{sha}`.
-Frozen SHA-256: `{frozen}`. The frozen design and artifact pin are unchanged.
+Frozen SHA-256: `{frozen}`. FROZEN.json and the checkpoint pin remain unchanged.
 
-Fetch selects `a/c` or `a/g` explicitly and verifies the receipt mode. All eleven injected failure paths pass real fetch in both modes (22 cases). Delivered-worker subprocess failures in both modes return tracebacks that decode locally. Diagnostics retain the last 200 lines, capped at 120 characters per line and 24,000 ASCII bytes, packed as hex. Controller and worker files remain separate so a later controller failure preserves the worker traceback. Saved transport text is hex-packed and passes the deny scan. Staging, submission, launch and finalization have explicit deadlines.
+Both streams now reach every return. The controller, namespace supervisor and worker capture output as it arrives; success, partial, failure and overflow cases pass fetch. CPU/GPU memory-stop tests return their failure reason, RSS and stream fields. CUDA telemetry uses a CPU double in tests; production GPU memory remains unmeasured.
 
-Each batch writes packed preparation, prefill, slowest synchronized token-step and total timing, completed-pair count, remaining time and admission estimate to returned `3.jsonl`. The worker admits only whole pair batches when its conservative 64-token estimate plus a 10-second reserve fits. The first estimate is 60 seconds; later estimates use 1.25 times the slowest observed cost. The slow-batch regression returns four complete pairs and rejects the next batch; the fast-batch regression finishes both batches. Both timing journals pass real fetch and decode locally. Unexpected slowdowns may still interrupt an admitted batch; unfinished pairs never enter the return.
+CPU and GPU submissions use the same export policy, sanitized environment, chdir, output paths and entry script. Only the `A_M` mode value and GPU `--gres=gpu:1` differ. Both request 200G and 30 minutes. The constructor regression compares complete argument lists, script bytes and environments.
 
-Every authored source/resource has an opaque physical path and encoded bytes. The import hook resolves real module names in memory. The real CPU runtime and restore execute against tiny pinned inputs, with doubles for head-shape proof and processor/RGB work. All {len(checks['evidence']['cpu_rehearsal']['files'])} files in that rehearsal pass raw-text and JSON-decoded scans; the deliberate escaped-string leak is rejected. The audit lists only fixed external interfaces and immutable library/model input exceptions with reasons. Full production GPU cache outputs remain untested.
+CPU preflight disables CUDA, caps address space at 32 GiB and charged memory at 110 GiB, validates metadata and two processor batches, and skips resident full-model loading. GPU mode exposes its assigned device, loads the checkpoint and stops at 180 GiB charged memory. Both use the same staging and namespace path.
 
-Eight-row decoding uses the package's left-padded hybrid-cache merge and row compaction. The native tiny CPU model returns identical tokens for eight unequal-length prompts against serial decoding; its rows exercise EOS, compaction and the 64-token cap. Generation never enters a response-serving path. Prompt order alternates the two arms, and each finished pair is flushed and synced immediately.
+The frozen 580 prompts, greedy 64-token limit, first-opening stop and unserved tools remain intact. Native tiny-model batch parity, opaque-source loading, naming scans, staging limits and interrupted-pair retention pass. The actual scorer accepts successful, partial and failed archives produced by real finalization and fetch.
 
-The central forecast is **{total:.1f} seconds ({total/60:.2f} minutes)**, including {f['base_other_s']:.1f} seconds overhead, with **{100*f['headroom_fraction']:.2f}% headroom** before the 1,720-second effective cutoff. This assumes an eight-row token forward costs twice a serial forward; GPU throughput and checkpoint parity are unmeasured. The worker estimate is {worker:.1f} seconds, below its 1,500-second cap. The all-64-token forecast is {f['all_64_token_total_s']:.1f} seconds under the same unmeasured assumption. Timing-based admission may stop earlier; slow staging or longer openings produce an authenticated partial return without a gate verdict.
+The central timing forecast remains **{total:.1f} seconds ({total/60:.2f} minutes)** with **{100*f['headroom_fraction']:.2f}% headroom**. It assumes an unmeasured 2x batch-forward cost. The all-64-token forecast is {f['all_64_token_total_s']:.1f} seconds. Batch admission uses observed timings; incomplete runs receive no gate verdict.
 
-Evidence: `out/test_probe.log`, `out/test_fixes.log`, `out/FIX_CHECKS.json`, `NAMING_AUDIT.json`, `FORECAST.json`, and `BUILD.json`. `PLACE.md` contains the exact placement, CPU, submit, fetch and local scoring commands. Both package levels pass the base extractor's 32 MiB allowance.
-'''
+Evidence: `out/test_probe.log`, `out/test_fixes.log`, `out/FIX_CHECKS.json`, `out/FIX3_CHECKS.json`, `out/CACHE_CHECKS.json`, `NAMING_AUDIT.json`, `FORECAST.json` and `BUILD.json`. `PLACE.md` contains exact operator commands. Full-checkpoint GPU numerical parity remains untested.
+"""
+report += contract
 (ROOT/'REPORT.md').write_text(report)
 save('out/BUILD.json',build)
 save('out/FINAL_CHECKS.json',dict(passed=True,token=token,delivery=build['delivery'],tests=tests['tests']+checks['tests'],frozen=frozen,
-    forecast_seconds=total,headroom_fraction=f['headroom_fraction'],artifact=cfg['export']['artifact']['sha256']))
+    project_budget=build['project_budget'],gpu_memory=build['gpu_memory'],forecast_seconds=total,headroom_fraction=f['headroom_fraction'],artifact=cfg['export']['artifact']['sha256']))
 names = [line.split(None, 1)[1] for line in (ROOT/'SHA256SUMS').read_text().splitlines()]
-names = sorted(set(names) | {'REPORT.md', 'finish.py', 'tests/test_fixes.py', 'src/storage.py', 'src/batch.py', 'out/FIX_CHECKS.json', 'out/FINAL_CHECKS.json'})
+names = sorted(set(names) | {'REPORT.md', 'finish.py', 'tests/test_fixes.py', 'tests/cache_preflight.py', 'tests/write_audit.c', 'out/CACHE_CHECKS.json', 'src/storage.py', 'src/batch.py', 'src/monitor.py', 'DEBUG.md', 'out/fail1_code/control.py', 'out/fail1_code/runtime.py', 'out/FIX_CHECKS.json', 'out/FINAL_CHECKS.json'})
 (ROOT/'SHA256SUMS').write_text(''.join(hashlib.sha256((ROOT/name).read_bytes()).hexdigest()+'  '+name+'\n' for name in names))
 print(json.dumps(read('out/FINAL_CHECKS.json'),sort_keys=True))

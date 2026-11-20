@@ -1,22 +1,22 @@
 The delivery preserves the frozen 580 prompts, greedy decoding, 64-token cap and first-call-opening stop. No tool response is served. The checkpoint is step 400, artifact `5083243cfedd2a389dfca579c5452e7d0c73b03a58e1cb7d204292ddd10e67cd`.
 
-Token: `d93a17be024f5`. Job: `a15_cot_apd93a17be024f5`.
-Delivery: **4,235,885 bytes**, SHA-256 `9d023abcd0335d57ce99f02e54961b20838c3114c9cd3b537056d4532ca2ef36`.
+Token: `e71c940a6b283`. Job: `a15_cot_ape71c940a6b283`.
+Delivery: **4,250,122 bytes**, SHA-256 `3ca1fd77d3cd021210bae2ef31d0c323bd3d8bd0d1cf3e2b5df12410c91232af`.
 Frozen SHA-256: `3743891f778115529710461333ad09a9588b8075e2173a74fac0065dc5d0382d`.
 
-The lane places and submits; this builder ran only local CPU checks. Use the existing approved transport to place `out/delivery.tgz` at `/project/community/jjyeung/okh7/add93a17be024f5/0.tgz`. The checkpoint, environment and frame archives already on Orchard remain pinned and are reused.
+The lane places and submits; this builder ran only local CPU checks. Use the existing approved transport to place `out/delivery.tgz` at `/project/community/jjyeung/okh7/ade71c940a6b283/0.tgz`. The checkpoint, environment and frame archives already on Orchard remain pinned and are reused.
 
 Place and authenticate once:
 
 ```bash
-P=/project/community/jjyeung/okh7/a15_cot_apd93a17be024f5
-D=/project/community/jjyeung/okh7/add93a17be024f5/0.tgz
+P=/project/community/jjyeung/okh7/a15_cot_ape71c940a6b283
+D=/project/community/jjyeung/okh7/ade71c940a6b283/0.tgz
 /usr/bin/python3 -I -s -B - "$D" "$P" <<'PYPLACE'
 import hashlib, json, sys, tarfile
 from pathlib import Path, PurePosixPath
 src, dest = map(Path, sys.argv[1:])
-assert src.stat().st_size == 4235885
-assert hashlib.sha256(src.read_bytes()).hexdigest() == '9d023abcd0335d57ce99f02e54961b20838c3114c9cd3b537056d4532ca2ef36'
+assert src.stat().st_size == 4250122
+assert hashlib.sha256(src.read_bytes()).hexdigest() == '3ca1fd77d3cd021210bae2ef31d0c323bd3d8bd0d1cf3e2b5df12410c91232af'
 dest.mkdir(mode=0o700)
 with tarfile.open(src) as archive:
     seen = set(); total = 0
@@ -25,7 +25,7 @@ with tarfile.open(src) as archive:
         assert entry.isfile() and not rel.is_absolute() and '..' not in rel.parts
         assert entry.name not in seen
         seen.add(entry.name); total += entry.size
-        assert total <= 32*1024**2
+        assert total <= 32*1024**2 and total+src.stat().st_size <= 20000000
         target = dest/entry.name
         target.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
         with target.open('xb') as output:
@@ -40,39 +40,41 @@ PYPLACE
 /usr/bin/python3 -I -s -B "$P/3.py" check
 ```
 
+The CPU preflight uses the assigned ext4 job_tmp bind at `/tmp`; it refuses tmpfs before copying archives. It hashes all staged inputs, checks head metadata and meta model shapes, and exercises the processor on two prompts. It loads no resident full-model weights. The CPU worker has a 32 GiB address-space ceiling and a 110 GiB charged-memory stop. Production execution refuses to proceed without readable cgroup memory counters. The production peak remains unmeasured. `DEBUG.md` records the cause analysis and evidence.
+
 Submit the CPU preflight once:
 
 ```bash
-P=/project/community/jjyeung/okh7/a15_cot_apd93a17be024f5
+P=/project/community/jjyeung/okh7/a15_cot_ape71c940a6b283
 /usr/bin/python3 -I -s -B "$P/3.py" cpu
 ```
 
 After the CPU job finishes, fetch its success or failure return explicitly:
 
 ```bash
-P=/project/community/jjyeung/okh7/a15_cot_apd93a17be024f5
-R=/project/community/jjyeung/okh7/afd93a17be024f5c
+P=/project/community/jjyeung/okh7/a15_cot_ape71c940a6b283
+R=/project/community/jjyeung/okh7/afe71c940a6b283c
 /usr/bin/python3 -I -s -B "$P/3.py" fetch "$R" c
 ```
 
 After a successful CPU preflight, submit the GPU job once. The controller itself requires the successful CPU receipt and matching package, payload and frozen hashes before submission:
 
 ```bash
-P=/project/community/jjyeung/okh7/a15_cot_apd93a17be024f5
+P=/project/community/jjyeung/okh7/a15_cot_ape71c940a6b283
 /usr/bin/python3 -I -s -B "$P/3.py" submit
 ```
 
-The resource arguments fix general, one GPU, 16 CPUs, 200G, 30 minutes, `--exclude=orchard-community-4` and `--no-requeue`. The CPU job omits the GPU request. Submission-attempt markers prevent duplicate submissions. A killed job must not be retried without the user's answer.
+The resource arguments fix general, one GPU, 16 CPUs, 200G, 30 minutes, `--exclude=orchard-community-4` and `--no-requeue`. Both modes use the same `--export=A_M=...` policy, `--chdir=/tmp`, output/error paths under `/tmp`, 30-minute limit, 200G request, sanitized submission environment and `4.sh` entry into `/usr/bin/python3 -I -s -B 3.py work`. The only submission differences are `A_M=c` versus `A_M=g` to select the workload and `--gres=gpu:1` for GPU mode. Inside the namespace, CPU hides CUDA, uses a 32 GiB address-space cap and a 110 GiB charged-memory stop, and returns after processor checks; GPU exposes its assigned device, loads the full model and uses a 180 GiB stop. These differences keep preflight light while checking the same staging and launch path. Submission-attempt markers prevent duplicate submissions. A killed job must not be retried without the user's answer.
 
 Fetch the GPU success or failure return:
 
 ```bash
-P=/project/community/jjyeung/okh7/a15_cot_apd93a17be024f5
-R=/project/community/jjyeung/okh7/afd93a17be024f5
+P=/project/community/jjyeung/okh7/a15_cot_ape71c940a6b283
+R=/project/community/jjyeung/okh7/afe71c940a6b283
 /usr/bin/python3 -I -s -B "$P/3.py" fetch "$R" g
 ```
 
-The authenticated archive is `$R/0.tgz`; its receipt is `$R/1.json`. JSON receipts and result lines use `{"a0":"<hex bytes>"}`. Return members are paired results `0.jsonl`, summary `1.json`, optional controller traceback `2.json`, per-batch timings `3.jsonl`, and optional worker traceback `4.json`. Tracebacks retain the last 200 lines, capped at 120 characters per line and 24,000 ASCII bytes before packing. Controller and worker errors have separate files so both survive. The saved `0.stream` is hex-packed; the original framed protocol still authenticates the archive in memory. Both expanded and compressed returns stay below 50 MB. Every completed arm pair is flushed and synced immediately; an interrupted final pair is omitted during finalization. The scorer decodes envelopes locally. Decode diagnostics only after bringing the archive back locally:
+The authenticated archive is `$R/0.tgz`; its receipt is `$R/1.json`. JSON receipts and result lines use `{"a0":"<hex bytes>"}`. Return members are paired results `0.jsonl`, summary `1.json`, optional controller traceback `2.json`, per-batch timings `3.jsonl`, and worker failure diagnostics `4.json` (traceback when available, exact return code/signal, last stage, peak host RSS, GPU max allocated bytes, and hex-packed stdout/stderr tails at each execution layer). Tracebacks retain the last 200 lines, capped at 120 characters per line and 24,000 ASCII bytes before packing. Controller and worker errors have separate files so both survive. The saved `0.stream` is hex-packed; the original framed protocol still authenticates the archive in memory. Both expanded and compressed returns are capped at 2 MB. A result-budget overflow returns a capped failure; it never publishes an oversized archive. A one-use reservation ledger caps cumulative project writes, including interrupted attempts and both fetches; retries cannot consume new slots. Every completed arm pair is flushed and synced immediately; an interrupted final pair is omitted during finalization. The scorer decodes envelopes locally. Decode diagnostics only after bringing the archive back locally:
 
 ```bash
 nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B - out/return.tgz <<'PYDIAG'
@@ -99,9 +101,9 @@ The central forecast is **1367.2 seconds (22.79 minutes)**, including 395.0 seco
 
 Eight-row batches retain serial video prefills, then left-pad and merge the native hybrid caches for greedy token forwards. Prompts remain pair-interleaved. The forecast assumes each eight-row token forward costs twice a serial forward and both arms open as early as D400. GPU throughput, memory use and full-checkpoint numerical parity remain unmeasured. The all-64-token estimate is 1694.2 seconds and assumes the same unmeasured cost. Each admitted batch records preparation, prefill, slowest synchronized token-step and total time, plus complete-pair counts. Admission requires a full batch estimate plus 10 seconds: initially 60 seconds; thereafter the maximum of 60 seconds, 1.25 times observed batch duration, and 1.25 times (preparation + prefill + 64 slowest token steps). The worker stops admitting batches if that estimate will not fit. An unexpected slowdown can still interrupt a batch; only complete pairs are returned. The tiny native CPU model produced identical tokens for eight unequal-length prompts, including EOS and 64-token stops. `FORECAST.json` records the model and its limits.
 
-All **24 CPU tests pass**. They include eleven injected failures in each of CPU and GPU modes followed by real fetch, real delivered-worker subprocess failures with locally decoded tracebacks, bounded diagnostic and output scans, slow/fast batch admission with fetched timing records, interrupted-pair retention, the real staging allowance, native batch parity, and the actual CPU runtime/restore with tiny pinned inputs and processor doubles. `out/FIX_CHECKS.json` records every file scanned during that rehearsal. Expanded delivery: 15,210,568 bytes; inner payload: 13,065,735 bytes, both below 32 MiB.
+All **35 CPU tests pass**. They include eleven injected failures in each of CPU and GPU modes followed by real fetch, real delivered-worker subprocess failures with locally decoded tracebacks, SIGKILL/SIGTERM/hard-exit/deadline diagnostics through real fetch in both modes, active-mount checks and metadata-only head loading, bounded diagnostic and output scans, slow/fast batch admission with fetched timing records, interrupted-pair retention, the real staging allowance, native batch parity, and the actual CPU runtime/restore with tiny pinned inputs and processor doubles. `out/FIX_CHECKS.json` records every file scanned during that rehearsal. Expanded delivery: 15,256,157 bytes; inner payload: 13,091,542 bytes, both below 32 MiB.
 
-`NAMING_AUDIT.json` records opaque physical source names and raw/JSON-decoded output scans. Logical names and generated text are decoded only in memory. Its remaining exceptions are limited to fixed kernel/CUDA interfaces and immutable external runtime/model assets required by native libraries; each has a stated reason. Production GPU cache contents were not exercised here.
+`NAMING_AUDIT.json` records opaque physical source names and raw/JSON-decoded output scans. Logical names and generated text are decoded only in memory. Its remaining exceptions cover fixed kernel/CUDA interfaces, immutable external runtime/model assets, and native cache internals confined to the ephemeral job directory; each has a stated reason. Production GPU cache contents were not exercised here.
 
 Reproduce locally:
 
@@ -111,3 +113,32 @@ nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B tests/test_probe.py
 nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B tests/test_fixes.py
 nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B finish.py
 ```
+
+The aggregate `/project` write ceiling is **44,000,000 bytes (44 MB)** for the entire CPU-plus-GPU lifecycle, below 50 MB per job.
+
+| Component | Reserved bytes |
+| --- | ---: |
+| Delivery plus extraction | 20,000,000 |
+| CPU and GPU returns, including receipts | 6,000,000 |
+| Both fetched archives, hex transport streams and receipts | 16,000,000 |
+| Operator metadata and reservation ledger | 2,000,000 |
+| Logs on `/project` | 0 |
+| **Total** | **44,000,000** |
+
+Delivery plus extraction actually uses **19,506,279 bytes**. Placement checks that sum before each extracted-file write. Each return is capped at 2 MB. Each fetch reserves 8 MB before creating files: at most 2 MB for its archive, about 5.34 MB for hex/base64 transport, and bounded receipts. The transport's `.partial` and final archive are hard links to the same bytes.
+
+The locked ledger reserves writes before they occur. Each mode gets one finalization and one fetch; interrupted reservations remain spent. Metadata has a separate byte cap, and the ledger permits at most 128 entries. Oversized returns become capped failures. Repeated fetches and excess metadata writes fail before writing their outputs.
+
+Bulk staging, extracted assets, caches and stream journals use only the assigned **ext4 job_tmp at `/tmp`**. The controller rejects tmpfs before bulk copying. Slurm bootstrap logs also use `/tmp`; no logs are written to `/project`. Both package levels pass the existing 32 MiB extraction allowance.
+
+Every library cache and temporary directory points to an opaque numbered directory under the job root, including HOME, all XDG locations, Hugging Face, PyTorch/Inductor/extensions, Triton, CUDA, kernel, Matplotlib, Numba, CuPy, TileLang and FlashInfer caches. The controller sets the environment before staging; CPU and GPU launches reset the same overrides before imports. Hugging Face stays offline with telemetry disabled; CUDA and PyTorch kernel disk caches are disabled. Python bytecode and experiment tracking are disabled. No caller cache override survives.
+
+The worker namespace exposes only this job's temporary directory and cannot see `/project`. Orchard removes the ext4 job_tmp with the job; native cache files never enter a return or fetch. `out/CACHE_CHECKS.json` lists every file written outside the job directory during a fresh-process CPU rehearsal with native libc writable-open auditing, Python mutation auditing and a complete public-tree inventory. The only files are the fixed budgeted package, ledger, CPU return and fetch allowlist; the unexpected-file list is empty. The rehearsal uses tiny authenticated inputs and processor/RGB/head-shape doubles. GPU cache contents remain unexecuted, with the same cache-location policy tested in both modes.
+
+The GPU job requests **200G (200 GiB)**. Its conservative planning peak is **187 GB (174.2 GiB)**: approximately 96 GB host RSS from the old full-load preflight, 71 GB of potentially charged staged-file page cache, and 20 GB for batch buffers and overhead. The full-model GPU peak remains unmeasured.
+
+Both supervisors poll charged memory every 50 ms and stop their child at **180 GiB (193,273,528,320 bytes)**, leaving 20 GiB below the request. Staging phases also check memory. Missing production counters cause a failure. The controller returns the memory-stop reason and both stream tails. External node/controller death or a spike faster than polling can still prevent finalization.
+
+Every batch records host RSS high-water and GPU max allocated bytes. Every return includes the final observations. A 200 ms sampler covers model loading; abrupt death returns the last sampled GPU peak with `gpu_peak_complete=false`, while wait4 supplies peak host RSS. Normal completion and Python exceptions record the final CUDA peak. CPU and pre-CUDA failures report zero GPU allocation with `gpu_measured=false`.
+
+Controller, namespace-supervisor and worker output enters opaque hex `8.log`/`9.log` journals as bytes arrive. Each stream admits at most 262,144 raw bytes; overflow fails the job. Every return carries **16,000-byte stdout and stderr tails**. Success, partial results, early failures in both modes, memory stops and log overflow pass real fetch. `out/FIX_CHECKS.json` records this evidence.

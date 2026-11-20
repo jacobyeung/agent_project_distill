@@ -1,0 +1,8 @@
+# Read-only gate review (seventh pass): rank 4 probe kit
+
+You are an independent Codex reviewer on trinity-2-28 (read-only). Final message only. No ssh, git, network, GPU, kill, Slurm, writes; no /home or /data* reads; local /scratch reads approved (do not stop to ask).
+Subject `/scratch/jjyeung/orch_n30/lever1_c/r4kit/` after `/scratch/jjyeung/orch_n30/lever1_c/BRIEF_R4FIX5.md`, which answers review 6 (`/scratch/jjyeung/orch_n30/lever1_c/r4rev6/REVIEW.md`: GPU library cache writes outside the naming guard). Verify that fix first, then confirm nothing else regressed.
+1. The CPU preflight is light (metadata-only head validation; what it loads; 32 GiB address-space cap) and its total charged memory stays well under the 200G cgroup; any worker death returns code/signal, last stage, peak RSS and bounded hex-packed stderr through the real fetch in CPU and GPU mode; stdout/stderr never go to /dev/null.
+2. Standing rule: bulk staging only on the node's disk-backed job directory (ext4 job_tmp, never tmpfs, never /project), at most 50 MB written to /project in total, and the kit (PLACE.md or REPORT.md) states both figures. Say whether the GPU job's staging and memory are also safe (the same ~71 GB checkpoint staging on GPU nodes).
+3. No regression: FROZEN.json unchanged (3743891f...), checkpoint 5083243c..., arms differ only by "the distance between" -> "the direct distance between", 64-token cap, tools unserved, scorer accepts 3.jsonl/4.json, naming deny-list on every Orchard-visible path/arg/env/log/job-written file, forecast and pair-safe admission, PLACE.md/REPORT.md/BUILD.json/FORECAST.json agree.
+Verdict first: GO / GO AFTER FIXES (list) / NO-GO. At most 40 lines. Be quick.

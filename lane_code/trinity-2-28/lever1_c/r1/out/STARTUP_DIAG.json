@@ -1,0 +1,34 @@
+{
+  "original_delivery_sha256": "87a55270aa3ed70b5e00021284a4284f8eb6ca1116c1cd35ee6fe810e6365041",
+  "exact_batch_sha256": "6cea63adb2161e7d3afacd3a751698c8eb4971216277a326ee45e5145596150f",
+  "package_pins_pass": true,
+  "payload_pin_pass": true,
+  "plan_pin_pass": true,
+  "inputs_and_export_pins_pass": true,
+  "vendor_preflight_pass": true,
+  "vendor_preflight_seconds": 0.019668766006361693,
+  "time_50_minutes_accepted": true,
+  "replay_first_raise": {
+    "file": "orchard_h10/job.py",
+    "line": 193,
+    "error": "KeyError: 'A_N'",
+    "condition": "A_N absent under --export=NONE"
+  },
+  "allocation": {
+    "job": "173925",
+    "partition": "general",
+    "cpus": 16,
+    "mem_mb": 204800,
+    "cuda_visible": "0",
+    "seconds": 3000
+  },
+  "adaptations": [
+    "package path relocated under r1",
+    "passing CPU proof reconstructed from pinned inputs; actual Orchard CPU.json unavailable"
+  ],
+  "reached_gpu": false,
+  "reached_external_archive_staging": false,
+  "reached_return_pool_setup": false,
+  "time_queries": "No squeue/scontrol call on this path; end is min(start+A_T, SLURM_JOB_END_TIME).",
+  "conclusion": "Missing exported submission variables explain the reported clean environment failure. If actual A_* variables were present, the remote CPU receipt or package pins remain unverified candidates."
+}

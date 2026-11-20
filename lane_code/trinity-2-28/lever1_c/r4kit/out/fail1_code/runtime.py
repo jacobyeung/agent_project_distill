@@ -1,0 +1,219 @@
+"""Private runtime, reviewed locally; public entrypoints use opaque filenames."""
+import hashlib
+import json
+import os
+from pathlib import Path
+import signal
+import sys
+import time
+import importlib.util
+
+C = None
+
+def read(path): return C.loads(Path(path).read_bytes())
+
+
+def sha(path):
+    with Path(path).open('rb') as f:
+        return hashlib.file_digest(f, 'sha256').hexdigest()
+
+
+def write(path, value):
+    C.store(path, value)
+
+
+class Deadline(Exception):
+    pass
+
+
+class PairWriter:
+    def __init__(self, stream, rows, progress, started):
+        self.stream, self.rows, self.progress, self.started = stream, rows, progress, started
+        self.pending = {}
+
+    def emit(self, i, result):
+        row = self.rows[i]
+        result.update(i=row['i'], r=row['r'], a=row['a'], s=time.monotonic()-self.started)
+        self.pending[i] = result
+        pair = i-i%2
+        if pair in self.pending and pair+1 in self.pending:
+            raw = b''.join(C.pack(json.dumps(self.pending[j], sort_keys=True, allow_nan=False)) for j in (pair,pair+1))
+            assert len(raw) <= 262144 and self.stream.tell()+len(raw) < 49000000
+            self.stream.write(raw); self.stream.flush(); os.fsync(self.stream.fileno())
+            self.progress[0] += 2
+            del self.pending[pair]; del self.pending[pair+1]
+
+
+def run_batches(out, rows, progress, end, prepare_rows, generate, deadline):
+    # The first batch is a measurement; subsequent admission uses the slowest
+    # observed prefill and token step, extrapolated to the frozen 64-token cap.
+    required = 60.0
+    with (out/'0.jsonl').open('xb') as stream, (out/'3.jsonl').open('xb') as timings:
+        for start in range(0, len(rows), 8):
+            remaining = end-time.time()
+            group = rows[start:start+8]
+            assert all(group[j]['i']==group[j+1]['i'] and (group[j]['a'],group[j+1]['a'])==(0,1) for j in range(0,len(group),2))
+            record = dict(batch=start//8, rows=len(group), remaining_s=remaining, required_s=required)
+            if remaining < required+10:
+                record.update(status='not_admitted', completed_pairs=0)
+                timings.write(C.pack(json.dumps(record))); timings.flush(); os.fsync(timings.fileno())
+                return 'timeout'
+            deadline()
+            t0 = time.monotonic(); before = progress[0]; metrics = {}; state = 'failed'; prep_s = 0.
+            try:
+                batches = prepare_rows(group)
+                prep_s = time.monotonic()-t0
+                writer = PairWriter(stream, group, progress, t0)
+                generate(batches, writer.emit, deadline, metrics)
+                batches = None
+                state = 'complete'
+            finally:
+                elapsed = time.monotonic()-t0
+                required = max(required, 1.25*(prep_s+metrics.get('prefill_s', 0)+64*metrics.get('max_step_s', 0)), 1.25*elapsed)
+                record.update(status=state, elapsed_s=elapsed, prepare_s=prep_s, completed_pairs=(progress[0]-before)//2,
+                              next_required_s=required, **metrics)
+                timings.write(C.pack(json.dumps(record))); timings.flush(); os.fsync(timings.fileno())
+    return 'complete'
+
+
+def run(package, mode, end):
+    # Staging and namespace are the base package's implementations. This process
+    # runs inside that namespace, after the original archives pass their pins.
+    global C
+    started = time.monotonic()
+    end = min(float(end), time.time()+1500)
+    def deadline(*unused):
+        if unused or time.time() >= end:
+            raise Deadline()
+    signal.signal(signal.SIGALRM, deadline)
+    signal.setitimer(signal.ITIMER_REAL, max(.001, end-time.time()))
+    p = Path(package)
+    spec = importlib.util.spec_from_file_location('a_storage', p/'9.py')
+    C = importlib.util.module_from_spec(spec); spec.loader.exec_module(C)
+    cfg = read(p/'2.json')
+    d = Path(cfg['logical'])/'d'
+    out = p/'a'
+    out.mkdir(exist_ok=True)
+    finder = C.install(p, outputs=[d/'e'])
+    (p/'c/b/work/tmp').mkdir(parents=True, exist_ok=True)
+    sources = finder.Path(p/'c')
+    for root in cfg['inputs']['env_roots']:
+        sys.path.insert(0, root)
+    import torch
+    torch.set_num_threads(16)
+    from parity_kit import stage_restore
+    from e2e_reader.parity import load_native, trainer_row
+    from evalpath.runtime import prompt_batch
+    from student_pilot.carrier_c1_decode import _prepare_decode, consume_cache_tokens
+    from student_pilot.ground_context import closed_adapters
+    spec = importlib.util.spec_from_file_location('a0', p/'7.py')
+    probe = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(probe)
+    pins = cfg['export']
+    assert pins['artifact']['sha256'].startswith('5083243c') and pins['step'] == 400
+    f = cfg['inputs']['files']
+    path = lambda n: Path(f[n]['path'])
+    # The stage function's pinned export branch supplies all request fields.
+    # Its otherwise unused initial read gets an empty, label-free request.
+    request = p/'6.json'
+    export = d/'e'
+    stage_restore.stage(path('full_weights').parent, path('artifact').parent,
+        d, export, request=request, tree=sources/'tree',
+        base_assets=path('base_config').parent, model_manifest_tar=path('original_model'),
+        export_pins=pins, data_root=d)
+    settings = dict(tree=str(sources/'tree'),
+                    config=str(d/pins['preparation']['config']['path']))
+    data = read(p/'1.json')
+    assert len(data['rows']) == 580 and len(data['captures']) == 98
+    # Every RGB is authenticated once; the same capture is used in both arms.
+    for capture in data['captures'].values():
+        for frame in capture['frames']:
+            deadline()
+            assert sha(Path(cfg['inputs']['frames_root'])/frame['path']) == frame['sha256']
+    def row_for(row):
+        task = dict(id=row['i'], question=row['q'], options=[],
+                    dataset='a', scene=row['r'], question_type='object_abs_distance')
+        return trainer_row(task, data['captures'][row['r']], cfg['inputs']['frames_root'], verify=False)
+    if mode == 'c':
+        from student_pilot import carrier_c1_run as trainer
+        receipt = read(export/'receipt.json')
+        config = read(settings['config'])
+        receipt.update(align=config.get('align'), init_artifact=config.get('init_artifact'),
+                       frame_markers=config.get('frame_markers', False),
+                       pointing_weights=config.get('pointing_weights'),
+                       camera={**receipt['camera'], **config.get('camera_overrides', {})})
+        manifest = read(receipt['model']['path'])
+        processor = trainer.processor_for_receipt(manifest, receipt)
+        checked = []
+        previous = None
+        for row in data['rows'][:2]:
+            batch = prompt_batch(processor, row_for(row), config, 'routed')
+            assert 'labels' not in batch and batch['input_ids'].shape[0] == 1
+            checked.append(dict(i=row['i'], a=row['a'], n=int(batch['input_ids'].shape[1])))
+            if previous is not None:
+                for key in ('pixel_values_videos','video_grid_thw','aux_camera_positions','frame_indices','video_sha256'):
+                    if key in batch:
+                        same = torch.equal(batch[key], previous[key]) if isinstance(batch[key], torch.Tensor) else batch[key] == previous[key]
+                        assert same, key
+            previous = batch
+        write(out/'1.json', dict(passed=True, mode='c', checked=checked,
+            frames=98*32, artifact=pins['artifact']['sha256'], frozen=cfg['frozen'],
+            seconds=time.monotonic()-started, model_loaded=False,
+            prefix_27_1884=processor.tokenizer.decode([27,1884],skip_special_tokens=False)=='<ground'))
+        signal.setitimer(signal.ITIMER_REAL, 0)
+        return
+    load_start = time.monotonic()
+    model, processor, loaded = load_native(export, device='cuda:0', settings=settings)
+    assert not getattr(model, 'geometry_online', None)
+    assert getattr(model, 'sam3_tower', None) is None
+    assert getattr(model, 'g3t_tower', None) is None
+    loading = time.monotonic()-load_start
+    tokenizer = processor.tokenizer
+    reserved = [tokenizer.convert_tokens_to_ids(t) for t in ('<tool_response>', '</tool_response>')]
+    carrier = getattr(model, 'carrier_id', None)
+    if carrier is not None:
+        reserved.append(int(carrier))
+    spec = importlib.util.spec_from_file_location('a_batch', p/'10.py')
+    batched = importlib.util.module_from_spec(spec); spec.loader.exec_module(batched)
+    progress = [0]
+    status = 'failed'
+    try:
+        def prepare_rows(rows):
+            batches = [prompt_batch(processor, row_for(row), loaded['config'], 'routed') for row in rows]
+            return [{k:v.to('cuda:0') if hasattr(v, 'to') else v for k,v in b.items()} for b in batches]
+        def generate(batches, emit, check, metrics):
+            batched.generate(model, processor, batches, probe, emit, check, metrics=metrics)
+        with torch.no_grad():
+            status = run_batches(out, data['rows'], progress, end, prepare_rows, generate, deadline)
+    except Deadline as error:
+        status = 'timeout'
+        write(out/'4.json', C.diagnostic(error))
+    finally:
+        signal.setitimer(signal.ITIMER_REAL, 0)
+        records = progress[0]
+        write(out/'1.json', dict(passed=status=='complete' and records==580, mode='g',
+            records=records, status=status, frozen=cfg['frozen'], artifact=pins['artifact']['sha256'],
+            load_s=loading, seconds=time.monotonic()-started, tools_served=0,
+            external_components_loaded=False, max_new_tokens=64))
+
+
+def main(package, mode, end):
+    global C
+    try:
+        run(package, mode, end)
+        return 0
+    except BaseException as error:
+        signal.setitimer(signal.ITIMER_REAL, 0)
+        root = Path(package); (root/'a').mkdir(exist_ok=True)
+        if C is None:
+            spec = importlib.util.spec_from_file_location('a_storage', root/'9.py')
+            C = importlib.util.module_from_spec(spec); spec.loader.exec_module(C)
+        write(root/'a/4.json', C.diagnostic(error))
+        return 1
+
+
+if __name__ == '__main__':
+    # Native output is suppressed; packed tracebacks travel in the return.
+    sink = os.open(os.devnull, os.O_WRONLY)
+    os.dup2(sink, 1); os.dup2(sink, 2); os.close(sink)
+    raise SystemExit(main(*sys.argv[1:]))

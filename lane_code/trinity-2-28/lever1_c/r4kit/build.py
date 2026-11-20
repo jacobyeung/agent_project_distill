@@ -71,7 +71,7 @@ def build():
     for name,h in f['sources'].items():
         assert digest((ROOT/name).read_bytes())==h
     data,mapping=inputs()
-    token='d93a17be024f5'
+    token='e71c940a6b283'
     package='/project/community/jjyeung/okh7/a15_cot_ap'+token
     base_inputs=json.loads((BASE/'package/a/1.json').read_text())
     # Geometry's dedicated archive is not needed. The shared environment archive
@@ -107,11 +107,25 @@ def build():
     text=text.replace("with archive.extractfile(item) as source, target.open('wb' if overlay else 'xb') as output:",
         "with archive.extractfile(item) as source, _output(target, 'wb' if overlay else 'xb', retain_roots is not None and path.parts[0] in ('p0','m400') and target.suffix=='.json' and 'full_weights' not in path.parts) as output:")
     text += "\n@contextmanager\ndef _output(path, mode, encode):\n    if not encode:\n        with path.open(mode) as f: yield f\n    else:\n        import io\n        with io.BytesIO() as f:\n            yield f\n            path.write_text(json.dumps({'a0':f.getvalue().hex()})+'\\n')\n"
+    text=text.replace('            target.chmod(item.mode & 0o777)',
+        "            cached = os.open(str(target), os.O_RDONLY)\n            try:\n                if item.size > 8*1024**2: os.fdatasync(cached)\n                os.posix_fadvise(cached, 0, 0, os.POSIX_FADV_DONTNEED)\n            finally: os.close(cached)\n            target.chmod(item.mode & 0o777)")
+    text=text.replace('    os.replace(partial, destination)',
+        "    with partial.open('rb') as cached:\n        os.posix_fadvise(cached.fileno(), 0, 0, os.POSIX_FADV_DONTNEED)\n    os.replace(partial, destination)")
     sources[n]=text
+    # Shape validation reads metadata only; tensor bytes remain authenticated on disk.
+    n='c/b/parity_kit/stage_restore.py'
+    sources[n]=sources[n].replace("map_location='cpu', mmap=True", "map_location='meta', mmap=True")
+    sources[n]=sources[n].replace('export_pins=None, data_root=None):', 'export_pins=None, data_root=None, progress=lambda *a: None):')
+    for target, marker in [('    base_assets = Path(base_assets).resolve()', 'restore_assets'),
+                           ('    for e in entries:', 'restore_weights'),
+                           ('    proof = prove_depth', 'restore_shapes'),
+                           ("    (out / 'full_weights').mkdir", 'restore_links')]:
+        sources[n]=sources[n].replace(target, "    progress('"+marker+"')\n"+target, 1)
     source_blob=storage.pack(jd(sources))
     payload={'1.json':storage.pack(jd(data)),'2.json':storage.pack(jd(cfg)),'6.json':b'{}\n',
              '9.py':wrap((ROOT/'src/storage.py').read_bytes()),
              '10.py':wrap((ROOT/'src/batch.py').read_bytes()),
+             '11.py':wrap((ROOT/'src/monitor.py').read_bytes()),
              '5.py':wrap((ROOT/'src/runtime.py').read_bytes()),
              '7.py':wrap((ROOT/'src/probe.py').read_bytes()),'8.bin':source_blob}
     files=dict(payload)
@@ -124,10 +138,13 @@ def build():
         if name.endswith(('.py','.sh')):
             assert not any(x in raw.decode().lower() for x in DENY),name
     delivery=archive(files)
+    assert len(delivery)+sum(map(len,files.values())) <= 20000000
     out=ROOT/'out';out.mkdir(exist_ok=True)
     (out/'delivery.tgz').write_bytes(delivery)
     (ROOT/'PAIR_MAP.json').write_bytes(jd(mapping))
     (ROOT/'BUILD.json').write_bytes(jd(dict(package=package,token=token,delivery=pin(delivery),
+        project_budget=dict(limit_bytes=50000000,enforced_max_bytes=44000000,placement_bytes=20000000,metadata_and_ledger_bytes=2000000,returns_bytes=6000000,fetches_bytes=16000000,project_logs_bytes=0),
+        gpu_memory=dict(request='200G',charged_stop_bytes=180*1024**3,expected_peak_bytes=187000000000,full_load_rss_bytes=96000000000,page_cache_bytes=71000000000,batch_and_overhead_bytes=20000000000,measured=False),
         payload=pin(files['0.tgz']),expanded_delivery_bytes=sum(map(len,files.values())),
         expanded_payload_bytes=sum(map(len,payload.values())),private_source_bytes=sum(len(v.encode()) for v in sources.values()),
         frozen=digest(frozen),data=pin(payload['1.json']),source_blob=pin(source_blob),

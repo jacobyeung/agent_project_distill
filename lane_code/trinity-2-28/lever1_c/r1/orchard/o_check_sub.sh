@@ -1,12 +1,13 @@
 #!/bin/bash
 set -euo pipefail
 umask 077
-S=$(mktemp /tmp/aa784b94c2e6af2.XXXXXXXX)
+S=$(mktemp /tmp/aa6f198d3c7b202.XXXXXXXX)
 cat > "$S" <<'BODY'
 #!/bin/bash
 set -euo pipefail
 umask 077
-P=/project/community/jjyeung/a784b94c2e6af
+P=/project/community/jjyeung/a6f198d3c7b20
+ulimit -S -f 512
 cd "$P"
 (set -C; : > a/1.lock)
 test ! -e a/8.txt
@@ -19,5 +20,6 @@ job=${reply%%;*}; [[ "$job" =~ ^[0-9]+$ ]]
 printf '%s\n' "$job" > a/8.txt
 cat a/8.txt
 BODY
-nohup setsid bash "$S" > "$S.log" 2>&1 < /dev/null &
+nohup setsid bash "$S" > "$S.log" 2>&1 <<'A_EOF' &
+A_EOF
 printf 'pid=%s log=%s\n' "$!" "$S.log"

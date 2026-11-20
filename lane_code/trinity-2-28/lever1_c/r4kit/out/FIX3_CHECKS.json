@@ -1,140 +1,33 @@
 {
   "passed": true,
-  "tests": 6,
-  "token": "d93a17be024f5",
   "delivery": {
-    "bytes": 4235885,
-    "sha256": "9d023abcd0335d57ce99f02e54961b20838c3114c9cd3b537056d4532ca2ef36"
+    "bytes": 4250122,
+    "sha256": "3ca1fd77d3cd021210bae2ef31d0c323bd3d8bd0d1cf3e2b5df12410c91232af"
   },
   "cases": [
     {
-      "case": "success",
-      "members": [
-        "0.jsonl",
-        "1.json",
-        "3.jsonl"
-      ],
-      "archive": "/scratch/jjyeung/orch_n30/lever1_c/r4kit/out/faabfd50683de4aa59b1aa9732fb0ac02/f/0.tgz",
-      "result": {
-        "ORIG": {
-          "ci95": [
-            1.0,
-            1.0
-          ],
-          "rate": 1.0
-        },
-        "REVSI": {
-          "ci95": [
-            1.0,
-            1.0
-          ],
-          "rate": 1.0
-        },
-        "REVSI_minus_ORIG": {
-          "ci95": [
-            0.0,
-            0.0
-          ],
-          "rate": 0.0
-        },
-        "arm_D": "closed",
-        "bootstrap": "paired rooms with replacement; item-weighted; percentile 95%",
-        "complete": true,
-        "draws": 10000,
-        "frozen": "3743891f778115529710461333ad09a9588b8075e2173a74fac0065dc5d0382d",
-        "gate": "no change",
-        "other_calls": {
-          "ORIG": {
-            "<angle": 0,
-            "<area": 0,
-            "<box_3d": 0,
-            "<cam_dist": 0,
-            "<closest": 0,
-            "<depth_at": 0,
-            "<dist": 0,
-            "<extent_ends": 0,
-            "<gap": 0,
-            "<move": 0,
-            "<pose": 0,
-            "<surface_pair": 0,
-            "<turn": 0
-          },
-          "REVSI": {
-            "<angle": 0,
-            "<area": 0,
-            "<box_3d": 0,
-            "<cam_dist": 0,
-            "<closest": 0,
-            "<depth_at": 0,
-            "<dist": 0,
-            "<extent_ends": 0,
-            "<gap": 0,
-            "<move": 0,
-            "<pose": 0,
-            "<surface_pair": 0,
-            "<turn": 0
-          }
-        },
-        "pairs": 290,
-        "rooms": 98,
-        "seed": 20261120
-      },
-      "real_delivered_finalize": true,
-      "real_fetch_cli": true,
-      "real_scorer_cli": true
+      "state": "success",
+      "records": 580,
+      "gate": "no change",
+      "real_finalize": true,
+      "real_fetch": true,
+      "real_scorer": true
     },
     {
-      "case": "partial",
-      "members": [
-        "0.jsonl",
-        "1.json",
-        "2.json",
-        "3.jsonl"
-      ],
-      "archive": "/scratch/jjyeung/orch_n30/lever1_c/r4kit/out/f3b8a7fabfe004e81aac1d4562d8d2b8d/f/0.tgz",
-      "result": {
-        "arm_D": "closed",
-        "complete": false,
-        "expected": 580,
-        "frozen": "3743891f778115529710461333ad09a9588b8075e2173a74fac0065dc5d0382d",
-        "gate": "incomplete; no verdict",
-        "observed": 8
-      },
-      "real_delivered_finalize": true,
-      "real_fetch_cli": true,
-      "real_scorer_cli": true
+      "state": "partial",
+      "records": 8,
+      "gate": "incomplete; no verdict",
+      "real_finalize": true,
+      "real_fetch": true,
+      "real_scorer": true
     },
     {
-      "case": "failed",
-      "members": [
-        "1.json",
-        "3.jsonl",
-        "4.json"
-      ],
-      "archive": "/scratch/jjyeung/orch_n30/lever1_c/r4kit/out/f6bccbe485f464a7da63f854eefa6ba13/f/0.tgz",
-      "result": {
-        "arm_D": "closed",
-        "complete": false,
-        "expected": 580,
-        "frozen": "3743891f778115529710461333ad09a9588b8075e2173a74fac0065dc5d0382d",
-        "gate": "incomplete; no verdict",
-        "observed": 0
-      },
-      "real_delivered_finalize": true,
-      "real_fetch_cli": true,
-      "real_scorer_cli": true
+      "state": "failure",
+      "records": 0,
+      "gate": "incomplete; no verdict",
+      "real_finalize": true,
+      "real_fetch": true,
+      "real_scorer": true
     }
-  ],
-  "rejected": [
-    "unknown",
-    "duplicate",
-    "link"
-  ],
-  "consumer_audit": {
-    "src/control.py fetch": "Authenticates mode, size, sha256 and frozen binding; no member whitelist",
-    "delivered stdout_transfer.py": "Opaque framed byte transport; no tar parsing",
-    "PLACE.md diagnostic reader": "Reads 2.json, 4.json and 3.jsonl",
-    "finish.py": "Generates the same diagnostic reader; package archive reads have no return whitelist",
-    "tests": "Generic member readers; no restricted return member whitelist"
-  }
+  ]
 }

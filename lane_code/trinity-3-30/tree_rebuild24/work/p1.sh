@@ -1,0 +1,1 @@
+W=/scratch/jjyeung/orch_n30/tree_rebuild10_w; date -u +%TZ; free -g | head -2; df -h /scratch | tail -1; tmux ls 2>&1 | grep -E "tr2|rev|b24"; ls -lt $W/w24z7/out | head -20; ls $W/w24z7/out/*.sha256 2>&1; cat $W/w24z7/out/NEEDS_OTHER_FILE_24M4Z7.md; echo ==== ARM; cat $W/w24y2/out/ARM_ROUTING_USAGE.md | head -60; ls $W/work | tail -30

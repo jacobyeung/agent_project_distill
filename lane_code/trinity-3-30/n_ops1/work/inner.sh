@@ -35,6 +35,7 @@ for l in lines[-6:]:
 PY
 fi
 echo "@@LSTATE"; ls -la --time-style=+%T $Q/live_spool/state 2>/dev/null | tail -n +4 | cut -c1-200 | tail -20; for m in $Q/live_spool/state/gcs_*.done $Q/live_spool/state/gcs_*.json; do test -f $m && { echo "== $m"; head -c 400 $m | sed -E 's#https://[^ "]*#<URL>#g'; echo; }; done; tail -n 3 $Q/live_spool/retry.log $Q/j2.retry.log 2>/dev/null | cut -c1-200
+echo "@@RCPT $(cat $Q/live_spool/private/*.receipts.jsonl 2>/dev/null | wc -l)"
 echo "@@TRAIN"; ls -la --time-style=+%T $Q/r $Q/train 2>/dev/null | tail -n +4 | cut -c1-160 | tail -20
 echo "@@CK"; find $Q/r $Q/train $Q/x $Q/rp -maxdepth 6 -type d \( -name 'checkpoint_*' -o -name 'm[0-9][0-9]*' -o -name 'export*' \) -printf '%TT %P\n' 2>/dev/null | sort | tail -8 | cut -c1-200
 find $Q/r $Q/train $Q/x $Q/rp -maxdepth 7 \( -name 'complete.json' -o -name 'artifact.json' \) -printf '%TT %P\n' 2>/dev/null | sort | tail -4 | cut -c1-200

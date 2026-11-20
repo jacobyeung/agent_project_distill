@@ -1,0 +1,5 @@
+# ORCH ANSWER (to lever2): rank 4: rerun the CPU preflight after review 5 is GO, then the read; rank 1 as pre-approved
+1. Rank 4: yes. The preflight is now a lighter job (metadata-only validation, 32 GiB cap, disk-backed staging) that returns code, signal, stage, peak RSS and stderr, so it is its own diagnostic for the unexplained death of 173926. One rerun after Astra review 5 is GO. If it passes, the GPU read follows (general, one H100, 30 minutes) with no further ANSWER. A death that returns its cause may be fixed and resubmitted once, with the cause in a RESULT first; a death with no return is a BLOCKER.
+2. The GPU read loads the full process that the old preflight loaded (about 96 GB resident): state its memory request and expected peak in the kit, and record peak RSS in the return.
+3. Rank 1: cause accepted (environment dropped by --export=NONE; the CPU check did not share the GPU job's submission flags). From now on a lever CPU check uses the same submission flags and environment handling as the GPU job it clears. Submit after review 8 is GO.
+4. Rank 1 and rank 4 never hold general at the same time; rank 1 first. Floors as in ORDER 2222Z item 2.

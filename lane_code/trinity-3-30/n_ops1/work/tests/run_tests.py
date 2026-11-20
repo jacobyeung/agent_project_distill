@@ -5,7 +5,7 @@ JOUT=open(W+'/t1/last.raw').read().split('@@JOUT 12906\n')[1].split('@@JTAIL')[0
 SM={"pose":0.12423441559076309,"vqa":0.06256272686161424,"routing":4.030109835184703e-05,"pointing":0.46920966994366}
 def rank(r,sm=None,wall=134.3,ck=0,nf=False):
   return dict(rank=r,wall=wall,data=32.1,skip=0,sm=sm or dict(SM),csum=0.18,gn={"llm":0.86},nf=nf,peak=64282614272,ck=ck,ex=0)
-def raw(t,J='99',state='RUNNING',steps=(),qlog=None,tlog=True,cpu=0,anon=50,mx=800,tmp=5000,df=400,others=False,name='a15_cot_ap1a2b3c4d',left='20:00:00',gpu=(90,90,90,90),srun=0,qres='{"status": "ADMIT", "init_milestone": 400}',errs=0,end=True,jout=JOUT,reason=None,lstate=None):
+def raw(t,J='99',state='RUNNING',steps=(),qlog=None,tlog=True,cpu=0,anon=50,mx=800,tmp=5000,df=400,others=False,name='a15_cot_ap1a2b3c4d',left='20:00:00',gpu=(90,90,90,90),srun=0,qres='{"status": "ADMIT", "init_milestone": 400}',errs=0,end=True,jout=JOUT,reason=None,lstate=None,rcpt=None,art=None):
   s=['@@NOW 2026-11-19T%s'%t,'@@SQ','%s|%s|advanced|%s|3:00:00|1-00:00:00|%s|orchard-community-1|orchard-community-1|x'%(J,name,state,left)]
   if reason:s[-1]=s[-1].replace('|orchard-community-1|orchard-community-1|','|'+reason+'|'+reason+'|')
   if others:s.append('173241|a15_cot_apda6f7936c1779|advanced|RUNNING|0:18|4:00:00|3:59:42|n|n|x')
@@ -19,6 +19,8 @@ def raw(t,J='99',state='RUNNING',steps=(),qlog=None,tlog=True,cpu=0,anon=50,mx=8
     for st in steps:s.append('@@STEP '+json.dumps(st))
     s+=['@@CK','@@CG /sys/fs/cgroup/job max=%d cur=1 anon %d file 1 shmem 0 cpu_usec=%d'%(mx*2**30,anon*2**30,cpu),'@@GPU']+['%d, %d, 70000, 81559'%(i,g) for i,g in enumerate(gpu)]+['@@PS','@@SRUN rc=%d'%srun]
   if lstate:s+=['@@LSTATE']+lstate
+  if art:s=[x if x!='@@CK' else '@@CK\n'+art for x in s]
+  if rcpt is not None:s+=['@@RCPT %d'%rcpt]
   s+=['@@EXTRA']+(['@@END'] if end else [])
   return '\n'.join(s)+'\n'
 def step(n,**kw):
@@ -90,4 +92,8 @@ res.append(run('held_ok',[raw(T(0),state='PENDING',reason='(JobHeldUser)'),raw(T
 res.append(run('held_16',[raw(T(0),state='PENDING',reason='(JobHeldUser)'),raw(T(16),state='PENDING',reason='(JobHeldUser)')],['HELD 16 min']))
 res.append(run('pending_qos_not_held',[raw(T(0),state='PENDING',reason='(QOSMaxGRESPerUser)'),raw(T(20),state='PENDING',reason='(QOSMaxGRESPerUser)')],['QOSMaxGRES'],['HELD','held']))
 res.append(run('gcs_done_lstate',[raw(T(0),lstate=['-rw------- 1 u g 107 19:00:00 gcs_m100.done'])],['NEW_GCS_DONE m100']))
+ART='17:00:00.0 r/x/m100/artifact.json'
+res.append(run('no_receipt_10',[raw(T(0),steps=[step(101)],art=ART,rcpt=0),raw(T(11),steps=[step(101),step(102)],art=ART,rcpt=0)],['NO_RECEIPT_10MIN after export m100']))
+res.append(run('receipt_ok',[raw(T(0),steps=[step(101)],art=ART,rcpt=0),raw(T(11),steps=[step(101),step(102)],art=ART,rcpt=4)],['"receipts":4'],['NO_RECEIPT']))
+res.append(run('receipt_wait_9',[raw(T(0),steps=[step(101)],art=ART,rcpt=0),raw(T(9),steps=[step(101),step(102)],art=ART,rcpt=0)],['"receipts":0'],['NO_RECEIPT']))
 print('ALL PASS' if all(res) else 'SOME FAIL', sum(res),'/',len(res))

@@ -28,7 +28,9 @@ if '--resume' in sys.argv:
     suites=progress['suites']
 for script,log in [('tests/test_all.py','TEST_ALL.log'),('tests/check_imports.py','TEST_IMPORTS.log'),
                    ('tests/test_fixes.py','TEST_FIXES.log'),('tests/test_failure.py','TEST_FAILURE.log'),
-                   ('tests/test_import_audit.py','TEST_AUDIT.log')]:
+                   ('tests/test_import_audit.py','TEST_AUDIT.log'),
+                   ('tests/test_bootstrap.py','TEST_BOOTSTRAP.log'),('tests/test_review8.py','TEST_REVIEW8.log'),
+                   ('tests/test_review9.py','TEST_REVIEW9.log')]:
     if any(s['script']==script for s in suites):continue
     start=time.monotonic()
     with (HERE/'out'/log).open('w') as stream:
@@ -52,8 +54,19 @@ syntax=dict(passed=True,delivery_sha256=initial,python_files=count,shell=shell,a
 result=subprocess.run([sys.executable,'-I','-s','-B',str(HERE/'relift.py'),'--depth',str(HERE/'returned/0.gz'),'--receipt',str(HERE/'returned/4.json'),'--out',str(HERE/'out/DRY_RUN.json')],cwd=HERE,env=os.environ.copy(),capture_output=True,text=True)
 assert result.returncode==0,(result.stdout,result.stderr)
 dry=json.loads((HERE/'out/DRY_RUN.json').read_text());assert 'depth return missing' in json.dumps(dry)
+fixes=json.loads((HERE/'out/FIX_CHECKS.json').read_text())
+assert fixes['delivery_sha256']==initial
+for key in ('allocation','worker_deadline','slow_upload','transfer_deadlines'):
+    assert fixes[key]['passed']
+forecast=info['forecast']
+assert forecast['allocation_s']==3000 and forecast['worker_cap_s']==1800
+assert forecast['allocation_margin_s']>0
+write('BUDGET_CHECK.json',dict(passed=True,delivery_sha256=initial,
+    allocation_seconds=3000,worker_cap_seconds=1800,forecast=forecast,forecast_fits=True,
+    worker_cap_scenario_minutes=44,worker_cap_scenario_headroom_minutes=6,
+    simulated_checks={key:fixes[key] for key in ('allocation','worker_deadline','slow_upload','transfer_deadlines')}))
 evidence={}
-for name in ('CPU_ENTRY_STUB','FIX_CHECKS','FAILURE_CHECKS','IMPORT_CHECK','IMPORT_AUDIT','SYNTAX_CHECKS','BUDGET_CHECK','REAL_PARITY_20','DRY_RUN'):
+for name in ('CPU_ENTRY_STUB','FIX_CHECKS','FAILURE_CHECKS','IMPORT_CHECK','IMPORT_AUDIT','SYNTAX_CHECKS','BUDGET_CHECK','REAL_PARITY_20','DRY_RUN','BOOTSTRAP_CHECKS','REVIEW8_CHECKS','REVIEW9_CHECKS','ENVIRONMENT_INVENTORY'):
     data=(HERE/'out'/(name+'.json')).read_bytes();evidence[name]=dict(path='out/'+name+'.json',sha256=A.sha(data))
     obj=json.loads(data)
     if 'delivery_sha256' in obj:assert obj['delivery_sha256']==initial
@@ -65,7 +78,7 @@ validation=dict(passed=True,status='All required CPU validation passed for the e
     scope='CPU correctness, sealed import closure, naming, simulated deadlines and local production failure fetch; no live GPU timing',
     validated_at_utc=datetime.datetime.now(datetime.timezone.utc).isoformat(),
     **{k:info[k] for k in ('token','delivery_sha256','delivery_bytes','payload_sha256','plan_sha256','payload_expanded_bytes')},
-    required_tests=43,tests_run=sum(s['tests'] for s in suites),suites=suites,import_checks=2,cpu_rehearsal_runs=2,
+    required_tests=59,tests_run=sum(s['tests'] for s in suites),suites=suites,import_checks=2,cpu_rehearsal_runs=2,
     syntax=syntax,production_failure_fetch=checks['FAILURE_CHECKS']['production_fetch'],import_audit={k:checks['IMPORT_AUDIT'][k] for k in ('passed','files_parsed','retained_sources','vendor_files','reachable_files','reachable_imports','unresolved')},
     evidence=evidence,budget=info['forecast'],workspace_bytes=workspace,workspace_cap_bytes=10_000_000_000,moved_fixtures=[])
 assert validation['tests_run']==validation['required_tests']

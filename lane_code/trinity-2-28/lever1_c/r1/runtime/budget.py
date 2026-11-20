@@ -66,3 +66,4 @@ def finish(root,cfg,out,token,results,end,upload,write,failed,clock=time.time):
             with window(end-2,results,clock):
                 results.pool_operation('receipt',cfg['pool'],token,local,timeout=8)
         except Exception:pass
+        raise RuntimeError('E74')

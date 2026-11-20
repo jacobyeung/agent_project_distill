@@ -1,0 +1,102 @@
+[
+  {
+    "name": "protocol",
+    "status": "PASS",
+    "detail": {
+      "before": false,
+      "after": true
+    }
+  },
+  {
+    "name": "cache",
+    "status": "PASS",
+    "detail": {
+      "before": "accepted",
+      "after": "refused"
+    }
+  },
+  {
+    "name": "live_priority",
+    "status": "PASS",
+    "detail": {
+      "before": [
+        [
+          "ck00",
+          "ck01",
+          "ck02",
+          "ck03",
+          "ck04",
+          "ck05",
+          "ck06",
+          "ck07",
+          "ck08",
+          "ck09",
+          "ck10",
+          "ck11",
+          "ck12",
+          "ck13",
+          "ck14",
+          "ck15"
+        ],
+        [
+          "mstop",
+          "mstopB",
+          "mstopC"
+        ],
+        [
+          "o"
+        ]
+      ],
+      "after": [
+        [
+          "ckstop"
+        ],
+        [
+          "mstop",
+          "mstopB",
+          "mstopC"
+        ]
+      ]
+    }
+  },
+  {
+    "name": "retry_all",
+    "status": "PASS",
+    "detail": {
+      "before": 1,
+      "after": 3
+    }
+  },
+  {
+    "name": "archive_result",
+    "status": "PASS",
+    "detail": {
+      "before": {
+        "final_tail": false,
+        "batch": false
+      },
+      "after": {
+        "final_tail": true,
+        "batch": true
+      }
+    }
+  },
+  {
+    "name": "failed_stop",
+    "status": "PASS",
+    "detail": {
+      "fail_before": false,
+      "fail_after": true,
+      "stall_before": false,
+      "stall_after": true
+    }
+  },
+  {
+    "name": "resume",
+    "status": "PASS",
+    "detail": {
+      "parts": 4,
+      "lost_response_recovered": true
+    }
+  }
+]

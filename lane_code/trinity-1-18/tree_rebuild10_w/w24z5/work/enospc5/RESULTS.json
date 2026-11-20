@@ -1,0 +1,343 @@
+[
+  {
+    "name": "prepare_missing",
+    "status": "PASS",
+    "result": {
+      "returncode": 1,
+      "training_started": false,
+      "error": "file missing"
+    },
+    "log": "work/enospc5/logs/prepare_missing.log"
+  },
+  {
+    "name": "prepare_incomplete",
+    "status": "PASS",
+    "result": {
+      "returncode": 1,
+      "training_started": false,
+      "error": "E101"
+    },
+    "log": "work/enospc5/logs/prepare_incomplete.log"
+  },
+  {
+    "name": "full",
+    "status": "PASS",
+    "result": {
+      "free_bytes": 0
+    },
+    "log": "work/enospc5/logs/full.log"
+  },
+  {
+    "name": "wrapper_local_logs",
+    "status": "PASS",
+    "result": {
+      "child_rc": 0,
+      "logger_rc": 0,
+      "local_checkpoint_bytes": 4096,
+      "project_free": 0
+    },
+    "log": "work/enospc5/logs/wrapper_local_logs.log"
+  },
+  {
+    "name": "nonfatal_launch_finalizer",
+    "status": "PASS",
+    "result": {
+      "returncode": 0,
+      "training_started": true,
+      "local_archive_bytes": 868,
+      "archive_retry": "{\"time\": 1795213302, \"action\": \"small\", \"error\": \"OSError\", \"errno\": 28}\n{\"time\": 1795213304, \"action\": \"small\", \"error\": \"OSError\", \"errno\": 28}\n{\"time\": 1795213305, \"action\": \"small\", \"error\": \"OSError\", \"errno\": 28}\n{\"time\": 1795213306, \"action\": \"small\", \"error\": \"OSError\", \"errno\": 28}\n{\"time\": 1795213306, \"action\": \"o_copy\", \"error\": \"OSError\", \"errno\": 28}\n{\"time\": 1795213306, \"action\": \"small\", \"error\": \"OSError\", \"errno\": 28}\n{\"time\": 1795213306, \"action\": \"o_copy\", \"error\": \"OSError\", \"errno\": 28}\n",
+      "project_free": 0
+    },
+    "log": "work/enospc5/logs/nonfatal_launch_finalizer.log"
+  },
+  {
+    "name": "full_exports_and_stop",
+    "status": "PASS",
+    "result": {
+      "done": [
+        "gcs_checkpoint_7.done",
+        "gcs_checkpoint_7_stop.done",
+        "gcs_m100.done",
+        "gcs_o.done"
+      ],
+      "parts": 16,
+      "bytes_sha256_match": true,
+      "project_free": 0,
+      "receipts": [
+        {
+          "bytes": 527360,
+          "file": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z5/work/enospc5/node/live_spool/e0c5aedfef8895ac6ec4ec5b0e4bcc421476ed0c6305a9188f66d5c0ac265468.tar",
+          "generation": "1",
+          "md5": "2MQJYhuckdAuRyZRt2hHLw==",
+          "name": "q9/22c714e1/469ddece_m100.tar.j24042.part00-of-04",
+          "offset": 0,
+          "seconds": 0.0,
+          "sha256": "c07601d000f10944104ade944961a632f5b585da5be5246b4b169a956877999d"
+        },
+        {
+          "bytes": 527360,
+          "file": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z5/work/enospc5/node/live_spool/e0c5aedfef8895ac6ec4ec5b0e4bcc421476ed0c6305a9188f66d5c0ac265468.tar",
+          "generation": "1",
+          "md5": "zQleBykDixlWoms+RSGpmA==",
+          "name": "q9/22c714e1/469ddece_m100.tar.j24042.part01-of-04",
+          "offset": 527360,
+          "seconds": 0.0,
+          "sha256": "91a4785110781de7f71b98ab42fa995cdc86762583bff535df0ca15c4b415631"
+        },
+        {
+          "bytes": 527360,
+          "file": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z5/work/enospc5/node/live_spool/e0c5aedfef8895ac6ec4ec5b0e4bcc421476ed0c6305a9188f66d5c0ac265468.tar",
+          "generation": "1",
+          "md5": "g1AfDmqtWCpMNquLIIv5Qg==",
+          "name": "q9/22c714e1/469ddece_m100.tar.j24042.part02-of-04",
+          "offset": 1054720,
+          "seconds": 0.0,
+          "sha256": "95f21bde8e2d2795b37526f8e06464036ad2011ff20f620c20076e8f03908686"
+        },
+        {
+          "bytes": 527360,
+          "file": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z5/work/enospc5/node/live_spool/e0c5aedfef8895ac6ec4ec5b0e4bcc421476ed0c6305a9188f66d5c0ac265468.tar",
+          "generation": "1",
+          "md5": "rss0mS/XGjkhIXtqFxOZLQ==",
+          "name": "q9/22c714e1/469ddece_m100.tar.j24042.part03-of-04",
+          "offset": 1582080,
+          "seconds": 0.0,
+          "sha256": "0bf40b895f9a6807138cf4f818b9cdc4b9168f676a772e7cac1e13d4d84d44cb"
+        },
+        {
+          "bytes": 527360,
+          "file": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z5/work/enospc5/node/live_spool/65d18a070ad4d74a86a33d79afca436ab9d99fff02186e7d3c87f2601f31e7f9.tar",
+          "generation": "1",
+          "md5": "KaE1HexmV05RdC2RZ/FNAA==",
+          "name": "q9/22c714e1/469ddece_ckstop.tar.j24042.part00-of-04",
+          "offset": 0,
+          "seconds": 0.0,
+          "sha256": "1cccd7c0123630249b5ad9cbf4298865f675e96e9f75fa3bad6556374912bbbc"
+        },
+        {
+          "bytes": 527360,
+          "file": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z5/work/enospc5/node/live_spool/65d18a070ad4d74a86a33d79afca436ab9d99fff02186e7d3c87f2601f31e7f9.tar",
+          "generation": "1",
+          "md5": "raXm7TFFHAR7vvnzM8ifCg==",
+          "name": "q9/22c714e1/469ddece_ckstop.tar.j24042.part01-of-04",
+          "offset": 527360,
+          "seconds": 0.0,
+          "sha256": "6bbab3931e46f30aa5a1617e4c27f2ec887048a3987f52fde0681195ae8ef4e6"
+        },
+        {
+          "bytes": 527360,
+          "file": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z5/work/enospc5/node/live_spool/65d18a070ad4d74a86a33d79afca436ab9d99fff02186e7d3c87f2601f31e7f9.tar",
+          "generation": "1",
+          "md5": "0xkpTgjt08cjj3bQofhI6A==",
+          "name": "q9/22c714e1/469ddece_ckstop.tar.j24042.part02-of-04",
+          "offset": 1054720,
+          "seconds": 0.0,
+          "sha256": "5db7cbf99d580a30eda4a46e1803f1d0795c69f7e02c78dde1ef290f6f75c4ad"
+        },
+        {
+          "bytes": 527360,
+          "file": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z5/work/enospc5/node/live_spool/65d18a070ad4d74a86a33d79afca436ab9d99fff02186e7d3c87f2601f31e7f9.tar",
+          "generation": "1",
+          "md5": "KCFOtp+6LSgy9DyW9OHzWQ==",
+          "name": "q9/22c714e1/469ddece_ckstop.tar.j24042.part03-of-04",
+          "offset": 1582080,
+          "seconds": 0.0,
+          "sha256": "0dd6d88d7b2213121e66157b0219796db1c062e551581321b261eb80f9687b3c"
+        },
+        {
+          "bytes": 217,
+          "file": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z5/work/enospc5/node/o/o.tar",
+          "generation": "1",
+          "md5": "mt6MVgcohywqzjvOM0cpOA==",
+          "name": "q9/22c714e1/469ddece_o.tar.j24042.part00-of-04",
+          "offset": 0,
+          "seconds": 0.0,
+          "sha256": "e3beef94be776af2cb0a61492418237d2566a3141f4f88f5b0c89a45b37b7295"
+        },
+        {
+          "bytes": 217,
+          "file": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z5/work/enospc5/node/o/o.tar",
+          "generation": "1",
+          "md5": "Rt7Na1wB7YaYWz3BTXe1Tg==",
+          "name": "q9/22c714e1/469ddece_o.tar.j24042.part01-of-04",
+          "offset": 217,
+          "seconds": 0.0,
+          "sha256": "6f40709767e409780329320d94c5b5dcfc481d1dbe14270a02d042057f510938"
+        },
+        {
+          "bytes": 217,
+          "file": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z5/work/enospc5/node/o/o.tar",
+          "generation": "1",
+          "md5": "VLsc4z2bKj9ypk4vmlTdpA==",
+          "name": "q9/22c714e1/469ddece_o.tar.j24042.part02-of-04",
+          "offset": 434,
+          "seconds": 0.0,
+          "sha256": "3d0b46b8176269e92b19c72fe8e521f684fc880f256f0426c7d5b1485b0f2b3b"
+        },
+        {
+          "bytes": 217,
+          "file": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z5/work/enospc5/node/o/o.tar",
+          "generation": "1",
+          "md5": "hXcUHsTR9CM1AIKieT1aKQ==",
+          "name": "q9/22c714e1/469ddece_o.tar.j24042.part03-of-04",
+          "offset": 651,
+          "seconds": 0.0,
+          "sha256": "d3d1ef2e6ef6a698bbb5baddf32a7201c05e3650e83b310ae602518491f708c7"
+        },
+        {
+          "bytes": 527360,
+          "file": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z5/work/enospc5/node/live_spool/65d18a070ad4d74a86a33d79afca436ab9d99fff02186e7d3c87f2601f31e7f9.tar",
+          "generation": "1",
+          "md5": "KaE1HexmV05RdC2RZ/FNAA==",
+          "name": "q9/22c714e1/469ddece_ck00.tar.j24042.part00-of-04",
+          "offset": 0,
+          "seconds": 0.0,
+          "sha256": "1cccd7c0123630249b5ad9cbf4298865f675e96e9f75fa3bad6556374912bbbc"
+        },
+        {
+          "bytes": 527360,
+          "file": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z5/work/enospc5/node/live_spool/65d18a070ad4d74a86a33d79afca436ab9d99fff02186e7d3c87f2601f31e7f9.tar",
+          "generation": "1",
+          "md5": "raXm7TFFHAR7vvnzM8ifCg==",
+          "name": "q9/22c714e1/469ddece_ck00.tar.j24042.part01-of-04",
+          "offset": 527360,
+          "seconds": 0.0,
+          "sha256": "6bbab3931e46f30aa5a1617e4c27f2ec887048a3987f52fde0681195ae8ef4e6"
+        },
+        {
+          "bytes": 527360,
+          "file": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z5/work/enospc5/node/live_spool/65d18a070ad4d74a86a33d79afca436ab9d99fff02186e7d3c87f2601f31e7f9.tar",
+          "generation": "1",
+          "md5": "0xkpTgjt08cjj3bQofhI6A==",
+          "name": "q9/22c714e1/469ddece_ck00.tar.j24042.part02-of-04",
+          "offset": 1054720,
+          "seconds": 0.0,
+          "sha256": "5db7cbf99d580a30eda4a46e1803f1d0795c69f7e02c78dde1ef290f6f75c4ad"
+        },
+        {
+          "bytes": 527360,
+          "file": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z5/work/enospc5/node/live_spool/65d18a070ad4d74a86a33d79afca436ab9d99fff02186e7d3c87f2601f31e7f9.tar",
+          "generation": "1",
+          "md5": "KCFOtp+6LSgy9DyW9OHzWQ==",
+          "name": "q9/22c714e1/469ddece_ck00.tar.j24042.part03-of-04",
+          "offset": 1582080,
+          "seconds": 0.0,
+          "sha256": "0dd6d88d7b2213121e66157b0219796db1c062e551581321b261eb80f9687b3c"
+        }
+      ]
+    },
+    "log": "work/enospc5/logs/full_exports_and_stop.log"
+  },
+  {
+    "name": "exit_archive_full_sink",
+    "status": "PASS",
+    "result": {
+      "project_free": 0,
+      "bytes": 868,
+      "sha256": "90601d30b06d71281ab4b541211f5605307388541f1cedf7541d6b4bc591292d",
+      "parts": 4,
+      "RESULT_inside": true,
+      "final_order": [
+        "stop",
+        "exports",
+        "logs",
+        "o",
+        "checkpoints",
+        "stop",
+        "exports",
+        "logs",
+        "o",
+        "checkpoints"
+      ]
+    },
+    "log": "work/enospc5/logs/exit_archive_full_sink.log"
+  },
+  {
+    "name": "pretraining_full_refusal",
+    "status": "PASS",
+    "result": {
+      "refused": true,
+      "errno": 28,
+      "accepted": false
+    },
+    "log": "work/enospc5/logs/pretraining_full_refusal.log"
+  },
+  {
+    "name": "full_automatic_retries",
+    "status": "PASS",
+    "result": {
+      "loop_pid": 49,
+      "alive": true,
+      "retry_rows": [
+        {
+          "time": 1795213302,
+          "action": "small",
+          "error": "OSError",
+          "errno": 28
+        },
+        {
+          "time": 1795213304,
+          "action": "small",
+          "error": "OSError",
+          "errno": 28
+        },
+        {
+          "time": 1795213305,
+          "action": "small",
+          "error": "OSError",
+          "errno": 28
+        },
+        {
+          "time": 1795213306,
+          "action": "small",
+          "error": "OSError",
+          "errno": 28
+        },
+        {
+          "time": 1795213306,
+          "action": "o_copy",
+          "error": "OSError",
+          "errno": 28
+        },
+        {
+          "time": 1795213306,
+          "action": "small",
+          "error": "OSError",
+          "errno": 28
+        },
+        {
+          "time": 1795213306,
+          "action": "o_copy",
+          "error": "OSError",
+          "errno": 28
+        },
+        {
+          "time": 1795213306,
+          "action": "small",
+          "error": "OSError",
+          "errno": 28
+        },
+        {
+          "time": 1795213308,
+          "action": "small",
+          "error": "OSError",
+          "errno": 28
+        }
+      ],
+      "wrapper_retry": "1795213302 E28\n1795213302 E28\n1795213303 E28\n1795213303 E28\n1795213303 E28\n1795213303 E28\n1795213303 E28\n1795213303 E28\n1795213303 E28\n1795213303 E28\n1795213303 E28\n1795213304 E28\n1795213304 E28\n1795213304 E28\n1795213304 E28\n1795213304 E28\n1795213304 E28\n1795213304 E28\n1795213304 E28\n1795213304 E28\n1795213305 E28\n1795213305 E28\n1795213305 E28\n1795213305 E28\n1795213305 E28\n1795213305 E28\n1795213305 E28\n1795213305 E28\n1795213305 E28\n1795213305 E28\n1795213306 E28\n1795213306 E28\n1795213306 E28\n1795213306 E28\n1795213306 E28\n1795213306 E28\n1795213306 E28\n1795213306 E28\n1795213306 E28\n1795213307 E28\n1795213307 E28\n1795213307 E28\n1795213307 E28\n1795213307 E28\n1795213307 E28\n1795213307 E28\n1795213307 E28\n1795213307 E28\n1795213308 E28\n1795213308 E28\n1795213308 E28\n1795213308 E28\n1795213308 E28\n1795213308 E28\n1795213308 E28\n1795213308 E28\n1795213308 E28\n"
+    },
+    "log": "work/enospc5/logs/full_automatic_retries.log"
+  },
+  {
+    "name": "automatic_recovery",
+    "status": "PASS",
+    "result": {
+      "same_pid": 49,
+      "alive": true,
+      "automatic": true,
+      "archive_exact": true,
+      "wrapper_logs_exact": true
+    },
+    "log": "work/enospc5/logs/automatic_recovery.log"
+  }
+]

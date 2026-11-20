@@ -25,3 +25,4 @@ trinity-1-18 W=/scratch/jjyeung/orch_n30/tree_rebuild10_w (43 GB of 40 GB cap; n
 - W/w24x (killed 24m4x after 2 min, superseded by w24x2), W/w24w after 24m4x2 merges
 - W/w24y (killed 24m4y after 9 min, superseded by w24y2)
 - trinity-1-18 W/w24z3 (killed build 24m4z3 21:34Z, superseded by w24z4 per ORCH ANSWER 2132Z; 1.6 GB copy of w24z2)
+- trinity-1-18 W/w24z5 (killed build 24m4z5 22:36Z, superseded by w24z7; 2.0 GB copy of w24z4)

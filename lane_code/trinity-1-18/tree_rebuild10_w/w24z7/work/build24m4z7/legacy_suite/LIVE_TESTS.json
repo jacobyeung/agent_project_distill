@@ -1,0 +1,65 @@
+{
+  "passed": true,
+  "tests": 5,
+  "evidence": {
+    "cap": {
+      "copied_bytes": 250946,
+      "limit": 50000000,
+      "listing": [
+        {
+          "bytes": 100,
+          "name": "checkpoint_000001/complete.json",
+          "sha256": "1e6c4f0fc581f71e63a4dbb05475571a7f9909343f9047ec9121a75e1c8b701b"
+        },
+        {
+          "bytes": 102,
+          "name": "m100/artifact.json",
+          "sha256": "ff9e0b3f39db2dee121508876d5469ebbbdb3e0c0e67ee256ed3068c12a45a90"
+        }
+      ]
+    },
+    "export": {
+      "bytes": 10240,
+      "generation": "m100",
+      "marker_sha256": "ff9e0b3f39db2dee121508876d5469ebbbdb3e0c0e67ee256ed3068c12a45a90",
+      "object": "q9/test/m100.tar.j41",
+      "sha256": "f72cf22597f2018ad98b8dde33d1ef40944f48e4eceb0eb62823736523b6be8d"
+    },
+    "checkpoint_ample": {
+      "marker_sha256": "ed8e521f2f224c10ec9d51b91dc09c629bfe59e6bff5e5eea2ebf28a90acc924",
+      "status": "gcs"
+    },
+    "checkpoint_full": {
+      "bytes": 10240,
+      "generation": "ckstop",
+      "marker_sha256": "ed8e521f2f224c10ec9d51b91dc09c629bfe59e6bff5e5eea2ebf28a90acc924",
+      "object": "q9/test/ckstop.tar.j41",
+      "sha256": "f44e548f2cee5f2bf7f58fe5faf8ecd064b0a5ba640106e2c0bdea6982cfd67f"
+    },
+    "term": {
+      "superseded_by": "signals_current.py: TERM and USR1",
+      "results": [
+        {
+          "name": "worker_trap_term",
+          "ok": true,
+          "result": {
+            "returncode": 0,
+            "checkpoint": true,
+            "steps": 4
+          },
+          "log": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z7/work/enospc7/logs4/worker_trap_term.log"
+        },
+        {
+          "name": "worker_trap_usr1",
+          "ok": true,
+          "result": {
+            "returncode": 0,
+            "checkpoint": true,
+            "steps": 4
+          },
+          "log": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z7/work/enospc7/logs4/worker_trap_usr1.log"
+        }
+      ]
+    }
+  }
+}

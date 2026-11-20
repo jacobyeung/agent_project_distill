@@ -4,6 +4,7 @@ import hashlib
 import io
 import json
 import os
+import resource
 from pathlib import Path, PurePosixPath
 import signal
 import subprocess
@@ -15,21 +16,20 @@ import types
 
 
 def supervise(root, blob):
-    # Recovery code is embedded in the submitted script, independent of 0.py.
-    loaded={}
-    for name,raw in RECOVERY.items():
-        module=types.ModuleType(name);module.__file__=str(root/'15.py')
-        sys.modules[name]=module
-        exec(compile(bytes.fromhex(raw),module.__file__,'exec'),module.__dict__)
-        loaded[name]=module
-    codec=loaded['j'];codec.install()
-    diag=loaded['e'];results=loaded['orchard_results'];transport=loaded['return_io']
-    with tarfile.open(fileobj=io.BytesIO(blob)) as archive:
-        public=json.load(archive.extractfile('0.json'))
+    public=PUBLIC
     shared=Path('/project/community/jjyeung')/public['token']
     path=shared/'a/14.json'
-    rc=1
+    rc=1;loaded={};diag=None
     try:
+        # Module loading is protected by the shell log/traps and this handler.
+        for name,raw in RECOVERY.items():
+            module=types.ModuleType(name);module.__file__=str(root/'15.py')
+            sys.modules[name]=module
+            exec(compile(bytes.fromhex(raw),module.__file__,'exec'),module.__dict__)
+            loaded[name]=module
+        codec=loaded['j'];codec.install()
+        diag=loaded['e'];results=loaded['orchard_results'];transport=loaded['return_io']
+        loaded['q'].install()
         root.mkdir(mode=0o700)
         with tarfile.open(fileobj=io.BytesIO(blob)) as archive:
             for entry in archive:
@@ -38,10 +38,29 @@ def supervise(root, blob):
                 target=root/entry.name;target.parent.mkdir(parents=True,exist_ok=True)
                 with archive.extractfile(entry) as source,target.open('xb') as output:output.write(source.read())
         with diag.capture(path) as log:
-            rc=subprocess.run([sys.executable,'-I','-s','-B',str(root/'0.py'),str(root)],
-                              cwd=root,stdout=log,stderr=subprocess.STDOUT).returncode
+            def disk_worker():
+                # Bulk files live on the admitted job disk. This child has only
+                # pipe stdout/stderr; the supervisor and its sinks stay limited.
+                hard=resource.getrlimit(resource.RLIMIT_FSIZE)[1]
+                resource.setrlimit(resource.RLIMIT_FSIZE,(hard,hard))
+            child=subprocess.Popen([sys.executable,'-I','-s','-B',str(root/'0.py'),str(root)],
+                                   cwd=root,stdout=log,stderr=subprocess.STDOUT,preexec_fn=disk_worker)
+            def forward(number,frame):
+                if child.poll() is None:child.send_signal(number)
+            old={number:signal.signal(number,forward)
+                 for number in (signal.SIGUSR1,signal.SIGTERM,signal.SIGINT)}
+            try:rc=child.wait()
+            finally:
+                for number,handler in old.items():signal.signal(number,handler)
     except Exception as error:
-        diag.exception(path,error)
+        if diag is not None:
+            try:diag.exception(path,error)
+            except OSError:
+                root.mkdir(mode=0o700,exist_ok=True)
+                path=root/'14.json';diag.exception(path,error)
+        else:
+            traceback.print_exc()
+            return rc
     if rc==0:return 0
     try:
         end=min(time.time()+60,float(os.environ.get('SLURM_JOB_END_TIME',time.time()+62))-2)
@@ -51,14 +70,17 @@ def supervise(root, blob):
         job=os.environ['SLURM_JOB_ID'];token=public['token']+format(int(job),'08x')
         pool=Path(POOL);dest=pool/token
         if (dest/'RETURN_RECEIPT.json').exists():
-            auth=loaded['auth'];ex=json.loads((dest/'EXIT.json').read_text())
-            receipt=json.loads((dest/'RETURN_RECEIPT.json').read_text())
-            auth.validate_exit(ex,dest/'result.tar.gz',public['plan_sha256'],token)
-            auth.validate_receipt(receipt,ex,dest/'EXIT.json',dest/'result.tar.gz',public['plan_sha256'],token)
-            if str(ex['job'])!=job:raise ValueError('E64')
-            return rc
+            try:
+                auth=loaded['auth'];ex=json.loads((dest/'EXIT.json').read_text())
+                receipt=json.loads((dest/'RETURN_RECEIPT.json').read_text())
+                auth.validate_exit(ex,dest/'result.tar.gz',public['plan_sha256'],token)
+                auth.validate_receipt(receipt,ex,dest/'EXIT.json',dest/'result.tar.gz',public['plan_sha256'],token)
+                if str(ex['job'])!=job:raise ValueError('E64')
+                return rc
+            except (ValueError,KeyError,OSError):pass
         if not dest.exists():transport.operate('test',pool,token)
-        out=shared/'a/15';out.mkdir(mode=0o700)
+        root.mkdir(mode=0o700,exist_ok=True)
+        out=root/'15';out.mkdir(mode=0o700)
         (out/'metadata').mkdir()
         def write(name,value):
             (out/name).write_bytes(codec.pack(codec.wire_dumps(value)))

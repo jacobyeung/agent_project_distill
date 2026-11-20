@@ -11,25 +11,33 @@
   "batch_decode_ticks": 1324,
   "batch_forward_multiplier": 2.0,
   "batch_size": 8,
-  "batch_timing_return": "3.jsonl: packed per-batch preparation, prefill, slowest synchronized token-step, total seconds, completed pairs, admission estimate and remaining time",
+  "batch_timing_return": "3.jsonl: packed per-batch preparation, prefill, slowest synchronized token-step, total seconds, completed pairs, admission estimate, remaining time, host peak RSS and GPU max allocated bytes",
   "batches": 73,
   "batching_assumption": "An eight-row token forward costs twice a serial token forward. This GPU estimate is unmeasured; CPU timing is not used as a GPU speed estimate.",
-  "caveat": "Full-checkpoint GPU numerical parity, batch memory use and speed are unmeasured. Slow openings/staging can still yield a partial return with no gate verdict.",
+  "caveat": "Full-checkpoint GPU numerical parity, batch memory use, speed and ext4 sync/supervisor overhead are unmeasured. Slow openings/staging can still yield a partial return with no gate verdict.",
   "code_pins": {
     "src/batch.py": {
       "bytes": 4131,
       "sha256": "715d494e6d840796eddcbf8c75bee96ea98d2fe5ba2c2e9ef5c63edd5c00155c"
     },
     "src/runtime.py": {
-      "bytes": 10416,
-      "sha256": "1537162bc01a2967affa9cae4314d6d040c62224af433cde0343a3fb630bd095"
+      "bytes": 12700,
+      "sha256": "d229cfec6647002a69d8b66c0bbd1787147c9c1f901aa5a4bc11f24401f51148"
     }
   },
   "controller_subprocess_cutoff_s": 1730,
   "cpu_parity_evidence": "out/FIX_CHECKS.json:evidence.native_cpu_parity",
+  "cpu_preflight": {
+    "charged_memory_stop_bytes": 118111600640,
+    "diagnostic": "DEBUG.md",
+    "production_measured": false,
+    "staging_filesystem": "ext4",
+    "tensors": "meta shapes only; processor and two CPU prompt batches",
+    "worker_address_space_limit_bytes": 34359738368
+  },
   "delivery": {
-    "bytes": 4235885,
-    "sha256": "9d023abcd0335d57ce99f02e54961b20838c3114c9cd3b537056d4532ca2ef36"
+    "bytes": 4250122,
+    "sha256": "3ca1fd77d3cd021210bae2ef31d0c323bd3d8bd0d1cf3e2b5df12410c91232af"
   },
   "effective_worker_cutoff_from_controller_start_s": 1720,
   "evidence": {
@@ -38,6 +46,15 @@
     "in/D400_RESULT.md": "5289cee293bd0b7ce1324a442ba8b046ef868d52e057608ff09ec7812d4e891c"
   },
   "formula": "base overhead + model load + 580*(per-item other + serial prefill) + sum(batch maximum opening tokens)*2*serial token seconds",
+  "gpu_memory": {
+    "batch_and_overhead_bytes": 20000000000,
+    "charged_stop_bytes": 193273528320,
+    "expected_peak_bytes": 187000000000,
+    "full_load_rss_bytes": 96000000000,
+    "measured": false,
+    "page_cache_bytes": 71000000000,
+    "request": "200G"
+  },
   "headroom_fraction": 0.20514381154798134,
   "headroom_requirement_passed": true,
   "headroom_s": 352.8473558625278,
@@ -55,7 +72,27 @@
   "predicted_total_s": 1367.1526441374722,
   "predicted_worker_s": 972.1235358624677,
   "prefill_mean_s": 0.6429070220824636,
-  "token": "d93a17be024f5",
+  "project_budget": {
+    "enforced_max_bytes": 44000000,
+    "fetches_bytes": 16000000,
+    "limit_bytes": 50000000,
+    "metadata_and_ledger_bytes": 2000000,
+    "placement_bytes": 20000000,
+    "project_logs_bytes": 0,
+    "returns_bytes": 6000000
+  },
+  "submission_parity": {
+    "chdir": "/tmp",
+    "differences": [
+      "GPU adds --gres=gpu:1",
+      "A_M=c versus A_M=g selects the preflight/read"
+    ],
+    "entry": "4.sh executes /usr/bin/python3 -I -s -B 3.py work",
+    "export_policy": "A_M only; c/g selects mode",
+    "output": "/tmp/<opaque job name>-%j.8.log and .9.log",
+    "time": "00:30:00 in both modes"
+  },
+  "token": "e71c940a6b283",
   "tool_free_decode_s_per_token": 0.04883935931269989,
   "tool_free_tokens": 35622,
   "worker_headroom_fraction": 0.3519176427583548,

@@ -1,6 +1,6 @@
 {
   "passed": true,
-  "delivery_sha256": "87a55270aa3ed70b5e00021284a4284f8eb6ca1116c1cd35ee6fe810e6365041",
+  "delivery_sha256": "bb5315a268af467e2015a590f9fbe383e604e22c9accb1f40cc5e0b81fb0f2a4",
   "allocation_seconds": 3000,
   "worker_cap_seconds": 1800,
   "forecast": {
@@ -36,5 +36,102 @@
   },
   "forecast_fits": true,
   "worker_cap_scenario_minutes": 44,
-  "worker_cap_scenario_headroom_minutes": 6
+  "worker_cap_scenario_headroom_minutes": 6,
+  "simulated_checks": {
+    "allocation": {
+      "passed": true,
+      "seconds": 3000,
+      "worker_cap": 1800,
+      "windows": {
+        "capture_publication_stop": 2910,
+        "failure_receipt_stop": 2998,
+        "normal_publication_stop": 2990,
+        "staging_stop": 2760,
+        "worker_latest_stop": 2730
+      }
+    },
+    "worker_deadline": {
+      "passed": true,
+      "cases": [
+        {
+          "start": 0,
+          "waits": [
+            1800.0,
+            20,
+            5
+          ],
+          "reaped_at": 1825.0,
+          "allocation_end": 3000
+        },
+        {
+          "start": 600,
+          "waits": [
+            1800.0,
+            20,
+            5
+          ],
+          "reaped_at": 2425.0,
+          "allocation_end": 3000
+        },
+        {
+          "start": 1200,
+          "waits": [
+            1530.0,
+            20,
+            5
+          ],
+          "reaped_at": 2755.0,
+          "allocation_end": 3000
+        }
+      ]
+    },
+    "slow_upload": {
+      "passed": true,
+      "deadline": 3000,
+      "finished_at": 2998.0,
+      "calls": [
+        {
+          "argv": [
+            "gcloud",
+            "storage",
+            "cp",
+            "/scratch/jjyeung/orch_n30/lever1_c/r1/tests/fix_le9twinw/sj/b0/c/0.gz",
+            "gs://a0/a00000000000000000000c/0.gz"
+          ],
+          "timeout": 150.0,
+          "start": 2760.0
+        },
+        {
+          "action": "publish",
+          "timeout": 80.0,
+          "start": 2910.0
+        },
+        {
+          "action": "receipt",
+          "timeout": 8.0,
+          "start": 2990.0
+        }
+      ]
+    },
+    "transfer_deadlines": {
+      "passed": true,
+      "calls": [
+        {
+          "action": "cp",
+          "timeout": 150.0,
+          "start": 2760.0
+        },
+        {
+          "action": "objects",
+          "timeout": 50.0,
+          "start": 2860.0
+        },
+        {
+          "action": "cat",
+          "timeout": 10.0,
+          "start": 2900.0
+        }
+      ]
+    }
+  }
 }

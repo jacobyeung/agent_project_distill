@@ -193,16 +193,24 @@ class ProbeTests(unittest.TestCase):
         from unittest.mock import patch
         from types import SimpleNamespace
         p=ROOT/'out'/('submit_'+uuid.uuid4().hex);(p/'a').mkdir(parents=True)
-        (p/'4.sh').write_bytes(FILES['4.sh']);(p/'2.json').write_bytes(FILES['2.json'])
+        (p/'9.py').write_bytes(FILES['9.py']);(p/'4.sh').write_bytes(FILES['4.sh']);(p/'2.json').write_bytes(FILES['2.json'])
         expected=dict(passed=True,package='p',payload='q',frozen='f')
         (p/'a/4.json').write_text(json.dumps(expected))
         calls=[]
         def fake(args,**kw):calls.append((args,kw));return SimpleNamespace(returncode=0,stdout=b'12345\n')
         with patch.object(control,'check',return_value=expected),patch.object(control.subprocess,'run',side_effect=fake):
+            control.submit(p,'c')
             control.submit(p,'g')
             with self.assertRaisesRegex(ValueError,'already attempted'):control.submit(p,'g')
-        args,kw=calls[0]
-        self.assertEqual(len(calls),1)
+        self.assertEqual(len(calls),2)
+        cpu,cpu_kw=calls[0];args,kw=calls[1]
+        normalize=lambda values:[v for v in values if not v.startswith(('--export=', '--gres='))]
+        self.assertEqual(normalize(cpu),normalize(args))
+        self.assertEqual(cpu_kw,kw)
+        self.assertIn('--export=A_M=c',cpu);self.assertIn('--export=A_M=g',args)
+        self.assertIn('--chdir=/tmp',cpu)
+        self.assertTrue(any(v.startswith('--output=/tmp/') for v in cpu))
+        self.assertTrue(any(v.startswith('--error=/tmp/') for v in cpu))
         for flag in ('--partition=general','--gres=gpu:1','--cpus-per-task=16','--mem=200G',
                      '--time=00:30:00','--exclude=orchard-community-4','--no-requeue'):
             self.assertIn(flag,args)

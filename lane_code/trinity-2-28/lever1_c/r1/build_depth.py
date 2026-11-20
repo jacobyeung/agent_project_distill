@@ -63,6 +63,7 @@ def build(out=HERE/'out',scripts=HERE/'orchard'):
     entries=B.read_tar(nf['0.tgz']);pf={m.name:d for m,d in entries};before=dict(pf)
     pub=json.loads(nf['0.json']);plan=json.loads(pf['9.json']);oldtoken=plan['token']
     assert oldtoken=='a52c1dcfae7bb'
+    token='a6f198d3c7b20'
     ref,forecast=reference()
     pf['g/t.py']=(HERE/'runtime/t.py').read_bytes();pf['g/w.py']=(HERE/'runtime/w.py').read_bytes()
     pf['g/d.py']=(HERE/'depth_format.py').read_bytes();pf['g/8.json']=B.jd(ref)
@@ -137,6 +138,8 @@ def build(out=HERE/'out',scripts=HERE/'orchard'):
     pf['orchard_h10/runner.py']=runner
     # The operator also runs in the bootstrap's fresh process.
     nf['a/6.py']=nf['a/6.py'].replace(b'    from orchard_h10.common import install_process_guard, write', b'    import l\n    l.install(p)\n    from orchard_h10.common import install_process_guard, write')
+    import revision8
+    guard=revision8.patch(nf,pf,B,HERE,token)
     import external_inputs
     input_proof=external_inputs.reshape(nf,pf,B)
     codec=(HERE/'runtime/j.py').read_bytes()
@@ -175,21 +178,28 @@ def build(out=HERE/'out',scripts=HERE/'orchard'):
     updated=[]
     for member,data in parts:
         if member.name=='0.py':
+            data=data.replace(b"if not m.name.startswith('orchard_h10/'):continue",b"if not m.name.startswith('orchard_h10/') and m.name!='j.py':continue")
+            data=data.replace(b'from pathlib import Path',b'import os,runpy\nfrom pathlib import Path')
+            data=B.once(data,b" proof=json.loads((shared/'a/c/CPU.json').read_text())",b" if not os.environ.get('SLURM_JOB_GPUS') and not os.environ.get('CUDA_VISIBLE_DEVICES'):\n  sys.argv=[str(shared/'a/5.py'),'--package',str(shared),'--sequence',str(shared/'a/6.py'),'--results',str(shared/'a/c')]\n  runpy.run_path(sys.argv[0],run_name='__main__')\n  return\n proof=json.loads((shared/'a/c/CPU.json').read_text())")
             helper=(HERE/'runtime/a.py').read_bytes()
             data=B.once(data,b' job.main(root)',
                 b" exec(bytes.fromhex('"+helper.hex().encode()+b"'),scope:={})\n scope['allocation'](shared,public,sha)\n job.main(root)")
         updated.append((member,data))
     bundle=B.write_tar(updated)
     batch=B.once(nf['BATCH.sh'],line,('b=bytes.fromhex(%r)'%bundle.hex()).encode())
-    recovery={'j':codec,'e':(HERE/'runtime/e.py').read_bytes(),
+    recovery={'q':(HERE/'runtime/q.py').read_bytes().replace(b'TOKEN_VALUE',token.encode()),'j':codec,'e':(HERE/'runtime/e.py').read_bytes(),
               'chain_save':pf['orchard_h10/vendor/chain_save.py'],
               'orchard_results':pf['orchard_h10/vendor/orchard_results.py'],
               'return_io':pf['orchard_h10/vendor/return_io.py'],'auth':nf['a/7.py']}
-    supervisor=('RECOVERY='+repr({k:v.hex() for k,v in recovery.items()})+'\nPOOL='+repr(plan['pool'])+'\n').encode()
+    supervisor=('RECOVERY='+repr({k:v.hex() for k,v in recovery.items()})+'\nPOOL='+repr(plan['pool'])+'\nPUBLIC='+repr(pub)+'\n').encode()
     supervisor+=(HERE/'runtime/b.py').read_bytes()+b'\nraise SystemExit(supervise(r,b))\n'
     start=batch.index(b'r.mkdir(mode=0o700)')
     stop=batch.index(b'\nA',start)
     nf['BATCH.sh']=batch[:start]+b"exec(bytes.fromhex('"+supervisor.hex().encode()+b"'))"+batch[stop:]
+    code=nf['BATCH.sh'].split(b"<<'A'\n",1)[1]
+    # The shell and supervisor retain the diagnostic file-size limit.
+    nf['a/27.py']=(HERE/'runtime/c.py').read_bytes()
+    nf['BATCH.sh']=revision8.batch_header(token).encode()+code
     pk=json.loads(nf['PACKAGE.json']);pk['token']=token
     pk['files']={n:B.sha(v) for n,v in nf.items() if n!='PACKAGE.json'};nf['PACKAGE.json']=B.jd(pk)
     delivery=B.write_tar([B.added(n,nf[n]) for n in sorted(nf)])
@@ -214,6 +224,7 @@ def build(out=HERE/'out',scripts=HERE/'orchard'):
             if p.name=='o_fetch.sh':
                 text=text.replace("with (dest/name).open('xb') as f:f.write(raw)","with (dest/({'CAPTURE.json':'4.json','PARITY.json':'5.json'}[name])).open('xb') as f:f.write(raw)")
                 text=text.replace("print(name);print(raw.decode())","print(hashlib.sha256(raw).hexdigest())")
+                text=text.replace("raw=t.extractfile('metadata/'+name).read()", "raw=t.extractfile('metadata/'+name).read(200001)\n        if len(raw)>200000:raise ValueError('E75')")
             p.write_text(text)
         # Inline Python in the transport scripts reads the same opaque JSON.
         text=p.read_text()
@@ -221,8 +232,21 @@ def build(out=HERE/'out',scripts=HERE/'orchard'):
         text=re.sub(r"\nexec\(bytes.fromhex\('[0-9a-f]+'\).decode\(\),_a0:=\{\}\);_a0\['install'\]\(\)\n",'',text)
         text=text.replace("<<'PY'\n", "<<'PY'\n"+bootstrap.decode())
         p.write_text(text)
+    text=(scripts/'o_place.sh').read_text().replace('total>50_000_000','total>10_000_000')
+    (scripts/'o_place.sh').write_text(text)
+    text=(scripts/'o_cpu.sh').read_text()
+    lines=text.splitlines()
+    lines=[('reply=$(/usr/bin/python3 -I -s -B 3.py submit --gpus 1 --time 00:50:00 --cpu-only)' if line.startswith('reply=$(env -i') else line) for line in lines]
+    (scripts/'o_cpu.sh').write_text('\n'.join(lines)+'\n')
     (scripts/'o_get.sh').write_text('#!/bin/bash\nset -euo pipefail\nP=/project/community/jjyeung/'+token+'\ntar -czf - -C "$P/a/f" 0.tgz 4.json 5.json EXIT.json RETURN_RECEIPT.json\n')
+    for name in ('o_cpu.sh','o_check_sub.sh'):
+        path=scripts/name
+        path.write_text(path.read_text().replace('cd "$P"','ulimit -S -f 512\ncd "$P"'))
     (scripts/'o_sub_hand.sh').write_bytes((scripts/'o_check_sub.sh').read_bytes())
+    for path in scripts.glob('*.sh'):
+        text=path.read_text().replace(' < /dev/null &'," <<'A_EOF' &\nA_EOF")
+        text=re.sub(r'command -v (\w+) >/dev/null',r'test -n "$(command -v \1)"',text)
+        path.write_text(text)
     return result
 
 

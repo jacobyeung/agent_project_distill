@@ -1,5 +1,5 @@
-# n_ops1 batched Orchard check (read-only). Placeholders: 173912 (job id or 0), - (cached metrics path or -)
-export TZ=UTC; J=173912; MP='-'; X=/project/community/jjyeung/okh7/x_22c714e1
+# n_ops1 batched Orchard check (read-only). Placeholders: 0 (job id or 0), - (cached metrics path or -)
+export TZ=UTC; J=0; MP='-'; X=/project/community/jjyeung/okh7/x_22c714e1
 echo "@@NOW $(date -u +%FT%TZ)"
 echo "@@SQ"; squeue -u $USER -h -o "%i|%j|%P|%T|%M|%l|%L|%R|%N|%S"
 echo "@@NEWEST $(ls $X/j/ 2>/dev/null | grep -E '^[0-9]+\.out$' | sort -n | tail -1)"
@@ -20,7 +20,7 @@ if [[ $J != 0 ]]; then
  if squeue -j $J -h -o %T 2>/dev/null | grep -q RUNNING; then
   echo "@@NODE"
   timeout 150 srun --overlap --jobid $J -n1 -N1 timeout 120 nice -n 19 bash -s <<'INNER' 2>&1 | cut -c1-600
-J=173912; MP='-'
+J=0; MP='-'
 Q=/tmp/q_22c714e1_$J; [[ -d $Q ]] || Q=${SLURM_TMPDIR:-/tmp}/q_22c714e1_$J
 echo "@@Q $Q $(test -d $Q && echo present || echo absent)"
 echo "@@TMPDF $(df -BG --output=avail /tmp | tail -1 | tr -d ' G')"
@@ -58,6 +58,7 @@ for l in lines[-6:]:
 PY
 fi
 echo "@@LSTATE"; ls -la --time-style=+%T $Q/live_spool/state 2>/dev/null | tail -n +4 | cut -c1-200 | tail -20; for m in $Q/live_spool/state/gcs_*.done $Q/live_spool/state/gcs_*.json; do test -f $m && { echo "== $m"; head -c 400 $m | sed -E 's#https://[^ "]*#<URL>#g'; echo; }; done; tail -n 3 $Q/live_spool/retry.log $Q/j2.retry.log 2>/dev/null | cut -c1-200
+echo "@@RCPT $(cat $Q/live_spool/private/*.receipts.jsonl 2>/dev/null | wc -l)"
 echo "@@TRAIN"; ls -la --time-style=+%T $Q/r $Q/train 2>/dev/null | tail -n +4 | cut -c1-160 | tail -20
 echo "@@CK"; find $Q/r $Q/train $Q/x $Q/rp -maxdepth 6 -type d \( -name 'checkpoint_*' -o -name 'm[0-9][0-9]*' -o -name 'export*' \) -printf '%TT %P\n' 2>/dev/null | sort | tail -8 | cut -c1-200
 find $Q/r $Q/train $Q/x $Q/rp -maxdepth 7 \( -name 'complete.json' -o -name 'artifact.json' \) -printf '%TT %P\n' 2>/dev/null | sort | tail -4 | cut -c1-200
