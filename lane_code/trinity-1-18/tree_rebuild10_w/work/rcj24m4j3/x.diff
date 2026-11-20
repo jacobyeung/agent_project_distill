@@ -1,0 +1,32 @@
+--- x24m4j/rcj/x.py	2026-11-20 01:46:13.000000000 -0500
++++ rcj2/x.py	2026-11-20 02:04:10.480201270 -0500
+@@ -305,11 +305,12 @@
+ def run(kit, root, job):
+     z = attach(kit); root = Path(root); e = z.load(root/'env.json')
+     sys.path[:0] = [str(root/'c'), *e['paths']]
+-    import rb
+-    from student_pilot.r1_persisted import scope
+-    plan = z.load(root/'plan.json'); start = time.monotonic()
++    start = time.monotonic()
+     result = dict(status='REFUSE'); failure = None
+     try:
++        import rb
++        from student_pilot.r1_persisted import scope
++        plan = z.load(root/'plan.json')
+         with scope(plan['paths']): rb.reconstruct(plan['config'], root, directory='r')
+         result['status'] = 'PASS'
+     except BaseException as error:
+@@ -318,7 +319,6 @@
+     finally:
+         result['seconds'] = time.monotonic()-start
+         z.write(root/'build.json', result)
+-        publish(kit, root, job, 1 if failure else 0)
+     if failure is not None:
+         raise failure
+ 
+@@ -375,5 +375,4 @@
+         import traceback
+         z = attach(kit)
+         print(z.screen(traceback.format_exc(), z.load(Path(kit)/'k/g.json'), z.load(Path(kit)/'b/wh.json')), file=sys.stderr)
+-        publish(kit, root, job, 1)
+         raise SystemExit(1)

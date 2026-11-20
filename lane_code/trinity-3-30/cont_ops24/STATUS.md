@@ -40,3 +40,8 @@
 - Mirror: 2-28 gbuild (deliveries, code, reports, out2/GT.json, cap/) -> trinity-1-18:/scratch/jjyeung/n30_mirror/cont_ops24/gbuild_cap_20261120T0625Z.tar (132 MB, sha 66231724… matches both ends).
 - 64-frame arm: review c24_rev3 NO-GO (memory basis gate) -> fixed by me (basis kept fixed_g3t_shapes; 37 gpkg tests OK) -> token ac85ad201020f (delivery 1025c1c3…), placed, CPU 173644 passed, GPU job 173646 submitted 06:16Z, PENDING (Resources). Monitors c24_monD, c24_monPD.
 - T1 a52c1dcfae7bb placed; CPU check after the dense job leaves general.
+## 06:43Z
+- RESULT 0619Z (T2 ceiling), RESULT 0642Z (T2 stage join: gain on no-GT items; S2 main on GT items; camera alignment passes 6/38 -> S4/S5 censored). Record D/GROUNDING_CEILING_T2_20261120.md + INDEX line.
+- ORDER 0604Z done: K1 inputs 684 files 2.62 GB 1-18 -> 2-28 anchor_kill1/k1_inputs, 10 sha match; RESULT events/anchor/20261120T0621Z_*.
+- Codex round 4 DONE (STAGES_T2); round 5 RUNNING (tmux c24_r5 on 2-28; BRIEF_R5.md: camera convention / frame binding vs GT NPZ).
+- 64-frame arm 173646 RUNNING orchard-community-1, 33/160 at 06:40Z, ETA ~07:40Z. After it: fetch (g5/orchard_dense/o_fetch.sh), gpull (work/gpull.sh ... dense.gz), score_ceiling --dense-capture (REPORT3 command) on 2-28; then T1: CPU check (g3/orchard_t1/o_cpu.sh, general) + hand submit (o_sub_hand.sh with __T__=a52c1dcfae7bb).

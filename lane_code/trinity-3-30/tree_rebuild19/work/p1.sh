@@ -1,0 +1,1 @@
+W=/scratch/jjyeung/orch_n30/tree_rebuild10_w; date -u +%TZ; df -h /scratch | tail -1 | awk '{print $4}'; free -g | sed -n 2p; tmux ls 2>&1 | grep tr1; ls -la $W/w24j/out 2>/dev/null | tail -30; head -5 $W/w24j/out/BUILD24M4J_REPORT.md 2>/dev/null | cut -c1-600; ls -t /home/jjyeung/agent_project_distill/agent/scratch/codex_runs/ | grep tree_rebuild | head -3

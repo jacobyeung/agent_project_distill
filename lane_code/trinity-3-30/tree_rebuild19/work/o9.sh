@@ -1,0 +1,1 @@
+X=/project/community/jjyeung/okh7/x_22c714e1; cd $X/qd; grep -n "c7d31ddd\|tmpfs\|ro-bind\|'--bind'\|--dir\|bwrap" b/*.py b/*.sh 2>/dev/null | cut -c1-260 | head -40; ls -ld /project/community/jjyeung/c7d31ddd 2>&1; cat $X/j/173655.err | cut -c1-300 | tail -15

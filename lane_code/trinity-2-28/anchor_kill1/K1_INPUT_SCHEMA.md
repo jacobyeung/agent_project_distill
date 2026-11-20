@@ -1,41 +1,45 @@
-# K1 input contract
+# K1 input and scoring contract
 
-The production K1 comparison has not run. Its source pools are on trinity-1-18.
-`anchor_analysis.py kill` is a tested scoring kernel, not a completed raw-pool adapter.
+`k1_adapter.py` reconstructs the complete linked raw-name candidate pools from
+`k1_inputs` and pinned node-local serving geometry. `k1_summarize.py` reads its
+validated output and computes the registered contrasts. These files produce
+analysis records only; none is a training row.
 
-The kernel expects one JSON record per operand occurrence: exactly two per row,
-2,024 occurrences over the exact 1,012 decision row IDs in
-`sb_cachk/out/v2/POPULATION.json`. Before running, the adapter must assert those
-exact IDs, train flags, room exclusions and source hashes. A count alone is insufficient.
+The adapter requires exactly the 1,012 decision row IDs and 204 captures in
+`sb_cachk/out/v2/POPULATION.json`, content ID
+`f0ecd8ee39f1e668027d2fbdf16d4b6bff56d9568dfedd4a90698929f4171bf0`.
+It checks manifest train flags and the room/capture exclusions in the pinned
+GUARD receipt. That receipt is the exclusion authority for this frozen diagnostic
+population, not a new training-admission audit of the current union.
 
-Each record contains `row_id`, `room`, `capture`, `operand`, `baseline_id`,
-`gt_visibility` (anchor string to GT mask area fraction), and `candidates`.
-Each candidate contains `id`, `members` (anchor string to positive mask pixel count),
-and `on_target` (boolean from the pinned K1 raster identity test).
-Preserve stored pool order; it breaks equal-area ties. Null baseline IDs represent
-not-seen calls. A missing eligible GT anchor produces no Locate line and not seen.
+Each normalized record contains `row_id`, `room`, `capture`, `dataset`, `operand`,
+`instance`, `baseline_id`, `gt_visibility` (one-based anchor to native GT area
+fraction), and `candidates`. Each candidate contains `id`, `members` (one-based
+anchor to positive pixel count at the served 240 x 320 resolution), `on_target`,
+`best_frame`, `best_iou`, and `cited_ious`. Stored serving-table order breaks area
+ties. GT masks on invalid anchors have zero visibility.
 
-The adapter must reconstruct the linked candidates from the same sb_kbox4 served
-configuration. It must reproduce the deployed candidate IDs and member frames
-in the local SEEDS.json audit before computing any paired score. That audit's
-on-target definition is IoU >=0.5 at the chosen track's largest frame; retain
-the same identity definition for A3x and expose a cited-frame IoU sensitivity.
-Do not substitute the carry seed masks for complete candidate pools.
+Raw-name retention matches sb_kbox4: source_prompt equals the operand, joint
+score >=0.05, at most 30 masks per frame, conditional lift floor 0.3. The pinned
+producer links the masks using serving geometry. Candidate IDs and member frames
+must match the stored tables. The pinned selector applied to the stored vectors
+must reproduce every S_A0 seed ID, largest frame, IoU and identity decision.
+Every baseline member-frame list and printed distance must match PER_ITEM.jsonl.
+No candidate score is published unless all 1,012 rows pass.
 
-The kernel reports on-target and not-seen rates, paired room-bootstrap change,
-f, h, and nearest-visible-anchor sensitivity. It does not reproduce the served
-distance replay. The specification's distance-type points and on-target points
-must remain distinct. Both the exact-input adapter and independent review remain
-owed if the missing inputs arrive.
+On-target means IoU >=0.5 with the exact GT instance on the selected track's
+largest served mask frame, matching SEEDS.json. Cited-frame IoU is a separate
+sensitivity. A3x picks the largest member mask on the GT best-visible anchor
+(area >=1%); no eligible anchor or no member produces not seen. The neighbour
+is the nearest different eligible anchor, with earlier anchors breaking ties.
+The immediate-adjacent subset and missing alternatives are explicit.
 
-The exact source file paths and available SHA256 pins are in
-`K1_MISSING_INPUTS.json`; sizes are explicitly unknown because the files are
-remote and SSH is forbidden. `K1_TRANSFER_FILES.txt` lists paths relative to
-`/scratch/jjyeung` for a single InfiniBand tar pipe. The list contains 209 training
-capture pools; only the registered 204 decision captures may contribute scores.
+Distance replay uses the unchanged best1 box and box_grid_5cm reader; the cited
+frame selects identity while the selected track retains its serving geometry.
+Corrected labels come from train_labels.json. Refusals score zero MRA. On-target
+points are never substituted for distance-type points.
 
-The transfer is a data request, not an instruction to launch an agent or repeat
-a killed job. The transfer owner must stat the named files, record their sizes,
-confirm the transfer fits within W's 20 GB limit and leave 100–200 GB free on
-the destination scratch disk before moving bytes. Additional geometry dependencies
-may be necessary for distance replay; request them only after inspecting the code.
+All intervals use 10,000 paired room-cluster draws, seed 20261120, percentile
+95% limits. The primary call denominator is 2,024 operand occurrences; unique
+capture/operand identities and both-right row rates are separate diagnostics.
+No Locate traces or raster scores are regenerated by this K1 resume.

@@ -1,0 +1,41 @@
+--- x24m4j/rcj/x.py	2026-11-20 01:46:13.000000000 -0500
++++ rcj2/x.py	2026-11-20 02:21:39.187048766 -0500
+@@ -296,7 +296,7 @@
+     binary = z.checked(pin['file'], pin['sha256'])
+     if str(binary) != '/project/community/jjyeung/cp4tk_rt/kit/bwrap':
+         raise ValueError('R1_BINARY_LOCATION_DIFFERS')
+-    cmd = [str(binary), '--ro-bind', '/', '/', '--bind', str(root), str(root),
++    cmd = [str(binary), '--ro-bind', '/', '/', '--dev-bind', '/dev', '/dev', '--proc', '/proc', '--bind', str(root), str(root),
+            '--ro-bind', e['venv'], logical, '--chdir', str(root),
+            executable, '-I', '-s', '-B', str(Path(__file__).resolve()), 'run', str(kit), str(root), job]
+     return subprocess.run(cmd, check=False, env={**os.environ, "PATH":"/project/community/jjyeung/cp4tk_rt/kit:/usr/local/bin:/usr/bin:/bin"}).returncode
+@@ -305,11 +305,12 @@
+ def run(kit, root, job):
+     z = attach(kit); root = Path(root); e = z.load(root/'env.json')
+     sys.path[:0] = [str(root/'c'), *e['paths']]
+-    import rb
+-    from student_pilot.r1_persisted import scope
+-    plan = z.load(root/'plan.json'); start = time.monotonic()
++    start = time.monotonic()
+     result = dict(status='REFUSE'); failure = None
+     try:
++        import rb
++        from student_pilot.r1_persisted import scope
++        plan = z.load(root/'plan.json')
+         with scope(plan['paths']): rb.reconstruct(plan['config'], root, directory='r')
+         result['status'] = 'PASS'
+     except BaseException as error:
+@@ -318,7 +319,6 @@
+     finally:
+         result['seconds'] = time.monotonic()-start
+         z.write(root/'build.json', result)
+-        publish(kit, root, job, 1 if failure else 0)
+     if failure is not None:
+         raise failure
+ 
+@@ -375,5 +375,4 @@
+         import traceback
+         z = attach(kit)
+         print(z.screen(traceback.format_exc(), z.load(Path(kit)/'k/g.json'), z.load(Path(kit)/'b/wh.json')), file=sys.stderr)
+-        publish(kit, root, job, 1)
+         raise SystemExit(1)

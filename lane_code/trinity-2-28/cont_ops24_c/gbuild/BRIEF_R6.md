@@ -1,0 +1,15 @@
+# Round 6 (cont_ops24): what the S2 objects of the point arm are (CPU only)
+
+Workspace and limits as before (gbuild on trinity-2-28; write only here and in /scratch/jjyeung/orch_n30/cont_ops24_c/cap/score_t2; Python /scratch/jjyeung/envs/p1cpu/bin/python; no ssh, Git, GPU, network, deletion, submission). Do not change deliveries. Append REPORT6.md. Use the GT adapter as round 5 left it (if round 5 changed the convention, use the new one and say so).
+
+## 0. First (decides a possible served-path BLOCKER): is the GT NPZ self-consistent?
+Round 5 found that relative camera rotations of the reader's cameras disagree with the GT c2w rows beyond any fixed axis correction in 20/38 captures (17 ARKit, 3 ScanNet++), while frame_indices match the anchors. Either the reader's tower cameras are wrong on those captures (a defect in what the lift uses) or the NPZ pose rows do not belong to its raster frames. Test the NPZ alone: for each capture and anchor, project every GT instance's OBB (centroid and 8 corners; ScanNet++ half extents doubled) with the NPZ's own c2w and K_frames into its own raster grid (handle the 240x320 vs K scale explicitly, and portrait 320x240), and compare with that instance's raster mask (centroid inside mask, projected-box vs mask-bbox IoU). Report per capture the share of visible instances whose projection lands on their own mask, under OpenCV c2w and under the alternatives. If the NPZ is self-consistent (most instances land) on the captures where alignment fails, the GT poses belong to the anchor frames and the reader's cameras are the outlier: say so plainly, list those captures, and quantify the reader's relative rotation and translation error per capture. If the NPZ is not self-consistent, the mismatch is in the analysis data, and S4/S5 stay censored.
+
+## 1-4. S2 analysis
+For every S2 object in the T2 point arm and in the restricted arm (STAGES_T2*.json), and as a reference for S3/S5 objects too, report per frame and summarized per object:
+1. Best IoU of the selected mask with the bound GT instance, and the share of S2 objects whose selected masks match the GT instance at IoU > 0.25 in at least half their nonempty frames.
+2. Part vs other instance: coverage = |pred ∩ GT| / |GT| and precision = |pred ∩ GT| / |pred|. Classify each frame: part of the object (precision >= 0.8 and coverage < 0.5), superset/background bleed (coverage >= 0.8, precision < 0.5), another instance (best IoU with a different GT instance > 0.5 or precision < 0.2 with the bound instance and > 0.5 with another), empty/other. Summarize per object by majority class.
+3. Whether the closed-model point lies inside the bound GT instance mask on that frame (point-in-GT), so a wrong point (labeller error) separates from a right point with a wrong mask (prompt-form problem).
+4. A table: S2 objects by class x point-in-GT, with the item scores; and the same for the deployed baseline's own selections where the baseline capture exists (T1 later; skip if absent).
+Save cap/score_t2/S2_ANALYSIS.json and .md.
+

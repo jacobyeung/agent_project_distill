@@ -1,8 +1,2 @@
-# anchor_kill1 status
-Locate diagnostic complete; K1 kill and neighbour sensitivity blocked on remote pools.
-Numeric unique-instance visibility: step400 12/50 = 24.0% [8.9,37.0]; step600 10/33 = 30.3% [7.4,51.5]; both below 90%.
-Seven tests pass; 105 raw-raster checks agree. Full methods and results: D/ANCHOR_KILL_TEST_20261120.md.
-Code and evidence: W/LOCATE_REPORT.md, anchor_analysis.py, validate_locate.py, OUTPUT_MANIFEST.json.
-Needed: source owner must stat and transfer K1_TRANSFER_FILES.txt by the single IB pipe in TRANSFER_REQUEST.md; remote sizes unknown.
-Then implement the raw-pool adapter, verify exact 1,012-row population and deployed parity, and run K1. No active jobs/streams; no N routed clearance.
-Event: /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/events/anchor/20261120T0603Z_BLOCKER_anchor_kill1_k1_pools_remote_locate_below_bar.md
+Complete: ANCHOR FAILS K1. Distance-type delta -12.39 [-16.84, -7.61]; f=0.1061; h=0.1663. All 1,012 baseline distances reproduce; neighbouring-anchor read complete. Locate results preserved. Record: /data2/jjyeung/agent_project_data/distill_design/ANCHOR_KILL_TEST_20261120.md. Event: /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/events/anchor/20261120T0639Z_RESULT_anchor_kill1_fails_registered_bars.md. Code and detailed outputs: /scratch/jjyeung/orch_n30/anchor_kill1. No training or N held-out admission claim. No independent review claimed.
+Shared review bundle: /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/events/anchor/anchor_kill1_k1_result_20261120T0639Z.tar.gz; SHA256 210de551e2060d1998ee0267384e388d56775eabea022d86d867ab63602916d5, verified after the single throttled copy.

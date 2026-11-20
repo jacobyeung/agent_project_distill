@@ -1,0 +1,1 @@
+X=/project/community/jjyeung/okh7/x_22c714e1; cd $X; grep -ln "ro-bind\|ro_bind" qd/b/* qd/k/* qd/job.sh jd4.sh j.sh 2>/dev/null; grep -n "ro-bind\|'--proc'\|\"--proc\"" qd/b/*.py qd/job.sh 2>/dev/null | cut -c1-300 | head

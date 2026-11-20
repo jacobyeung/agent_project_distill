@@ -1,0 +1,14 @@
+n 1015612faf55457fe8170a81235e4bcf32e7e18aae150a0b4e2766ad1ffc4ba2; n_go dbc52f3170c156c58619fa799e5062bd6e5741e8f3912eb7d3b043c22be25a46; q 72bf8930e6ff36fe3fc4cf1f87f8488244cbddcef9963d097e96226613e64214; qd 259c14de1ff04938afa5a2f584d42969c5cf53d2d6b26d1a71a142806b5b497c; kit_n_go k/c.json payload sha256 cc148db079c0ae3dad25c4925cfdd61880c64a15af8ce42298918263305b3776; identity e0b9e4af8bb01f0b1cb060ca3adf5c97c69634d1210a146f99aa3b8757ad245b.
+Tree C remains 0c7614c8eff74201db275489af9c3fa11f3b418693a0239b793e6322685298de; rb.py bytes match across all four kits.
+The child probes 75 imports across 67 P modules; direct third-party roots are PIL, numpy, scipy, tokenizers, torch and transformers. IMPORT_AUDIT.md records lazy paths, environment pins and version limits.
+The child binds the parent interpreter, sites and overlays read-only, puts P first, disables site hooks, and refuses missing imports or top-level shadowing by name before build().
+P’s file inventory matches b83a8a35 and all 204 implementation entries; original archive e5be8157 is required on Orchard. Selection 5db993b1 and the complete 4e8e6c04 database-hash gate remain unchanged.
+The real bwrap probe, missing-module and shadow fixtures, read-only mount tests, both full-hash refusals, native rb/rg/pl checks and all 16 scan/kit/naming/resolver/guard/arming suites pass.
+The arming helper declares the 24m4i q/n baseline, includes cumulative kit changes and all four required configuration capsules, and passes complete delta replay.
+rcj/rcj.sh and rcj/x.py total 19106 bytes: preempt, 16 CPUs, 128 GB, two hours, no GPU/requeue; 65 authenticated recipe/source pins plus runtime assets, with no checkpoint weights or frame payloads.
+The CPU job probes and reconstructs through rb.py, then publishes native receipts, materialization, whole-file DB hash/size/header, probe results and timings independently before propagating failures; transport and publication fixtures pass.
+173626 staged for 1184 s; 226 s preceded frame/init staging. Reduced staging is estimated at 3–6 min; RCJ_USAGE.md gives the submit command and outputs. No Orchard job was submitted.
+UPLOADS_24M4J.json/.list contain 16 files (325712 bytes): q/n against 24m4i, qd against 24m4h 62d8a7f5 including its unapplied 24m4i delta. GO is false except kit_n_go; GO delta is separate.
+Production rows and processor assets are unavailable locally; the full production database was not rebuilt. Local probe versions are not claimed as Orchard versions.
+work/build24m4j/FAILURES.json retains failure output; VALIDATION.json records final checks. Tests expose only w24j as writable and block superseded-workspace imports; no SSH, network, Git, GPU, scheduler or other-agent work ran.
+DELIVERY_24M4J.json and PACKAGE_CHECK.json record the full archive, checksum, member verification, preserved input members and storage below 25 GB.

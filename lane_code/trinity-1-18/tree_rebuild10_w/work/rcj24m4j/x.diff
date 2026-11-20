@@ -1,0 +1,17 @@
+--- x24m4j/rcj/x.py	2026-11-20 01:46:13.000000000 -0500
++++ rcj2/x.py	2026-11-20 01:56:11.299880265 -0500
+@@ -318,7 +318,6 @@
+     finally:
+         result['seconds'] = time.monotonic()-start
+         z.write(root/'build.json', result)
+-        publish(kit, root, job, 1 if failure else 0)
+     if failure is not None:
+         raise failure
+ 
+@@ -375,5 +374,5 @@
+         import traceback
+         z = attach(kit)
+         print(z.screen(traceback.format_exc(), z.load(Path(kit)/'k/g.json'), z.load(Path(kit)/'b/wh.json')), file=sys.stderr)
+-        publish(kit, root, job, 1)
++        if mode != 'run': publish(kit, root, job, 1)
+         raise SystemExit(1)

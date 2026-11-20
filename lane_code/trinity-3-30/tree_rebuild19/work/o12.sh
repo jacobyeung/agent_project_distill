@@ -1,0 +1,1 @@
+X=/project/community/jjyeung/okh7/x_22c714e1; J=173657; wc -c $X/j/$J.err $X/j/$J.log; grep -v "KITX_OK\|archive members verified\|staged$" $X/j/$J.log | cut -c1-1500 | tail -20; echo ===ERR; grep -n "bwrap\|Error\|R1_" $X/j/$J.err | cut -c1-200 | head; grep -o "CalledProcessError: Command.*" $X/j/$J.err | head -1 | tr ',' '\n' | tail -60 | tr '\n' ' ' | cut -c1-6000

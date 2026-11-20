@@ -294,10 +294,12 @@ def launch(kit, root, job):
     executable = logical+'/rwtrain_torch211_cu129/bin/python'
     pin = z.load(Path(kit)/'k/l.json')['bwrap']
     binary = z.checked(pin['file'], pin['sha256'])
+    if str(binary) != '/project/community/jjyeung/cp4tk_rt/kit/bwrap':
+        raise ValueError('R1_BINARY_LOCATION_DIFFERS')
     cmd = [str(binary), '--ro-bind', '/', '/', '--bind', str(root), str(root),
            '--ro-bind', e['venv'], logical, '--chdir', str(root),
            executable, '-I', '-s', '-B', str(Path(__file__).resolve()), 'run', str(kit), str(root), job]
-    return subprocess.run(cmd, check=False, env={**os.environ, "PATH":str(binary.parent)+os.pathsep+os.environ.get("PATH", "")}).returncode
+    return subprocess.run(cmd, check=False, env={**os.environ, "PATH":"/project/community/jjyeung/cp4tk_rt/kit:/usr/local/bin:/usr/bin:/bin"}).returncode
 
 
 def run(kit, root, job):

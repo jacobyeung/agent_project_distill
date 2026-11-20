@@ -1,7 +1,7 @@
 """CPU-only ANCHOR diagnostics. All data inputs and outputs are local.
 
 Locate: python3 anchor_analysis.py locate
-K1 (requires the missing raw-pool adapter/export):
+K1 normalized call kernel (raw-pool adapter: k1_adapter.py):
   python3 anchor_analysis.py kill --input k1_calls.jsonl
 The normalized K1 schema is documented in K1_INPUT_SCHEMA.md.
 """

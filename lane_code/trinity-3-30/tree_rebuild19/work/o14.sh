@@ -1,0 +1,1 @@
+X=/project/community/jjyeung/okh7/x_22c714e1; cd $X; grep -n "bwrap\|--proc\|unshare" jd4.sh qd/*.sh qd/b/*.sh qd/b/z.py qd/b/ep.py qd/b/x.py 2>/dev/null | cut -c1-300 | head -20; ls qd qd/b | head -80 | tr '\n' ' '

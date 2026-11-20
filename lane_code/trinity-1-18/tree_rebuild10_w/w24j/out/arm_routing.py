@@ -130,7 +130,7 @@ def apply(source,db_bytes,output,*,reviewed_selection_sha256,reviewed_regenerate
     config_hashes=dict(path=str(config_path),payload_sha256=config_payload_hash,file_sha256=J.sha(config_path))
     rows.append(dict(name="u/"+selection_hash,local_path=str(out),bytes=out.stat().st_size,sha256=selection_hash,mode="0644",action="add"))
     assert not (upload/"u"/dh).exists() and all(r["name"]!="u/"+dh for r in rows)
-    manifest=dict(schema="routing-armed-v3",baseline="Orchard q and n at 24m4i after UPLOADS_24M4I; includes all 24m4j changes", baseline_kit_seals=J.load(D/"BASE_SEALS.json"), baseline_files={n:baseline[n] for n in ("q","n")},files=rows,
+    manifest=dict(schema="routing-armed-v3",baseline="Orchard q and n at 24m4i after UPLOADS_24M4I; includes all 24m4j changes", baseline_kit_seals={n:J.load(D/"BASE_SEALS.json")[n] for n in ("q","n")}, baseline_files={n:baseline[n] for n in ("q","n")},files=rows,
         total_files=len(rows),total_bytes=sum(r["bytes"] for r in rows),stream_root=str(upload),kits=seals,
         routing_selection_sha256=selection_hash,regenerated_sha256=value["regenerated_sha256"],
         review=dict(reviewed_selection_sha256=reviewed_selection_sha256,reviewed_regenerated_sha256=reviewed_regenerated_sha256,

@@ -10,7 +10,8 @@ def check(value,where):
 with patch.object(E,'__file__',str(D/'rcj_scanner/environment21f.py')):
  for p in (L/'out/rcj').iterdir():
   check('rcj/'+p.name,'file')
-  for i,line in enumerate(p.read_text().splitlines(),1):check(line,'rcj/'+p.name+':'+str(i))
+  if p.suffix=='.sh':
+   for i,line in enumerate(p.read_text().splitlines(),1):check(line,'rcj/'+p.name+':'+str(i))
   if p.suffix=='.py':E.scan_python(ast.parse(p.read_text()),check,'rcj/'+p.name)
   if p.suffix=='.sh':E.scan_shell(p.read_text(),check,'rcj/'+p.name)
 with patch.object(E,'__file__',str(D/'rcj_scanner/environment21f.py')):

@@ -1,0 +1,1 @@
+X=/project/community/jjyeung/okh7/x_22c714e1; ls -la /project/community/jjyeung/c7d31ddd; cd $X; grep -ln "c7d31ddd" jd4.sh qd/*.sh qd/b/* qd/k/* 2>/dev/null | head; grep -o ".\{80\}c7d31ddd.\{80\}" qd/b/*.py qd/b/*.sh qd/k/*.json 2>/dev/null | head -8

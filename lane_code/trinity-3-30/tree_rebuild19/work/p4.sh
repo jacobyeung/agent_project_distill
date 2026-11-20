@@ -1,0 +1,3 @@
+W=/scratch/jjyeung/orch_n30/tree_rebuild10_w; date -u +%TZ; tmux ls | grep tr19; tail -3 $W/work/rev24m4j.log | cut -c1-300
+R=$(ls -td /home/jjyeung/agent_project_distill/agent/scratch/codex_runs/*_tree_rebuild_rev24m4j | head -1); echo $R; ls $R; test -f $R/final_message.md && cat $R/final_message.md
+timeout 120 bash -c "cat $W/w24j/out/tree_rebuild_b24m4j_6a1635a0.tar | ssh -o ConnectTimeout=20 trinity-2-28.ib 'mkdir -p /scratch/jjyeung/n30_mirror/tree_rebuild19 && cat > /scratch/jjyeung/n30_mirror/tree_rebuild19/tree_rebuild_b24m4j_6a1635a0.tar && sha256sum /scratch/jjyeung/n30_mirror/tree_rebuild19/tree_rebuild_b24m4j_6a1635a0.tar'"

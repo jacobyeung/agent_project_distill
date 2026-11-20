@@ -6,7 +6,7 @@ for p in T.rglob('*.py'):
  parts=list(p.relative_to(T).with_suffix('').parts)
  if parts[-1]=='__init__':parts.pop()
  if parts:mods['.'.join(parts)]=p
-full={'student_pilot.s1_routing','student_pilot.s1_pool_relocate','student_pilot.s1_pool','student_pilot.ground_rows','student_pilot.s1_exclusions','student_pilot.s1_scene_census','student_pilot.s1_route_policy','student_pilot.row_removals'}
+full={'student_pilot.s1_routing','student_pilot.s1_pool_relocate','student_pilot.s1_pool','student_pilot.ground_rows','student_pilot.s1_exclusions','student_pilot.s1_scene_census','student_pilot.s1_route_policy','student_pilot.row_removals','student_pilot.batches','student_pilot.carrier_c1_routing','student_pilot.ground_tokens','student_pilot.mdg_decode_tokens'}
 roots=sorted(full|{'student_pilot.carrier_c1_run','student_pilot.ground_tokens','student_pilot.mdg_decode_tokens'})
 seen={};external={};queue=roots[:];tops={k.split('.')[0] for k in mods}
 def imports(n,all_functions):

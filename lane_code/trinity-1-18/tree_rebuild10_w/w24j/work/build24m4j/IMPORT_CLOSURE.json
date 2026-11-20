@@ -35,6 +35,14 @@
     "student_pilot.geometry_input": "student_pilot/geometry_input.py",
     "student_pilot.decoupled_vc": "student_pilot/decoupled_vc.py",
     "student_pilot.carrier_c1_routing": "student_pilot/carrier_c1_routing.py",
+    "student_pilot.common": "student_pilot/common.py",
+    "student_pilot.orchard_paths": "student_pilot/orchard_paths.py",
+    "student_pilot.mdg_decode_tokens": "student_pilot/mdg_decode_tokens.py",
+    "student_pilot.batches": "student_pilot/batches.py",
+    "student_pilot.trace_contract": "student_pilot/trace_contract.py",
+    "student_pilot.rehearsal": "student_pilot/rehearsal.py",
+    "launch_s1.b.q0": "launch_s1/b/q0.py",
+    "student_pilot.students": "student_pilot/students.py",
     "student_pilot.ground_rows": "student_pilot/ground_rows.py",
     "generator.derivgen_v7.derivgen.room_rows_v314": "generator/derivgen_v7/derivgen/room_rows_v314.py",
     "generator.derivgen_v7.derivgen.room_v314": "generator/derivgen_v7/derivgen/room_v314.py",
@@ -55,12 +63,9 @@
     "student_pilot.row_removals": "student_pilot/row_removals.py",
     "student_pilot.s1_route_policy": "student_pilot/s1_route_policy.py",
     "student_pilot.carrier_c1_run": "student_pilot/carrier_c1_run.py",
-    "student_pilot.rehearsal": "student_pilot/rehearsal.py",
-    "launch_s1.b.q0": "launch_s1/b/q0.py",
     "student_pilot.carrier_c1_sweep": "student_pilot/carrier_c1_sweep.py",
     "student_pilot.carrier_c1": "student_pilot/carrier_c1.py",
     "student_pilot.full_ft": "student_pilot/full_ft.py",
-    "student_pilot.mdg_decode_tokens": "student_pilot/mdg_decode_tokens.py",
     "student_pilot.ground_tokens": "student_pilot/ground_tokens.py"
   },
   "external": {
@@ -135,6 +140,11 @@
       {
         "module": "student_pilot.carrier_c1_routing",
         "line": 19,
+        "imported": "numpy"
+      },
+      {
+        "module": "student_pilot.batches",
+        "line": 4,
         "imported": "numpy"
       },
       {
@@ -482,6 +492,16 @@
         "imported": "torch"
       },
       {
+        "module": "student_pilot.batches",
+        "line": 5,
+        "imported": "torch"
+      },
+      {
+        "module": "student_pilot.batches",
+        "line": 6,
+        "imported": "torch.nn.functional"
+      },
+      {
         "module": "student_pilot.carrier_c1_run",
         "line": 24,
         "imported": "torch"
@@ -525,9 +545,54 @@
         "module": "student_pilot.full_ft",
         "line": 37,
         "imported": "torch.distributed"
+      },
+      {
+        "module": "student_pilot.ground_tokens",
+        "line": 37,
+        "imported": "torch"
+      },
+      {
+        "module": "student_pilot.ground_tokens",
+        "line": 38,
+        "imported": "torch"
+      },
+      {
+        "module": "student_pilot.ground_tokens",
+        "line": 38,
+        "imported": "torch.nn"
+      },
+      {
+        "module": "student_pilot.ground_tokens",
+        "line": 100,
+        "imported": "torch"
+      },
+      {
+        "module": "student_pilot.ground_tokens",
+        "line": 101,
+        "imported": "torch.nn"
+      },
+      {
+        "module": "student_pilot.ground_tokens",
+        "line": 101,
+        "imported": "torch.nn.functional"
+      },
+      {
+        "module": "student_pilot.ground_tokens",
+        "line": 115,
+        "imported": "torch"
       }
     ],
     "transformers": [
+      {
+        "module": "student_pilot.carrier_c1_routing",
+        "line": 654,
+        "imported": "transformers"
+      },
+      {
+        "module": "student_pilot.carrier_c1_routing",
+        "line": 654,
+        "imported": "transformers.AddedToken"
+      },
       {
         "module": "student_pilot.mdg_decode_tokens",
         "line": 2,
@@ -539,13 +604,46 @@
         "imported": "transformers.AddedToken"
       },
       {
+        "module": "student_pilot.batches",
+        "line": 8,
+        "imported": "transformers"
+      },
+      {
+        "module": "student_pilot.batches",
+        "line": 8,
+        "imported": "transformers.AutoProcessor"
+      },
+      {
+        "module": "student_pilot.batches",
+        "line": 9,
+        "imported": "transformers.video_utils"
+      },
+      {
+        "module": "student_pilot.batches",
+        "line": 9,
+        "imported": "transformers.video_utils.VideoMetadata"
+      },
+      {
         "module": "student_pilot.decoupled_v_run",
         "line": 50,
         "imported": "transformers.AutoProcessor"
       }
+    ],
+    "PIL": [
+      {
+        "module": "student_pilot.batches",
+        "line": 7,
+        "imported": "PIL"
+      },
+      {
+        "module": "student_pilot.batches",
+        "line": 7,
+        "imported": "PIL.Image"
+      }
     ]
   },
   "probe": [
+    "PIL",
     "generator.derivgen_v7.derivgen",
     "generator.derivgen_v7.derivgen.box_v313",
     "generator.derivgen_v7.derivgen.calculator",
@@ -572,6 +670,7 @@
     "student_pilot.auxiliary_config",
     "student_pilot.auxiliary_losses",
     "student_pilot.auxiliary_reason",
+    "student_pilot.batches",
     "student_pilot.c1_pose_mix",
     "student_pilot.camera_config",
     "student_pilot.camera_head",
@@ -581,6 +680,7 @@
     "student_pilot.carrier_c1_routing",
     "student_pilot.carrier_c1_run",
     "student_pilot.carrier_c1_sweep",
+    "student_pilot.common",
     "student_pilot.decoupled_resume",
     "student_pilot.decoupled_v",
     "student_pilot.decoupled_v_run",
@@ -592,6 +692,7 @@
     "student_pilot.head_programs",
     "student_pilot.mdg_decode_tokens",
     "student_pilot.next_gpu_check",
+    "student_pilot.orchard_paths",
     "student_pilot.p3_geometry",
     "student_pilot.p3_grammar",
     "student_pilot.p3_heads",
@@ -608,6 +709,8 @@
     "student_pilot.s1_route_policy",
     "student_pilot.s1_routing",
     "student_pilot.s1_scene_census",
+    "student_pilot.students",
+    "student_pilot.trace_contract",
     "tokenizers",
     "torch",
     "trace_format",

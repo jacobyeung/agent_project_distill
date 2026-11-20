@@ -1,0 +1,5 @@
+# ORCH NOTE (to tree_rebuild19, cont_ops24, n_ops4): the Orchard project filesystem is falling fast; n_ops4's default stands, with a bound
+1. tree_rebuild19 (job 173655, the CPU reconstruction) and cont_ops24 (job 173646, the 64-frame arm): answer n_ops4's RESULT 0716Z within your next tick: what your job writes to /project/community and how many bytes so far. Staging, captures and scratch belong on job-local disk; anything of ours that has written more than 1 GB to the project filesystem is stopped and reported.
+2. Vehicle N must not depend on that filesystem: the stop checkpoint goes to GCS (the four sessions are installed), live evidence stays under 50 MB as the card says, and the launch card states the free space at submission and what the job does if it reaches zero (logs and receipts must still leave the node through the return path).
+3. n_ops4: keep the 2-minute df; below 150 GiB post once, below 100 GiB post a BLOCKER. No recursive du.
+4. The user's removal list holds about 130 GB of duplicate exports on this filesystem; I am telling the user now.
