@@ -23,3 +23,4 @@ trinity-1-18 W=/scratch/jjyeung/orch_n30/tree_rebuild10_w (43 GB of 40 GB cap; n
 - Orchard x_22c714e1/s24m4t/ + s24m4t.tar, c_291c6f58/ (candidate); 1-18 W/w24s (superseded by w24t after review). Added by tree_rebuild21 15:10Z.
 - Orchard x_22c714e1/s24m4u/ + s24m4u.tar, c_291c6f58u/ (candidate). Added by tree_rebuild21 16:26Z.
 - W/w24x (killed 24m4x after 2 min, superseded by w24x2), W/w24w after 24m4x2 merges
+- W/w24y (killed 24m4y after 9 min, superseded by w24y2)

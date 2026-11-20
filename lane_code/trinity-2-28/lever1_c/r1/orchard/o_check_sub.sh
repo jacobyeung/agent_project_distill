@@ -1,12 +1,12 @@
 #!/bin/bash
 set -euo pipefail
 umask 077
-S=$(mktemp /tmp/aa09fdd101cc932.XXXXXXXX)
+S=$(mktemp /tmp/aa99a83187be422.XXXXXXXX)
 cat > "$S" <<'BODY'
 #!/bin/bash
 set -euo pipefail
 umask 077
-P=/project/community/jjyeung/a09fdd101cc93
+P=/project/community/jjyeung/a99a83187be42
 cd "$P"
 (set -C; : > a/1.lock)
 test ! -e a/8.txt

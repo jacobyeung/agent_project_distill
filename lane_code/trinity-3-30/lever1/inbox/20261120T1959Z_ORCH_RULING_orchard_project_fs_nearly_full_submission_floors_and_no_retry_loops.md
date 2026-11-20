@@ -1,0 +1,7 @@
+# ORCH RULING (to n_ops7, tree_rebuild22; copy lever1, n_review1f): submission floors while the Orchard project filesystem is nearly full
+n_ops7's BLOCKER 1958Z: 46 GiB free and falling by up to 18 GiB a minute through another tenant's writes.
+1. Floors, read from n_ops7's watcher at the moment of submission: no discovery below 50 GiB free; no 4-GPU launch below 100 GiB free unless the full-filesystem test of ORDER 1956Z has shown that training, checkpoints and exports survive ENOSPC and the card says so; CPU candidate, evidence and pricing jobs (they write megabytes) not below 20 GiB. At 0, nothing is submitted by any lane.
+2. A job of ours that fails on "no space left" is not resubmitted in a loop: report it once, wait for the floor, resubmit once. This holds for lever1's general-partition job too.
+3. After any upload or overlay made while free space was under 20 GiB, re-verify the seals and file sizes on Orchard before a job uses them; a truncated file must not reach a job.
+4. Recovery: when free space has stayed above the relevant floor for 15 minutes, proceed without asking. n_ops7 posts one RESULT at recovery and one if the filesystem reaches 0, with the time.
+5. n_ops7: from one top-level listing (no recursive walk), give me the owner names of the two top-level folders with the newest modification times and the count of that user's running jobs from squeue, so the user can contact them or the Orchard admins. Do not message anyone on Orchard yourself.

@@ -1,0 +1,309 @@
+{
+  "GO": false,
+  "chain": {
+    "checked_key_set_sha256": "9ef5ff08a95b67fdd4e7189f985dc55173b86d5c8ae5e09e04e5eb8007b51142",
+    "complete": true,
+    "counts": {
+      "extents": {
+        "PASS": 80
+      },
+      "r1": {
+        "PASS": 80
+      },
+      "r2": {
+        "NOT_BOUND": 80
+      },
+      "reserve": {
+        "PASS": 80
+      },
+      "text": {
+        "PASS": 80
+      },
+      "wording": {
+        "NOT_BOUND": 80
+      }
+    },
+    "database_key_set_sha256": "9ef5ff08a95b67fdd4e7189f985dc55173b86d5c8ae5e09e04e5eb8007b51142",
+    "database_rows": 80,
+    "databases": [
+      {
+        "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24y2/work/build24m4y2/real_rows_1795204382061227475/non_boundary.sqlite",
+        "sha256": "1b226db63b7c2a77699d73a2c68c532a9929a2e20c2a32c15f165aaef24c41ae"
+      }
+    ],
+    "extent_base_refused_rows": 14,
+    "extent_count_status": "PASS",
+    "extent_exempted_rows": 14,
+    "extent_required_rows": 0,
+    "extent_set_mismatch_rows": 0,
+    "extent_still_checked_rows": 66,
+    "first_ten_refusals": [],
+    "refused_rows": 0,
+    "replacement": false,
+    "rows_checked": 80,
+    "sample_size_requested": null,
+    "seed": null,
+    "staged": true,
+    "status": "PASS",
+    "unique_rows_checked": 80
+  },
+  "decision_tests": 8,
+  "kits": {
+    "n": "797255ae1421d27f6c65bb9fc0038da1f345f446e1e1d41c90ba1bdf8f2338f7",
+    "n_go": "aa2d1267065d920db23dc3e6aa5f41c87b87d57b2cf27f12af82255a786c97ea",
+    "q": "df93cfba9769ca82f48ac3bfdbb117ffc2d06b6f694ed1694c23d815fa97e2a9",
+    "qd": "8ae781f4cd655a53108b8b0966ecb3a41a5679b19e70d4ddadb472a88bae2784"
+  },
+  "launched": false,
+  "limitations": [
+    "The full P/N SQL stores and staged Orchard sources are unavailable locally. The next CPU job must recompute the full comparisons, choose its real third control, publish per-store counts and demonstrate actual exit 0.",
+    "The supplied review findings were verified against 173817. The separately referenced final_message.md was not located in the accessible local receipt directories; no full review-file read is claimed."
+  ],
+  "production_executed": false,
+  "rcj": {
+    "P_SAMPLE_I.json": "fff742bb8ca70d50d7c264d12abc565af024db102f20c9ad9145485e49059ce7",
+    "ch.py": "642e47fcf351ad1ed95df1574004acf47caf67636609bfbbf3800dff69dc36e0",
+    "f.json": "8be6cc6338406fa1cff328b1821955537d5176156dc1e9c33e5505a08ef2e238",
+    "nd.py": "d7055420a7096bc17f3b7c031a1b8857f3adbf18187cebfaae1a28ff50a67429",
+    "pc.py": "bd87252b711f9a2bc3a6e581ddc12e5e96d1c48d883f1adc472e361421ff29f1",
+    "ps.py": "6945292e167d9f602a5aa94f86e8070c28bca6770df5886c34b0d3ee66ac1eda",
+    "rcj.sh": "b23393f2db4dfe65bbd91a771fb7c5d34f51a5669b820c33b6158fb68f9f5e8c",
+    "x.py": "7fe00c24ecf605cb91e6587f4ac0d13f5c401a930105644b4a969f022cfc5872"
+  },
+  "real_decision": {
+    "criteria": {
+      "a": {
+        "compared_rows": 43101,
+        "derivation": [
+          {
+            "code": [
+              "carrier_c1_routing.py:511",
+              "carrier_c1_data.py:113",
+              "carrier_c1_data.py:207",
+              "batches.py:102",
+              "batches.py:132",
+              "pose_samples.py:301",
+              "gf1.py:302",
+              "gf1_cache.py:220"
+            ],
+            "effect": "Prompt tokens, options, frame bytes, frame indices, timestamps, fps, frame layouts and anchors.",
+            "paths": [
+              "/row/student_input"
+            ]
+          },
+          {
+            "code": [
+              "carrier_c1_routing.py:138",
+              "carrier_c1_routing.py:555",
+              "carrier_c1_routing.py:529",
+              "ground_rows.py:13"
+            ],
+            "effect": "Target tokens, loss masks, tool spans and segment tags.",
+            "paths": [
+              "/row/routing/events",
+              "/row/routing/answer"
+            ]
+          },
+          {
+            "code": [
+              "carrier_c1_routing.py:97",
+              "carrier_c1_run.py:1139"
+            ],
+            "effect": "Prompt flag.",
+            "paths": [
+              "/row/routing/category"
+            ]
+          },
+          {
+            "code": [
+              "carrier_c1_data.py:167",
+              "carrier_c1_data.py:189"
+            ],
+            "effect": "Pose augmentation branch and frame arrays.",
+            "paths": [
+              "/row/category",
+              "/row/pose_sample"
+            ]
+          },
+          {
+            "code": [
+              "carrier_c1_data.py:363",
+              "carrier_c1_data.py:443"
+            ],
+            "effect": "Single-image encoding branch.",
+            "paths": [
+              "/row/provenance/input"
+            ]
+          },
+          {
+            "code": [
+              "carrier_c1_run.py:1120",
+              "carrier_c1_run.py:1137"
+            ],
+            "effect": "Raw SQL target identity required by ANSWER 1226Z, including formatting and SQL type.",
+            "paths": [
+              "/target"
+            ]
+          },
+          {
+            "code": [
+              "carrier_c1_data.py:365"
+            ],
+            "effect": "Presence controls the single-image branch.",
+            "paths": [
+              "/row/pointing"
+            ]
+          }
+        ],
+        "differing_rows": 0,
+        "extra_rows": 0,
+        "field_counts": {},
+        "fields": [
+          "/target",
+          "/row/student_input",
+          "/row/routing/events",
+          "/row/routing/answer",
+          "/row/routing/category",
+          "/row/category",
+          "/row/pose_sample",
+          "/row/provenance/input",
+          "/row/pointing"
+        ],
+        "rows": 43101,
+        "status": "PASS"
+      },
+      "b": {
+        "classes": {
+          "copied": {
+            "path_differences": 4645708,
+            "rows": 11663
+          },
+          "fps_source": {
+            "path_differences": 6791,
+            "rows": 6791
+          },
+          "ordinal": {
+            "path_differences": 39892,
+            "rows": 39892
+          },
+          "paths": {
+            "path_differences": 46652,
+            "rows": 11663
+          }
+        },
+        "rows": 43101,
+        "status": "PASS",
+        "unclassified_paths": {}
+      },
+      "c": {
+        "complete": true,
+        "config_sha256": "b28f58a2522a4f34d7bb878c1e245784c27817fce95f923eff4f48e281081baf",
+        "database_sha256": "5e35c3ce600a867be194911642caccb23098035b4bf08909e519a170a1c243df",
+        "extent_receipt": {
+          "path": "/tmp/q_22c714e1/p/q/u/c072905be4405a92d7bb906112209f2d27a8c9b58d291b64373c5551c3e96495",
+          "sha256": "c072905be4405a92d7bb906112209f2d27a8c9b58d291b64373c5551c3e96495"
+        },
+        "key_set_sha256": "c2ba56c52ecca03d1fa6159229221eb401f067377d3c803c5a5e623875dd127e",
+        "refused_rows": 0,
+        "rows": 43101,
+        "status": "PASS"
+      },
+      "d": {
+        "key_set_sha256": null,
+        "reason": "Mode r does not reach preparation.",
+        "required_key_set_sha256": "c2ba56c52ecca03d1fa6159229221eb401f067377d3c803c5a5e623875dd127e",
+        "required_rows": 43101,
+        "rows": null,
+        "status": "DEFERRED_TO_DISCOVERY"
+      }
+    },
+    "decision_returncode": 0
+  },
+  "status": "PASS",
+  "suite_groups": 16,
+  "suites": [
+    {
+      "log": "work/build24m4y2/core_tests_first.log",
+      "name": "core_tests",
+      "returncode": 0
+    },
+    {
+      "log": "work/build24m4y2/tests_second.log",
+      "name": "tests",
+      "returncode": 0
+    },
+    {
+      "log": "work/build24m4y2/nd_tests_final.log",
+      "name": "nd_tests",
+      "returncode": 0
+    },
+    {
+      "log": "work/build24m4y2/publication_tests_second.log",
+      "name": "publication_tests",
+      "returncode": 0
+    },
+    {
+      "log": "work/build24m4y2/sample_tests_second.log",
+      "name": "sample_tests",
+      "returncode": 0
+    },
+    {
+      "log": "work/build24m4y2/contract_tests_second.log",
+      "name": "contract_tests",
+      "returncode": 0
+    },
+    {
+      "log": "work/build24m4y2/recorder_tests_first.log",
+      "name": "recorder_tests",
+      "returncode": 0
+    },
+    {
+      "log": "work/build24m4y2/pc_test_third.log",
+      "name": "pc_test",
+      "returncode": 0
+    },
+    {
+      "log": "work/build24m4y2/mount_tests_first.log",
+      "name": "mount_tests",
+      "returncode": 0
+    },
+    {
+      "log": "work/build24m4y2/rcj_contract_tests_first.log",
+      "name": "rcj_contract_tests",
+      "returncode": 0
+    },
+    {
+      "log": "work/build24m4y2/rcj_scan_current_final.log",
+      "name": "rcj_scan_current",
+      "returncode": 0
+    },
+    {
+      "log": "work/build24m4y2/rdiff_mount_test_first.log",
+      "name": "rdiff_mount_test",
+      "returncode": 0
+    },
+    {
+      "log": "work/build24m4y2/mode_b_tests_final.log",
+      "name": "mode_b_tests",
+      "returncode": 0
+    },
+    {
+      "log": "work/build24m4y2/bind_tests_third.log",
+      "name": "bind_tests",
+      "returncode": 0
+    },
+    {
+      "log": "work/build24m4y2/new_tests_second.log",
+      "name": "new_tests",
+      "returncode": 0
+    },
+    {
+      "log": "work/build24m4y2/decision_tests_final.log",
+      "name": "decision_tests",
+      "returncode": 0
+    }
+  ],
+  "targeted_tests": 18,
+  "tree_sha256": "9d2bbb8ad209d91e21e56121785f62b0dddf3c8d9f14db8d23daf6dcd1d3591b",
+  "uploaded": false
+}

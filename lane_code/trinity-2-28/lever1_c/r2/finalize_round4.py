@@ -21,6 +21,15 @@ def main():
     old=json.loads((K.ROOT/'out/K1X.json').read_text())
     oldrows={r['row_id']:r for r in old['rows']}
     rows={r['row_id']:r for r in result['rows']}
+    for r in result['rows']:
+        available=result['geometry'][r['capture']]['gt_depth_frame_available']
+        for name,cell in r['cells'].items():
+            if 'selected_frames' not in cell:continue
+            frames=list(cell['selected_frames'].values())
+            expected=all(f is not None and available[f-1] for f in frames)
+            assert cell['gt_depth_support']==expected,(r['row_id'],name)
+            if name in K.CELLS and name.split('/')[1]=='GT':
+                assert all(f is None or available[f-1] for f in frames),(r['row_id'],name)
     preservation=[]
     for line in (K.ROOT/'out/SHA256SUMS').read_text().splitlines():
         sha,path=line.split(maxsplit=1)
@@ -46,7 +55,8 @@ def main():
         box_base_exact=len(box['base_parity']),e3_base_exact=len(box['e3_base_parity']),
         original_outputs_unchanged=preservation,workspace_bytes=size,
         heldout_prior_depth_refusals=dict(count=len(old_new_refusals),recovered=len(recovered),remaining=len(remaining),
-            recovered_ids=recovered,remaining_ids=remaining),
+            recovered_ids=recovered,remaining_ids=remaining,
+            remaining_details={rid:rows[rid]['cells'][depth] for rid in remaining}),
         missing_depth_pose_and_hole_regressions='PASS',support_definition_and_train_only_freeze_tests='PASS')
     K.write(S.OUT/'VALIDATION.json',receipt)
     K.write(S.BOX/'TESTS.json',tests)

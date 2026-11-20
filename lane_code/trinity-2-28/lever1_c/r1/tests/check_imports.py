@@ -16,6 +16,8 @@ BD.B.extract((HERE/'out/delivery.tgz').read_bytes(),root/'package')
 BD.B.extract((root/'package/0.tgz').read_bytes(),root/'p')
 results=[]
 for code,tail in [(S.CHILD,['fixed']),(S.OPERATOR,[])]:
+    if tail:
+        code=code.replace("import torch", "import l\nl.install(p)\nimport torch")
     p=subprocess.run([sys.executable,'-I','-s','-B','-c',code,str(root/'p'),str(root/'package'),*tail],
         cwd=HERE,env=os.environ.copy(),text=True,capture_output=True,timeout=60)
     results.append(dict(returncode=p.returncode,stdout=p.stdout,stderr=p.stderr))

@@ -1,6 +1,29 @@
 # lever1 STATUS (trinity-3-30; started 16:50Z 11-20; 6 h timeout -> write B/briefs/lever2.md and start lever2 by ~22:20Z)
 Lane dir /scratch/jjyeung/orch_n30/lever1 (work/, out/); 2-28 work dir /scratch/jjyeung/orch_n30/lever1_c; 1-18 helper dir /scratch/jjyeung/orch_n30/lever1_m.
 ## Done
+- Rank 2 round 4 + BOX RESULT (C1 waits both ways; vote box +5.65 clears held-out bar, dev check pending); record updated.
+- Rank 6 RESULT (route table stays; constant 31.5); rank 3 STOP RESULT (i ok, ii 2.59 fails); rank 2 review DEFECT RESULT; record updated for all.
+- Rank 2 RESULT 1824Z (parity PASS; geometry waits for masks; arm B/C closed; G3T stays); record updated. Rank 3 parity STOP QUESTION; record updated.
+- Item 0 selector provenance: RESULT 1654Z (out/SELECTOR_PROVENANCE.md; events/lever/files/). run_iso 6d97c524, K1 train only; 0 benchmark/dev rooms; 4 withheld-80 rooms.
+- Item 1 inventory: out/ARCHIVE_INVENTORY.md; QUESTION 1659Z; ORCH ANSWER 1700Z: (a) IB mirror now, (b) one compressed archive via governor later (to /data2 or /data3, whichever has more free), add path to D/INDEX.md under the plan line.
+- trinity-1-3 /scratch/jjyeung is gone. 3-30 /scratch 83 GB free: no mirrors here.
+## Running (2-28 tmux; poll work/poll228.sh via tssh every 5-10 min)
+- Rank 1 fix round 3: tmux l1_r1fix2 (BRIEF_R1FIX2.md). Then 3rd review (BRIEF_R1REV2-style), place via ossh, CPU check, ONE general job (<= 40 min alloc), pull_depth.sh, relift.py (56 items/28 captures), BOX dev check (vote_10_3_best).
+- Rank 4 probe kit build: tmux l1_r4kit (BRIEF_R4KIT.md; in/ = D400 package + dk + WORD_TEMPLATES.json). Runs on general after rank 1's job (ORCH 1709Z, <= 30 min).
+- Rank 5: blocked at reproduction (no raw for reference captures); QUESTION 19:3xZ for a 1.24 GB stream (scene0166_00 .sens etc, 17c5e6a336, 41069053); default stage at 20:00Z, then rerun BRIEF_R5.md.
+## Done
+- Rank 6 RESULT (route table stays; constant 31.5); rank 3 STOP RESULT (i ok, ii 2.59 fails); rank 2 review DEFECT RESULT; record updated for all.
+- Rank 2 RESULT 1824Z (parity PASS; geometry waits for masks; arm B/C closed; G3T stays); record updated. Rank 3 parity STOP QUESTION; record updated.
+- Item 0 selector provenance: RESULT 1654Z (out/SELECTOR_PROVENANCE.md; events/lever/files/). run_iso 6d97c524, K1 train only; 0 benchmark/dev rooms; 4 withheld-80 rooms.
+- Item 1 inventory: out/ARCHIVE_INVENTORY.md; QUESTION 1659Z; ORCH ANSWER 1700Z: (a) IB mirror now, (b) one compressed archive via governor later (to /data2 or /data3, whichever has more free), add path to D/INDEX.md under the plan line.
+- trinity-1-3 /scratch/jjyeung is gone. 3-30 /scratch 83 GB free: no mirrors here.
+## Running (2-28 tmux; poll work/poll228.sh via tssh every 5-10 min)
+- Rank 1 fix round: tmux l1_r1fix (BRIEF_R1FIX.md; 4 review findings). Then re-review (work/briefs/BRIEF_R1REV.md again), place via ossh (/dev/shm staging on 3-30; o_place.sh 8.5 MB), CPU check, ONE general job, pull_depth.sh (governed, io-weight 1) to 2-28, relift.py.
+- Rank 2 round 4 (GT-depth fix, C1 two ways) + BOX follow-up: tmux l1_r2e (BRIEF_R2E.md, BRIEF_R2D.md).
+## Queued
+- Rank 5 build: work/briefs/BRIEF_R5.md when a build slot frees.
+- Rank 4 read: after rank 1's job; templates out/WORD_TEMPLATES.json; build a 64-token probe kit at step-400 init 5083243c.
+## Done
 - Rank 2 RESULT 1824Z (parity PASS; geometry waits for masks; arm B/C closed; G3T stays); record updated. Rank 3 parity STOP QUESTION; record updated.
 - Item 0 selector provenance: RESULT 1654Z (out/SELECTOR_PROVENANCE.md; events/lever/files/). run_iso 6d97c524, K1 train only; 0 benchmark/dev rooms; 4 withheld-80 rooms.
 - Item 1 inventory: out/ARCHIVE_INVENTORY.md; QUESTION 1659Z; ORCH ANSWER 1700Z: (a) IB mirror now, (b) one compressed archive via governor later (to /data2 or /data3, whichever has more free), add path to D/INDEX.md under the plan line.
@@ -32,3 +55,7 @@ Lane dir /scratch/jjyeung/orch_n30/lever1 (work/, out/); 2-28 work dir /scratch/
 - Rank 1 build (brief work/briefs/BRIEF_R1.md) when a Codex slot frees (max 2 on 2-28); then Astra review, CPU check, ONE general job, CPU relifts.
 - Rank 6 ledger (Codex) after; rank 4 read after rank 1's job (templates need ReVSI public text source).
 - Record: results sections in D/ROUTED_READER_LEVER_PLAN_20261120.md per rank (+ R0 exclusion open item).
+
+## 20:12Z ROTATION (exact)
+- lever1 hands off to lever2 (brief B/briefs/lever2.md; started on trinity-3-30). Rank 5 RESULT posted (15/22 pass). In flight on 2-28: tmux l1_r1fix3 (rank 1 fix round 4). Nothing of lever1's runs on Orchard or GPUs; no governed stream open (lever1_nogt_raw, lever1_nogt_ref, lever1_k1x_archive all .done).
+- Next steps for lever2 are listed in B/briefs/lever2.md (rank 1 review/job/relift + BOX dev check; rank 4 kit fix/review/job; rank 5 mirror/archive/ARKit restage).

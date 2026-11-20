@@ -11,6 +11,9 @@ import json
 from pathlib import Path
 import re
 import sys
+sys.path.insert(0,str(Path(__file__).resolve().parent/'runtime'))
+import j as wire_json
+wire_json.install()
 import numpy as np
 HERE=Path(__file__).resolve().parent
 BASE=Path('/scratch/jjyeung/orch_n30/cont_ops24_c')
@@ -205,7 +208,7 @@ def stats(rows,refs):
 
 def dump(path,value):
     Path(path).parent.mkdir(parents=True,exist_ok=True)
-    Path(path).write_text(json.dumps(value,indent=2,allow_nan=False,default=lambda x:x.tolist() if isinstance(x,np.ndarray) else x.item())+'\n')
+    Path(path).write_text(wire_json.wire_dumps(value,indent=2,allow_nan=False,default=lambda x:x.tolist() if isinstance(x,np.ndarray) else x.item())+'\n')
 
 
 def run(args):

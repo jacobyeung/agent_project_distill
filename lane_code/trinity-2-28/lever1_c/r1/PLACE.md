@@ -1,18 +1,21 @@
-The lane can place the depth package at `/project/community/jjyeung/a09fdd101cc93`. This builder has not placed, submitted, or fetched anything.
+The delivery is ready for re-review. Placement and submission wait for that review.
+
+The lane can place the depth package at `/project/community/jjyeung/a99a83187be42`. This builder has not placed, submitted, or fetched anything.
 
 | Artifact | Bytes |
 | --- | ---: |
-| `out/delivery.tgz` | 6,265,674 |
-| Installed package files | 6,408,339 |
-| Installed `BUILD.json` | 105,338 |
-| Streamed `orchard/o_place.sh` | 8,497,090 |
-| Conservative delivery + installed files + descriptor | 12,779,351 |
+| `out/delivery.tgz` | 3,490,726 |
+| Expanded inner payload (32 MiB limit) | 29,515,891 |
+| Installed package files | 3,685,443 |
+| Installed `BUILD.json` | 52,685 |
+| Streamed `orchard/o_place.sh` | 4,729,697 |
+| Conservative delivery + installed files + descriptor | 7,228,854 |
 
-Delivery SHA256: `05615e93e885a84f948fdfa60c767dac22e055a5eef65e324df924a0ead1a6ee`.
+Delivery SHA256: `672076c0edda7703c22500f4c9b3ce1b7f6e6421f23b3cc5d2174eef5b8115dd`.
 
-The job uses `a15_cot_apa09fdd101cc93`, general, `--gres=gpu:1`, `--cpus-per-task=16`, `--mem=200G`, and `--exclude=orchard-community-4`. The worker checks for an H100 before model loading. The inherited submission checker requires a minimum 40-minute allocation; the worker has a 30-minute cap and stops at least 120 seconds before allocation end. The forecast is 16.75 worker minutes and 28.75 minutes including unmeasured staging/publication allowances.
+The job uses `a15_cot_apa99a83187be42`, general, `--gres=gpu:1`, `--cpus-per-task=16`, `--mem=200G`, and `--exclude=orchard-community-4`. The worker checks for an H100 before model loading. The inherited submission checker requires a minimum 40-minute allocation. The worker has a 30-minute cap and a deadline 270 seconds before allocation end; termination and reaping allow at most another 25 seconds. Staging and work share a deadline 240 seconds before allocation end. Capture publication stops 90 seconds before allocation end, normal publication stops 10 seconds before it, and the failure-receipt fallback stops two seconds before it. Every transfer uses the remaining time in its window. The forecast is 16.75 worker minutes and 30.75 minutes including unmeasured staging/publication allowances.
 
-Run these commands from the authorized lane holding this directory. Wait for each background script's printed log to report completion before starting its dependent step. Check job status at most once per minute. The scripts refuse an existing destination and use one-use submission locks; do not retry a killed or failed command automatically.
+After re-review, run these commands from the authorized lane holding this directory. Wait for each background script's printed log to report completion before starting its dependent step. Check job status at most once per minute. The scripts refuse an existing destination and use one-use submission locks; do not retry a killed or failed command automatically.
 
 ```bash
 cd /scratch/jjyeung/orch_n30/lever1_c/r1
@@ -62,6 +65,14 @@ OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 CUDA_VISIBLE_DEVICES=
   nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B tests/test_all.py
 OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 CUDA_VISIBLE_DEVICES='' \
   nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B tests/check_imports.py
+OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 CUDA_VISIBLE_DEVICES='' \
+  nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B tests/test_fixes.py
 ```
 
-`build_depth.py` authenticates the exact T1 delivery and capture, preserves all serving/evaluator source bytes, and reseals the worker, plan, operator, batch bundle, descriptors, and scripts. It reads the named sibling inputs and writes under `r1/`. The package uses the existing pinned Orchard input archives; it does not place weights or frame archives again.
+`build_depth.py` authenticates the exact T1 delivery and capture, preserves the 270 retained serving/evaluator source files byte for byte under opaque paths, and reseals the worker, plan, operator, batch bundle, descriptors, and scripts. It reads the named sibling inputs and writes under `r1/`. The package authenticates the existing Orchard archives once and extracts only the required roots. Segmentation weights, receipt, source, and selector inputs have no pins, preparation settings, or extracted files. Required archive paths and file paths are already opaque; no external alias is needed.
+
+The CPU rehearsal runs twice and scans all eight output files by name, raw content, and JSON-decoded string against the deny-list. The item copy retains exact `a0` source bytes; the copied dispatcher uses opaque source storage and passes the numeric entry test. `out/CPU_ENTRY_STUB.json` records every scanned output file and hash.
+
+The built delivery passes 28 CPU tests and both fresh-process import/admission checks. `out/FIX_CHECKS.json` records the actual staging test, all-asset label scan, 150 exact prompt/RGB bindings, source hashes, naming scan, and simulated transfer/worker deadlines. Staging uses the production function and extractor with tiny local substitutes for external archives. No live Orchard job ran.
+
+JSON transport uses an `a0` envelope containing the exact original bytes in hexadecimal. The numeric launchers, import loader, placement/fetch scripts, and local relift CLI decode it. Package pins authenticate stored bytes; preparation and resource checks authenticate the original decoded bytes. Job-owned metadata and capture records use this transport. The runtime environment archive retains its installed third-party library layout.

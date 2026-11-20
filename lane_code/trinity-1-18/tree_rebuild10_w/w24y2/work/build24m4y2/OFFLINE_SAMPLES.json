@@ -1,0 +1,169 @@
+{
+  "status": "PASS",
+  "sample_counts": {
+    "base": 10,
+    "selection": 6
+  },
+  "criteria": {
+    "a": {
+      "compared_rows": 6,
+      "derivation": [
+        {
+          "code": [
+            "student_pilot/carrier_c1_routing.py:511",
+            "student_pilot/carrier_c1_data.py:113",
+            "student_pilot/carrier_c1_data.py:207",
+            "student_pilot/batches.py:102",
+            "student_pilot/batches.py:132"
+          ],
+          "effect": "Prompt tokens, options, frame bytes, frame indices, timestamps, fps, frame layouts and anchors.",
+          "paths": [
+            "/row/student_input"
+          ]
+        },
+        {
+          "code": [
+            "student_pilot/carrier_c1_routing.py:138",
+            "student_pilot/carrier_c1_routing.py:555",
+            "student_pilot/carrier_c1_routing.py:529"
+          ],
+          "effect": "Target tokens, loss masks, tool spans and segment tags.",
+          "paths": [
+            "/row/routing/events",
+            "/row/routing/answer"
+          ]
+        },
+        {
+          "code": [
+            "student_pilot/carrier_c1_routing.py:97",
+            "student_pilot/carrier_c1_run.py:1139"
+          ],
+          "effect": "Prompt flag.",
+          "paths": [
+            "/row/routing/category"
+          ]
+        },
+        {
+          "code": [
+            "student_pilot/carrier_c1_data.py:167",
+            "student_pilot/carrier_c1_data.py:189"
+          ],
+          "effect": "Pose augmentation branch and frame arrays.",
+          "paths": [
+            "/row/category",
+            "/row/pose_sample"
+          ]
+        },
+        {
+          "code": [
+            "student_pilot/carrier_c1_data.py:363",
+            "student_pilot/carrier_c1_data.py:443"
+          ],
+          "effect": "Single-image encoding branch.",
+          "paths": [
+            "/row/provenance/input"
+          ]
+        },
+        {
+          "code": [
+            "student_pilot/gf1_cache.py:435"
+          ],
+          "effect": "Row identity and optional geometry cache corpus identity.",
+          "paths": [
+            "/row/dataset",
+            "/row/scene"
+          ]
+        },
+        {
+          "code": [
+            "student_pilot/carrier_c1_run.py:1120",
+            "student_pilot/carrier_c1_run.py:1137"
+          ],
+          "effect": "Raw SQL target identity required by ANSWER 1226Z, including formatting and SQL type.",
+          "paths": [
+            "/target"
+          ]
+        },
+        {
+          "code": [
+            "student_pilot/carrier_c1_data.py:365"
+          ],
+          "effect": "Presence controls the single-image branch.",
+          "paths": [
+            "/row/pointing"
+          ]
+        }
+      ],
+      "differing_rows": 0,
+      "extra_rows": 0,
+      "field_counts": {},
+      "fields": [
+        "/target",
+        "/row/student_input",
+        "/row/routing/events",
+        "/row/routing/answer",
+        "/row/routing/category",
+        "/row/category",
+        "/row/pose_sample",
+        "/row/provenance/input",
+        "/row/dataset",
+        "/row/scene",
+        "/row/pointing"
+      ],
+      "rows": 6,
+      "status": "PASS"
+    },
+    "b": {
+      "classes": {
+        "copied": {
+          "path_differences": 2294,
+          "rows": 6
+        },
+        "fps_source": {
+          "path_differences": 2,
+          "rows": 2
+        },
+        "ordinal": {
+          "path_differences": 4,
+          "rows": 4
+        },
+        "paths": {
+          "path_differences": 24,
+          "rows": 6
+        }
+      },
+      "rows": 6,
+      "status": "PASS",
+      "unclassified_paths": {}
+    },
+    "c": {
+      "complete": false,
+      "config_sha256": null,
+      "database_sha256": "ed3ec0895d5786843e1a1516fa9f79dff29537620d6d9159657fddd700f410ac",
+      "extent_receipt": null,
+      "key_set_sha256": null,
+      "refused_rows": null,
+      "rows": null,
+      "status": "FAIL"
+    },
+    "d": {
+      "key_set_sha256": null,
+      "reason": "Mode r does not reach preparation.",
+      "required_key_set_sha256": null,
+      "required_rows": 6,
+      "rows": null,
+      "status": "DEFERRED_TO_DISCOVERY"
+    }
+  },
+  "native_rules": "PASS",
+  "strict_P_gate": "E96:gate",
+  "sample_only_P_hash_substitution": true,
+  "scope": "Exact SQL text from 173817 published samples; six N rows have P counterparts after independent publication compaction. The full seven-row sample correctly failed for one missing counterpart. Chain unavailable for these sample stores; full decision uses REPLAY173817.json.",
+  "files": [
+    "nd.json",
+    "na.json.gz",
+    "nl.json.gz",
+    "routing_types.json",
+    "n_sample.json"
+  ]
+}

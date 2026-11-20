@@ -1,0 +1,120 @@
+{
+  "allowed_metadata_classes": {
+    "copied": {
+      "effective_exemption": false,
+      "paths": [
+        "/row/source_qid",
+        "/row/candidate_id",
+        "/row/question",
+        "/row/question_type",
+        "/row/answer",
+        "/row/gt_answer",
+        "/row/ground_record",
+        "/row/provenance",
+        "/row/tool_output_spans"
+      ],
+      "reader": "extent_receipt.py:16; r1_training.py:12; r0_exclusion.py:49"
+    },
+    "fps_source": {
+      "effective_exemption": false,
+      "paths": [
+        "/row/s1_source/frame_binding/fps_source"
+      ],
+      "reader": "r0_exclusion.py:49"
+    },
+    "ordinal": {
+      "effective_exemption": false,
+      "paths": [
+        "/i"
+      ],
+      "reader": "carrier_c1_run.py:1120; r1_population.py:184; r1_mix.py:70"
+    },
+    "paths": {
+      "effective_exemption": false,
+      "paths": [
+        "/row/s1_source/source/path",
+        "/row/s1_source/frame_binding/authority/map/path",
+        "/row/s1_source/frame_binding/authority/plan/path",
+        "/row/s1_source/frame_binding/authority/fps_authority/path"
+      ],
+      "reader": "r0_exclusion.py:49"
+    }
+  },
+  "comparison": "exact raw JSON value text; typed SQL columns; missing differs from null",
+  "content_field_paths": [
+    "/target",
+    "/row/student_input",
+    "/row/target",
+    "/row/routing/events",
+    "/row/routing/answer",
+    "/row/routing/category",
+    "/row/category",
+    "/row/pose_sample",
+    "/row/provenance/input",
+    "/row/pointing"
+  ],
+  "coverage": "All matched rows: exact encoder inputs and typed raw SQL target. Complete admission is independently checked by the native chain.",
+  "direct_row_fields": [
+    "student_input",
+    "target",
+    "routing",
+    "category",
+    "pose_sample",
+    "provenance",
+    "pointing"
+  ],
+  "evidence": [
+    {
+      "effect": "tool flag and question",
+      "paths": [
+        "/row/student_input",
+        "/row/routing/category"
+      ],
+      "reader": "student_pilot/carrier_c1_routing.py:96"
+    },
+    {
+      "effect": "rendered target, tool spans, segment tags; suffix_tokens:511 and finish:532 produce ids and loss masks",
+      "paths": [
+        "/row/routing/events",
+        "/row/routing/answer"
+      ],
+      "reader": "student_pilot/carrier_c1_routing.py:555"
+    },
+    {
+      "effect": "frame pins, indices, timestamps, FPS, frame count, anchors, partner frames, optional augmentation; encode:433 and pose_samples.py:301",
+      "paths": [
+        "/row/student_input",
+        "/row/category",
+        "/row/pose_sample"
+      ],
+      "reader": "student_pilot/carrier_c1_data.py:157"
+    },
+    {
+      "effect": "image/video encoding branch",
+      "paths": [
+        "/row/provenance/input",
+        "/row/pointing"
+      ],
+      "reader": "student_pilot/carrier_c1_data.py:363"
+    },
+    {
+      "effect": "chat prompt and target ids; encode_arrays:132, assistant_labels:17",
+      "paths": [
+        "/row/student_input",
+        "/row/target"
+      ],
+      "reader": "student_pilot/batches.py:102"
+    },
+    {
+      "effect": "raw stored target identity is independently required; row:1110 also runs all admission checks",
+      "paths": [
+        "/target"
+      ],
+      "reader": "student_pilot/carrier_c1_run.py:1120"
+    }
+  ],
+  "precedence": "An encode-field difference fails even within a counted metadata class.",
+  "recursive_read": "Recursive admission is criterion c; it does not turn every row field or the SQL ordinal into an encoder input.",
+  "schema": "f-v2",
+  "tree_sha256": "9d2bbb8ad209d91e21e56121785f62b0dddf3c8d9f14db8d23daf6dcd1d3591b"
+}

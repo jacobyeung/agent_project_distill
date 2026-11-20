@@ -1,0 +1,1 @@
+W=/scratch/jjyeung/orch_n30/tree_rebuild10_w; date -u +%TZ; grep -E " (b/v.py|b/resolve.py|b/l.py|job.sh)$" $W/w24x2/out/kit_n_go/SHA256SUMS.txt; grep -E " (b/v.py|b/resolve.py|b/l.py|job.sh)$" $W/w24m/out/kit_n_go/SHA256SUMS.txt

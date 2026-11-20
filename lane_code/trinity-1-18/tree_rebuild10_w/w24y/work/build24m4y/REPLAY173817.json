@@ -1,0 +1,135 @@
+{
+  "status": "PASS",
+  "source": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/work/d173817/173817",
+  "source_sha256": {
+    "nd.json": "c073a4e7839fcea0394e4c3aa1b5de2e1fc2394b85337d64e159598dfe807afb",
+    "chain.json": "ad3b9ab8c125582d2bc2e2df6b7996cbee1ccd1253fc62c27aee5b30e5bdb37d",
+    "timings.json": "baa2cde56c2e5d19df55e086daf48ce09e00c01dbdab547ec2df06f54054c330",
+    "routing_types.json": "0159be152c4aa82af7997ddac3c2c5aefee0f650341f380d00f2967166764726",
+    "proc_check.json": "f03c093c6dd121e7e269e915436fb95abdbcb5fd0acd82cf95e2202f09e5d05b"
+  },
+  "fail_before": {
+    "post_returncode": 1,
+    "rdiff_returncode": 1,
+    "task_i": "FAIL",
+    "field_counts": {
+      "/i": 39892,
+      "/row": 11663,
+      "/row/answer": 11663,
+      "/row/candidate_id": 11663,
+      "/row/ground_record": 11663,
+      "/row/gt_answer": 11663,
+      "/row/provenance": 11663,
+      "/row/question": 11663,
+      "/row/question_type": 11663,
+      "/row/s1_source": 11663,
+      "/row/source_qid": 11663,
+      "/row/tool_output_spans": 11663
+    },
+    "other": {
+      "exempted": 0,
+      "expected": "EXTENT_ROW_UNAUDITED",
+      "observed": "EXTENT_ROW_UNAUDITED",
+      "origin": "sealed_reference",
+      "qid": "vsi590k_169139",
+      "row_sha256": "d484ffc09e8b8db7658604976ebabd5bb78402cb9f65810d64def320f4bff6b8",
+      "status": "PASS"
+    }
+  },
+  "pass_after": {
+    "post_returncode": 0,
+    "task_i": "PASS",
+    "criteria": {
+      "a": {
+        "status": "PASS",
+        "rows": 43101,
+        "matched_rows": 43101,
+        "differing_rows": 0,
+        "fields": [
+          "/target",
+          "/row/student_input",
+          "/row/target",
+          "/row/routing/events",
+          "/row/routing/answer",
+          "/row/routing/category",
+          "/row/category",
+          "/row/pose_sample",
+          "/row/provenance/input",
+          "/row/pointing"
+        ],
+        "field_counts": {
+          "/target": 0,
+          "/row/student_input": 0,
+          "/row/target": 0,
+          "/row/routing/events": 0,
+          "/row/routing/answer": 0,
+          "/row/routing/category": 0,
+          "/row/category": 0,
+          "/row/pose_sample": 0,
+          "/row/provenance/input": 0,
+          "/row/pointing": 0
+        },
+        "examples": {},
+        "comparison": "exact raw JSON value text; typed SQL columns; missing differs from null"
+      },
+      "b": {
+        "status": "PASS",
+        "rows": 43101,
+        "classes": {
+          "copied": {
+            "content_rows": 0,
+            "path_differences": 4645708,
+            "rows": 11663
+          },
+          "fps_source": {
+            "content_rows": 0,
+            "path_differences": 6791,
+            "rows": 6791
+          },
+          "ordinal": {
+            "content_rows": 0,
+            "path_differences": 39892,
+            "rows": 39892
+          },
+          "paths": {
+            "content_rows": 0,
+            "path_differences": 46652,
+            "rows": 11663
+          }
+        },
+        "other_paths": {}
+      },
+      "c": {
+        "status": "PASS",
+        "rows": 43101,
+        "refused_rows": 0,
+        "complete": true,
+        "database_pin_equal": true,
+        "config_sha256": "b28f58a2522a4f34d7bb878c1e245784c27817fce95f923eff4f48e281081baf",
+        "databases": [
+          {
+            "path": "/tmp/q_22c714e1/p/q/selection/rows.sqlite",
+            "sha256": "5e35c3ce600a867be194911642caccb23098035b4bf08909e519a170a1c243df"
+          }
+        ],
+        "checked_key_set_sha256": "c2ba56c52ecca03d1fa6159229221eb401f067377d3c803c5a5e623875dd127e",
+        "database_key_set_sha256": "c2ba56c52ecca03d1fa6159229221eb401f067377d3c803c5a5e623875dd127e"
+      },
+      "d": {
+        "status": "DEFERRED_TO_DISCOVERY",
+        "database_rows": 43101,
+        "database_sha256": "5e35c3ce600a867be194911642caccb23098035b4bf08909e519a170a1c243df",
+        "database_key_set_sha256": "c2ba56c52ecca03d1fa6159229221eb401f067377d3c803c5a5e623875dd127e",
+        "rows": null,
+        "key_set_sha256": null,
+        "reason": "Mode r does not reach preparation; discovery must prove exact count and key-set identity."
+      }
+    },
+    "task_ii": "PASS",
+    "task_iii": "PASS",
+    "routing_types": "PASS",
+    "proc_returncode": 0
+  },
+  "scope": "Decision replay on authentic complete-population observations, not a new database scan or CPU job. Zero exact differences in published /student_input, /target, /routing etc; full leaf paths also show no new encoder-path or unclassified difference.",
+  "pending": "Next CPU job must run changed helpers over full staged SQL files, authenticate and scan auxiliary stores, and publish actual exit 0; only discovery can prove sampler population identity."
+}

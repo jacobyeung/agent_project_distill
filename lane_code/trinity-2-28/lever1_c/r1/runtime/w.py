@@ -82,6 +82,7 @@ def run(config,stop_at,*,clock=time.time):
         import torch
         if 'H100' not in torch.cuda.get_device_name(0):raise ValueError('E03')
         settings=settings_for(config['settings'],'devs1_routed');prepare_runtime(settings)
+        if any(settings.get(k) for k in ('sam3','selector_head','scale_head')):raise ValueError('E07')
         if settings['save_own_depth'] or settings['perception_memo_modules']!=['g3t']:raise ValueError('E04')
         captures=parity._captures(settings.get('frames_json',parity.FRAMES))
         dense=parity._captures(settings.get('dense_manifest',parity.DENSE))

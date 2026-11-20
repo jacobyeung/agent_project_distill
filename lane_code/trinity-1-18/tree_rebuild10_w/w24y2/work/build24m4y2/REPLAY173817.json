@@ -1,0 +1,211 @@
+{
+  "after": {
+    "criteria": {
+      "a": {
+        "compared_rows": 43101,
+        "derivation": [
+          {
+            "code": [
+              "carrier_c1_routing.py:511",
+              "carrier_c1_data.py:113",
+              "carrier_c1_data.py:207",
+              "batches.py:102",
+              "batches.py:132",
+              "pose_samples.py:301",
+              "gf1.py:302",
+              "gf1_cache.py:220"
+            ],
+            "effect": "Prompt tokens, options, frame bytes, frame indices, timestamps, fps, frame layouts and anchors.",
+            "paths": [
+              "/row/student_input"
+            ]
+          },
+          {
+            "code": [
+              "carrier_c1_routing.py:138",
+              "carrier_c1_routing.py:555",
+              "carrier_c1_routing.py:529",
+              "ground_rows.py:13"
+            ],
+            "effect": "Target tokens, loss masks, tool spans and segment tags.",
+            "paths": [
+              "/row/routing/events",
+              "/row/routing/answer"
+            ]
+          },
+          {
+            "code": [
+              "carrier_c1_routing.py:97",
+              "carrier_c1_run.py:1139"
+            ],
+            "effect": "Prompt flag.",
+            "paths": [
+              "/row/routing/category"
+            ]
+          },
+          {
+            "code": [
+              "carrier_c1_data.py:167",
+              "carrier_c1_data.py:189"
+            ],
+            "effect": "Pose augmentation branch and frame arrays.",
+            "paths": [
+              "/row/category",
+              "/row/pose_sample"
+            ]
+          },
+          {
+            "code": [
+              "carrier_c1_data.py:363",
+              "carrier_c1_data.py:443"
+            ],
+            "effect": "Single-image encoding branch.",
+            "paths": [
+              "/row/provenance/input"
+            ]
+          },
+          {
+            "code": [
+              "carrier_c1_run.py:1120",
+              "carrier_c1_run.py:1137"
+            ],
+            "effect": "Raw SQL target identity required by ANSWER 1226Z, including formatting and SQL type.",
+            "paths": [
+              "/target"
+            ]
+          },
+          {
+            "code": [
+              "carrier_c1_data.py:365"
+            ],
+            "effect": "Presence controls the single-image branch.",
+            "paths": [
+              "/row/pointing"
+            ]
+          }
+        ],
+        "differing_rows": 0,
+        "extra_rows": 0,
+        "field_counts": {},
+        "fields": [
+          "/target",
+          "/row/student_input",
+          "/row/routing/events",
+          "/row/routing/answer",
+          "/row/routing/category",
+          "/row/category",
+          "/row/pose_sample",
+          "/row/provenance/input",
+          "/row/pointing"
+        ],
+        "rows": 43101,
+        "status": "PASS"
+      },
+      "b": {
+        "classes": {
+          "copied": {
+            "path_differences": 4645708,
+            "rows": 11663
+          },
+          "fps_source": {
+            "path_differences": 6791,
+            "rows": 6791
+          },
+          "ordinal": {
+            "path_differences": 39892,
+            "rows": 39892
+          },
+          "paths": {
+            "path_differences": 46652,
+            "rows": 11663
+          }
+        },
+        "rows": 43101,
+        "status": "PASS",
+        "unclassified_paths": {}
+      },
+      "c": {
+        "complete": true,
+        "config_sha256": "b28f58a2522a4f34d7bb878c1e245784c27817fce95f923eff4f48e281081baf",
+        "database_sha256": "5e35c3ce600a867be194911642caccb23098035b4bf08909e519a170a1c243df",
+        "extent_receipt": {
+          "path": "/tmp/q_22c714e1/p/q/u/c072905be4405a92d7bb906112209f2d27a8c9b58d291b64373c5551c3e96495",
+          "sha256": "c072905be4405a92d7bb906112209f2d27a8c9b58d291b64373c5551c3e96495"
+        },
+        "key_set_sha256": "c2ba56c52ecca03d1fa6159229221eb401f067377d3c803c5a5e623875dd127e",
+        "refused_rows": 0,
+        "rows": 43101,
+        "status": "PASS"
+      },
+      "d": {
+        "key_set_sha256": null,
+        "reason": "Mode r does not reach preparation.",
+        "required_key_set_sha256": "c2ba56c52ecca03d1fa6159229221eb401f067377d3c803c5a5e623875dd127e",
+        "required_rows": 43101,
+        "rows": null,
+        "status": "DEFERRED_TO_DISCOVERY"
+      }
+    },
+    "decision_returncode": 0
+  },
+  "before": {
+    "copied_rows": 11663,
+    "ordinal_rows": 39892,
+    "other_origin": "sealed_reference",
+    "post_returncode": 1,
+    "rdiff_returncode": 1,
+    "task_i": "FAIL"
+  },
+  "literal": {
+    "field_counts": {
+      "/i": 39892,
+      "/row": 11663,
+      "/row/answer": 11663,
+      "/row/candidate_id": 11663,
+      "/row/ground_record": 11663,
+      "/row/gt_answer": 11663,
+      "/row/provenance": 11663,
+      "/row/question": 11663,
+      "/row/question_type": 11663,
+      "/row/s1_source": 11663,
+      "/row/source_qid": 11663,
+      "/row/tool_output_spans": 11663
+    },
+    "metadata_classes": {
+      "copied": {
+        "content_rows": 11663,
+        "path_differences": 4645708,
+        "rows": 11663
+      },
+      "fps_source": {
+        "content_rows": 6791,
+        "path_differences": 6791,
+        "rows": 6791
+      },
+      "ordinal": {
+        "content_rows": 39892,
+        "path_differences": 39892,
+        "rows": 39892
+      },
+      "paths": {
+        "content_rows": 11663,
+        "path_differences": 46652,
+        "rows": 11663
+      }
+    },
+    "role": "information; superseded by ANSWER 1226Z"
+  },
+  "next_job": "Recompute full SQL comparisons, staged-store census/control selection, and publish the actual process exit status.",
+  "scope": "Offline decision replay from authenticated published full-population counters and the real chain; no SQL-store or CPU-job rerun.",
+  "source": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/work/d173817/173817",
+  "source_sha256": {
+    "chain.json": "ad3b9ab8c125582d2bc2e2df6b7996cbee1ccd1253fc62c27aee5b30e5bdb37d",
+    "n_sample.json": "1f635d0409324a5df9bd82008f3371bb2e303ccded0819d26b8fc6683a786b59",
+    "nd.json": "c073a4e7839fcea0394e4c3aa1b5de2e1fc2394b85337d64e159598dfe807afb",
+    "p_sample.json": "9556dfa4548d6880651ebb0a8f28b19268388f9c32e298b9c6020981ceab3f27",
+    "proc_check.json": "f03c093c6dd121e7e269e915436fb95abdbcb5fd0acd82cf95e2202f09e5d05b",
+    "routing_types.json": "0159be152c4aa82af7997ddac3c2c5aefee0f650341f380d00f2967166764726",
+    "timings.json": "baa2cde56c2e5d19df55e086daf48ce09e00c01dbdab547ec2df06f54054c330"
+  },
+  "status": "PASS"
+}

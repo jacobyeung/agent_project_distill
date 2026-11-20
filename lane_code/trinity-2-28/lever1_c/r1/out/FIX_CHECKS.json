@@ -1,0 +1,158 @@
+{
+  "staging": {
+    "passed": true,
+    "expanded_bytes": 29515891,
+    "limit_bytes": 33554432,
+    "actual_function": "orchard_h10.job.stage",
+    "external_assets": "tiny local fixtures",
+    "code_receipt": {
+      "bytes": 3610658,
+      "sha256": "aa7061d2f0b88a328f501d8b3160111fb7e252486958764384c07cab15d86871",
+      "seconds": 0.012439337006071582
+    }
+  },
+  "all_surfaces": {
+    "passed": true,
+    "json_strings": 1081,
+    "input_paths": 27,
+    "rgb_paths": 2912,
+    "removed": [
+      "sam_checkpoint",
+      "sam_receipt",
+      "selector_weights",
+      "selector_config"
+    ]
+  },
+  "identity": {
+    "passed": true,
+    "token": "a99a83187be42",
+    "delivery_bytes": 3490726,
+    "delivery_sha256": "672076c0edda7703c22500f4c9b3ce1b7f6e6421f23b3cc5d2174eef5b8115dd"
+  },
+  "dynamic_imports": {
+    "passed": true
+  },
+  "external_extraction": {
+    "passed": true,
+    "retained": [
+      "g/model.safetensors",
+      "g/config.json"
+    ],
+    "unused_opens": 0,
+    "corrupt_sha_rejected": true
+  },
+  "unlabelled_factory": {
+    "passed": true,
+    "tasks": 150,
+    "weight_loads": "stubbed"
+  },
+  "labels": {
+    "passed": true,
+    "all_data_assets_scanned": true,
+    "exact_prompt_rgb_bindings": 150
+  },
+  "opaque_json": {
+    "passed": true,
+    "capture_roundtrip": true,
+    "resource_bytes_exact": true
+  },
+  "naming": {
+    "passed": true,
+    "members": 316,
+    "unchanged_source_hashes": 270,
+    "launch_scripts": 6,
+    "deny": [
+      "split",
+      "vsi",
+      "revsi",
+      "scannet",
+      "arkit",
+      "sam",
+      "g3t",
+      "depth",
+      "distill",
+      "qwen",
+      "ground",
+      "dev",
+      "bench",
+      "mask",
+      "tower",
+      "reader",
+      "student",
+      "teacher",
+      "k1",
+      "t1"
+    ]
+  },
+  "preparation_inputs": {
+    "passed": true,
+    "unused_settings_absent": true,
+    "preparation_pins_verified": 3
+  },
+  "slow_upload": {
+    "passed": true,
+    "deadline": 240,
+    "finished_at": 238.0,
+    "calls": [
+      {
+        "argv": [
+          "gcloud",
+          "storage",
+          "cp",
+          "/scratch/jjyeung/orch_n30/lever1_c/r1/tests/fix_wixzz9ae/sj/b0/c/0.gz",
+          "gs://a0/a00000000000000000000c/0.gz"
+        ],
+        "timeout": 150.0,
+        "start": 0.0
+      },
+      {
+        "action": "publish",
+        "timeout": 80.0,
+        "start": 150.0
+      },
+      {
+        "action": "receipt",
+        "timeout": 8.0,
+        "start": 230.0
+      }
+    ]
+  },
+  "transfer_deadlines": {
+    "passed": true,
+    "calls": [
+      {
+        "action": "cp",
+        "timeout": 150.0,
+        "start": 0.0
+      },
+      {
+        "action": "objects",
+        "timeout": 50.0,
+        "start": 100.0
+      },
+      {
+        "action": "cat",
+        "timeout": 10.0,
+        "start": 140.0
+      }
+    ]
+  },
+  "worker_deadline": {
+    "passed": true,
+    "waits": [
+      1800.0,
+      20,
+      5
+    ],
+    "reaped_at": 1825.0,
+    "allocation_end": 2400
+  },
+  "unused_worker_inputs": {
+    "passed": true,
+    "unused_opens": 0,
+    "observed_opens": 4,
+    "prefills": 1,
+    "decode_steps": 0,
+    "weights": "CPU doubles"
+  }
+}

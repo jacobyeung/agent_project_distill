@@ -153,6 +153,8 @@ class PackageTests(unittest.TestCase):
         cls.B.extract((HERE/'out/delivery.tgz').read_bytes(),cls.package)
         cls.B.extract((cls.package/'0.tgz').read_bytes(),cls.payload)
         sys.path[:0]=[str(cls.payload/'b'),str(cls.payload/'tree'),str(cls.payload)]
+        import l
+        l.install(cls.payload)
 
     def test_package_pins_and_resource_argv(self):
         info=self.info
@@ -161,10 +163,10 @@ class PackageTests(unittest.TestCase):
         from orchard_h10.common import submit_argv
         argv=submit_argv(info['token'],1,'00:40:00')
         for arg in ('--exclude=orchard-community-4','--mem=200G','--partition=general','--gres=gpu:1','--cpus-per-task=16'):self.assertIn(arg,argv)
-        plan=json.loads((self.payload/'9.json').read_text());self.assertEqual(plan['stop_margin'],120)
+        plan=json.loads((self.payload/'9.json').read_text());self.assertEqual(plan['stop_margin'],270)
         for n in info['changed_payload']:
             if n.endswith('.py'):compile((self.payload/n).read_bytes(),n,'exec')
-        self.assertFalse(any(n.startswith(('b/','tree/','h1eval/','items/')) for n in info['changed_payload']))
+        for n,v in info['layout']['sources'].items():self.assertEqual(R.sha(self.payload/n),v['sha256'])
 
     def test_operator_entry_check_stub_weights(self):
         # Execute the delivered operator rehearsal, including real StageOne
@@ -182,8 +184,41 @@ class PackageTests(unittest.TestCase):
             result=op['rehearsal'](cfg)
         self.assertEqual(result[0]['expected'],150)
         self.assertTrue(op['memory_probe'](cfg)['fits'])
+        # Exercise the existing-file comparison as well as the first copy.
+        with patch.object(w,'bind_reader_root',return_value=self.payload/'b'):
+            self.assertEqual(op['rehearsal'](cfg),result)
+        import j
+        import layout
+        def check(value, name):
+            hits=[word for word in layout.DENY if word in value.lower()]
+            self.assertEqual(hits,[],str(name))
+        def strings(value):
+            if isinstance(value,str):yield value
+            elif isinstance(value,dict):
+                for key,item in value.items():yield key;yield from strings(item)
+            elif isinstance(value,list):
+                for item in value:yield from strings(item)
+        files=[]
+        for path in sorted((root/'r').rglob('*')):
+            name=path.relative_to(root/'r')
+            check(str(name),name)
+            if not path.is_file():continue
+            data=path.read_bytes()
+            check(data.decode('utf-8',errors='replace'),name)
+            if path.suffix=='.json':
+                # Decode JSON escapes with the unpatched parser. The a0 value
+                # remains opaque on disk; its logical contents retain provenance.
+                for value in strings(j.wire_loads(data)):check(value,name)
+            files.append(dict(path=str(name),bytes=len(data),sha256=R.sha(path)))
+        copied=root/'r/metadata/a/3.json'
+        source=self.payload/self.info['layout']['paths']['items/devs1_routed.json']
+        self.assertEqual(copied.read_bytes(),source.read_bytes())
+        self.assertEqual(set(j.wire_loads(copied.read_bytes())),{'a0'})
+        self.assertEqual(j.loads(copied.read_bytes()),j.loads(source.read_bytes()))
         R.dump(HERE/'out/CPU_ENTRY_STUB.json',dict(passed=True,stub_weights=True,actual_operator_rehearsal=True,
-           entries=result,payload=self.info['payload_sha256'],plan=self.info['plan_sha256']))
+           entries=result,payload=self.info['payload_sha256'],plan=self.info['plan_sha256'],
+           output_scan=dict(passed=True,raw=True,decoded_json=True,deny=list(layout.DENY),files=files),
+           item_copy_exact=True,repeated_rehearsal=True))
 
     def test_numeric_entry_dispatch_stub_weights(self):
         from g import w
@@ -195,8 +230,10 @@ class PackageTests(unittest.TestCase):
             self.test_capture_one_real_geometry_stub_prefill()
             called.append(True)
             return dict(failure=None)
-        with patch.object(common,'install_process_guard'),patch.object(w,'run',side_effect=worker),patch.object(sys,'argv',[str(self.payload/'orchard_h10/entry.py'),str(config)]):
-            with self.assertRaises(SystemExit) as end:runpy.run_path(str(self.payload/'orchard_h10/entry.py'),run_name='__main__')
+        from orchard_h10.runner import control
+        entry=control(dict(package=str(self.payload),output=str(root/'r')))/'5.py'
+        with patch.object(common,'install_process_guard'),patch.object(w,'run',side_effect=worker),patch.object(sys,'argv',[str(entry),str(config)]):
+            with self.assertRaises(SystemExit) as end:runpy.run_path(str(entry),run_name='__main__')
         self.assertEqual(end.exception.code,0);self.assertEqual(called,[True])
 
     def test_failed_parity_preserves_complete_return(self):

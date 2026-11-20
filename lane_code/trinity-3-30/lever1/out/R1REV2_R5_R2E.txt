@@ -1,0 +1,183 @@
+R2E_DONE rc=0 2026-11-20T19:27:31Z
+=====R1REV2
+**GO AFTER FIXES — complete the naming boundary and reconcile the delivery identity before placement.**
+
+Review returned inline because the sandbox is read-only. Paths below are relative to `r1/`; `D/` denotes `out/delivery.tgz`, and `P/` denotes its inner `0.tgz`.
+
+1. **Prior finding 3 remains open: external inputs expose model names.** `D/a/1.json:136,141` names `/scratch/jjyeung/b01ec87a6f29b/d/k/sam3.pt` and `SAM3_RECEIPT.json`. Production staging extracts these archives and checks these paths (`P/orchard_h10/job.py:118–126`). The naming regression scans payload members and launch surfaces, but misses external archive contents (`tests/test_fixes.py:87–110`). Extend opaque staging and its test to every job-visible input path while preserving content authentication.
+
+2. **The reviewed artifact differs from the requested identity.** `PLACE.md:3,16` and the delivery specify token `ab6ea69ea972b`, job `a15_cot_apab6ea69ea972b`; the request specifies `a09fdd101cc93`. Reconcile the placement handoff with the exact reviewed artifact. Current delivery: **2,668,881 bytes**, SHA256 `8dee5268e3fe2583a60464c57223d031a3153b3ab32e907095ffaeef8365b8ee`.
+
+The other prior findings are fixed:
+
+- **Finding 1 — staging size:** independently measured **16,501,670 expanded bytes**, below **33,554,432**. The production-stage regression checks installed payload hashes (`tests/test_fixes.py:40–62`).
+- **Finding 2 — labels:** task whitelisting removes labels and reseals task bindings (`layout.py:26–38`). Independent payload JSON scans found no prohibited label keys; all **150 prompt/RGB bindings** match T1.
+- **Finding 4 — deadlines:** worker termination reserves publication time (`D/a/6.py:108–124`); capture, normal publication, and fallback share bounded windows (`runtime/budget.py:46–68`). Recorded regressions cover slow transfers and worker reaping (`tests/test_fixes.py:153–213`).
+
+Remaining checks:
+
+- External input pins match T1. Resource arguments satisfy general, gpu:1, 16 CPUs, 200G, exclusion, and 40 minutes (`P/orchard_h10/common.py:62–71`); the worker cap is 30 minutes.
+- All **270 retained sources** match parent bytes. Geometry construction precedes segmentation; the writer enforces one prefill and zero decode steps (`runtime/w.py:39–62`). The format preserves the **32×51×51** grid losslessly (`depth_format.py:13–44`).
+- Independently recomputed bounds match all ten T1 repeats; all 149 calling-item geometries fit their 60 representatives (`build_depth.py:23–42`).
+- Upload enforces the **1 GB cap** and verifies generation, size, and readback hash (`P/orchard_h10/job.py:138–174`). Failed camera parity retains the capture (`runtime/w.py:103–123`).
+- The **0.00 m / 95% all-150 gate** precedes interventions (`relift.py:235–254`). Cells b–g match the stated definitions, including rank-3 transport (`relift.py:66–101,285–306`).
+- Independently confirmed **56 eligible items / 28 captures**. Bootstrap uses 10,000 paired room draws, seed 20261120, with dataset splits (`relift.py:195–203`; `gbuild/round7_common.py:40–66`).
+
+**Validation:** all listed checksums pass; eight read-only tests pass, including 20 real T1 gap checks. Recorded package regressions report 22 passes; write-dependent tests were not rerun. Full depth parity awaits the return. Dev-S1 remains a held-out diagnostic.=====R5
+**Blocked at reproduction: 0/22 accepted; the 15/22 bar remains untested.** Independent inputs for the three reference rebuilds are missing. No GT NPZs were emitted.
+
+Verified: 545/545 staged raw files, 704/704 served PNG hashes, 38 reference schemas, and 5 passing tests.
+
+Files:
+- [Report](out/NOGT_REPORT.md)
+- [Missing reproduction inputs](out/REPRO_INPUTS_REQUIRED.json)
+- [Audit evidence](out/PREFLIGHT.json)
+- [Tests](out/TESTS.log)
+- [Checksums](out/SHA256SUMS)
+
+Deviations: reproduction, GT generation, and per-capture geometry/binding checks remain blocked. Stage the listed reference inputs to continue.=====R5REPORT
+# NOGT: blocked at reproduction
+
+Verdict: 0/22 accepted, 22/22 blocked; the required 15/22 bar is not established. No GT NPZs were emitted.
+The requested three independent rebuilds could not run. Array equality is UNKNOWN, not a mismatch or a pass.
+All 545 requested raw files exist; stage.log records PIPE_RC 0 0 0 0. All 704 served PNG hashes match.
+All 38 reference NPZ schemas were inspected. Five input/gate/raycast tests pass; they do not prove reproduction.
+
+| Reproduction capture | Dataset | Result | Missing independent inputs |
+|---|---|---|---|
+| scene0166_00 | ScanNet | NOT RUN; equality unknown | Raw scene or instance_mesh.npz, official_cameras.npz, instances.json |
+| 17c5e6a336 | ScanNet++ | NOT RUN; equality unknown | instance_mesh.npz and official_cameras.npz; mirrored instances.json exists |
+| 41069053 | ARKit | NOT RUN; equality unknown | Trajectory, 32 depth PNGs, 32 pincams, full depth listing; mirrored annotation exists |
+
+Local file inventories found no .sens or .ply outside the new 22, and no production prepared mesh/camera pairs.
+The clean-room archive contains builder code and an input inventory, not reproduction meshes, cameras, or depth images.
+The mirrored proof folders contain annotations only. Inspected local input/audit archive listings supplied no missing assets.
+For 17c5e6a336, all stored obb_lengths equal mirrored annotation axesLengths; the existing scoring adapter doubles them.
+The required reference-mesh extent check remains unavailable. No box convention was applied to a new NPZ.
+
+Each FAIL below means acceptance blocked by the common reproduction prerequisite; it is not a measured geometry failure.
+Self-consistency, same/best-alternative mask IoU, and pose/COLMAP errors are unmeasured (—); no proxy score substitutes for them.
+
+| Capture | Raw files present | RGB hashes | Self-consistency | Same/alt IoU | Applied convention | Acceptance |
+|---|---:|---:|---|---|---|---|
+| 41126645 | 66/66 | 32/32 | — | —/— | none | FAIL: blocked |
+| 41159771 | 66/66 | 32/32 | — | —/— | none | FAIL: blocked |
+| 41159772 | 66/66 | 32/32 | — | —/— | none | FAIL: blocked |
+| 41254810 | 66/66 | 32/32 | — | —/— | none | FAIL: blocked |
+| 42446097 | 66/66 | 32/32 | — | —/— | none | FAIL: blocked |
+| 42899829 | 66/66 | 32/32 | — | —/— | none | FAIL: blocked |
+| 47331002 | 66/66 | 32/32 | — | —/— | none | FAIL: blocked |
+| scene0261_02 | 5/5 | 32/32 | — | —/— | none | FAIL: blocked |
+| scene0320_01 | 5/5 | 32/32 | — | —/— | none | FAIL: blocked |
+| scene0380_01 | 5/5 | 32/32 | — | —/— | none | FAIL: blocked |
+| scene0515_00 | 5/5 | 32/32 | — | —/— | none | FAIL: blocked |
+| scene0515_01 | 5/5 | 32/32 | — | —/— | none | FAIL: blocked |
+| scene0642_01 | 5/5 | 32/32 | — | —/— | none | FAIL: blocked |
+| scene0666_01 | 5/5 | 32/32 | — | —/— | none | FAIL: blocked |
+| 246fe09e98 | 6/6 | 32/32 | — | —/— | none | FAIL: blocked |
+| 37c9538a2b | 6/6 | 32/32 | — | —/— | none | FAIL: blocked |
+| 38fcf02d0b | 6/6 | 32/32 | — | —/— | none | FAIL: blocked |
+| 3ce6d36ab5 | 6/6 | 32/32 | — | —/— | none | FAIL: blocked |
+| ca3b651c23 | 6/6 | 32/32 | — | —/— | none | FAIL: blocked |
+| d6bb698875 | 6/6 | 32/32 | — | —/— | none | FAIL: blocked |
+| e35232b92f | 6/6 | 32/32 | — | —/— | none | FAIL: blocked |
+| e667e09fe6 | 6/6 | 32/32 | — | —/— | none | FAIL: blocked |
+
+Next input: stage the independent inputs listed in REPRO_INPUTS_REQUIRED.json for one existing capture per dataset.
+After they reproduce, the same builder path must build the 22 and run REPORT6 geometry and round-9 binding checks.
+Artifacts: PREFLIGHT.json contains all capture anchors, frame hashes, and reference schemas; REPRO_INPUTS_REQUIRED.json lists the blocker.
+Tests: out/TESTS.log; sources: code/preflight.py and code/test_preflight.py; clean-room sources: code/builder_cr/.
+Rerun: OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1 CUDA_VISIBLE_DEVICES='' nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B code/test_preflight.py
+Deviations: no independent rebuild, anchor-pose extraction, mesh extent verification, GT build, or capture geometry/binding scores.
+Execution: trinity-2-28; CPU only; writes confined to nogt; no SSH, Git, network, GPU, kills, deletions, or /home or /data* reads.
+[
+  {
+    "dataset": "scannet",
+    "capture": "scene0166_00",
+    "reference": "/scratch/jjyeung/orch_n30/cont_ops24_c/gt/t1_gt/gt/scannet__scene0166_00.npz",
+    "required": [
+      "instance_mesh.npz",
+      "official_cameras.npz",
+      "instances.json"
+    ],
+    "raw_alternative": [
+      "scene0166_00.sens",
+      "scene0166_00_vh_clean_2.ply",
+      "scene0166_00_vh_clean_2.0.010000.segs.json",
+      "scene0166_00.aggregation.json",
+      "scene0166_00.txt"
+    ],
+    "independent_inputs": false,
+    "all_arrays_equal": null,
+    "status": "NOT_RUN_MISSING_INPUTS"
+  },
+  {
+    "dataset": "scannetppv2",
+    "capture": "17c5e6a336",
+    "reference": "/scratch/jjyeung/orch_n30/cont_ops24_c/gt/t1_gt/gt/scannetppv2__17c5e6a336.npz",
+    "searched_proof_dir": "/scratch/jjyeung/distill_sync/repo/lane_code/trinity-1-18/gt_rasters/work/proof_pinned/spp_17c5e6a336",
+    "available": [
+      "instances.json"
+    ],
+    "missing": [
+      "instance_mesh.npz",
+      "official_cameras.npz"
+    ],
+    "independent_inputs": false,
+    "all_arrays_equal": null,
+    "status": "NOT_RUN_MISSING_INPUTS"
+  },
+  {
+    "dataset": "arkitscenes",
+    "capture": "41069053",
+    "reference": "/scratch/jjyeung/orch_n30/cont_ops24_c/gt/arkit_gt/gt/41069053.npz",
+    "searched_proof_dir": "/scratch/jjyeung/distill_sync/repo/lane_code/trinity-1-18/gt_rasters/work/proof_arkit2/src",
+    "available": [
+      "41069053_3dod_annotation.json"
+    ],
+    "missing": [
+      "41069053_frames/lowres_wide.traj",
+      "32 anchor lowres_depth PNGs",
+      "32 matching lowres_wide_intrinsics pincams",
+      "full timestamp-sorted depth listing"
+    ],
+    "independent_inputs": false,
+    "all_arrays_equal": null,
+    "status": "NOT_RUN_MISSING_INPUTS"
+  }
+]
+=====R2E
+Fixed GT-depth eligibility and hole sampling. **10 of 17 audited refusals now answer; seven lack usable depth.** All **19 tests pass**, and **10,024 served-depth row/cell outputs remain identical**. `out/` is untouched.
+
+Part 1: held-out MRA-point changes, with 95% CIs. A uses the full population; B uses identical valid frame support.
+
+| Contrast | A | B | ARKit A / B | ScanNet/++ A / B |
+|---|---:|---:|---:|---:|
+| C1 | −0.46 [−4.86, 3.51] | +1.69 [−1.79, 5.72] | −2.25 / +2.35 | +1.14 / +1.18 |
+| C3 depth | +3.94 [0.86, 7.22] | +3.94 [0.86, 7.22] | +2.94 / +2.94 | +4.82 / +4.82 |
+| C3 pose | −0.19 [−3.54, 3.69] | −0.19 [−3.54, 3.69] | +1.47 / +1.47 | −1.67 / −1.67 |
+| C3 joint, own scale | +3.70 [−0.30, 8.06] | +3.70 [−0.30, 8.06] | +4.51 / +4.51 | +2.98 / +2.98 |
+| C3 full GT geometry | +7.13 [3.08, 11.59] | +7.13 [3.08, 11.59] | +11.96 / +11.96 | +2.81 / +2.81 |
+
+A includes 216 rows. C1 B retains **195/216 rows across 46 rooms**: ARKit 85/102; ScanNet/++ 110/114. C3 B retains all 216 rows.
+
+**Verdicts:** Overall C1 says “geometry waits for masks” under both readings. **ARKit disagrees: A says “waits,” B says “undecided”; neither reading is preferred.** Overall C3 depth/pose gates and the full arm-B gate fail. ARKit meets the interaction criterion.
+
+Part 2: BOX scores under deployed masks.
+
+| Rule | Held-out MRA | Δ [95% CI] | Train1012 | GT-mask held-out | Δ ARKit / ScanNet++ combined |
+|---|---:|---:|---:|---:|---:|
+| Base | 63.29 | — | 56.93 | 72.64 | — |
+| E3 fusion | 66.25 | +2.96 [−0.90, 7.13] | 57.83 | 61.30 | +0.20 / +5.44 |
+| `vote_10_3_best` | **68.94** | **+5.65 [2.09, 9.62]** | 60.20 | 78.98 | +3.53 / +7.54 |
+| Robust centre | 58.98 | −4.31 [−8.65, 0.00] | 55.39 | 67.96 | −5.98 / −2.81 |
+| Area floor, F=0 | 63.29 | 0.00 [0.00, 0.00] | 56.93 | 72.64 | 0.00 / 0.00 |
+
+**Frozen voting clears the held-out bar; a proposal remains pending rank 1’s dev-item check.** The other rules fail the bar.
+
+Files, including all eight GT-depth rows under A and B:
+
+- Part 1: [report](out4/REPORT_R2_4.md), [K1X4.json](out4/K1X4.json), [SHA256SUMS](out4/SHA256SUMS).
+- BOX: [report](out_box/REPORT_BOX.md), [BOX.json](out_box/BOX.json), [SHA256SUMS](out_box/SHA256SUMS).
+
+Both checksum manifests verify. Deviations: persistent command sessions replaced tmux; small required skill files were read under `/home`. Experiment data stayed on `/scratch`.

@@ -72,7 +72,7 @@ def report(result):
         av=' / '.join(K.fmt(R['A']['heldout'][d]['contrasts'][k]['delta'],False) for d in GROUPS[1:])
         bv=' / '.join(K.fmt(R['B']['heldout'][d]['contrasts'][k]['delta'],False)+f" (n={R['B']['heldout'][d]['contrasts'][k]['n']})" for d in GROUPS[1:])
         tv=' / '.join(K.fmt(R[m]['train1012']['all']['contrasts'][k]['delta'],False) for m in ('A','B'))
-        lines.append(f"| {k} | {K.fmt(a['delta'])} | {K.fmt(b['delta'])}; {b['n']}/{b['total']} | {av} | {bv} | {tv} |")
+        lines.append(f"| {k} | {K.fmt(a['delta'])} | {K.fmt(b['delta'])}; {b['n']}/{b['total']}, {b['rooms']} rooms | {av} | {bv} | {tv} |")
     lines+=['','| GT-depth cell: masks/depth/pose/scale | A all / ARKit / SN+SN++ | B all / ARKit / SN+SN++ (n) | T1012 A / B (n) |',
             '|---|---:|---:|---:|']
     for k in R['A']['heldout']['all']['gt_depth_rows']:
@@ -82,12 +82,21 @@ def report(result):
         lines.append(f"| {k} | {av} | {bv} | {K.fmt(tr[0]['arm_score'],False)} / {K.fmt(tr[1]['arm_score'],False)} ({tr[1]['n']}) |")
     lines+=['B pairs each GT-depth row with the same masks, pose and scale under G3T depth; JSON records both scores, their paired difference and coverage.',
             'C1 compares full GT geometry with served geometry at deployed masks. C3 depth/pose/joint retain own scale; C3_full_gap also replaces scale.','']
+    cross=result['cross_program']['heldout']['all']
+    lines.append(f"Cross-program GT masks: served geometry {K.fmt(cross[K.BASE]['served'],False)} versus GD/E3 75.05, paired difference {K.fmt(cross[K.BASE]['paired_difference'])}; GT endpoint {K.fmt(cross[K.END]['served'],False)} versus 91.99, difference {K.fmt(cross[K.END]['paired_difference'])}.")
     for mode in ('A','B'):
         v=R[mode]['heldout']['all']['verdicts']
         lines.append(f"{mode} verdicts: C1 {v['C1']}; C3 depth {v['C3_depth']}; C3 pose {v['C3_pose']}; {v['C3_interaction']}; arm B full gate {v['arm_B_full_gate']['verdict']}.")
         lines.append(f"{mode} other bars: C5 {v['C5']}; C6 {v['C6']}; Pi3X {v['Pi3X']}; DA3 {v['DA3']}.")
     differences=result['bar_disagreements']
-    lines.append('A/B bar disagreements: '+(json.dumps(differences,sort_keys=True)+'; retain both readings without choosing one.' if differences else 'none on held-out; neither reading is preferred.'))
+    descriptions=[]
+    for ds,changes in differences.items():
+        for name,change in changes.items():
+            if name=='arm_B_full_gate':
+                changes2=[f"{k} {change['A']['conditions'][k]}/{change['B']['conditions'][k]}" for k in change['A']['conditions'] if change['A']['conditions'][k]!=change['B']['conditions'][k]]
+                descriptions.append(ds+' arm B components: '+', '.join(changes2))
+            else:descriptions.append(f"{ds} {name}: {change['A']} / {change['B']}")
+    lines.append('A/B bar disagreements: '+('; '.join(descriptions)+'; retain both readings without choosing one.' if differences else 'none on held-out; neither reading is preferred.'))
     for ds in GROUPS[1:]:
         for mode in ('A','B'):
             v=R[mode]['heldout'][ds]['verdicts']
@@ -97,7 +106,7 @@ def report(result):
             'Scale matching retains s=own or E3 oracle SO and q=s/SO. G3T depth/translations use s; GT depth/translations use q. Served intrinsics and the 51×51 endpoint grid remain fixed.',
             'These GT-depth endpoints remain conditional on mask coverage, served intrinsics, coarse sampling, spread filtering and the served distance program.',
             'The two absent convert geometries use the ladder tower.npz plus own.npz reconstruction. Pi3X/DA3 and oracle-extent input gaps remain explicit in the JSON.',
-            'Execution: CPU, nice 10; eight factorial workers and four E3 BOX workers plus their two parents, at most 14 processes. All experiment inputs and outputs use local /scratch. No subagents, SSH or Git.',
+            'Execution: CPU, nice 10; eight factorial workers, four E3 BOX workers and their parents, at most 15 Python processes including concurrent tests. All experiment inputs and outputs use local /scratch. No subagents, SSH or Git.',
             'Deviations: small writing-skill files were read from /home; experiment data remained on /scratch. The run uses a persistent command session, consistent with the existing sandbox limitation on tmux.',
             'No missing sensor raster was restored; A measures the corrected available-depth intervention, and B measures identical valid frame support.',
             'Borderline no-archaeology sentences retained: the served-output parity comparison, because the requested regression explicitly requires it.',
@@ -218,6 +227,7 @@ def main():
     box=B.summarize(records,M)
     frozen=json.loads((OUT/'BOX_FREEZE.json').read_text())
     assert K.clean(box['freeze'])==frozen
+    K.write(BOX/'FREEZE.json',frozen)
     box['input_sha256']=result['input_sha256'];box['source_factorial']='out4/K1X4.json'
     add_e3(box,records,M)
     K.write(BOX/'BOX.json',box);(BOX/'REPORT_BOX.md').write_text(box_report(box))
