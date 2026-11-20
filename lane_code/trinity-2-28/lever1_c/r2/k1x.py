@@ -190,7 +190,40 @@ def sample_gt(gt,axis):
     y=np.clip(np.floor(axis/1000*h).astype(int),0,h-1)
     d=gt['depth'][:,y[:,None],x[None,:]].astype(float)
     d[~gt['valid'].astype(bool)]=np.nan
+    d[~np.isfinite(d) | (d<=0)]=np.nan
     return d
+
+
+def masked_gt_depth(self,frame,uv):
+    """Normalize bilinear weights over positive samples; holes have no weight."""
+    d=self.depth_grid[frame-1]
+    x,y=np.clip(np.asarray(uv)*((len(d)-1)/1000),0,len(d)-1).T
+    x0,y0=np.floor(x).astype(int),np.floor(y).astype(int)
+    x1,y1=np.minimum(x0+1,len(d)-1),np.minimum(y0+1,len(d)-1)
+    fx,fy=x-x0,y-y0
+    values=np.stack([d[y0,x0],d[y0,x1],d[y1,x0],d[y1,x1]])
+    weights=np.stack([(1-fx)*(1-fy),fx*(1-fy),(1-fx)*fy,fx*fy])
+    ok=np.isfinite(values)&(values>0)
+    weights=np.where(ok,weights,0.)
+    den=weights.sum(0)
+    return np.divide((np.where(ok,values,0.)*weights).sum(0),den,
+                     out=np.full_like(den,np.nan),where=den>0)
+
+
+def masked_gt_lift(self,frame,uv,mode='center'):
+    """Keep the reader's stencil and spread rule, excluding absent samples."""
+    if mode!='center':raise ValueError('centre_depth_required')
+    uv=np.asarray(uv,float)
+    offsets=np.array([(dx,dy) for dx in np.linspace(-10,10,5) for dy in np.linspace(-10,10,5)])
+    stencil=np.clip(uv[:,None]+offsets,0,1000)
+    d=self.depth(frame,stencil.reshape(-1,2)).reshape(len(uv),25)
+    valid=np.isfinite(d).any(1)
+    pct=np.full((3,len(uv)),np.nan)
+    pct[:,valid]=np.nanpercentile(d[valid],(20,50,80),axis=1)
+    p20,p50,p80=pct
+    pc=self.rays(frame,uv)*self.depth(frame,uv)[:,None]
+    R,t=self.cam(frame)
+    return pc@R.T+t,pc,(p80-p20)/np.maximum(p50,1e-3)
 
 
 def gt_camera_poses(gt):
@@ -226,7 +259,7 @@ def swapped(geo,t,own,gt,meta,depth,pose,scale,D):
     if pose=='GT':
         C=gt_camera_poses(gt)[0]
         C[:,:3,3]*=q
-    valid=gt['valid'].astype(bool) if depth=='GT' or pose=='GT' else np.ones(32,bool)
+    valid=gt['valid'].astype(bool) if pose=='GT' else np.ones(32,bool)
     if pose=='GT':
         # Invalid GT anchors never answer. Finite placeholders only satisfy the
         # reader's array validator; has() excludes them from the program.
@@ -235,6 +268,11 @@ def swapped(geo,t,own,gt,meta,depth,pose,scale,D):
         depth_grid=d,grid_uv=t['grid_uv'],anchor_frame_indices=c_anchors(geo))
     if not valid.all():
         result.has=lambda frame:type(frame) is int and 1<=frame<=32 and bool(valid[frame-1])
+    result.gt_depth_frame_available=gt['valid'].astype(bool)&np.any(np.isfinite(gt['depth'])&(gt['depth']>0),axis=(1,2))
+    if depth=='GT':
+        result.depth_eligible=result.gt_depth_frame_available
+        result._raw_depth=types.MethodType(masked_gt_depth,result)
+        result.lift=types.MethodType(masked_gt_lift,result)
     return result
 
 
@@ -242,15 +280,23 @@ def c_anchors(geo):return np.array(geo.frame_map.source_indices)
 
 
 def lifted(masks,geo,D):
-    return {n:dict(D.pricing.lift_frames(n,m,geo,D.G),boxes={}) for n,m in masks.items()}
+    eligible=getattr(geo,'depth_eligible',None)
+    return {n:dict(D.pricing.lift_frames(n,m if eligible is None else m&eligible[:,None,None],geo,D.G),boxes={}) for n,m in masks.items()}
 
 
 def predict(row,geo,objects,D,rule='best1'):
+    support={}
+    if hasattr(geo,'gt_depth_frame_available'):
+        frames={n:min(objects[n]['visible'],key=lambda f:(-objects[n]['areas'][str(f)],f))
+                if objects[n].get('visible') else None for n in row['operands']}
+        support=dict(selected_frames=frames,gt_depth_support=all(f is not None and geo.gt_depth_frame_available[f-1] for f in frames.values()))
+    missing={n:objects[n]['oracle_error'] for n in row['operands'] if objects[n].get('oracle_error')}
+    if missing:return dict(prediction=None,refusal='oracle_input_unavailable',printed={},input_available=False,missing=missing,**support)
     try:
         p,ref,raw,printed=D.pricing.session_distance(row,geo,objects,D.G,rule)
-        return dict(prediction=p,refusal=ref,printed=printed)
+        return dict(prediction=p,refusal=ref,printed=printed,**support)
     except (ValueError,KeyError,IndexError) as e:
-        return dict(prediction=None,refusal=type(e).__name__+':'+str(e),printed={})
+        return dict(prediction=None,refusal=type(e).__name__+':'+str(e),printed={},**support)
 
 
 def cell_name(m,d,p,s):return '/'.join((m,d,p,s))
@@ -271,8 +317,10 @@ def extent_objects(c,objects,gt,geo,boxes,kind):
     for n,obj in objects.items():
         new=dict(obj,boxes=dict(obj['boxes']))
         if obj['seen'] and 'best1' in obj['boxes']:
-            record=boxes[(c['canonical'],c['gt_name_ids'][n][0])]
-            if record['status'] not in ('full','half'):raise ValueError('unresolved_extent_convention')
+            record=boxes.get((c['canonical'],c['gt_name_ids'][n][0]))
+            error='missing_annotation' if record is None else ('unresolved_extent_convention' if kind=='oracle_extent' and record['status'] not in ('full','half') else None)
+            if error:
+                new['oracle_error']=error;result[n]=new;continue
             b=record['box'];raw=dict(obj['boxes']['best1'])
             if kind=='oracle_centre':raw['centroid']=transform@np.array(b['centroid'])+origin
             else:
@@ -330,6 +378,8 @@ def diagnostics(c,gmasks,geo,own_geo,gt,objects,D):
 def run_capture(c,args,I,D,M,head,phase):
     start=time.monotonic()
     geo,t,own,gt,cache,meta=load_capture(c,args,I,D)
+    geo.gt_depth_frame_available=gt['valid'].astype(bool)&np.any(np.isfinite(gt['depth'])&(gt['depth']>0),axis=(1,2))
+    meta['gt_depth_frame_available']=geo.gt_depth_frame_available.tolist()
     names=sorted({n for r in c['rows'] for n in r['operands']})
     gm=gt_masks(c,names,gt)
     dm,choices=selected_masks(c,names,geo,cache,gt,head,D)
@@ -369,7 +419,7 @@ def run_capture(c,args,I,D,M,head,phase):
                 obs=extent_objects(c,objects[m],gt,geo,M.boxes,kind)
                 for r in c['rows']:per[r['id']]['cells'][m+'/'+kind]=predict(r,geo,obs,D)
             except (KeyError,ValueError) as e:
-                for r in c['rows']:per[r['id']]['cells'][m+'/'+kind]=dict(prediction=None,refusal=str(e),printed={})
+                for r in c['rows']:per[r['id']]['cells'][m+'/'+kind]=dict(prediction=None,refusal=str(e),printed={},input_available=False)
     tower_info={}
     for label,folder in [('Pi3X','pi3x_native'),('DA3','da3_native')]:
         path=args.towers/folder/(c['canonical'].replace('/','__')+'.npz')
@@ -381,6 +431,7 @@ def run_capture(c,args,I,D,M,head,phase):
             s=D.median_ratio(d,t['depth_conf_grid'],own['depth'])
             g=D.geometry.from_arrays(K=geo.K,canvas_to_source=geo.A,camera_to_world=geo.C,scale=1.,
                 depth_grid=d*s,grid_uv=t['grid_uv'],anchor_frame_indices=c['anchor_indices'])
+            g.gt_depth_frame_available=geo.gt_depth_frame_available
             tower_info[label]=dict(path=str(path),own_scale=s,status='OK')
             for m,ms in masks.items():
                 obs=lifted(ms,g,D)
@@ -388,11 +439,13 @@ def run_capture(c,args,I,D,M,head,phase):
         else:
             tower_info[label]=dict(path=str(path),status='MISSING')
             for r in c['rows']:
-                for m in masks:per[r['id']]['cells'][m+'/'+label]=dict(prediction=None,refusal='missing_tower_export',printed={})
+                for m in masks:per[r['id']]['cells'][m+'/'+label]=dict(prediction=None,refusal='missing_tower_export',printed={},input_available=False)
     diag=diagnostics(c,gm,geo,og,gt,objects,D)
     for rid,row in per.items():row['diagnostics']=diag[rid]
+    from box_followup import capture_box
+    box=capture_box(c,geo,masks,objects,D,M)
     return dict(capture=c['canonical'],phase=phase,rows=list(per.values()),parity=parity,geometry=meta,choices=choices,
-        towers=tower_info,seconds=time.monotonic()-start,input_sha256=I.hashes)
+        towers=tower_info,box=box,seconds=time.monotonic()-start,input_sha256=I.hashes)
 
 _BOOT={}
 def bootstrap(rows,values):
@@ -476,21 +529,29 @@ def aggregate(args,M,I,records):
         registered_cells=CELLS,extra_cells=EXTRAS,contract=CONTRACT)
     for rec in records:result['input_sha256'].update(rec['input_sha256'])
     cells=CELLS+EXTRAS if full else [BASE,DBASE]
-    tables={};contrasts={};cross={};diags={}
+    tables={};contrasts={};cross={};diags={};coverage={};available_contrasts={}
     pairs=CONTRAST_PAIRS if full and all(p['passed'] for p in parity) else {}
     for split,ids in M.sets.items():
-        tables[split]={};contrasts[split]={};cross[split]={};diags[split]={}
+        tables[split]={};contrasts[split]={};cross[split]={};diags[split]={};coverage[split]={};available_contrasts[split]={}
         for ds,keep in BUCKETS.items():
             rs=[r for r in rows if r['row_id'] in ids and keep(r)]
             score=np.array([[100*mra(r['cells'][k]['prediction'],r['label']) for k in cells] for r in rs])
             stats=bootstrap(rs,score)
             tables[split][ds]={k:dict(s,answered=sum(r['cells'][k]['prediction'] is not None for r in rs)) for k,s in zip(cells,stats)}
+            coverage[split][ds]={k:dict(total=len(rs),input_available=sum(r['cells'][k].get('input_available',True) for r in rs),
+                answered=sum(r['cells'][k]['prediction'] is not None for r in rs),
+                refusals=dict(Counter(r['cells'][k]['refusal'] for r in rs if r['cells'][k]['refusal'] is not None))) for k in cells}
             if pairs:
                 vals=np.array([[100*(mra(r['cells'][a]['prediction'],r['label'])-mra(r['cells'][b]['prediction'],r['label']))
                     for a,b in pairs.values()] for r in rs])
                 contrasts[split][ds]=dict(zip(pairs,bootstrap(rs,vals)))
                 vs=verdicts(contrasts[split][ds])
                 contrasts[split][ds]['verdicts']=vs
+                available_contrasts[split][ds]={}
+                for name,(a,b) in pairs.items():
+                    selected=[r for r in rs if r['cells'][a].get('input_available',True) and r['cells'][b].get('input_available',True)]
+                    values=[100*(mra(r['cells'][a]['prediction'],r['label'])-mra(r['cells'][b]['prediction'],r['label'])) for r in selected]
+                    available_contrasts[split][ds][name]=bootstrap(selected,values)[0] if selected else None
             for served,other in [(BASE,'GD_reviewed'),(END,'GT')]:
                 if served not in cells:continue
                 paired=[r for r in rs if (other,r['row_id']) in M.gd]
@@ -517,18 +578,18 @@ def aggregate(args,M,I,records):
                 pairs2=[(r,r['diagnostics']['deployed_same_frame']) for r in rs if r['diagnostics']['deployed_same_frame'] is not None]
                 diag['deployed_same_frame']=bootstrap([r for r,v in pairs2],[v for r,v in pairs2])[0] if pairs2 else None
                 diags[split][ds]=diag
-    result.update(tables=tables,contrasts=contrasts,cross_program=cross,readouts=diags)
+    result.update(tables=tables,contrasts=contrasts,cross_program=cross,readouts=diags,coverage=coverage,available_contrasts=available_contrasts)
     return result
 
 CONTRACT=dict(program='sb_kbox4 served reader: lift_bestspread, reader guard, box_grid_5cm, run_iso candidates_argmax',
     masks='Selector runs once on served geometry. Each chosen raw mask and frame stays fixed across swaps.',
     scale='s=served own scale or E3 specified oracle SO. q=s/SO. G3T depth and translations multiply s; GT depth and translations multiply q.',
-    depth='GT dose_pool optical-axis depth sampled by floor(endpoint_canvas*size/1000) onto the served 51x51 grid; reader bilinear interpolation and 5x5 spread stencil remain unchanged.',
+    depth='GT dose_pool positive finite depth sampled by floor(endpoint_canvas*size/1000) onto the served 51x51 grid. Bilinear weights renormalize over positive samples only; the 5x5 spread stencil excludes missing samples. Entirely missing GT-depth frames are excluded from lift visibility and pinning, independently of pose validity. Served-depth arithmetic is unchanged.',
     pose='GT c2w at anchors in GT world coordinates. Rotations failing the sealed 1e-6 orthogonality check are projected to SO(3) only when raw orthogonality and determinant errors are <=1e-5; translations are unchanged and repairs are recorded. No GT gravity is applied to cells with G3T pose.',
     intrinsics='Served K and canvas_to_source retained in every cell; GT intrinsics are not a fifth factor.',
     own='Stored own_170235 depth is already metric; served G3T poses and intrinsics remain fixed.',
     towers='Pi3X/DA3 depth only, scaled by median(own/tower depth) on finite positive points above median G3T confidence. G3T poses/intrinsics retained.',
-    oracle_boxes='Corrected full GT annotation extents or centres, registered by anchor 1 into served world. Extents project onto retained served axes; centres preserve served lengths and axes.',
+    oracle_boxes='Corrected full GT annotation extents or centres, registered by anchor 1 into served world. Extents project onto retained served axes; centres preserve served lengths and axes. Unknown extent conventions affect only rows using that object and do not block centre replacement.',
     voted='Ladder frozen vote_10_3_best on GT depth/pose/oracle scale; same spread cut and program.',
     readouts='Depth AbsRel at all GT-mask pixels, per-operand median scale fit, pixel-weighted within each row then item mean. Pose errors use the GT-mask best frames; same-frame share also reported for deployed masks.',
     train='1037 is parity; 1012 is decision cross-check. Deployed-mask train cells are in-sample.',
@@ -566,6 +627,11 @@ def report(result):
         for metric in ['G3T_metric','G3T_fitted','own_metric','own_fitted','rotation_deg','translation_m','same_frame','deployed_same_frame']:
             vals=[' / '.join(fmt(result['readouts'][s][d].get(metric),False) for d in ['all','arkitscenes','scannet_scannetpp']) for s in ['heldout','train1012']]
             vals.append(fmt(result['readouts']['train']['all'].get(metric),False));lines.append('| '+metric+' | '+' | '.join(vals)+' |')
+        lines+=['','| Incomplete-input contrast | HO available / total | HO available-row delta [95% CI] | T1012 available / total |','|---|---:|---:|---:|']
+        for name in ['C6','centre','Pi3X','DA3']:
+            cell=CONTRAST_PAIRS[name][0];ho=result['coverage']['heldout']['all'][cell];tr=result['coverage']['train1012']['all'][cell]
+            lines.append(f"| {name} | {ho['input_available']}/{ho['total']} | {fmt(result['available_contrasts']['heldout']['all'][name])} | {tr['input_available']}/{tr['total']} |")
+        lines.append('Registered full-population scores count unavailable inputs as unanswered. Coverage-limited C6/tower verdicts do not settle the corresponding complete-input intervention; available-row contrasts use paired room bootstrap on their stated subsets.')
     lines+=['',
       'GT depth uses dose_pool rasters at the anchors, sampled to the served 51×51 endpoint grid. All cells retain served intrinsics, bilinear depth interpolation, the spread cut, and the distance program.',
       'Scale matching: s is own or E3 oracle scale; q=s/SO. G3T depth/translation multiply s; GT depth/translation multiply q. GT pose uses anchor c2w directly.',
@@ -675,7 +741,7 @@ def main():
         D=dependencies(args)
         for ext in ['json','safetensors']:I.read(args.selector/f'selector_head.{ext}')
         head,_=D.load_head(args.selector)
-        code=[ROOT/'k1x.py',*sorted((ROOT/'vendor').glob('*.py'))]
+        code=[ROOT/'k1x.py',ROOT/'box_followup.py',*sorted((ROOT/'vendor').glob('*.py'))]
         for module in list(sys.modules.values()):
             path=getattr(module,'__file__',None)
             if path and path.endswith('.py') and any(Path(path).is_relative_to(p) for p in [args.tree,args.ladder,args.selector.parents[1]]):
@@ -692,14 +758,22 @@ def main():
                 assert p['fingerprint']==fingerprint,'parity belongs to different code or input metadata'
             records=[]
             cs=[c for c in captures if phase!='parity' or c['k1_split']=='train']
-            jobs=[(i,c,phase,fingerprint,len(cs)) for i,c in enumerate(cs)]
-            if args.workers==1:
-                records=list(map(execute_capture,jobs))
-            else:
-                from concurrent.futures import ProcessPoolExecutor
-                import multiprocessing
-                with ProcessPoolExecutor(max_workers=args.workers,mp_context=multiprocessing.get_context('fork')) as pool:
-                    records=list(pool.map(execute_capture,jobs))
+            groups=[cs] if phase=='parity' else [[c for c in cs if c['k1_split']=='train'],[c for c in cs if c['k1_split']!='train']]
+            for group in groups:
+                if not group:continue
+                if phase=='factorial' and group[0]['k1_split']!='train':
+                    from box_followup import select_floor
+                    trainrows=[dict(r,box=rec['box'][r['row_id']]) for rec in records for r in rec['rows']]
+                    freeze=select_floor(trainrows,M.sets['train1012'])
+                    M.box_floor=freeze['floor'];write(args.out/'BOX_FREEZE.json',freeze)
+                jobs=[(i,c,phase,fingerprint,len(group)) for i,c in enumerate(group)]
+                if args.workers==1:
+                    records.extend(map(execute_capture,jobs))
+                else:
+                    from concurrent.futures import ProcessPoolExecutor
+                    import multiprocessing
+                    with ProcessPoolExecutor(max_workers=args.workers,mp_context=multiprocessing.get_context('fork')) as pool:
+                        records.extend(pool.map(execute_capture,jobs))
             if phase=='parity' and not args.capture:
                 rows=[r for x in records for r in x['rows']];checks=[p for x in records for p in x['parity']]
                 summary=parity_summary(rows,checks)
@@ -713,4 +787,6 @@ def main():
     print(json.dumps(dict(status=result['status'],parity=result['parity'])),flush=True)
     return 0
 
-if __name__=='__main__':raise SystemExit(main())
+if __name__=='__main__':
+    sys.path.insert(0,str(ROOT));sys.modules['k1x']=sys.modules[__name__]
+    raise SystemExit(main())

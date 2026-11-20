@@ -1,0 +1,95 @@
+{
+  "scope": "Exact published SQL row/target text only; 10 P and 7 N rows. These are sample databases, not the production stores.",
+  "P_rows": 10,
+  "N_rows": 7,
+  "native_rules": "PASS",
+  "tree": "de202f58b31793608f886360a9fdfb5f58c24932e35976efcf74acead62e3cfe",
+  "strict_publish_refusal": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24x2/work/build24m4x2/offline.py\", line 26, in <module>\n    try:nd.publish(pdb,ndb,F/'missing_request',F/'rd0',F/'strict',F/'scratch')\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24x2/work/build24m4x2/offline_base_helpers/nd.py\", line 383, in publish\n    if psha != GATE: raise ValueError('E96:gate')\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nValueError: E96:gate\n",
+  "sample_publish": {
+    "status": "FAIL",
+    "task_i": "FAIL",
+    "task_ii": "PASS",
+    "task_iii": "PASS",
+    "routing_types": "FAIL",
+    "files": [
+      "nd.json",
+      "na.json.gz",
+      "routing_types.json",
+      "n_sample.json"
+    ],
+    "bytes": 43100,
+    "sampled": 0,
+    "absent": 4,
+    "matched": 6
+  },
+  "sample_publish_types": {
+    "status": "FAIL",
+    "bytes": 1173
+  },
+  "full_type_table": {
+    "schema": "rt-v1",
+    "database_sha256": "5e35c3ce600a867be194911642caccb23098035b4bf08909e519a170a1c243df",
+    "total_rows": 43101,
+    "rows_by_type": {
+      "absolute_distance": 10945,
+      "camera_displacement": 12428,
+      "camera_movement_direction": 10883,
+      "camera_rotation": 8127,
+      "units": 718
+    },
+    "rows_per_step": 64,
+    "types": [
+      {
+        "type": "camera_displacement",
+        "rows": 12428,
+        "expected_rows_per_step": 18.454142595299412,
+        "P_quota": 18.25,
+        "percent_off": 1.118589563284452,
+        "absolute_percent_off": 1.118589563284452,
+        "status": "PASS"
+      },
+      {
+        "type": "camera_movement_direction",
+        "rows": 10883,
+        "expected_rows_per_step": 16.159996287789145,
+        "P_quota": 15.88,
+        "percent_off": 1.7632008047175327,
+        "absolute_percent_off": 1.7632008047175327,
+        "status": "PASS"
+      },
+      {
+        "type": "camera_rotation",
+        "rows": 8127,
+        "expected_rows_per_step": 12.06765504280643,
+        "P_quota": 12.53,
+        "percent_off": -3.6899038882168296,
+        "absolute_percent_off": 3.6899038882168296,
+        "status": "PASS"
+      },
+      {
+        "type": "absolute_distance",
+        "rows": 10945,
+        "expected_rows_per_step": 16.25205911695784,
+        "P_quota": 16.34,
+        "percent_off": -0.5381938986668188,
+        "absolute_percent_off": 0.5381938986668188,
+        "status": "PASS"
+      },
+      {
+        "type": "units",
+        "rows": 718,
+        "expected_rows_per_step": 1.066146957147166,
+        "P_quota": 1.0,
+        "percent_off": 6.614695714716601,
+        "absolute_percent_off": 6.614695714716601,
+        "status": "PASS"
+      }
+    ],
+    "units_type": "units",
+    "units_rows_per_step": 1.066146957147166,
+    "unknown_types": {},
+    "status": "PASS"
+  },
+  "production_status": "FAIL",
+  "unavailable": "Full P/N SQL stores, staged runtime, namespaces and processor assets for production replay. No production hash gate bypass is delivered."
+}

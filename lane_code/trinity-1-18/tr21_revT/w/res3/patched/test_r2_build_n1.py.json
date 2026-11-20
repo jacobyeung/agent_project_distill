@@ -1,0 +1,20 @@
+{
+ "file": "test_r2_build_n1.py",
+ "run": 11,
+ "failures": [],
+ "errors": [
+  "test_r2_build_n1.R1.test_export_load_and_continuation",
+  "test_r2_build_n1.R1.test_real_parent_starts_new_schedule",
+  "test_r2_build_n1.R1.test_size_cell_is_one_parameter",
+  "test_r2_build_n1.R1.test_store_switch_uses_one_receipt_parameter"
+ ],
+ "skipped": 0,
+ "failure_text": {
+  "test_r2_build_n1.R1.test_export_load_and_continuation": "ine 17, in sealed_functions\n    nodes = [node for node in ast.parse(path.read_text()).body\n                                        ^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py\", line 1027, in read_text\n    with self.open(mode='r', encoding=encoding, errors=errors) as f:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py\", line 1013, in open\n    return io.open(self, mode, buffering, encoding, errors, newline)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nFileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/tr21_revT/w/base/tree_b01ce449/student_pilot/carrier_c1_run.py'\n",
+  "test_r2_build_n1.R1.test_real_parent_starts_new_schedule": "scratch/jjyeung/orch_n30/tr21_revT/w/patched/student_pilot/p3_provenance.py\", line 62, in file_pin\n    return {'path': str(Path(path).resolve()), 'sha256': sha256(path)}\n                                                         ^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr21_revT/w/patched/student_pilot/p3_provenance.py\", line 9, in sha256\n    with Path(path).open('rb') as f:\n         ^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py\", line 1013, in open\n    return io.open(self, mode, buffering, encoding, errors, newline)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nFileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/tr21_revT/work/build_n1/inputs/init_artifact.json'\n",
+  "test_r2_build_n1.R1.test_size_cell_is_one_parameter": "d/student_pilot/p3_provenance.py\", line 33, in load\n    value = json.loads(Path(path).read_text(), object_pairs_hook=unique,\n                       ^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py\", line 1027, in read_text\n    with self.open(mode='r', encoding=encoding, errors=errors) as f:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py\", line 1013, in open\n    return io.open(self, mode, buffering, encoding, errors, newline)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nFileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/tr21_revT/work/build_n1/inputs/mix.json'\n",
+  "test_r2_build_n1.R1.test_store_switch_uses_one_receipt_parameter": " \"/scratch/jjyeung/orch_n30/tr21_revT/w/patched/student_pilot/p3_provenance.py\", line 62, in file_pin\n    return {'path': str(Path(path).resolve()), 'sha256': sha256(path)}\n                                                         ^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr21_revT/w/patched/student_pilot/p3_provenance.py\", line 9, in sha256\n    with Path(path).open('rb') as f:\n         ^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py\", line 1013, in open\n    return io.open(self, mode, buffering, encoding, errors, newline)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nFileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/tr21_revT/work/build_n1/inputs/v6_receipt.json'\n"
+ },
+ "seconds": 9.7,
+ "deletions_skipped": 0
+}

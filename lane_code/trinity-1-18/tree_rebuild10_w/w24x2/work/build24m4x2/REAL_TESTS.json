@@ -1,0 +1,133 @@
+{
+  "after": "PASS",
+  "chain": {
+    "checked_key_set_sha256": "9ef5ff08a95b67fdd4e7189f985dc55173b86d5c8ae5e09e04e5eb8007b51142",
+    "complete": true,
+    "counts": {
+      "extents": {
+        "PASS": 80
+      },
+      "r1": {
+        "PASS": 80
+      },
+      "r2": {
+        "NOT_BOUND": 80
+      },
+      "reserve": {
+        "PASS": 80
+      },
+      "text": {
+        "PASS": 80
+      },
+      "wording": {
+        "NOT_BOUND": 80
+      }
+    },
+    "database_key_set_sha256": "9ef5ff08a95b67fdd4e7189f985dc55173b86d5c8ae5e09e04e5eb8007b51142",
+    "database_rows": 80,
+    "databases": [
+      {
+        "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24x2/work/build24m4x2/real_rows_1795197625721983185/non_boundary.sqlite",
+        "sha256": "1b226db63b7c2a77699d73a2c68c532a9929a2e20c2a32c15f165aaef24c41ae"
+      }
+    ],
+    "extent_base_refused_rows": 14,
+    "extent_count_status": "PASS",
+    "extent_exempted_rows": 14,
+    "extent_required_rows": 0,
+    "extent_set_mismatch_rows": 0,
+    "extent_still_checked_rows": 66,
+    "first_ten_refusals": [],
+    "refused_rows": 0,
+    "replacement": false,
+    "rows_checked": 80,
+    "sample_size_requested": null,
+    "seed": null,
+    "staged": true,
+    "status": "PASS",
+    "unique_rows_checked": 80
+  },
+  "controls": [
+    {
+      "case": "default",
+      "error": "EXTENT_ROW_UNAUDITED",
+      "sources": null
+    },
+    {
+      "case": "default",
+      "error": "EXTENT_ROW_UNAUDITED",
+      "sources": []
+    },
+    {
+      "case": "slice",
+      "error": "EXTENT_ROW_UNAUDITED",
+      "qid": "a0_units_vsi590k_168819"
+    },
+    {
+      "case": "other",
+      "error": "EXTENT_ROW_UNAUDITED",
+      "qid": "vsi590k_169139"
+    },
+    {
+      "case": "unnamed",
+      "error": "EXTENT_ROW_UNAUDITED"
+    },
+    {
+      "case": "other_stream",
+      "error": "EXTENT_ROW_UNAUDITED"
+    },
+    {
+      "case": "boundary",
+      "error": "EXTENT_ROW_UNAUDITED"
+    },
+    {
+      "boundary": "chain pinned() before Rows",
+      "case": "database_tamper",
+      "error": "ValueError: Missing or changed pinned input: /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24x2/work/build24m4x2/real_rows_1795197625721983185/non_boundary.sqlite"
+    }
+  ],
+  "fail_before": {
+    "error": "EXTENT_ROW_UNAUDITED",
+    "modification": "none; exact parsed P row",
+    "origin": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/work/d173725/173725/p_sample.json",
+    "origin_sha256": "753343f7bbc0722b5f71247e5619d548e828200e24e0a4b878e2af124329f88b",
+    "qid": "vsi590k_256181",
+    "row_sha256": "e2117b6927c9037bf03c17933edec36a80af578b3c2e4d29a80e6d46e79ff969",
+    "source": "ARKIT_gen_r2",
+    "status": "EXPECTED_REFUSAL"
+  },
+  "scope": "100 exact published P rows checked differentially; 80 non-boundary rows pass the chain. All 20 P unit variants retain their original refusal. No production full-DB replay claimed.",
+  "scope_checks": {
+    "cases": {
+      "other": {
+        "exempted": 0,
+        "expected": "EXTENT_ROW_UNAUDITED",
+        "observed": "EXTENT_ROW_UNAUDITED",
+        "origin": "sealed_reference",
+        "qid": "vsi590k_169139",
+        "row_sha256": "d484ffc09e8b8db7658604976ebabd5bb78402cb9f65810d64def320f4bff6b8",
+        "status": "PASS"
+      },
+      "pool": {
+        "exempted": 1,
+        "expected": null,
+        "observed": null,
+        "origin": "database",
+        "qid": "vsi590k_256181",
+        "row_sha256": "e2117b6927c9037bf03c17933edec36a80af578b3c2e4d29a80e6d46e79ff969",
+        "status": "PASS"
+      },
+      "slice": {
+        "exempted": 0,
+        "expected": "EXTENT_ROW_UNAUDITED",
+        "observed": "EXTENT_ROW_UNAUDITED",
+        "origin": "database",
+        "qid": "a0_units_vsi590k_047474",
+        "row_sha256": "816bfe699873aad9c903b8cc7cbac85147ab5ea92284dc57e3219c2248de641a",
+        "status": "PASS"
+      }
+    },
+    "status": "PASS"
+  },
+  "status": "PASS"
+}

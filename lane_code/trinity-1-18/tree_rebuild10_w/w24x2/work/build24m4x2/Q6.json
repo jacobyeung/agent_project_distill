@@ -1,0 +1,208 @@
+{
+  "status": "PASS",
+  "cases": [
+    {
+      "case": "pass",
+      "status": "PASS",
+      "routing": {
+        "checked_key_set_sha256": "9ef5ff08a95b67fdd4e7189f985dc55173b86d5c8ae5e09e04e5eb8007b51142",
+        "complete": true,
+        "counts": {
+          "extents": {
+            "PASS": 80
+          },
+          "r1": {
+            "PASS": 80
+          },
+          "r2": {
+            "NOT_BOUND": 80
+          },
+          "reserve": {
+            "PASS": 80
+          },
+          "text": {
+            "PASS": 80
+          },
+          "wording": {
+            "NOT_BOUND": 80
+          }
+        },
+        "database_key_set_sha256": "9ef5ff08a95b67fdd4e7189f985dc55173b86d5c8ae5e09e04e5eb8007b51142",
+        "database_rows": 80,
+        "databases": [
+          {
+            "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24x2/work/build24m4x2/q6/pass/selection/rows.sqlite",
+            "sha256": "bd58231f4c61de432fccc4da455416ea870e268674f80d9530cdfda09912333f"
+          }
+        ],
+        "extent_base_refused_rows": 14,
+        "extent_count_status": "PASS",
+        "extent_exempted_rows": 14,
+        "extent_required_rows": 0,
+        "extent_set_mismatch_rows": 0,
+        "extent_still_checked_rows": 66,
+        "first_ten_refusals": [],
+        "refused_rows": 0,
+        "replacement": false,
+        "rows_checked": 80,
+        "sample_size_requested": null,
+        "seed": null,
+        "staged": true,
+        "status": "PASS",
+        "unique_rows_checked": 80
+      },
+      "top_level": {
+        "refused_rows": 0,
+        "extent_exempted_rows": 14,
+        "extent_still_checked_rows": 66
+      },
+      "publication_returncode": 0,
+      "published_chain_status": "PASS"
+    },
+    {
+      "case": "extra",
+      "status": "FAIL",
+      "routing": {
+        "checked_key_set_sha256": "9ef5ff08a95b67fdd4e7189f985dc55173b86d5c8ae5e09e04e5eb8007b51142",
+        "complete": true,
+        "counts": {
+          "extents": {
+            "PASS": 80
+          },
+          "r1": {
+            "PASS": 80
+          },
+          "r2": {
+            "NOT_BOUND": 80
+          },
+          "reserve": {
+            "PASS": 80
+          },
+          "text": {
+            "PASS": 80
+          },
+          "wording": {
+            "NOT_BOUND": 80
+          }
+        },
+        "database_key_set_sha256": "9ef5ff08a95b67fdd4e7189f985dc55173b86d5c8ae5e09e04e5eb8007b51142",
+        "database_rows": 80,
+        "databases": [
+          {
+            "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24x2/work/build24m4x2/q6/extra/selection/rows.sqlite",
+            "sha256": "081a3341ff2f0e40f65dce4f3a54ea43d6853134e90e5ff18c695d63bfcb5733"
+          }
+        ],
+        "extent_base_refused_rows": 14,
+        "extent_count_status": "FAIL",
+        "extent_exempted_rows": 15,
+        "extent_required_rows": 0,
+        "extent_set_mismatch_rows": 1,
+        "extent_still_checked_rows": 65,
+        "first_ten_refusals": [],
+        "reason": "E98:extent",
+        "refused_rows": 0,
+        "replacement": false,
+        "rows_checked": 80,
+        "sample_size_requested": null,
+        "seed": null,
+        "staged": true,
+        "status": "FAIL",
+        "unique_rows_checked": 80
+      },
+      "top_level": {
+        "refused_rows": 0,
+        "extent_exempted_rows": 15,
+        "extent_still_checked_rows": 65
+      },
+      "publication_returncode": 1,
+      "published_chain_status": "FAIL"
+    },
+    {
+      "case": "missing",
+      "status": "FAIL",
+      "routing": {
+        "checked_key_set_sha256": "9ef5ff08a95b67fdd4e7189f985dc55173b86d5c8ae5e09e04e5eb8007b51142",
+        "complete": true,
+        "counts": {
+          "extents": {
+            "FAIL": 1,
+            "PASS": 79
+          },
+          "r1": {
+            "NOT_REACHED": 1,
+            "PASS": 79
+          },
+          "r2": {
+            "NOT_BOUND": 80
+          },
+          "reserve": {
+            "NOT_REACHED": 1,
+            "PASS": 79
+          },
+          "text": {
+            "PASS": 80
+          },
+          "wording": {
+            "NOT_BOUND": 80
+          }
+        },
+        "database_key_set_sha256": "9ef5ff08a95b67fdd4e7189f985dc55173b86d5c8ae5e09e04e5eb8007b51142",
+        "database_rows": 80,
+        "databases": [
+          {
+            "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24x2/work/build24m4x2/q6/missing/selection/rows.sqlite",
+            "sha256": "42cbd358233ad52141d4e8ef27bb395bdc1f283ab1f45e531afc921ff0867063"
+          }
+        ],
+        "extent_base_refused_rows": 14,
+        "extent_count_status": "FAIL",
+        "extent_exempted_rows": 13,
+        "extent_required_rows": 1,
+        "extent_set_mismatch_rows": 1,
+        "extent_still_checked_rows": 67,
+        "first_ten_refusals": [
+          {
+            "check": "extents",
+            "exception": "ValueError: EXTENT_ROW_UNAUDITED",
+            "row_key": [
+              "routing",
+              0,
+              0,
+              "vsi590k_256181"
+            ]
+          }
+        ],
+        "reason": "E98:extent",
+        "refused_rows": 1,
+        "replacement": false,
+        "rows_checked": 80,
+        "sample_size_requested": null,
+        "seed": null,
+        "staged": true,
+        "status": "FAIL",
+        "unique_rows_checked": 80
+      },
+      "top_level": {
+        "refused_rows": 1,
+        "extent_exempted_rows": 13,
+        "extent_still_checked_rows": 67
+      },
+      "publication_returncode": 1,
+      "published_chain_status": "FAIL"
+    }
+  ],
+  "F3_present_empty_or_null_checked": true,
+  "production_existing_path": "$.streams.routing",
+  "new_paths": [
+    "$.refused_rows",
+    "$.extent_exempted_rows",
+    "$.extent_still_checked_rows"
+  ],
+  "production_prior_counts": {
+    "rows_checked": 43101,
+    "refused_rows": 0,
+    "extent_exempted_rows": 10945,
+    "extent_still_checked_rows": 32156
+  }
+}

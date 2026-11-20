@@ -1,0 +1,113 @@
+{
+ "scope_tests": {
+  "status": "PASS",
+  "cases": {
+   "slice": {
+    "status": "PASS",
+    "qid": "a0_units_vsi590k_047474",
+    "row_sha256": "816bfe699873aad9c903b8cc7cbac85147ab5ea92284dc57e3219c2248de641a",
+    "origin": "database",
+    "expected": "EXTENT_ROW_UNAUDITED",
+    "observed": "EXTENT_ROW_UNAUDITED",
+    "exempted": 0
+   },
+   "pool": {
+    "status": "PASS",
+    "qid": "vsi590k_256181",
+    "row_sha256": "e2117b6927c9037bf03c17933edec36a80af578b3c2e4d29a80e6d46e79ff969",
+    "origin": "database",
+    "expected": null,
+    "observed": null,
+    "exempted": 1
+   },
+   "other": {
+    "status": "PASS",
+    "qid": "vsi590k_169139",
+    "row_sha256": "d484ffc09e8b8db7658604976ebabd5bb78402cb9f65810d64def320f4bff6b8",
+    "origin": "sealed_reference",
+    "expected": "EXTENT_ROW_UNAUDITED",
+    "observed": "EXTENT_ROW_UNAUDITED",
+    "exempted": 0
+   }
+  }
+ },
+ "all100": {
+  "status": "FAIL",
+  "rows_checked": 100,
+  "refused_rows": 20,
+  "counts": {
+   "wording": {
+    "NOT_BOUND": 100
+   },
+   "text": {
+    "PASS": 100
+   },
+   "extents": {
+    "PASS": 80,
+    "FAIL": 20
+   },
+   "r1": {
+    "PASS": 80,
+    "NOT_REACHED": 20
+   },
+   "reserve": {
+    "PASS": 80,
+    "NOT_REACHED": 20
+   },
+   "r2": {
+    "NOT_BOUND": 100
+   }
+  },
+  "extent_exempted_rows": 14,
+  "extent_still_checked_rows": 86,
+  "extent_required_rows": 20,
+  "reason": null,
+  "first": [
+   [
+    "a0_units_vsi590k_047474",
+    "extents",
+    "ValueError: EXTENT_ROW_UNAUDITED"
+   ],
+   [
+    "a0_units_vsi590k_166838",
+    "extents",
+    "ValueError: EXTENT_ROW_UNAUDITED"
+   ],
+   [
+    "a0_units_vsi590k_167992",
+    "extents",
+    "ValueError: EXTENT_ROW_UNAUDITED"
+   ]
+  ]
+ },
+ "non_a0_80": {
+  "status": "PASS",
+  "rows_checked": 80,
+  "refused_rows": 0,
+  "counts": {
+   "wording": {
+    "NOT_BOUND": 80
+   },
+   "text": {
+    "PASS": 80
+   },
+   "extents": {
+    "PASS": 80
+   },
+   "r1": {
+    "PASS": 80
+   },
+   "reserve": {
+    "PASS": 80
+   },
+   "r2": {
+    "NOT_BOUND": 80
+   }
+  },
+  "extent_exempted_rows": 14,
+  "extent_still_checked_rows": 66,
+  "extent_required_rows": 0,
+  "reason": null,
+  "first": []
+ }
+}

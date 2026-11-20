@@ -1,0 +1,1 @@
+W=/scratch/jjyeung/orch_n30/tree_rebuild10_w; X=$W/w24x2; date -u +%TZ; cat $X/out/BUILD24M4X2_REPORT.md; ls $X/out | grep -i -E "patch|tree_change|TREE" ; ls $X/work | tail -12; cat $X/out/tree_rebuild_b24m4x2_e3d14e7b.tar.sha256 2>&1; sha256sum $X/out/tree_rebuild_b24m4x2_e3d14e7b.tar

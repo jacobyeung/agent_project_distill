@@ -1,0 +1,246 @@
+{
+  "capture": "arkitscenes/47330995",
+  "phase": "parity",
+  "rows": [
+    {
+      "row_id": "ground-839e39096b601ebd6b3209cb64407fc41c438fa71237fdb5163587b82e99e7bf",
+      "capture": "arkitscenes/47330995",
+      "room": "arkitscenes/venue470350",
+      "dataset": "arkitscenes",
+      "split": "train",
+      "label": 6.531790497386594,
+      "cells": {
+        "GT/G3T/G3T/own": {
+          "prediction": 5.53,
+          "refusal": null,
+          "printed": {
+            "refrigerator": {
+              "centre": [
+                5.551694914203839,
+                -0.33348342664254466,
+                0.07147131878742657
+              ],
+              "lengths": [
+                0.2918149134899139,
+                0.11412267027249623,
+                0.22106948217456077
+              ],
+              "axes": [
+                [
+                  0.04839433049140634,
+                  0.0,
+                  -0.9988283079570225
+                ],
+                [
+                  0.9988283079570225,
+                  0.0,
+                  0.04839433049140634
+                ],
+                [
+                  0.0,
+                  1.0,
+                  0.0
+                ]
+              ]
+            },
+            "tv": {
+              "centre": [
+                -0.48076150024480935,
+                -0.09109297341264556,
+                1.1983941674791958
+              ],
+              "lengths": [
+                1.3165847785571052,
+                0.08253719204575738,
+                0.4786167006503663
+              ],
+              "axes": [
+                [
+                  0.6597403508158776,
+                  0.0,
+                  -0.7514936257250243
+                ],
+                [
+                  0.7514936257250243,
+                  0.0,
+                  0.6597403508158776
+                ],
+                [
+                  0.0,
+                  1.0,
+                  0.0
+                ]
+              ]
+            }
+          }
+        },
+        "deployed/G3T/G3T/own": {
+          "prediction": 3.7,
+          "refusal": null,
+          "printed": {
+            "refrigerator": {
+              "centre": [
+                3.5160732777711514,
+                0.08261579155056539,
+                3.084347843093457
+              ],
+              "lengths": [
+                2.6325118700093686,
+                0.16389474524899583,
+                0.5331540684914702
+              ],
+              "axes": [
+                [
+                  0.07358474314560295,
+                  0.0,
+                  -0.9972889679406846
+                ],
+                [
+                  0.9972889679406846,
+                  0.0,
+                  0.07358474314560295
+                ],
+                [
+                  0.0,
+                  1.0,
+                  0.0
+                ]
+              ]
+            },
+            "tv": {
+              "centre": [
+                -0.484108618104593,
+                -0.09109297341264556,
+                1.2012389726808632
+              ],
+              "lengths": [
+                1.308716875704652,
+                0.06130960638696664,
+                0.4786167006503663
+              ],
+              "axes": [
+                [
+                  0.675425357471113,
+                  0.0,
+                  -0.7374283602391619
+                ],
+                [
+                  0.7374283602391619,
+                  0.0,
+                  0.675425357471113
+                ],
+                [
+                  0.0,
+                  1.0,
+                  0.0
+                ]
+              ]
+            }
+          }
+        }
+      }
+    }
+  ],
+  "parity": [
+    {
+      "row_id": "ground-839e39096b601ebd6b3209cb64407fc41c438fa71237fdb5163587b82e99e7bf",
+      "arm": "A2_gt_masks",
+      "passed": true,
+      "prediction_equal": true,
+      "got": 5.53,
+      "expected": 5.53,
+      "boxes_equal": true
+    },
+    {
+      "row_id": "ground-839e39096b601ebd6b3209cb64407fc41c438fa71237fdb5163587b82e99e7bf",
+      "arm": "A0_deployed",
+      "passed": true,
+      "prediction_equal": true,
+      "got": 3.7,
+      "expected": 3.7,
+      "boxes_equal": true
+    }
+  ],
+  "geometry": {
+    "served_scale": 3.50715970993042,
+    "unrounded_own_scale": 3.507159706452811,
+    "oracle_scale": 3.5675400254179217,
+    "gt_to_own_metric": 0.9830750839353433,
+    "oracle_diagnostic": {
+      "so_selected_points": 40049,
+      "frozen_selected_points": 40049,
+      "frozen_mask_equal": true,
+      "frozen_mask_different_points": 0,
+      "frozen_scale": 3.5675400254179217,
+      "confidence_threshold": 5.377871036529541,
+      "absrel_so_selected": 0.08713995276960133,
+      "absrel_so_all_valid_grid": 0.09327425842988885,
+      "frozen_rule_check_pass": true
+    },
+    "convert_missing": false,
+    "source_tower": "/scratch/jjyeung/k1/run_tower_sam_2/ffb30973681c115c/tower.npz",
+    "source_own": "/scratch/jjyeung/k1/own_170235/native/probe/ffb30973681c115c/own.npz",
+    "own_receipt_available": false,
+    "source_candidates": "/scratch/jjyeung/k1/run_convert_2/ffb30973681c115c/candidates.json"
+  },
+  "choices": {
+    "refrigerator": {
+      "candidate_id": "refrigerator:000",
+      "members": [
+        [
+          15,
+          0
+        ]
+      ]
+    },
+    "tv": {
+      "candidate_id": "tv:000",
+      "members": [
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          3,
+          0
+        ],
+        [
+          5,
+          0
+        ]
+      ]
+    }
+  },
+  "seconds": 1.0646651400020346,
+  "input_sha256": {
+    "/scratch/jjyeung/k1/run_tower_sam_2/ffb30973681c115c/tower.npz": {
+      "sha256": "b061c51fb12434ef2f899d4470c74c2ef1ce2f3367501f9bc972a031d34ec2c7",
+      "bytes": 1672018
+    },
+    "/scratch/jjyeung/k1/run_tower_sam_2/ffb30973681c115c/PHASE_COMPLETE.json": {
+      "sha256": "e2c787671f4bb849ab7ca023955a7ec6732ada25ecb83ad091adc03fb423c3cf",
+      "bytes": 4022
+    },
+    "/scratch/jjyeung/k1/own_170235/native/probe/ffb30973681c115c/own.npz": {
+      "sha256": "40b403d5627881146f6752d4853f7727f2a8730878f3c7ddff32f904dd42b63e",
+      "bytes": 666390
+    },
+    "/scratch/jjyeung/k1/run_convert_2/ffb30973681c115c/geometry.npz": {
+      "sha256": "b2ed3e133e8153c23e60e01897c3bf7111216a6004ce78435abc6372a2e53932",
+      "bytes": 345600
+    },
+    "/scratch/jjyeung/orch_cd/dose_pool/out/arkit_gt/gt/47330995.npz": {
+      "sha256": "09a6bd53dd65d90df8f7021302b310da811054f8798f9ae4aa4176538eff3e98",
+      "bytes": 1869688
+    },
+    "/scratch/jjyeung/k1/run_convert_2/ffb30973681c115c/candidates.json": {
+      "sha256": "4674758e908707011d9d300a41595384c6931aff3ecb4a6a7472d498c4590bc2",
+      "bytes": 1089544
+    }
+  },
+  "fingerprint": "9b9c1a409d85ebbb8d0a099009c5aea704c3ecd6ac73060b4e3cd07ded093f49"
+}

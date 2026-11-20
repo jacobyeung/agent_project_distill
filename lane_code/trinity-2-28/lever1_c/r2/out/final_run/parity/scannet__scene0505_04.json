@@ -1,0 +1,250 @@
+{
+  "capture": "scannet/scene0505_04",
+  "phase": "parity",
+  "rows": [
+    {
+      "row_id": "ground-2dca073fd1fc4ea6e779a1bac2ae1c69de606abc1b8e663376203bc8d414d110",
+      "capture": "scannet/scene0505_04",
+      "room": "scannet/scene0505",
+      "dataset": "scannet",
+      "split": "train",
+      "label": 1.3161266090441717,
+      "cells": {
+        "GT/G3T/G3T/own": {
+          "prediction": 1.29,
+          "refusal": null,
+          "printed": {
+            "door": {
+              "centre": [
+                3.720581842074375,
+                -0.4715026648293995,
+                -1.3596635061534827
+              ],
+              "lengths": [
+                1.3867515324043915,
+                0.08055366986030554,
+                1.6944008319008341
+              ],
+              "axes": [
+                [
+                  0.5818525558821774,
+                  0.0,
+                  -0.8132942906558348
+                ],
+                [
+                  0.8132942906558348,
+                  0.0,
+                  0.5818525558821774
+                ],
+                [
+                  0.0,
+                  1.0,
+                  0.0
+                ]
+              ]
+            },
+            "table": {
+              "centre": [
+                2.7217050579109086,
+                -0.8854617194213815,
+                -2.5003946888589876
+              ],
+              "lengths": [
+                0.2968312682394183,
+                0.18939657181268998,
+                0.03387710863294702
+              ],
+              "axes": [
+                [
+                  0.8669508118100914,
+                  0.0,
+                  -0.4983937097334031
+                ],
+                [
+                  0.4983937097334031,
+                  0.0,
+                  0.8669508118100914
+                ],
+                [
+                  0.0,
+                  1.0,
+                  0.0
+                ]
+              ]
+            }
+          }
+        },
+        "deployed/G3T/G3T/own": {
+          "prediction": 1.28,
+          "refusal": null,
+          "printed": {
+            "door": {
+              "centre": [
+                3.715605194029858,
+                -0.4808139929870653,
+                -1.344099878172743
+              ],
+              "lengths": [
+                0.9311510207949913,
+                0.07339148654084715,
+                1.6991089328864415
+              ],
+              "axes": [
+                [
+                  0.5735250110796374,
+                  0.0,
+                  -0.819188050246158
+                ],
+                [
+                  0.819188050246158,
+                  0.0,
+                  0.5735250110796374
+                ],
+                [
+                  0.0,
+                  1.0,
+                  0.0
+                ]
+              ]
+            },
+            "table": {
+              "centre": [
+                2.6622189090238644,
+                -1.1670963550092668,
+                -2.5872541777746427
+              ],
+              "lengths": [
+                0.502301632473574,
+                0.4688439717738224,
+                0.5950521105382613
+              ],
+              "axes": [
+                [
+                  0.8303879919335453,
+                  0.0,
+                  0.5571855910310085
+                ],
+                [
+                  -0.5571855910310085,
+                  0.0,
+                  0.8303879919335453
+                ],
+                [
+                  0.0,
+                  1.0,
+                  0.0
+                ]
+              ]
+            }
+          }
+        }
+      }
+    }
+  ],
+  "parity": [
+    {
+      "row_id": "ground-2dca073fd1fc4ea6e779a1bac2ae1c69de606abc1b8e663376203bc8d414d110",
+      "arm": "A2_gt_masks",
+      "passed": true,
+      "prediction_equal": true,
+      "got": 1.29,
+      "expected": 1.29,
+      "boxes_equal": true
+    },
+    {
+      "row_id": "ground-2dca073fd1fc4ea6e779a1bac2ae1c69de606abc1b8e663376203bc8d414d110",
+      "arm": "A0_deployed",
+      "passed": true,
+      "prediction_equal": true,
+      "got": 1.28,
+      "expected": 1.28,
+      "boxes_equal": true
+    }
+  ],
+  "geometry": {
+    "served_scale": 2.525819778442383,
+    "unrounded_own_scale": 2.525819662590566,
+    "oracle_scale": 2.533959621864099,
+    "gt_to_own_metric": 0.9967876980550588,
+    "oracle_diagnostic": {
+      "so_selected_points": 41493,
+      "frozen_selected_points": 41493,
+      "frozen_mask_equal": true,
+      "frozen_mask_different_points": 0,
+      "frozen_scale": 2.533959621864099,
+      "confidence_threshold": 7.130803823471069,
+      "absrel_so_selected": 0.027815671657698424,
+      "absrel_so_all_valid_grid": 0.03747566063080979,
+      "frozen_rule_check_pass": true
+    },
+    "convert_missing": false,
+    "source_tower": "/scratch/jjyeung/k1/run_tower_sam_2/a5ea7879591e41c5/tower.npz",
+    "source_own": "/scratch/jjyeung/k1/own_170235/native/probe/a5ea7879591e41c5/own.npz",
+    "own_receipt_available": false,
+    "source_candidates": "/scratch/jjyeung/k1/run_convert_2/a5ea7879591e41c5/candidates.json"
+  },
+  "choices": {
+    "door": {
+      "candidate_id": "door:000",
+      "members": [
+        [
+          4,
+          0
+        ],
+        [
+          5,
+          0
+        ],
+        [
+          6,
+          0
+        ],
+        [
+          7,
+          0
+        ]
+      ]
+    },
+    "table": {
+      "candidate_id": "table:005",
+      "members": [
+        [
+          7,
+          0
+        ],
+        [
+          8,
+          0
+        ]
+      ]
+    }
+  },
+  "seconds": 2.880804983986309,
+  "input_sha256": {
+    "/scratch/jjyeung/k1/run_tower_sam_2/a5ea7879591e41c5/tower.npz": {
+      "sha256": "6acf2c9fa64b5f3cc4b6ccded589650756ba856e922ebe685fab4af6f38b33fa",
+      "bytes": 1672018
+    },
+    "/scratch/jjyeung/k1/run_tower_sam_2/a5ea7879591e41c5/PHASE_COMPLETE.json": {
+      "sha256": "73a9fcd507a422ff81ad0dfe1c1bd11b85741477bf7d01fb235018fef4acb7db",
+      "bytes": 4022
+    },
+    "/scratch/jjyeung/k1/own_170235/native/probe/a5ea7879591e41c5/own.npz": {
+      "sha256": "36bd5d58b5d024f8cf52e141b80b8c0c2d73ec053e036bb8600ed9b62d6600f6",
+      "bytes": 666390
+    },
+    "/scratch/jjyeung/k1/run_convert_2/a5ea7879591e41c5/geometry.npz": {
+      "sha256": "099ac456485fb58afa57b8433fd01cf565203c54458a72dbd635d568af91d215",
+      "bytes": 345600
+    },
+    "/scratch/jjyeung/orch_cd/dose_pool/out/t1_gt/gt/scannet__scene0505_04.npz": {
+      "sha256": "c5d8318bade5e99164ddc8218b7d7aa9481740cf54a07a0ced752880dee6fc1e",
+      "bytes": 8203835
+    },
+    "/scratch/jjyeung/k1/run_convert_2/a5ea7879591e41c5/candidates.json": {
+      "sha256": "5379a86a5b9d54b5e76227ee6f752a5266b2d40704d00502cb19e33343bb7e8d",
+      "bytes": 12624597
+    }
+  },
+  "fingerprint": "9b9c1a409d85ebbb8d0a099009c5aea704c3ecd6ac73060b4e3cd07ded093f49"
+}

@@ -1,0 +1,122 @@
+{
+  "allowed_metadata_classes": {
+    "copied": {
+      "effective_exemption": false,
+      "paths": [
+        "/row/source_qid",
+        "/row/candidate_id",
+        "/row/question",
+        "/row/question_type",
+        "/row/answer",
+        "/row/gt_answer",
+        "/row/ground_record",
+        "/row/provenance",
+        "/row/tool_output_spans"
+      ],
+      "reader": "extent_receipt.py:16; r1_training.py:12; r0_exclusion.py:49"
+    },
+    "fps_source": {
+      "effective_exemption": false,
+      "paths": [
+        "/row/s1_source/frame_binding/fps_source"
+      ],
+      "reader": "r0_exclusion.py:49"
+    },
+    "ordinal": {
+      "effective_exemption": false,
+      "paths": [
+        "/i"
+      ],
+      "reader": "carrier_c1_run.py:1120; r1_population.py:184; r1_mix.py:70"
+    },
+    "paths": {
+      "effective_exemption": false,
+      "paths": [
+        "/row/s1_source/source/path",
+        "/row/s1_source/frame_binding/authority/map/path",
+        "/row/s1_source/frame_binding/authority/plan/path",
+        "/row/s1_source/frame_binding/authority/fps_authority/path"
+      ],
+      "reader": "r0_exclusion.py:49"
+    }
+  },
+  "comparison": "exact raw JSON value text; typed SQL columns; missing differs from null",
+  "content_field_paths": [
+    "/i",
+    "/row",
+    "/target",
+    "/row/qid",
+    "/row/row_key",
+    "/row/label_row_keys",
+    "/row/dataset",
+    "/row/scene",
+    "/row/category",
+    "/row/student_input",
+    "/row/target",
+    "/row/suffix",
+    "/row/response",
+    "/row/trace",
+    "/row/routing",
+    "/row/r1_source",
+    "/row/response_source",
+    "/row/own_valued",
+    "/row/ground_record",
+    "/row/provenance",
+    "/row/question",
+    "/row/question_type",
+    "/row/source_qid",
+    "/row/candidate_id",
+    "/row/answer",
+    "/row/gt_answer",
+    "/row/tool_output_spans",
+    "/row/canonical",
+    "/row/physical_group",
+    "/row/room",
+    "/row/alias",
+    "/row/pointing",
+    "/row/grounding",
+    "/row/answer_form",
+    "/row/pose_sample",
+    "/row/s1_source"
+  ],
+  "coverage": "The complete row reaches recursive admission before sampler population construction. No row subtree is exempt.",
+  "direct_row_fields": [
+    "qid",
+    "row_key",
+    "label_row_keys",
+    "dataset",
+    "scene",
+    "category",
+    "student_input",
+    "target",
+    "suffix",
+    "response",
+    "trace",
+    "routing",
+    "r1_source",
+    "response_source",
+    "own_valued",
+    "ground_record",
+    "provenance",
+    "question",
+    "question_type",
+    "source_qid",
+    "candidate_id",
+    "answer",
+    "gt_answer",
+    "tool_output_spans",
+    "canonical",
+    "physical_group",
+    "room",
+    "alias",
+    "pointing",
+    "grounding",
+    "answer_form",
+    "pose_sample",
+    "s1_source"
+  ],
+  "precedence": "Content wins over a metadata-class label; class counts are descriptive only.",
+  "recursive_read": "Every descendant of /row, including fields absent from direct_row_fields, is visited by r0_exclusion.Reserve.matches before population construction.",
+  "schema": "f-v1",
+  "tree_sha256": "9d2bbb8ad209d91e21e56121785f62b0dddf3c8d9f14db8d23daf6dcd1d3591b"
+}

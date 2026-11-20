@@ -1,0 +1,102 @@
+{
+ "empty_or_absent_counters": {
+  "none": 0,
+  "explicit_none": 0,
+  "empty": 0
+ },
+ "c2_equivalence": {
+  "cases": 3744,
+  "differences": 0,
+  "first": []
+ },
+ "validation": {
+  "tuple": "ValueError:EXTENT_POOL_SOURCES_INVALID",
+  "set": "ValueError:EXTENT_POOL_SOURCES_INVALID",
+  "str": "ValueError:EXTENT_POOL_SOURCES_INVALID",
+  "blank": "ValueError:EXTENT_POOL_SOURCES_INVALID",
+  "int": "ValueError:EXTENT_POOL_SOURCES_INVALID",
+  "dict": "ValueError:EXTENT_POOL_SOURCES_INVALID",
+  "zero": "ValueError:EXTENT_POOL_SOURCES_INVALID",
+  "empty_str": "ValueError:EXTENT_POOL_SOURCES_INVALID",
+  "dup": "accepted"
+ },
+ "edges": {
+  "pool_row": {
+   "exempt": true,
+   "before": "ValueError:EXTENT_ROW_UNAUDITED",
+   "after": "PASS"
+  },
+  "pool_unlisted_name": {
+   "exempt": false,
+   "before": "ValueError:EXTENT_ROW_UNAUDITED",
+   "after": "ValueError:EXTENT_ROW_UNAUDITED"
+  },
+  "pool_source_string": {
+   "exempt": false,
+   "before": "ValueError:EXTENT_ROW_UNAUDITED",
+   "after": "ValueError:EXTENT_ROW_UNAUDITED"
+  },
+  "pool_r1_source_empty_dict": {
+   "exempt": true,
+   "before": "ValueError:EXTENT_ROW_UNAUDITED",
+   "after": "PASS"
+  },
+  "pool_r1_source_none": {
+   "exempt": true,
+   "before": "ValueError:EXTENT_ROW_UNAUDITED",
+   "after": "PASS"
+  },
+  "pool_r1_source_set": {
+   "exempt": false,
+   "before": "ValueError:EXTENT_ROW_UNAUDITED",
+   "after": "ValueError:EXTENT_ROW_UNAUDITED"
+  },
+  "pool_a0_prefix": {
+   "exempt": false,
+   "before": "ValueError:EXTENT_ROW_UNAUDITED",
+   "after": "ValueError:EXTENT_ROW_UNAUDITED"
+  },
+  "pool_routing_qid_a0_only": {
+   "exempt": true,
+   "before": "ValueError:EXTENT_ROW_UNAUDITED",
+   "after": "PASS"
+  },
+  "pool_vqa_routed": {
+   "exempt": false,
+   "before": "ValueError:EXTENT_ROW_UNAUDITED",
+   "after": "ValueError:EXTENT_ROW_UNAUDITED"
+  },
+  "reworded_slice_with_copied_s1": {
+   "exempt": true,
+   "before": "ValueError:EXTENT_ROW_UNAUDITED",
+   "after": "PASS"
+  },
+  "units_slice_with_copied_s1": {
+   "exempt": false,
+   "before": "ValueError:EXTENT_ROW_UNAUDITED",
+   "after": "ValueError:EXTENT_ROW_UNAUDITED"
+  },
+  "recovery_unprefixed_with_s1": {
+   "exempt": true,
+   "before": "ValueError:EXTENT_ROW_UNAUDITED",
+   "after": "PASS"
+  },
+  "unhashable_name": "TypeError:unhashable type: 'list'"
+ },
+ "counter": {
+  "non_required_required": false,
+  "non_required_before": "PASS",
+  "after_non_required": 1,
+  "certified_before": "PASS",
+  "after_certified": 2,
+  "after_same_row_twice": 4
+ },
+ "sample": {
+  "rows": 100,
+  "exempt": 14,
+  "base_refused": 34,
+  "exempt_and_base_refused": 14,
+  "exempt_and_base_pass": 0,
+  "after_refused": 20
+ }
+}

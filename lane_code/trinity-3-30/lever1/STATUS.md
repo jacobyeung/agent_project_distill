@@ -1,6 +1,20 @@
 # lever1 STATUS (trinity-3-30; started 16:50Z 11-20; 6 h timeout -> write B/briefs/lever2.md and start lever2 by ~22:20Z)
 Lane dir /scratch/jjyeung/orch_n30/lever1 (work/, out/); 2-28 work dir /scratch/jjyeung/orch_n30/lever1_c; 1-18 helper dir /scratch/jjyeung/orch_n30/lever1_m.
 ## Done
+- Rank 2 RESULT 1824Z (parity PASS; geometry waits for masks; arm B/C closed; G3T stays); record updated. Rank 3 parity STOP QUESTION; record updated.
+- Item 0 selector provenance: RESULT 1654Z (out/SELECTOR_PROVENANCE.md; events/lever/files/). run_iso 6d97c524, K1 train only; 0 benchmark/dev rooms; 4 withheld-80 rooms.
+- Item 1 inventory: out/ARCHIVE_INVENTORY.md; QUESTION 1659Z; ORCH ANSWER 1700Z: (a) IB mirror now, (b) one compressed archive via governor later (to /data2 or /data3, whichever has more free), add path to D/INDEX.md under the plan line.
+- trinity-1-3 /scratch/jjyeung is gone. 3-30 /scratch 83 GB free: no mirrors here.
+## Running (2-28 tmux; poll work/poll228.sh via tssh every 5-10 min)
+- Rank 1 build: tmux l1_r1 (brief lever1_c/BRIEF_R1.md); next: Astra review, place/CPU check/submit ONE general job, fetch, relifts (72 items first).
+- Rank 3 round 2 diagnostics: tmux l1_r3b (BRIEF_R3B.md; ORCH 1827Z): (i) rigid no-refit ~0, (ii) GT-gravity L1; amendment file out2/AMENDMENT.md before the single read; else stop.
+- Rank 2 review (read-only): tmux l1_r2rev (BRIEF_R2REV.md; ORCH 1826Z item 2): ARKit GT-depth mechanism; C1 enters no decision until it reports.
+## Queued (start as build slots free; max 2 builds on 2-28)
+- Rank 2 BOX follow-up: work/briefs/BRIEF_R2D.md (registered in the plan record 18:40Z).
+- Rank 5 build: work/briefs/BRIEF_R5.md (raw staged: lever1_c/nogt/raw, 545 files, stream sha c1d7e30e; record renamed .done).
+- Rank 6: work/briefs/BRIEF_R6.md (inputs lever1_c/r6/in).
+- Rank 4 read: templates frozen in out/WORD_TEMPLATES.json (one template, sha 71e4834d; ReVSI = VSI-Bench wording per Table 9); still to freeze: call detector, 64-token budget, 95% gate; needs a probe kit at step-400 init (5083243c) after rank 1's job.
+## Done
 - Item 0 selector provenance: RESULT 1654Z (out/SELECTOR_PROVENANCE.md; events/lever/files/). run_iso 6d97c524, K1 train only; 0 benchmark/dev rooms; 4 withheld-80 rooms.
 - Item 1 inventory: out/ARCHIVE_INVENTORY.md; QUESTION 1659Z; ORCH ANSWER 1700Z: (a) IB mirror now, (b) one compressed archive via governor later (to /data2 or /data3, whichever has more free), add path to D/INDEX.md under the plan line.
 - trinity-1-3 /scratch/jjyeung is gone. 3-30 /scratch 83 GB free: no mirrors here.

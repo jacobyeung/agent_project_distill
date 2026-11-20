@@ -1,0 +1,1 @@
+export TZ=UTC; squeue -u $USER -o "%.10i %.9P %.30j %.8T %.10M %.6D %R" | head; sinfo -p general -o "%P %a %D %T %G" | head; du -sh /project/community/jjyeung 2>/dev/null | tail -1; df -h /project/community 2>/dev/null | tail -1

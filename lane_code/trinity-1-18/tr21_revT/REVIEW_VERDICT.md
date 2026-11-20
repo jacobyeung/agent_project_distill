@@ -1,0 +1,25 @@
+GO AFTER FIXES
+Reviewed tree 7a8022ad against C'' de202f58 (TREE_CHANGE_24M4V.patch, tree_rebuild_b24m4v_3b4b6cff.tar). I recomputed all evidence in /scratch/jjyeung/orch_n30/tr21_revT/w; paths below are in the patched tree unless named.
+
+## Required edits (none reaches N: all four N kits use deferred_first_boundary, so compose_native and intake never run, s1_admission.py:214-216)
+F1. r2_intake.py:54 builds Extents from manifest.get('extent_pool_sources'), a second list that r1_routing.py:190 never compares with r1_training.extent_pool_sources; r2_intake.py:123 also adds a report key when no list is set. Restore C'': line 54 `extents = Extents(manifest.get('extent_receipt'))`; line 123 `slice_limit=limit, population_count=manifest['count'])`.
+F2. r1_routing.py:159-160 writes extent_exempted into the compose receipt even without a list, so its bytes differ from C'' (Q2). Replace the two lines with `per_source=dict(counts), refused=dict(refused), intake_evidence=evidence,` and `**({'extent_exempted': reader.extents.exempted} if reader.extents.pool_sources else {}))`.
+F3 (optional). extent_receipt.py:41 exempts a row whose r1_source is {} or None; `and 'r1_source' not in row` closes that.
+After the edits, reseal the tree and the four kits; no other change is needed.
+
+## Answers
+Q1. Behaviour changes: list validation (extent_receipt.py:26-29), exempt() (:35-42), the counter and early return in check() (:45-47), and Rows passing r1_training.extent_pool_sources (carrier_c1_run.py:1071). The remaining hunks are F1 and F2. Of 945 files, exactly these 4 differ.
+Q2. Exemption needs a non-empty list, stream 'routing', no a0_ prefix on the top-level qid, no truthy r1_source, and a dict s1_source with a listed name (extent_receipt.py:39-42). Validation rejects tuple, set, str, [''], [1], {}, 0 and ''. With None or [], 3,744 base-versus-patched check() cases give identical outcomes and the counter stays 0; only the F1/F2 report bytes differ. vqa routed rows, unlisted names, string s1_source and a0_ rows stay gated.
+Q3. The 9 names equal the ELIGIBLE sources of selection 5db993b1 (sha verified) and of P's materialization; the 5 DEFERRED sources are absent. c072905b stays pinned in c.json and n.json of all 4 kits, with an unchanged 12,061,474-byte upload entry.
+Q4. My rerun passes all three controls: a0_units_vsi590k_047474 without its entry refuses EXTENT_ROW_UNAUDITED, P pool row vsi590k_256181 passes with exempted=1, and vsi590k_169139 refuses. The 80-row chain gives 14 exempted, 66 checked and 0 refused, and the 20 P a0_ variants still refuse. rcj/ch.py:107 publishes extent_exempted_rows. These controls live in work/build24m4v; the tree's tests/ has no unit test of exempt().
+Q5. The patch applies to C'' without fuzz. Recomputed seals are de202f58 for base and 7a8022ad for patched, matching out/TREE_FILES.sha256. Kit sums, BUILD.json kit and config hashes, the kit archive (equal to the patched tree), package sha 93e773dd and the 1,154 tree, kit and rcj tar members all match.
+Tests: 48 files and 517 tests on both trees; 441 pass, and the same 76 fail or error on de202f58 (missing torchvision and derivgen, absent orch_cd and tree_b01ce449 fixtures, trace_program_version_missing). The files that import the touched modules pass: test_r1_build13, test_r2_build9fix, test_r2_build3b/4/5/9_cpu/9_identity/9_recovery, test_r2_data_path, test_r2_policy, test_r2_refusals, test_carrier_c1_run, test_carrier_c1_routing. test_carrier_c1_cp2, test_r1_build16/17 and test_r2_build8 show only those environmental errors.
+Q6. exempt() runs before required() (extent_receipt.py:45-49), so the counter also counts non-required pool rows, rows whose entry would pass, repeat reads, and rows a later gate refuses; it never gates. For N it should equal 10,945: every listed-source N row is one of the 10,945 rows C'' refuses, and the 718 U_Faithful rows carry a0_ and stay gated (they pass). A single full T pass with refused_rows=0 and extent_exempted_rows=10,945 proves the exempt set equals the C''-refused set. Any other count means the sets differ and must block launch.
+
+## Risks of N admitting what P would not (Q7)
+P1. r1 row_check and reserve never ran on the 10,945 rows (published chain.json: NOT_REACHED), and bind_prepared drops refusals silently into reader_filters.json (r1_population.py:186-199). Before GPU, the full 43,101-row T chain must show refused_rows=0, and routing refusals in reader_filters must be {}.
+P2. T exempts by source name, not by P's row digest. N-to-P row content equality is unmeasured; published chain.json shows 0 of 7,232 shared qids whose receipt content equals P's row. Add digest(content(N row)) versus P to the chain job.
+P3. An unprefixed row carrying a copied listed s1_source would be exempt. N's 31,438 other rows carry no s1_source, so no current row reaches this.
+
+## Not checked
+N's Orchard rows beyond the published inventory and sample; the full T chain; x.py, job.sh and upload replay; whether the GO kit asserts 43,101 rows; P's other gates; apply_24m4v.py.

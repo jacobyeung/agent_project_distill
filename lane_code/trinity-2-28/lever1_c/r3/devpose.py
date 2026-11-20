@@ -382,8 +382,8 @@ def report(result):
         'Limits: the sole same-anchor ladder control comes from a fallback; all three printed same-anchor items lack two GT bindings. Its bootstrap interval is degenerate when defined. Tiny L2 gaps can amplify label-free MRA loss.',
         'Limits: ScanNet extent ambiguity and GT-box/label mismatch can fail parity. NPZ anchors match recorded source indices, but do not independently authenticate native RGB/pose identity. No causal interpretation is made after STOP.',
         'Track diagnostics compare per-name linked/candidate counts with same-name visible GT instances; they are query-conditional counts, not capture-wide recall. Every object, pair, fit, cell, interval and input SHA256 is in DEVPOSE.json.',
-        'Run from this folder with `/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B devpose.py`; run tests with the same interpreter flags and `test_devpose.py`.',
-        'No report sentences retain revision-history narration.']
+        'Rerun in a fresh folder with `/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B devpose.py --out out_rerun`; run tests with the same interpreter flags and `test_devpose.py`.',
+        ]
     assert len(lines) <= 80, len(lines)
     return '\n'.join(lines)+'\n'
 
@@ -497,6 +497,10 @@ def run(args):
     args.out = args.out.resolve()
     args.out.relative_to(HERE)
     args.out.mkdir(parents=True, exist_ok=True)
+    for name in ('DEVPOSE.json', 'REPORT_R3.md', 'SHA256SUMS'):
+        target = args.out/name
+        if target.exists() and not os.access(target, os.W_OK):
+            raise PermissionError(f'{target} is read-only; choose a fresh --out folder')
     pins = {}
     refs = {r['item_id']: r for r in read(args.manifest, pins)['items']}
     funnel = read(args.funnel, pins)
@@ -599,7 +603,7 @@ def run(args):
             prepared[i['instance_id']] = dict(L2=refit(p), **{mode: refit(transport(p, g['c2w'][a], geom[cap][a], 1. if mode == 'raw' else fits[cap]['factor'])) for mode in ladder})
         inventories.append(dict(capture=cap, room=g['room'], threshold=g['threshold'], instances=list(g['instances'].values()),
                                 eligible_instance_ids=[i['instance_id'] for i in eligible]))
-        for ia, ib in itertools.combinations(eligible, 2):
+        for pair_index, (ia, ib) in enumerate(itertools.combinations(eligible, 2), 1):
             ids = [ia['instance_id'], ib['instance_id']]
             aa, bb = [prepared[i] for i in ids]
             l2 = gap(aa['L2'], bb['L2'])
@@ -613,6 +617,8 @@ def run(args):
                 pair['modes'][mode] = value
                 audit[mode].append({k: pair[k] for k in ('room', 'dataset_group', 'pair_class')} | value)
             pairs.append(pair)
+            if pair_index % 1000 == 0:
+                print(f"Audit {cap}: {pair_index}/{len(eligible)*(len(eligible)-1)//2} pairs measured.", flush=True)
         print(f"Audit {cap}: {len(eligible)} instances, {len(eligible)*(len(eligible)-1)//2} pairs.", flush=True)
     stats = {}
     for mode in ladder:

@@ -1,0 +1,1 @@
+W=/scratch/jjyeung/orch_n30/tree_rebuild10_w; date -u +%TZ; sha256sum $W/w24x2/out/tree_rebuild_b24m4x2_e3d14e7b.tar; cat $W/w24x2/out/tree_rebuild_b24m4x2_e3d14e7b.tar.sha256; ls -t $W/work | head -5; ls -t $W | head -3

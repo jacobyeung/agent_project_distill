@@ -1,0 +1,1 @@
+R=/scratch/jjyeung/orch_n30/codex_local/agent/scratch/codex_runs; d=$(ls -d $R/*lever1_r3); stat -c '%s %y' $d/transcript.log; grep -a '^codex' -A3 $d/transcript.log | grep -v WARN | tail -30 | cut -c1-300; ls -la /scratch/jjyeung/orch_n30/lever1_c/r3/out; tail -5 /scratch/jjyeung/orch_n30/lever1_c/r3/run.log; ps aux | grep -c devpose

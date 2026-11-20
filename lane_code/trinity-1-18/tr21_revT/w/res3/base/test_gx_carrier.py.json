@@ -1,0 +1,22 @@
+{
+ "file": "test_gx_carrier.py",
+ "run": 39,
+ "failures": [],
+ "errors": [
+  "test_gx_carrier.GXTests.test_native_layout_matches_vendor_on_augmented_viewpoints (layout='duplicate')",
+  "test_gx_carrier.GXTests.test_native_layout_matches_vendor_on_augmented_viewpoints (layout='paired')",
+  "test_gx_carrier.GXTests.test_production_meta_header_and_strict_safetensors",
+  "test_gx_carrier.GXTests.test_student_frames_real_processor_and_square_padding",
+  "test_gx_carrier.GXTests.test_vendor_bytes_digest_and_import_origin"
+ ],
+ "skipped": 0,
+ "failure_text": {
+  "test_gx_carrier.GXTests.test_native_layout_matches_vendor_on_augmented_viewpoints (layout='duplicate')": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr21_revT/w/base/tests/test_gx_carrier.py\", line 308, in test_native_layout_matches_vendor_on_augmented_viewpoints\n    augmented = augment(source, jitter)\n                ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr21_revT/w/base/student_pilot/pose_samples.py\", line 156, in augment\n    from torchvision.transforms.v2 import functional as TF\nModuleNotFoundError: No module named 'torchvision'\n",
+  "test_gx_carrier.GXTests.test_native_layout_matches_vendor_on_augmented_viewpoints (layout='paired')": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tr21_revT/w/base/tests/test_gx_carrier.py\", line 308, in test_native_layout_matches_vendor_on_augmented_viewpoints\n    augmented = augment(source, jitter)\n                ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr21_revT/w/base/student_pilot/pose_samples.py\", line 156, in augment\n    from torchvision.transforms.v2 import functional as TF\nModuleNotFoundError: No module named 'torchvision'\n",
+  "test_gx_carrier.GXTests.test_production_meta_header_and_strict_safetensors": "se/student_pilot/p3_provenance.py\", line 33, in load\n    value = json.loads(Path(path).read_text(), object_pairs_hook=unique,\n                       ^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py\", line 1027, in read_text\n    with self.open(mode='r', encoding=encoding, errors=errors) as f:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py\", line 1013, in open\n    return io.open(self, mode, buffering, encoding, errors, newline)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nFileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_cd/gx_build/work/aws_probe/g3t_header.json'\n",
+  "test_gx_carrier.GXTests.test_student_frames_real_processor_and_square_padding": "^^^^^^^^^^^^\n  File \"/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/transformers/video_processing_utils.py\", line 369, in preprocess\n    preprocessed_videos = self._preprocess(videos=videos, **kwargs)\n                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/transformers/models/qwen3_vl/video_processing_qwen3_vl.py\", line 205, in _preprocess\n    stacked_videos = self.resize(\n                     ^^^^^^^^^^^^\n  File \"/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/transformers/image_processing_backends.py\", line 230, in resize\n    interpolation = pil_torch_interpolation_mapping[resample]\n                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^\nTypeError: 'NoneType' object is not subscriptable\n",
+  "test_gx_carrier.GXTests.test_vendor_bytes_digest_and_import_origin": "in test_vendor_bytes_digest_and_import_origin\n    self.assertEqual(path.read_bytes(), (source/path.relative_to(gx.VENDOR/'vggt')).read_bytes())\n                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py\", line 1019, in read_bytes\n    with self.open(mode='rb') as f:\n         ^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py\", line 1013, in open\n    return io.open(self, mode, buffering, encoding, errors, newline)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nFileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_cd/c1r/work/D/g3t_src/vggt/__init__.py'\n"
+ },
+ "seconds": 81.4,
+ "deletions_skipped": 0
+}

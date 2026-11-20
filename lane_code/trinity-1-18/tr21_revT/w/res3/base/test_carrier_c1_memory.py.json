@@ -1,0 +1,16 @@
+{
+ "file": "test_carrier_c1_memory.py",
+ "run": 10,
+ "failures": [],
+ "errors": [
+  "test_carrier_c1_memory.MemoryTests.test_cpu_accumulation_and_checkpoint_resume_without_sockets",
+  "test_carrier_c1_memory.MemoryTests.test_offload_gloo_accumulation_resume_export"
+ ],
+ "skipped": 0,
+ "failure_text": {
+  "test_carrier_c1_memory.MemoryTests.test_cpu_accumulation_and_checkpoint_resume_without_sockets": "    run.export(root / 'export', model, model, {'base_identity': 'fixture'}, 2)\n  File \"/scratch/jjyeung/orch_n30/tr21_revT/w/base/student_pilot/carrier_c1_run.py\", line 2079, in export\n    version_metadata=metadata(cfg)\n                     ^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr21_revT/w/base/student_pilot/trace_version.py\", line 24, in metadata\n    return {KEY: require(config.get(KEY)), 'trace_version_binding': 1}\n                 ^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr21_revT/w/base/student_pilot/trace_version.py\", line 5, in require\n    if value is None:raise ProgramRefusal('trace_program_version_missing')\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\ntrace_format.program_errors.ProgramRefusal: trace_program_version_missing\n",
+  "test_carrier_c1_memory.MemoryTests.test_offload_gloo_accumulation_resume_export": "te-packages/torch/autograd/graph.py\", line 869, in _engine_run_backward\n    return Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/torch/utils/_contextlib.py\", line 124, in decorate_context\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/torch/distributed/fsdp/_runtime_utils.py\", line 1111, in _post_backward_final_callback\n    state._device_handle.current_stream().synchronize()\n    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAttributeError: 'Stream' object has no attribute 'synchronize'\n\n"
+ },
+ "seconds": 17.9,
+ "deletions_skipped": 2
+}

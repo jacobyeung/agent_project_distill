@@ -1,0 +1,128 @@
+[
+  {
+    "name": "test_carrier_c1_run",
+    "tests": 13,
+    "failures": [],
+    "errors": [],
+    "skipped": [
+      {
+        "test": "test_actual_fsdp_gloo_resume_and_export (tests.test_carrier_c1_run.RunnerTests.test_actual_fsdp_gloo_resume_and_export)",
+        "reason": "Local sockets are unavailable; parent CPU job must run Gloo"
+      }
+    ],
+    "success": true
+  },
+  {
+    "name": "test_carrier_c1_routing",
+    "tests": 11,
+    "failures": [],
+    "errors": [],
+    "skipped": [
+      {
+        "test": "test_every_row_renders_and_replays_byte_identically (tests.test_carrier_c1_routing.DerivgenRows.test_every_row_renders_and_replays_byte_identically)",
+        "reason": "derivgen review pool not on this host"
+      },
+      {
+        "test": "test_masks_cover_exactly_the_tool_outputs (tests.test_carrier_c1_routing.DerivgenRows.test_masks_cover_exactly_the_tool_outputs)",
+        "reason": "derivgen review pool not on this host"
+      },
+      {
+        "test": "test_own_rerender_changes_only_tool_spans (tests.test_carrier_c1_routing.DerivgenRows.test_own_rerender_changes_only_tool_spans)",
+        "reason": "derivgen review pool not on this host"
+      },
+      {
+        "test": "test_segments_tag_openers_arguments_and_answer (tests.test_carrier_c1_routing.HybridAndSegments.test_segments_tag_openers_arguments_and_answer)",
+        "reason": "pool or processor fixture absent"
+      },
+      {
+        "test": "test_value_source_per_head (tests.test_carrier_c1_routing.HybridAndSegments.test_value_source_per_head)",
+        "reason": "derivgen review pool not on this host"
+      },
+      {
+        "test": "test_builder_writes_c1_rows_with_relocated_frames_and_refusals (tests.test_carrier_c1_routing.StreamBuild.test_builder_writes_c1_rows_with_relocated_frames_and_refusals)",
+        "reason": "pool or processor fixture absent"
+      }
+    ],
+    "success": true
+  },
+  {
+    "name": "test_carrier_c1_cp2",
+    "tests": 11,
+    "failures": [],
+    "errors": [
+      {
+        "test": "test_rows_apply_the_receipt_flag_to_routing_rows_only (tests.test_carrier_c1_cp2.ToolModeFlag.test_rows_apply_the_receipt_flag_to_routing_rows_only)",
+        "output": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24x2/work/tree_r1c/tests/test_carrier_c1_cp2.py\", line 39, in test_rows_apply_the_receipt_flag_to_routing_rows_only\n    with tempfile.TemporaryDirectory(dir=os.environ.get('TMPDIR')) as root:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/tempfile.py\", line 950, in __exit__\n    self.cleanup()\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/tempfile.py\", line 954, in cleanup\n    self._rmtree(self.name, ignore_errors=self._ignore_cleanup_errors)\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/tempfile.py\", line 934, in _rmtree\n    _shutil.rmtree(name, onexc=onexc)\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/shutil.py\", line 759, in rmtree\n    _rmtree_safe_fd(stack, onexc)\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/shutil.py\", line 698, in _rmtree_safe_fd\n    os.unlink(entry.name, dir_fd=topfd)\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24x2/work/build24m4x2/q5.py\", line 13, in audit\n    if event in ('os.remove','os.rmdir'):raise RuntimeError('NO_DELETION:'+str(args))\n                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nRuntimeError: NO_DELETION:('routing.sqlite', 9)\n"
+      },
+      {
+        "test": "test_revision_3_11_rows_rerender_closest_as_one_min_line (tests.test_carrier_c1_cp2.TraceRevisionCalculator.test_revision_3_11_rows_rerender_closest_as_one_min_line)",
+        "output": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24x2/work/tree_r1c/tests/test_carrier_c1_cp2.py\", line 88, in test_revision_3_11_rows_rerender_closest_as_one_min_line\n    DerivgenRows.setUpClass()\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24x2/work/tree_r1c/tests/test_carrier_c1_routing.py\", line 106, in setUpClass\n    cls.rows = [json.loads(line) for line in POOL.open()]\n                                             ^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py\", line 1013, in open\n    return io.open(self, mode, buffering, encoding, errors, newline)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nFileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_cd/derivgen/review_pool/POOL.jsonl'\n"
+      }
+    ],
+    "skipped": [],
+    "success": false
+  },
+  {
+    "name": "test_r1_build16",
+    "tests": 9,
+    "failures": [],
+    "errors": [
+      {
+        "test": "test_final_preparation_handover_binding (tests.test_r1_build16.Build16.test_final_preparation_handover_binding)",
+        "output": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24x2/work/tree_r1c/tests/test_r1_build16.py\", line 148, in test_final_preparation_handover_binding\n    root,cfg,_,artifact=self.fixture(step)\n                        ^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24x2/work/tree_r1c/tests/test_r1_build16.py\", line 68, in fixture\n    cfg,p,model,artifact=handover_fixture(root/'producer',step=step)\n                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24x2/work/tree_r1c/tests/test_r2_n1fix.py\", line 69, in handover_fixture\n    functions = sealed_functions()\n                ^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24x2/work/tree_r1c/tests/test_r2_n1fix.py\", line 17, in sealed_functions\n    nodes = [node for node in ast.parse(path.read_text()).body\n                                        ^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py\", line 1027, in read_text\n    with self.open(mode='r', encoding=encoding, errors=errors) as f:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24x2/work/tree_r1c/tests/test_r1_build16.py\", line 19, in opened\n    return original(path,mode.replace('x','w') if path.is_relative_to(root) else mode,*args,**kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py\", line 1013, in open\n    return io.open(self, mode, buffering, encoding, errors, newline)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nFileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24x2/work/base/tree_b01ce449/student_pilot/carrier_c1_run.py'\n"
+      },
+      {
+        "test": "test_native_first_resumed_batch (tests.test_r1_build16.Build16.test_native_first_resumed_batch)",
+        "output": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24x2/work/tree_r1c/tests/test_r1_build16.py\", line 193, in test_native_first_resumed_batch\n    root,cfg,donor,artifact=self.fixture()\n                            ^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24x2/work/tree_r1c/tests/test_r1_build16.py\", line 68, in fixture\n    cfg,p,model,artifact=handover_fixture(root/'producer',step=step)\n                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24x2/work/tree_r1c/tests/test_r2_n1fix.py\", line 69, in handover_fixture\n    functions = sealed_functions()\n                ^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24x2/work/tree_r1c/tests/test_r2_n1fix.py\", line 17, in sealed_functions\n    nodes = [node for node in ast.parse(path.read_text()).body\n                                        ^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py\", line 1027, in read_text\n    with self.open(mode='r', encoding=encoding, errors=errors) as f:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24x2/work/tree_r1c/tests/test_r1_build16.py\", line 19, in opened\n    return original(path,mode.replace('x','w') if path.is_relative_to(root) else mode,*args,**kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py\", line 1013, in open\n    return io.open(self, mode, buffering, encoding, errors, newline)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nFileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24x2/work/base/tree_b01ce449/student_pilot/carrier_c1_run.py'\n"
+      },
+      {
+        "test": "test_persisted_400_600_native_reader_and_init (tests.test_r1_build16.Build16.test_persisted_400_600_native_reader_and_init)",
+        "output": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24x2/work/tree_r1c/tests/test_r1_build16.py\", line 97, in test_persisted_400_600_native_reader_and_init\n    root,cfg,model,artifact=self.fixture(step)\n                            ^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24x2/work/tree_r1c/tests/test_r1_build16.py\", line 68, in fixture\n    cfg,p,model,artifact=handover_fixture(root/'producer',step=step)\n                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24x2/work/tree_r1c/tests/test_r2_n1fix.py\", line 69, in handover_fixture\n    functions = sealed_functions()\n                ^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24x2/work/tree_r1c/tests/test_r2_n1fix.py\", line 17, in sealed_functions\n    nodes = [node for node in ast.parse(path.read_text()).body\n                                        ^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py\", line 1027, in read_text\n    with self.open(mode='r', encoding=encoding, errors=errors) as f:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24x2/work/tree_r1c/tests/test_r1_build16.py\", line 19, in opened\n    return original(path,mode.replace('x','w') if path.is_relative_to(root) else mode,*args,**kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py\", line 1013, in open\n    return io.open(self, mode, buffering, encoding, errors, newline)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nFileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24x2/work/base/tree_b01ce449/student_pilot/carrier_c1_run.py'\n"
+      },
+      {
+        "test": "test_persisted_forgery_and_mismatch (tests.test_r1_build16.Build16.test_persisted_forgery_and_mismatch)",
+        "output": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24x2/work/tree_r1c/tests/test_r1_build16.py\", line 111, in test_persisted_forgery_and_mismatch\n    root,cfg,model,artifact=self.fixture()\n                            ^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24x2/work/tree_r1c/tests/test_r1_build16.py\", line 68, in fixture\n    cfg,p,model,artifact=handover_fixture(root/'producer',step=step)\n                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24x2/work/tree_r1c/tests/test_r2_n1fix.py\", line 69, in handover_fixture\n    functions = sealed_functions()\n                ^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24x2/work/tree_r1c/tests/test_r2_n1fix.py\", line 17, in sealed_functions\n    nodes = [node for node in ast.parse(path.read_text()).body\n                                        ^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py\", line 1027, in read_text\n    with self.open(mode='r', encoding=encoding, errors=errors) as f:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24x2/work/tree_r1c/tests/test_r1_build16.py\", line 19, in opened\n    return original(path,mode.replace('x','w') if path.is_relative_to(root) else mode,*args,**kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py\", line 1013, in open\n    return io.open(self, mode, buffering, encoding, errors, newline)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nFileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24x2/work/base/tree_b01ce449/student_pilot/carrier_c1_run.py'\n"
+      },
+      {
+        "test": "test_persisted_metadata_only_and_closure_refusals (tests.test_r1_build16.Build16.test_persisted_metadata_only_and_closure_refusals)",
+        "output": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24x2/work/tree_r1c/tests/test_r1_build16.py\", line 238, in test_persisted_metadata_only_and_closure_refusals\n    root,cfg,model,artifact=self.fixture(600)\n                            ^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24x2/work/tree_r1c/tests/test_r1_build16.py\", line 68, in fixture\n    cfg,p,model,artifact=handover_fixture(root/'producer',step=step)\n                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24x2/work/tree_r1c/tests/test_r2_n1fix.py\", line 69, in handover_fixture\n    functions = sealed_functions()\n                ^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24x2/work/tree_r1c/tests/test_r2_n1fix.py\", line 17, in sealed_functions\n    nodes = [node for node in ast.parse(path.read_text()).body\n                                        ^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py\", line 1027, in read_text\n    with self.open(mode='r', encoding=encoding, errors=errors) as f:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24x2/work/tree_r1c/tests/test_r1_build16.py\", line 19, in opened\n    return original(path,mode.replace('x','w') if path.is_relative_to(root) else mode,*args,**kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py\", line 1013, in open\n    return io.open(self, mode, buffering, encoding, errors, newline)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nFileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24x2/work/base/tree_b01ce449/student_pilot/carrier_c1_run.py'\n"
+      }
+    ],
+    "skipped": [],
+    "success": false
+  },
+  {
+    "name": "test_r1_build17",
+    "tests": 9,
+    "failures": [],
+    "errors": [
+      {
+        "test": "test_handover_rebind (tests.test_r1_build17.Boundary.test_handover_rebind)",
+        "output": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24x2/work/tree_r1c/tests/test_r1_build17.py\", line 98, in test_handover_rebind\n    root,cfg,_,_=self.fixture(step)\n                 ^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24x2/work/tree_r1c/tests/test_r1_build16.py\", line 68, in fixture\n    cfg,p,model,artifact=handover_fixture(root/'producer',step=step)\n                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24x2/work/tree_r1c/tests/test_r2_n1fix.py\", line 69, in handover_fixture\n    functions = sealed_functions()\n                ^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24x2/work/tree_r1c/tests/test_r2_n1fix.py\", line 17, in sealed_functions\n    nodes = [node for node in ast.parse(path.read_text()).body\n                                        ^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py\", line 1027, in read_text\n    with self.open(mode='r', encoding=encoding, errors=errors) as f:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24x2/work/tree_r1c/tests/test_r1_build16.py\", line 19, in opened\n    return original(path,mode.replace('x','w') if path.is_relative_to(root) else mode,*args,**kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py\", line 1013, in open\n    return io.open(self, mode, buffering, encoding, errors, newline)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nFileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24x2/work/base/tree_b01ce449/student_pilot/carrier_c1_run.py'\n"
+      },
+      {
+        "test": "test_missing_manifest (tests.test_r1_build17.Boundary.test_missing_manifest)",
+        "output": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24x2/work/tree_r1c/tests/test_r1_build17.py\", line 136, in test_missing_manifest\n    root,cfg,_,_=self.fixture()\n                 ^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24x2/work/tree_r1c/tests/test_r1_build16.py\", line 68, in fixture\n    cfg,p,model,artifact=handover_fixture(root/'producer',step=step)\n                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24x2/work/tree_r1c/tests/test_r2_n1fix.py\", line 69, in handover_fixture\n    functions = sealed_functions()\n                ^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24x2/work/tree_r1c/tests/test_r2_n1fix.py\", line 17, in sealed_functions\n    nodes = [node for node in ast.parse(path.read_text()).body\n                                        ^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py\", line 1027, in read_text\n    with self.open(mode='r', encoding=encoding, errors=errors) as f:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24x2/work/tree_r1c/tests/test_r1_build16.py\", line 19, in opened\n    return original(path,mode.replace('x','w') if path.is_relative_to(root) else mode,*args,**kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py\", line 1013, in open\n    return io.open(self, mode, buffering, encoding, errors, newline)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nFileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24x2/work/base/tree_b01ce449/student_pilot/carrier_c1_run.py'\n"
+      },
+      {
+        "test": "test_proof_wrong_receipt_and_milestone (tests.test_r1_build17.Boundary.test_proof_wrong_receipt_and_milestone)",
+        "output": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24x2/work/tree_r1c/tests/test_r1_build17.py\", line 119, in test_proof_wrong_receipt_and_milestone\n    root,cfg,_,_=self.fixture(400)\n                 ^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24x2/work/tree_r1c/tests/test_r1_build16.py\", line 68, in fixture\n    cfg,p,model,artifact=handover_fixture(root/'producer',step=step)\n                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24x2/work/tree_r1c/tests/test_r2_n1fix.py\", line 69, in handover_fixture\n    functions = sealed_functions()\n                ^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24x2/work/tree_r1c/tests/test_r2_n1fix.py\", line 17, in sealed_functions\n    nodes = [node for node in ast.parse(path.read_text()).body\n                                        ^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py\", line 1027, in read_text\n    with self.open(mode='r', encoding=encoding, errors=errors) as f:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24x2/work/tree_r1c/tests/test_r1_build16.py\", line 19, in opened\n    return original(path,mode.replace('x','w') if path.is_relative_to(root) else mode,*args,**kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py\", line 1013, in open\n    return io.open(self, mode, buffering, encoding, errors, newline)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nFileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24x2/work/base/tree_b01ce449/student_pilot/carrier_c1_run.py'\n"
+      }
+    ],
+    "skipped": [],
+    "success": false
+  },
+  {
+    "name": "test_r2_build8",
+    "tests": 17,
+    "failures": [],
+    "errors": [
+      {
+        "test": "test_pose_and_response_refusals (tests.test_r2_build8.InputReaders.test_pose_and_response_refusals)",
+        "output": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24x2/work/tree_r1c/tests/test_r2_build8.py\", line 159, in test_pose_and_response_refusals\n    from tests.test_room_v314 import Sensor\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24x2/work/tree_r1c/tests/test_room_v314.py\", line 9, in <module>\n    from derivgen.ground_v313 import Session as GeneratorSession\nModuleNotFoundError: No module named 'derivgen'\n"
+      }
+    ],
+    "skipped": [],
+    "success": false
+  }
+]

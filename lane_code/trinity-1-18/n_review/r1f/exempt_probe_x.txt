@@ -1,0 +1,15 @@
+r1_source None key -> ValueError:EXTENT_RECEIPT_REQUIRED
+P pool row -> PASS
+a0_ slice row, listed source -> ValueError:EXTENT_RECEIPT_REQUIRED
+r1_source row, listed source -> ValueError:EXTENT_RECEIPT_REQUIRED
+unlisted source -> ValueError:EXTENT_RECEIPT_REQUIRED
+no s1_source (legacy) abs -> ValueError:EXTENT_RECEIPT_REQUIRED
+legacy camera type -> PASS
+vqa stream listed source -> PASS
+exempted 1
+empty list -> ValueError:EXTENT_RECEIPT_REQUIRED
+None list -> ValueError:EXTENT_RECEIPT_REQUIRED
+bad 'U_Faithful' ValueError EXTENT_POOL_SOURCES_INVALID
+bad [''] ValueError EXTENT_POOL_SOURCES_INVALID
+bad [1] ValueError EXTENT_POOL_SOURCES_INVALID
+bad {'a': 1} ValueError EXTENT_POOL_SOURCES_INVALID

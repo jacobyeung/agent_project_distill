@@ -1,0 +1,18 @@
+{
+ "file": "test_c1_validation_slice.py",
+ "run": 15,
+ "failures": [],
+ "errors": [
+  "test_c1_validation_slice.ValidationPreparation.test_prepare_keeps_validation_out_of_training_counts",
+  "test_c1_validation_slice.ValidationPreparation.test_prepared_refuses_changed_pins_and_authenticates_validation_files",
+  "test_c1_validation_slice.ValidationRead.test_native_loop_reads_after_export_and_smoke_never_reads"
+ ],
+ "skipped": 0,
+ "failure_text": {
+  "test_c1_validation_slice.ValidationPreparation.test_prepare_keeps_validation_out_of_training_counts": "ure\n    receipt = run.prepare(cfg)\n              ^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr21_revT/w/patched/student_pilot/carrier_c1_run.py\", line 470, in prepare\n    version_metadata = metadata(cfg)\n                       ^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr21_revT/w/patched/student_pilot/trace_version.py\", line 24, in metadata\n    return {KEY: require(config.get(KEY)), 'trace_version_binding': 1}\n                 ^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr21_revT/w/patched/student_pilot/trace_version.py\", line 5, in require\n    if value is None:raise ProgramRefusal('trace_program_version_missing')\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\ntrace_format.program_errors.ProgramRefusal: trace_program_version_missing\n",
+  "test_c1_validation_slice.ValidationPreparation.test_prepared_refuses_changed_pins_and_authenticates_validation_files": "ure\n    receipt = run.prepare(cfg)\n              ^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr21_revT/w/patched/student_pilot/carrier_c1_run.py\", line 470, in prepare\n    version_metadata = metadata(cfg)\n                       ^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr21_revT/w/patched/student_pilot/trace_version.py\", line 24, in metadata\n    return {KEY: require(config.get(KEY)), 'trace_version_binding': 1}\n                 ^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tr21_revT/w/patched/student_pilot/trace_version.py\", line 5, in require\n    if value is None:raise ProgramRefusal('trace_program_version_missing')\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\ntrace_format.program_errors.ProgramRefusal: trace_program_version_missing\n",
+  "test_c1_validation_slice.ValidationRead.test_native_loop_reads_after_export_and_smoke_never_reads": "le \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py\", line 1139, in __call__\n    return self._mock_call(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py\", line 1143, in _mock_call\n    return self._execute_mock_call(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py\", line 1204, in _execute_mock_call\n    result = effect(*args, **kwargs)\n             ^^^^^^^^^^^^^^^^^^^^^^^\nTypeError: ValidationRead.test_native_loop_reads_after_export_and_smoke_never_reads.<locals>.<lambda>() got an unexpected keyword argument 'optimizer'\n"
+ },
+ "seconds": 19.1,
+ "deletions_skipped": 2
+}
