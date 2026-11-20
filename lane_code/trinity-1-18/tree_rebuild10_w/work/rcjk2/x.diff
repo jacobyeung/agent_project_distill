@@ -1,0 +1,35 @@
+--- rcjk/x.py	2026-11-20 03:56:08.000000000 -0500
++++ rcjk2/x.py	2026-11-20 04:28:48.615202518 -0500
+@@ -350,6 +350,16 @@
+     yield None
+ 
+ 
++def host_root():
++    out = []
++    for name in sorted(os.listdir('/')):
++        if name in ('proc', 'dev', 'tmp', 'scratch'): continue
++        p = '/' + name
++        if os.path.islink(p): out += ['--symlink', os.readlink(p), p]
++        elif os.path.isdir(p): out += ['--ro-bind', p, p]
++    return out
++
++
+ def launch(kit, root, job, action='run'):
+     z = attach(kit); root = Path(root)
+     e = z.load(root/'env.json')
+@@ -359,10 +369,14 @@
+     binary = z.checked(pin['file'], pin['sha256'])
+     if str(binary) != '/project/community/jjyeung/cp4tk_rt/kit/bwrap':
+         raise ValueError('R1_BINARY_LOCATION_DIFFERS')
+-    cmd = [str(binary), '--ro-bind', '/', '/', '--dev-bind', '/dev', '/dev', '--proc', '/proc']
+     mode = z.load(root/'mode.json')['mode'] if (root/'mode.json').is_file() else 'b'
+     if mode == 'r':
++        # The host has no /scratch and its / cannot take new mountpoints: build the root
++        # from the host's top-level entries so /scratch can be created inside the sandbox.
++        cmd = [str(binary), *host_root(), '--dev-bind', '/dev', '/dev', '--proc', '/proc']
+         cmd += ['--tmpfs', '/project/community/jjyeung/c7d31ddd', '--tmpfs', '/tmp', '--ro-bind', e['scratch'], '/scratch']
++    else:
++        cmd = [str(binary), '--ro-bind', '/', '/', '--dev-bind', '/dev', '/dev', '--proc', '/proc']
+     cmd += ['--bind', str(root), str(root)]
+     cmd += ['--ro-bind', e['venv'], logical]
+     for source, dest in e.get('mounts', []): cmd += ['--ro-bind', source, dest]

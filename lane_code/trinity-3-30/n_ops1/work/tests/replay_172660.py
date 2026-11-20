@@ -13,7 +13,10 @@ for n in ks:
   r=rows[n]; sm={k:r.get(k,T.SM[k]) for k in T.SM}
   hist.append(T.step(n,sm=sm,wall=r['wall'],ck=65 if n%200==0 else 0)); t+=r['wall']*(n-(hist[-2]['step'] if len(hist)>1 else n-1))
   m=int(t//60); left=24*3600-3.5*3600-t
-  seq.append(T.raw('%02d:%02d:%02dZ'%((m//60)%24,m%60,int(t%60)),steps=hist[-3:],cpu=t*8e6,left='%d:%02d:00'%(left//3600,(left%3600)//60)))
+  r0=T.raw('%02d:%02d:%02dZ'%((m//60)%24,m%60,int(t%60)),steps=hist[-3:],cpu=t*8e6,left='%d:%02d:00'%(left//3600,(left%3600)//60))
+  done=['m100','m200']+[x for x in ('m400','m600') if n>=int(x[1:])+4]
+  r0=r0.replace('@@CK\n','@@CK\n00:00:00.0 r/checkpoint_000001\n').replace('@@ODIR','@@LIVE\n'+''.join('-rw------- 1 u g 107 00:00:00 gcs_%s.done\n'%x for x in done)+'@@ODIR')
+  seq.append(r0)
 d=T.W+'/tests/s_replay'; os.makedirs(d,exist_ok=True); json.dump({'job':'99'},open(d+'/state.json','w'))
 for f in ('steps.jsonl',):
   if os.path.exists(d+'/'+f):os.replace(d+'/'+f,d+'/'+f+'.prev')

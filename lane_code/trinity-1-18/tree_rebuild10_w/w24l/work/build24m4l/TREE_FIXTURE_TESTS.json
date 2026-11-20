@@ -1,0 +1,24 @@
+{
+  "errors": [
+    [
+      "test_prepare_skips_paired_layout_only_for_single_images (test_carrier_c1_single_image_fixture.SingleImageTests.test_prepare_skips_paired_layout_only_for_single_images)",
+      "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24l/work/build24m4l/test_carrier_c1_single_image_fixture.py\", line 228, in test_prepare_skips_paired_layout_only_for_single_images\n    prepared = run.prepare(cfg)\n               ^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24l/work/tree_r1c/student_pilot/carrier_c1_run.py\", line 662, in prepare\n    sealed = binding(load(pinned(cfg['code'])), result['config_sha256'])\n                                 ~~~^^^^^^^^\nKeyError: 'code'\n"
+    ]
+  ],
+  "failures": [],
+  "fixture_only_edits": [
+    {
+      "new": "max_pixels=None, min_pixels=None",
+      "old": "max_pixels=4096, min_pixels=1024",
+      "source": "tests/test_host24j.py"
+    },
+    {
+      "new": "base_identity='fixture', trace_program_version='3.13', frame_layout='paired'",
+      "old": "base_identity='fixture', frame_layout='paired'",
+      "source": "tests/test_carrier_c1_single_image.py"
+    }
+  ],
+  "successful": false,
+  "tests": 2,
+  "tree_unchanged": true
+}

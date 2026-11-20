@@ -1,0 +1,58 @@
+{
+  "estimate_seconds": 1067.177291706932,
+  "estimate_minutes": 17.786288195115535,
+  "inference_and_load_seconds": 467.177291706932,
+  "stage_allowance_seconds": 600,
+  "formula": "600 staging + 78.2098 observed full-reader load allowance + 1.5 * sum(observed tower seconds) + 120 IO/return allowance",
+  "measured_dense": {
+    "32": {
+      "completed": true,
+      "gpu_free_bytes": 46177386496,
+      "gpu_name": "NVIDIA H100 80GB HBM3",
+      "gpu_total_bytes": 85017493504,
+      "ground_frame_count": 32,
+      "initial_load_seconds": 78.20981346699409,
+      "item_id": "vsi590k_251447",
+      "linear_160_item_minutes": 69.56482075201347,
+      "note": "first cold item includes prefill, lazy towers, CPU linking and observer; excludes initial VLM load and gzip commit; planning estimate only",
+      "pass_index": 0,
+      "peak_gpu_bytes": 35465868288,
+      "peak_gpu_reserved_bytes": 38101057536,
+      "remaining_worker_seconds": 10030.8522939682,
+      "seconds": 26.086807782005053,
+      "timings": {
+        "g3t_s": 17.93116521599586
+      }
+    },
+    "64": {
+      "completed": true,
+      "gpu_free_bytes": 47626518528,
+      "gpu_name": "NVIDIA H100 80GB HBM3",
+      "gpu_total_bytes": 85017493504,
+      "ground_frame_count": 64,
+      "initial_load_seconds": 78.20981346699409,
+      "item_id": "vsi590k_042574",
+      "linear_160_item_minutes": 133.94679368535677,
+      "note": "first cold item includes prefill, lazy towers, CPU linking and observer; excludes initial VLM load and gzip commit; planning estimate only",
+      "pass_index": 0,
+      "peak_gpu_bytes": 33439548928,
+      "peak_gpu_reserved_bytes": 36654022656,
+      "remaining_worker_seconds": 12497.999254703522,
+      "seconds": 50.23004763200879,
+      "timings": {
+        "g3t_s": 22.27781348399003
+      }
+    }
+  },
+  "assumptions": [
+    "Staging is an unmeasured allowance, enforced at 600 seconds.",
+    "The inherited stage unpacks existing archives into job-local /tmp; no environment is installed.",
+    "The worker loads only the frozen tower, with T1 scale and gravity held fixed.",
+    "A forecast over 1500 seconds refuses before staging/loading. Total allocation is 1800 seconds."
+  ],
+  "runnable_arms": {
+    "A": 10,
+    "B": 0,
+    "C": 0
+  }
+}

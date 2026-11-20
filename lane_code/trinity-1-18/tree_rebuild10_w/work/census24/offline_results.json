@@ -1,0 +1,281 @@
+[
+  {
+    "name": "layout_actual",
+    "status": "ERROR",
+    "exception": "ValueError",
+    "output": "processor_resolution_pin_missing",
+    "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/work/census24/offline_checks.py\", line 50, in check\n    with scope(verified):v=fn()\n                           ^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/work/census24/offline_checks.py\", line 55, in <lambda>\n    check('layout_actual',lambda:b7_inputs.layout(n))\n                                 ^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24j/work/tree_r1/student_pilot/b7_inputs.py\", line 37, in layout\n    raise ValueError('processor_resolution_pin_missing')\nValueError: processor_resolution_pin_missing\n"
+  },
+  {
+    "name": "layout_pixels_added",
+    "status": "PASS",
+    "result": {
+      "max_pixels": 147456,
+      "min_pixels": 16384,
+      "frame_count": 32,
+      "frame_layout": "duplicate",
+      "frame_markers": true
+    }
+  },
+  {
+    "name": "reader_layout_same_patched",
+    "status": "PASS",
+    "result": {
+      "max_pixels": 147456,
+      "min_pixels": 16384,
+      "frame_count": 32,
+      "frame_layout": "duplicate",
+      "frame_markers": true
+    }
+  },
+  {
+    "name": "recipe_actual",
+    "status": "PASS",
+    "result": {
+      "steps": 1000,
+      "global_batch": 288,
+      "world_size": 4,
+      "seed": 17,
+      "learning_rate": 0.0001,
+      "lm_learning_rate": 1e-05,
+      "encoder_learning_rate": 1e-05,
+      "weight_decay": 0.01,
+      "warmup_ratio": 0.05,
+      "clip_norm": 1.0,
+      "resume_every_seconds": 7200,
+      "milestones": [
+        100,
+        200,
+        400,
+        600,
+        800,
+        1000
+      ],
+      "mix": [
+        "pose",
+        "pose",
+        "pose",
+        "pose",
+        "pose",
+        "pose",
+        "pose",
+        "pose",
+        "vqa",
+        "vqa",
+        "vqa",
+        "vqa",
+        "vqa",
+        "vqa",
+        "vqa",
+        "vqa",
+        "vqa",
+        "vqa",
+        "vqa",
+        "vqa",
+        "vqa",
+        "vqa",
+        "vqa",
+        "vqa",
+        "routing",
+        "routing",
+        "routing",
+        "routing",
+        "routing",
+        "routing",
+        "routing",
+        "routing",
+        "pose",
+        "pose",
+        "pose",
+        "pose",
+        "pose",
+        "pose",
+        "pose",
+        "pose",
+        "vqa",
+        "vqa",
+        "vqa",
+        "vqa",
+        "vqa",
+        "vqa",
+        "vqa",
+        "vqa",
+        "vqa",
+        "vqa",
+        "vqa",
+        "vqa",
+        "vqa",
+        "vqa",
+        "vqa",
+        "vqa",
+        "pointing",
+        "pointing",
+        "pointing",
+        "pointing",
+        "pointing",
+        "pointing",
+        "pointing",
+        "pointing",
+        "routing",
+        "routing",
+        "routing",
+        "routing",
+        "routing",
+        "routing",
+        "routing",
+        "routing"
+      ],
+      "weights": {
+        "pose": 1.5,
+        "depth": 0.25,
+        "depth_fov": 0.05,
+        "vqa": 1.0,
+        "pointing": 1.0,
+        "routing": 1.0
+      },
+      "wall_seconds": 86400,
+      "stop_before_seconds": 3600,
+      "scheduled_sampling": {
+        "depth_open_absrel": 0.25,
+        "ema_steps": 100,
+        "exposure_from_step": null,
+        "exposure_probability": 0.0,
+        "force_from_step": null,
+        "fov_open_deg": 2.0,
+        "max_own_probability": 0,
+        "pose_full_deg": 10.0,
+        "pose_open_deg": 20.0,
+        "seed": 17
+      },
+      "reference_world_size": 32,
+      "export_at_stop": true
+    }
+  },
+  {
+    "name": "world_one_recipe",
+    "status": "ERROR",
+    "exception": "ValueError",
+    "output": "Final mode needs a mix over pose/vqa/pointing/routing and world_size 4, 8, 16 or 32",
+    "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/work/census24/offline_checks.py\", line 50, in check\n    with scope(verified):v=fn()\n                           ^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/work/census24/offline_checks.py\", line 59, in <lambda>\n    check('world_one_recipe',lambda:recipe_for(dict(patched,world_size=1)))\n                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24j/work/tree_r1/student_pilot/carrier_c1_sweep.py\", line 70, in recipe_for\n    raise ValueError('Final mode needs a mix over pose/vqa/pointing/routing and world_size 4, 8, 16 or 32')\nValueError: Final mode needs a mix over pose/vqa/pointing/routing and world_size 4, 8, 16 or 32\n"
+  },
+  {
+    "name": "r1_validate_actual",
+    "status": "ERROR",
+    "exception": "ValueError",
+    "output": "Missing or changed pinned input: u/e84f4dc9adf35f76dd89b631350cac0b92771537eafa94bed2b25154b5c0b9e6",
+    "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/work/census24/offline_checks.py\", line 50, in check\n    with scope(verified):v=fn()\n                           ^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/work/census24/offline_checks.py\", line 60, in <lambda>\n    check('r1_validate_actual',lambda:r1_training.validate(n))\n                                      ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24j/work/tree_r1/student_pilot/r1_training.py\", line 71, in validate\n    validate_binding(cfg)\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24j/work/tree_r1/student_pilot/r1_coverage.py\", line 179, in validate_binding\n    deferred(cfg, read_pins=True)\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24j/work/tree_r1/student_pilot/r1_coverage.py\", line 53, in deferred\n    catalog(document(obj['row_sources']), prefix+'.row_sources')\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24j/work/tree_r1/student_pilot/r1_coverage.py\", line 43, in document\n    return load(pinned(raw)) if isinstance(raw, dict) and 'path' in raw and 'sha256' in raw else raw\n                ^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24j/work/tree_r1/student_pilot/p3_provenance.py\", line 50, in pinned\n    raise ValueError('Missing or changed pinned input: ' + str(path))\nValueError: Missing or changed pinned input: u/e84f4dc9adf35f76dd89b631350cac0b92771537eafa94bed2b25154b5c0b9e6\n"
+  },
+  {
+    "name": "r1_validate_pixels_added",
+    "status": "ERROR",
+    "exception": "ValueError",
+    "output": "Missing or changed pinned input: u/e84f4dc9adf35f76dd89b631350cac0b92771537eafa94bed2b25154b5c0b9e6",
+    "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/work/census24/offline_checks.py\", line 50, in check\n    with scope(verified):v=fn()\n                           ^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/work/census24/offline_checks.py\", line 61, in <lambda>\n    check('r1_validate_pixels_added',lambda:r1_training.validate(patched))\n                                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24j/work/tree_r1/student_pilot/r1_training.py\", line 71, in validate\n    validate_binding(cfg)\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24j/work/tree_r1/student_pilot/r1_coverage.py\", line 179, in validate_binding\n    deferred(cfg, read_pins=True)\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24j/work/tree_r1/student_pilot/r1_coverage.py\", line 53, in deferred\n    catalog(document(obj['row_sources']), prefix+'.row_sources')\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24j/work/tree_r1/student_pilot/r1_coverage.py\", line 43, in document\n    return load(pinned(raw)) if isinstance(raw, dict) and 'path' in raw and 'sha256' in raw else raw\n                ^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24j/work/tree_r1/student_pilot/p3_provenance.py\", line 50, in pinned\n    raise ValueError('Missing or changed pinned input: ' + str(path))\nValueError: Missing or changed pinned input: u/e84f4dc9adf35f76dd89b631350cac0b92771537eafa94bed2b25154b5c0b9e6\n"
+  },
+  {
+    "name": "carrier_validate_actual",
+    "status": "ERROR",
+    "exception": "ValueError",
+    "output": "Missing or changed pinned input: u/e84f4dc9adf35f76dd89b631350cac0b92771537eafa94bed2b25154b5c0b9e6",
+    "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/work/census24/offline_checks.py\", line 50, in check\n    with scope(verified):v=fn()\n                           ^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/work/census24/offline_checks.py\", line 62, in <lambda>\n    check('carrier_validate_actual',lambda:validate(n))\n                                           ^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24j/work/tree_r1/student_pilot/carrier_c1_run.py\", line 72, in validate\n    validate_r1(cfg)\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24j/work/tree_r1/student_pilot/r1_training.py\", line 71, in validate\n    validate_binding(cfg)\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24j/work/tree_r1/student_pilot/r1_coverage.py\", line 179, in validate_binding\n    deferred(cfg, read_pins=True)\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24j/work/tree_r1/student_pilot/r1_coverage.py\", line 53, in deferred\n    catalog(document(obj['row_sources']), prefix+'.row_sources')\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24j/work/tree_r1/student_pilot/r1_coverage.py\", line 43, in document\n    return load(pinned(raw)) if isinstance(raw, dict) and 'path' in raw and 'sha256' in raw else raw\n                ^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24j/work/tree_r1/student_pilot/p3_provenance.py\", line 50, in pinned\n    raise ValueError('Missing or changed pinned input: ' + str(path))\nValueError: Missing or changed pinned input: u/e84f4dc9adf35f76dd89b631350cac0b92771537eafa94bed2b25154b5c0b9e6\n"
+  },
+  {
+    "name": "disk_plan",
+    "status": "PASS",
+    "result": {
+      "expected": {
+        "reserve_bytes": 200000000000,
+        "planned_full_states": 14,
+        "extra_full_states": 2,
+        "planned_weight_exports": 7,
+        "retained_archive_copies": 1
+      },
+      "given": {
+        "extra_full_states": 2,
+        "planned_full_states": 14,
+        "planned_weight_exports": 7,
+        "reserve_bytes": 200000000000,
+        "retained_archive_copies": 1
+      }
+    }
+  },
+  {
+    "name": "coverage_deferred",
+    "status": "ERROR",
+    "exception": "ValueError",
+    "output": "Missing or changed pinned input: u/e84f4dc9adf35f76dd89b631350cac0b92771537eafa94bed2b25154b5c0b9e6",
+    "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/work/census24/offline_checks.py\", line 50, in check\n    with scope(verified):v=fn()\n                           ^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/work/census24/offline_checks.py\", line 64, in <lambda>\n    check('coverage_deferred',lambda:r1_coverage.deferred(n,read_pins=True))\n                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24j/work/tree_r1/student_pilot/r1_coverage.py\", line 53, in deferred\n    catalog(document(obj['row_sources']), prefix+'.row_sources')\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24j/work/tree_r1/student_pilot/r1_coverage.py\", line 43, in document\n    return load(pinned(raw)) if isinstance(raw, dict) and 'path' in raw and 'sha256' in raw else raw\n                ^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24j/work/tree_r1/student_pilot/p3_provenance.py\", line 50, in pinned\n    raise ValueError('Missing or changed pinned input: ' + str(path))\nValueError: Missing or changed pinned input: u/e84f4dc9adf35f76dd89b631350cac0b92771537eafa94bed2b25154b5c0b9e6\n"
+  },
+  {
+    "name": "coverage_validate_binding",
+    "status": "ERROR",
+    "exception": "ValueError",
+    "output": "Missing or changed pinned input: u/e84f4dc9adf35f76dd89b631350cac0b92771537eafa94bed2b25154b5c0b9e6",
+    "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/work/census24/offline_checks.py\", line 50, in check\n    with scope(verified):v=fn()\n                           ^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/work/census24/offline_checks.py\", line 65, in <lambda>\n    check('coverage_validate_binding',lambda:r1_coverage.validate_binding(n))\n                                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24j/work/tree_r1/student_pilot/r1_coverage.py\", line 179, in validate_binding\n    deferred(cfg, read_pins=True)\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24j/work/tree_r1/student_pilot/r1_coverage.py\", line 53, in deferred\n    catalog(document(obj['row_sources']), prefix+'.row_sources')\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24j/work/tree_r1/student_pilot/r1_coverage.py\", line 43, in document\n    return load(pinned(raw)) if isinstance(raw, dict) and 'path' in raw and 'sha256' in raw else raw\n                ^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24j/work/tree_r1/student_pilot/p3_provenance.py\", line 50, in pinned\n    raise ValueError('Missing or changed pinned input: ' + str(path))\nValueError: Missing or changed pinned input: u/e84f4dc9adf35f76dd89b631350cac0b92771537eafa94bed2b25154b5c0b9e6\n"
+  },
+  {
+    "name": "r1_sampler_binding_capsule",
+    "status": "ERROR",
+    "exception": "ValueError",
+    "output": "R1_COMPLETE_FILTERED_POPULATION_REQUIRED",
+    "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/work/census24/offline_checks.py\", line 50, in check\n    with scope(verified):v=fn()\n                           ^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/work/census24/offline_checks.py\", line 66, in <lambda>\n    check('r1_sampler_binding_capsule',lambda:r1_mix.validate_binding(n['r2_sampling']))\n                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24j/work/tree_r1/student_pilot/r1_mix.py\", line 59, in validate_binding\n    raise ValueError('R1_COMPLETE_FILTERED_POPULATION_REQUIRED')\nValueError: R1_COMPLETE_FILTERED_POPULATION_REQUIRED\n"
+  },
+  {
+    "name": "r0_authority",
+    "status": "PASS",
+    "result": {
+      "names": 6398,
+      "rooms": 110
+    }
+  },
+  {
+    "name": "handover_compare_actual",
+    "status": "ERROR",
+    "exception": "ValueError",
+    "output": "P_EXPORT_CAMERA_METADATA_UNVERIFIED",
+    "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/work/census24/offline_checks.py\", line 50, in check\n    with scope(verified):v=fn()\n                           ^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/work/census24/offline_checks.py\", line 68, in <lambda>\n    check('handover_compare_actual',lambda:r1_handover.compare_configs(p,n,replicas=verified))\n                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24j/work/tree_r1/student_pilot/r1_handover.py\", line 180, in compare_configs\n    a, b = (effective_camera(c, candidates, replicas) for c in (source, target))\n    ^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24j/work/tree_r1/student_pilot/r1_handover.py\", line 180, in <genexpr>\n    a, b = (effective_camera(c, candidates, replicas) for c in (source, target))\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24j/work/tree_r1/student_pilot/r1_handover.py\", line 133, in effective_camera\n    raise ValueError('P_EXPORT_CAMERA_METADATA_UNVERIFIED')\nValueError: P_EXPORT_CAMERA_METADATA_UNVERIFIED\n"
+  },
+  {
+    "name": "handover_compare_pixels_added",
+    "status": "ERROR",
+    "exception": "ValueError",
+    "output": "P_EXPORT_CAMERA_METADATA_UNVERIFIED",
+    "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/work/census24/offline_checks.py\", line 50, in check\n    with scope(verified):v=fn()\n                           ^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/work/census24/offline_checks.py\", line 69, in <lambda>\n    check('handover_compare_pixels_added',lambda:r1_handover.compare_configs(p,patched,replicas=verified))\n                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24j/work/tree_r1/student_pilot/r1_handover.py\", line 180, in compare_configs\n    a, b = (effective_camera(c, candidates, replicas) for c in (source, target))\n    ^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24j/work/tree_r1/student_pilot/r1_handover.py\", line 180, in <genexpr>\n    a, b = (effective_camera(c, candidates, replicas) for c in (source, target))\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24j/work/tree_r1/student_pilot/r1_handover.py\", line 133, in effective_camera\n    raise ValueError('P_EXPORT_CAMERA_METADATA_UNVERIFIED')\nValueError: P_EXPORT_CAMERA_METADATA_UNVERIFIED\n"
+  },
+  {
+    "name": "target_recipe_identical",
+    "status": "PASS",
+    "result": {
+      "equal": true
+    }
+  },
+  {
+    "name": "identity_pixels_changed",
+    "status": "PASS",
+    "result": {
+      "actual": "e0b9e4af8bb01f0b1cb060ca3adf5c97c69634d1210a146f99aa3b8757ad245b",
+      "patched": "5e16af8fbe3cf1aacab48673d8717293f1c03753a35e596d923f812809eff568"
+    }
+  },
+  {
+    "name": "handover_pixel_branch",
+    "status": "PASS",
+    "result": {
+      "min_pixels": {
+        "p": null,
+        "n": 16384,
+        "equal": false
+      },
+      "max_pixels": {
+        "p": null,
+        "n": 147456,
+        "equal": false
+      },
+      "frame_count": {
+        "p": 32,
+        "n": 32,
+        "equal": true
+      }
+    }
+  }
+]

@@ -1,0 +1,31 @@
+742:def add_routing_tokens(processor, *, include_ground=False):
+743-    """Add the head-opener tokens; record each one's plain-text constituents for init."""
+744-    from transformers import AddedToken
+745-    tokenizer = processor.tokenizer
+746-    if any(o in tokenizer.get_vocab() for o in OPENERS):
+747-        raise ValueError('Routing openers already exist in the tokenizer')
+748-    constituents = {o: tokenizer.encode(o, add_special_tokens=False) for o in OPENERS}
+749-    tokenizer.add_tokens([AddedToken(o, normalized=False, special=False) for o in OPENERS])
+750-    ids = {o: tokenizer.convert_tokens_to_ids(o) for o in OPENERS}
+751-    processor._routing_tokens = dict(ids=ids, constituents=constituents)
+752-    if include_ground:
+753-        from .mdg_decode_tokens import add_ground_tokens
+754-        add_ground_tokens(processor)
+755-    return processor._routing_tokens
+756-
+757-
+758-def init_routing_embeddings(model, tokens):
+759-    """Input and output rows of each opener = mean of its constituent tokens' rows."""
+760-    rows = model.get_input_embeddings().weight
+761-    head = model.get_output_embeddings().weight
+762-    if max(tokens['ids'].values()) >= min(rows.shape[0], head.shape[0]):
+763-        raise ValueError('Routing opener ids exceed the embedding rows')
+764-    with torch.no_grad():
+765-        for opener, index in tokens['ids'].items():
+766-            parts = tokens['constituents'][opener]
+767-            rows[index] = rows[parts].float().mean(0).to(rows.dtype)
+768-            head[index] = head[parts].float().mean(0).to(head.dtype)
+769-
+770-
+771-# --------------------------------------------------------------------------- stream build
+772-def c1_row(row, rgb, path_map=None):

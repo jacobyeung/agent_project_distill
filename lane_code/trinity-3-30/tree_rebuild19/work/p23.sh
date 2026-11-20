@@ -1,0 +1,1 @@
+W=/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24k/out; cat $W/BUILD24M4K_REPORT.md; echo ===; cat $W/RCJ_USAGE.md; echo; cat $W/UPLOADS_24M4K.list; cat $W/tree_rebuild_b24m4k_2cd5a46f.tar.sha256; ls -la $W/rcj

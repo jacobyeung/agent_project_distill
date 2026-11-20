@@ -1,0 +1,109 @@
+[
+  {
+    "name": "handover_actual_with_p_preparation",
+    "status": "PASS",
+    "result": null
+  },
+  {
+    "name": "handover_pixels_with_p_preparation",
+    "status": "ERROR",
+    "exception": "ValueError",
+    "output": "P_EXPORT_CONFIG_DIFFERENCE:max_pixels",
+    "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/work/census24/offline_more.py\", line 17, in check\n    with scope(idx):v=fn()\n                      ^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/work/census24/offline_more.py\", line 22, in <lambda>\n    check('handover_pixels_with_p_preparation',lambda:compare_configs(p,x,metadata=[n['r1_training']['p_run']['preparation']],replicas=idx))\n                                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24j/work/tree_r1/student_pilot/r1_handover.py\", line 186, in compare_configs\n    raise ValueError('P_EXPORT_CONFIG_DIFFERENCE:'+key)\nValueError: P_EXPORT_CONFIG_DIFFERENCE:max_pixels\n"
+  },
+  {
+    "name": "init_policy_actual",
+    "status": "PASS",
+    "result": "step400_export_weights_fresh_v1"
+  },
+  {
+    "name": "predicate:r1_training.py:73",
+    "status": "PASS",
+    "result": {
+      "refuses": false,
+      "condition": "value.get('schema') != 'r1-training-v1' or value.get('s2') is not False",
+      "error": "ValueError('R1_S2_MUST_BE_OFF')"
+    }
+  },
+  {
+    "name": "predicate:r1_training.py:75",
+    "status": "PASS",
+    "result": {
+      "refuses": false,
+      "condition": "cfg.get('geometry_connector') != 'none' or cfg.get('geometry_online') or cfg.get('r2_schedule')",
+      "error": "ValueError('R1_FUSION_REFUSED')"
+    }
+  },
+  {
+    "name": "predicate:r1_training.py:79",
+    "status": "PASS",
+    "result": {
+      "refuses": false,
+      "condition": "recipe['steps'] != 1000 or recipe['world_size'] != 4 or recipe['global_batch'] != 288",
+      "error": "ValueError('R1_RECIPE_DIFFERS')"
+    }
+  },
+  {
+    "name": "predicate:r1_training.py:81",
+    "status": "PASS",
+    "result": {
+      "refuses": false,
+      "condition": "recipe.get('scheduled_sampling', {}).get('max_own_probability') != 0",
+      "error": "ValueError('R1_OWN_PROBABILITY_REFUSED')"
+    }
+  },
+  {
+    "name": "predicate:r1_training.py:83",
+    "status": "PASS",
+    "result": {
+      "refuses": false,
+      "condition": "cfg.get('h1', {}).get('faithful_own_camera_rows')",
+      "error": "ValueError('R1_OWN_ROWS_REFUSED')"
+    }
+  },
+  {
+    "name": "predicate:r1_training.py:85",
+    "status": "PASS",
+    "result": {
+      "refuses": false,
+      "condition": "(cfg.get('frame_count'), cfg.get('frame_layout'), cfg.get('frame_markers')) != (32, 'duplicate', True)",
+      "error": "ValueError('R1_FRAME_LAYOUT_DIFFERS')"
+    }
+  },
+  {
+    "name": "predicate:r1_training.py:92",
+    "status": "PASS",
+    "result": {
+      "refuses": false,
+      "condition": "type(scale) not in (int, float) or not math.isfinite(scale) or scale < 0 or (card.get('weight_scale') != scale) or (cfg.get('camera_overrides', {}).get('weight_scale') != scale)",
+      "error": "ValueError('R1_SCALE_WEIGHT_DIFFERS')"
+    }
+  },
+  {
+    "name": "predicate:r1_training.py:94",
+    "status": "PASS",
+    "result": {
+      "refuses": false,
+      "condition": "cfg.get('camera_overrides') != {'weight_scale': scale, 'weight_focal': 2.0}",
+      "error": "ValueError('R1_CAMERA_OVERRIDES_DIFFER')"
+    }
+  },
+  {
+    "name": "predicate:r1_training.py:97",
+    "status": "PASS",
+    "result": {
+      "refuses": false,
+      "condition": "stop is not None and (type(stop) is not int or not 1 <= stop <= 1000)",
+      "error": "ValueError('R1_STOP_STEP_INVALID')"
+    }
+  },
+  {
+    "name": "predicate:r1_training.py:99",
+    "status": "PASS",
+    "result": {
+      "refuses": false,
+      "condition": "recipe['milestones'] != [100, 200, 400, 600, 800, 1000]",
+      "error": "ValueError('R1_MILESTONES_DIFFER')"
+    }
+  }
+]

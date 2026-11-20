@@ -1,0 +1,58 @@
+{
+  "production_executed": false,
+  "records": [
+    {
+      "case": "list",
+      "result": {
+        "bytes": 38,
+        "rows": 2,
+        "status": "PASS"
+      }
+    },
+    {
+      "case": "seed",
+      "result": {
+        "bytes": 20,
+        "rows": 1,
+        "status": "PASS"
+      }
+    },
+    {
+      "case": "sample_negative",
+      "escaped_size_cap": true,
+      "gate_failed": true,
+      "size_cap": true
+    },
+    {
+      "case": "publication_success",
+      "k_artifacts": true,
+      "rdiff": true,
+      "sample": true,
+      "two_databases": true
+    },
+    {
+      "case": "publication_refusal",
+      "failed_gate_no_sample": true,
+      "independent_artifacts": true
+    },
+    {
+      "case": "inner_and_stage",
+      "inner_never_publishes": true,
+      "rebuild_mode": true,
+      "stage_failure_published": true
+    },
+    {
+      "argv": [
+        "r",
+        "/tmp/q_22c714e1/p",
+        "/tmp/q_22c714e1/r.json"
+      ],
+      "case": "native_entry"
+    },
+    {
+      "case": "actual_readonly_mount",
+      "output": "READ_ONLY_TARGET_PASS success 28\nREAD_ONLY_TARGET_PASS refusal 28\nREAD_ONLY_TARGET_PASS stage 28\n"
+    }
+  ],
+  "status": "PASS"
+}

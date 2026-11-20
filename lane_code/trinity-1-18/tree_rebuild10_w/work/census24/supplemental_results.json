@@ -1,0 +1,55 @@
+[
+  {
+    "name": "handover_min_pixels_only",
+    "status": "ERROR",
+    "exception": "ValueError",
+    "output": "P_EXPORT_CONFIG_DIFFERENCE:min_pixels",
+    "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/work/census24/supplemental_checks.py\", line 18, in check\n    with r1_persisted.scope(idx): value=fn()\n                                        ^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/work/census24/supplemental_checks.py\", line 22, in <lambda>\n    check('handover_min_pixels_only',lambda:r1_handover.compare_configs(p,dict(n,min_pixels=16384),metadata=[n['r1_training']['p_run']['preparation']],replicas=idx))\n                                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24j/work/tree_r1/student_pilot/r1_handover.py\", line 186, in compare_configs\n    raise ValueError('P_EXPORT_CONFIG_DIFFERENCE:'+key)\nValueError: P_EXPORT_CONFIG_DIFFERENCE:min_pixels\n"
+  },
+  {
+    "name": "trace_version_metadata",
+    "status": "PASS",
+    "result": {
+      "trace_program_version": "3.14",
+      "trace_version_binding": 1
+    }
+  },
+  {
+    "name": "shared_grammar_digest",
+    "status": "PASS",
+    "result": null
+  },
+  {
+    "name": "deferred_without_reading_row_sources",
+    "status": "PASS",
+    "result": true
+  },
+  {
+    "name": "extent_receipt_schema",
+    "status": "ERROR",
+    "exception": "ValueError",
+    "output": "Missing or changed pinned input: u/c072905be4405a92d7bb906112209f2d27a8c9b58d291b64373c5551c3e96495",
+    "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/work/census24/supplemental_checks.py\", line 18, in check\n    with r1_persisted.scope(idx): value=fn()\n                                        ^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/work/census24/supplemental_checks.py\", line 26, in <lambda>\n    check('extent_receipt_schema',lambda:extent_receipt.Extents(n['extent_receipt']).receipt.get('schema'))\n                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24j/work/tree_r1/student_pilot/extent_receipt.py\", line 26, in __init__\n    self.receipt = load(pinned(pin)) if pin else None\n                        ^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24j/work/tree_r1/student_pilot/p3_provenance.py\", line 50, in pinned\n    raise ValueError('Missing or changed pinned input: ' + str(path))\nValueError: Missing or changed pinned input: u/c072905be4405a92d7bb906112209f2d27a8c9b58d291b64373c5551c3e96495\n"
+  },
+  {
+    "name": "deferred_component_records",
+    "status": "ERROR",
+    "exception": "ValueError",
+    "output": "P_EXPORT_HANDOVER_FILE_REQUIRED:artifact",
+    "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/work/census24/supplemental_checks.py\", line 18, in check\n    with r1_persisted.scope(idx): value=fn()\n                                        ^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/work/census24/supplemental_checks.py\", line 27, in <lambda>\n    check('deferred_component_records',lambda:r1_components.deferred(n))\n                                              ^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24j/work/tree_r1/student_pilot/r1_components.py\", line 25, in deferred\n    closure = verify(value['handover_receipt'], value.get('p_run', {}), spec,\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24j/work/tree_r1/student_pilot/r1_persisted.py\", line 108, in verify\n    records = {k:load(read(k)) for k in ('artifact', *sorted(run_keys))}\n                      ^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24j/work/tree_r1/student_pilot/r1_persisted.py\", line 102, in read\n    raise ValueError('P_EXPORT_HANDOVER_FILE_REQUIRED:'+label)\nValueError: P_EXPORT_HANDOVER_FILE_REQUIRED:artifact\n"
+  },
+  {
+    "name": "room_authority_metadata",
+    "status": "ERROR",
+    "exception": "ValueError",
+    "output": "Missing or changed pinned input: u/c47c5fcd242edc12396cfc47c300da24d3dd2e68aa6ee24abed965f78c84a11b",
+    "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/work/census24/supplemental_checks.py\", line 18, in check\n    with r1_persisted.scope(idx): value=fn()\n                                        ^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/work/census24/supplemental_checks.py\", line 28, in <lambda>\n    check('room_authority_metadata',lambda:dict(k1=len(r1_rooms.Rooms(n['r1_training']['room_authority']).k1)))\n                                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24j/work/tree_r1/student_pilot/r1_rooms.py\", line 23, in __init__\n    paths = {k:pinned(v) for k,v in pins.items()}\n               ^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24j/work/tree_r1/student_pilot/p3_provenance.py\", line 50, in pinned\n    raise ValueError('Missing or changed pinned input: ' + str(path))\nValueError: Missing or changed pinned input: u/c47c5fcd242edc12396cfc47c300da24d3dd2e68aa6ee24abed965f78c84a11b\n"
+  },
+  {
+    "name": "launch_routing_selection_pin",
+    "status": "ERROR",
+    "exception": "ValueError",
+    "output": "R1_ROUTING_SELECTION_PIN_MISSING",
+    "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/work/census24/supplemental_checks.py\", line 18, in check\n    with r1_persisted.scope(idx): value=fn()\n                                        ^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/work/census24/supplemental_checks.py\", line 29, in <lambda>\n    check('launch_routing_selection_pin',lambda:pl.selection_pin(B/'w24j/out/kit_n_go'))\n                                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24j/out/kit_n_go/b/pl.py\", line 20, in selection_pin\n    raise ValueError('R1_ROUTING_SELECTION_PIN_MISSING')\nValueError: R1_ROUTING_SELECTION_PIN_MISSING\n"
+  }
+]

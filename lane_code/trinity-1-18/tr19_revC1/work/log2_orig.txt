@@ -1,0 +1,114 @@
+coverage_b8_preparation.py FAIL 0 fail 0 err 0 FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/tr19_revC1/fixtures/work/build6/INIT_INPUT.json'
+ground_backend_real.py ok 0 fail 0 err 0 
+test_batched_routed_benchmark.py ok 3 fail 0 err 0 
+[transformers] The fast path is not available because one of the required library is not installed. Falling back to torch implementation. To install follow https://github.com/fla-org/flash-linear-attention#installation and https://github.com/Dao-AILab/causal-conv1d
+{"event": "checkpoint_disk_guard", "schema": "c1-checkpoint-disk-v2", "required_bytes": 1142061658, "available_bytes": 240506822656, "ranks": [{"rank": 0, "state_tensor_bytes": 968776, "export_tensor_bytes": 1159368, "free_bytes": 240506822656, "policy": {"reserve_bytes": 1073741824}, "completed": {"checkpoint": 0, "export": 0}, "remaining_full_states": 1, "remaining_weight_exports": 0}], "state_tensor_bytes": 968776, "export_tensor_bytes": 1159368, "state_bytes": 68319834, "export_bytes": 70007284, "remaining_full_states": 1, "remaining_weight_exports": 0, "policy": {"reserve_bytes": 1073741824}, "completed": {"checkpoint": 0, "export": 0}, "state_storage_margin": [5, 4], "export_copy_factor": 2, "serialization_allowance_bytes": 67108864, "retained_archive_bytes": 0, "native_remaining_bytes": 68319834}
+{"event": "checkpoint_disk_guard", "schema": "c1-checkpoint-disk-v2", "required_bytes": 1142061658, "available_bytes": 240505782272, "ranks": [{"rank": 0, "state_tensor_bytes": 968776, "export_tensor_bytes": 1159368, "free_bytes": 240505782272, "policy": {"reserve_bytes": 1073741824}, "completed": {"checkpoint": 0, "export": 0}, "remaining_full_states": 1, "remaining_weight_exports": 0}], "state_tensor_bytes": 968776, "export_tensor_bytes": 1159368, "state_bytes": 68319834, "export_bytes": 70007284, "remaining_full_states": 1, "remaining_weight_exports": 0, "policy": {"reserve_bytes": 1073741824}, "completed": {"checkpoint": 0, "export": 0}, "state_storage_margin": [5, 4], "export_copy_factor": 2, "serialization_allowance_bytes": 67108864, "retained_archive_bytes": 0, "native_remaining_bytes": 68319834}
+{"event": "checkpoint_disk_guard", "schema": "c1-checkpoint-disk-v2", "required_bytes": 1144482778, "available_bytes": 240501604352, "ranks": [{"rank": 0, "state_tensor_bytes": 2905672, "export_tensor_bytes": 1159368, "free_bytes": 240501604352, "policy": {"reserve_bytes": 1073741824}, "completed": {"checkpoint": 0, "export": 0}, "remaining_full_states": 1, "remaining_weight_exports": 0}], "state_tensor_bytes": 2905672, "export_tensor_bytes": 1159368, "state_bytes": 70740954, "export_bytes": 70007284, "remaining_full_states": 1, "remaining_weight_exports": 0, "policy": {"reserve_bytes": 1073741824}, "completed": {"checkpoint": 0, "export": 0}, "state_storage_margin": [5, 4], "export_copy_factor": 2, "serialization_allowance_bytes": 67108864, "retained_archive_bytes": 0, "native_remaining_bytes": 70740954}
+{"event": "checkpoint_disk_guard", "schema": "c1-checkpoint-disk-v2", "required_bytes": 1144482778, "available_bytes": 240495484928, "ranks": [{"rank": 0, "state_tensor_bytes": 2905672, "export_tensor_bytes": 1159368, "free_bytes": 240495484928, "policy": {"reserve_bytes": 1073741824}, "completed": {"checkpoint": 0, "export": 0}, "remaining_full_states": 1, "remaining_weight_exports": 0}], "state_tensor_bytes": 2905672, "export_tensor_bytes": 1159368, "state_bytes": 70740954, "export_bytes": 70007284, "remaining_full_states": 1, "remaining_weight_exports": 0, "policy": {"reserve_bytes": 1073741824}, "completed": {"checkpoint": 0, "export": 0}, "state_storage_margin": [5, 4], "export_copy_factor": 2, "serialization_allowance_bytes": 67108864, "retained_archive_bytes": 0, "native_remaining_bytes": 70740954}
+test_c1_blockers.py FAIL 9 fail 1 err 2 
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+  File "/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/multiprocessing/spawn.py", line 122, in spawn_main
+    exitcode = _main(fd, parent_sentinel)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/multiprocessing/spawn.py", line 131, in _main
+    prepare(preparation_data)
+  File "/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/multiprocessing/spawn.py", line 246, in prepare
+    _fixup_main_from_path(data['init_main_from_path'])
+  File "/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/multiprocessing/spawn.py", line 297, in _fixup_main_from_path
+    main_content = runpy.run_path(main_path,
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen runpy>", line 287, in run_path
+  File "<frozen runpy>", line 98, in _run_module_code
+  File "<frozen runpy>", line 88, in _run_code
+  File "/scratch/jjyeung/orch_n30/tr19_revC1/work/run_tests.py", line 15, in <module>
+    os.chdir(tree)
+FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/treeC_orig'
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+  File "/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/multiprocessing/spawn.py", line 122, in spawn_main
+    exitcode = _main(fd, parent_sentinel)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/multiprocessing/spawn.py", line 131, in _main
+    prepare(preparation_data)
+  File "/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/multiprocessing/spawn.py", line 246, in prepare
+    _fixup_main_from_path(data['init_main_from_path'])
+  File "/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/multiprocessing/spawn.py", line 297, in _fixup_main_from_path
+    main_content = runpy.run_path(main_path,
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen runpy>", line 287, in run_path
+  File "<frozen runpy>", line 98, in _run_module_code
+  File "<frozen runpy>", line 88, in _run_code
+  File "/scratch/jjyeung/orch_n30/tr19_revC1/work/run_tests.py", line 15, in <module>
+    os.chdir(tree)
+FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/treeC_orig'
+W1120 04:32:54.711000 2193597 torch/multiprocessing/spawn.py:165] Terminating process 2196001 via signal SIGTERM
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+  File "/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/multiprocessing/spawn.py", line 122, in spawn_main
+    exitcode = _main(fd, parent_sentinel)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/multiprocessing/spawn.py", line 131, in _main
+    prepare(preparation_data)
+  File "/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/multiprocessing/spawn.py", line 246, in prepare
+    _fixup_main_from_path(data['init_main_from_path'])
+  File "/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/multiprocessing/spawn.py", line 297, in _fixup_main_from_path
+    main_content = runpy.run_path(main_path,
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen runpy>", line 287, in run_path
+  File "<frozen runpy>", line 98, in _run_module_code
+  File "<frozen runpy>", line 88, in _run_code
+  File "/scratch/jjyeung/orch_n30/tr19_revC1/work/run_tests.py", line 15, in <module>
+    os.chdir(tree)
+FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/treeC_orig'
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+  File "/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/multiprocessing/spawn.py", line 122, in spawn_main
+    exitcode = _main(fd, parent_sentinel)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/multiprocessing/spawn.py", line 131, in _main
+    prepare(preparation_data)
+  File "/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/multiprocessing/spawn.py", line 246, in prepare
+    _fixup_main_from_path(data['init_main_from_path'])
+  File "/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/multiprocessing/spawn.py", line 297, in _fixup_main_from_path
+    main_content = runpy.run_path(main_path,
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen runpy>", line 287, in run_path
+  File "<frozen runpy>", line 98, in _run_module_code
+  File "<frozen runpy>", line 88, in _run_code
+  File "/scratch/jjyeung/orch_n30/tr19_revC1/work/run_tests.py", line 15, in <module>
+    os.chdir(tree)
+FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/tr19_revC1/work/treeC_orig/treeC_orig'
+W1120 04:32:55.127000 2193597 torch/multiprocessing/spawn.py:165] Terminating process 2196321 via signal SIGTERM
+test_c1_masked_uv.py FAIL 4 fail 1 err 1 
+{"pose_mix_source": {"source": 0, "selected": 2, "benchmark_rows_dropped": 0, "division_rows_outside": 0, "expected": null, "uv_range": null}}
+{"pose_mix_source": {"source": 1, "selected": 1, "benchmark_rows_dropped": 0, "division_rows_outside": 0, "expected": null, "uv_range": null}}
+{"pose_mix_source": {"source": 0, "selected": 2, "benchmark_rows_dropped": 0, "division_rows_outside": 0, "expected": null, "uv_range": null}}
+{"pose_mix_source": {"source": 0, "selected": 2, "benchmark_rows_dropped": 0, "division_rows_outside": 0, "expected": null, "uv_range": null}}
+{"pose_mix_source": {"source": 1, "selected": 1, "benchmark_rows_dropped": 0, "division_rows_outside": 0, "expected": null, "uv_range": null}}
+{"pose_mix_source": {"source": 0, "selected": 2, "benchmark_rows_dropped": 0, "division_rows_outside": 0, "expected": null, "uv_range": null}}
+{"pose_mix_source": {"source": 0, "selected": 1, "benchmark_rows_dropped": 1, "division_rows_outside": 0, "expected": null, "uv_range": null}}
+{"pose_mix_source": {"source": 1, "selected": 2, "benchmark_rows_dropped": 0, "division_rows_outside": 0, "expected": null, "uv_range": null}}
+{"pose_mix_source": {"source": 1, "selected": 2, "benchmark_rows_dropped": 0, "division_rows_outside": 0, "expected": null, "uv_range": null}}
+{"pose_mix_source": {"source": 0, "selected": 2, "benchmark_rows_dropped": 0, "division_rows_outside": 0, "expected": 2, "uv_range": null}}
+{"pose_mix_source": {"source": 1, "selected": 2, "benchmark_rows_dropped": 0, "division_rows_outside": 0, "expected": 2, "uv_range": null}}
+{"pose_mix_source": {"source": 0, "selected": 2, "benchmark_rows_dropped": 0, "division_rows_outside": 0, "expected": null, "uv_range": null}}
+{"pose_mix_source": {"source": 0, "selected": 2, "benchmark_rows_dropped": 0, "division_rows_outside": 0, "expected": null, "uv_range": [2.0, 500.0]}}
+{"pose_mix_source": {"source": 1, "selected": 2, "benchmark_rows_dropped": 0, "division_rows_outside": 0, "expected": null, "uv_range": [1.0, 990.0]}}
+{"pose_mix_source": {"source": 0, "selected": 2, "benchmark_rows_dropped": 0, "division_rows_outside": 0, "expected": null, "uv_range": null}}
+{"pose_mix_source": {"source": 0, "selected": 2, "benchmark_rows_dropped": 0, "division_rows_outside": 0, "expected": null, "uv_range": null}}
+{"pose_mix_source": {"source": 0, "selected": 2, "benchmark_rows_dropped": 0, "division_rows_outside": 0, "expected": null, "uv_range": null}}
+{"pose_mix_source": {"source": 0, "selected": 2, "benchmark_rows_dropped": 0, "division_rows_outside": 0, "expected": null, "uv_range": null}}
+{"pose_mix_source": {"source": 0, "selected": 2, "benchmark_rows_dropped": 0, "division_rows_outside": 0, "expected": null, "uv_range": null}}
+{"pose_mix_source": {"source": 0, "selected": 2, "benchmark_rows_dropped": 0, "division_rows_outside": 0, "expected": null, "uv_range": null}}
+{"pose_mix_source": {"source": 0, "selected": 1, "benchmark_rows_dropped": 0, "division_rows_outside": 1, "expected": null, "uv_range": null}}
+{"pose_mix_source": {"source": 0, "selected": 2, "benchmark_rows_dropped": 0, "division_rows_outside": 0, "expected": null, "uv_range": null}}
+{"pose_mix_source": {"source": 1, "selected": 1, "benchmark_rows_dropped": 0, "division_rows_outside": 1, "expected": null, "uv_range": null}}
+{"pose_mix_source": {"source": 0, "selected": 1, "benchmark_rows_dropped": 1, "division_rows_outside": 0, "expected": 2, "uv_range": null}}
+{"pose_mix_source": {"source": 1, "selected": 2, "benchmark_rows_dropped": 0, "division_rows_outside": 0, "expected": 2, "uv_range": null}}
+{"pose_mix_source": {"source": 0, "selected": 2, "benchmark_rows_dropped": 0, "division_rows_outside": 0, "expected": 2, "uv_range": null}}
+{"pose_mix_source": {"source": 1, "selected": 2, "benchmark_rows_dropped": 0, "division_rows_outside": 0, "expected": 3, "uv_range": null}}
+test_c1_pose_mix_division.py ok 17 fail 0 err 0 
+test_c1_pose_warm.py FAIL 6 fail 0 err 2 
+test_c1_provenance.py ok 2 fail 0 err 0 

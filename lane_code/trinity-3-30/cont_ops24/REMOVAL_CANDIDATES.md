@@ -1,3 +1,4 @@
 - /project/community/jjyeung/a1abb3a204ff8 (Orchard, 10.8 MB): unused T1 package (sbatch rejected gres); safe to delete.
 - /project/community/jjyeung/a5d6f41359166 (Orchard, 10.8 MB): T1 package with the import bug; superseded by a52c1dcfae7bb.
 - /project/community/jjyeung/a883c5c365aee (Orchard, 5.4 MB): 64-frame package refused by review (memory basis); superseded by ac85ad201020f.
+- /dev/shm/c24 on trinity-3-30 (~60 MB: unpacked payloads, deliveries, returns; copies exist on 2-28 and Orchard).

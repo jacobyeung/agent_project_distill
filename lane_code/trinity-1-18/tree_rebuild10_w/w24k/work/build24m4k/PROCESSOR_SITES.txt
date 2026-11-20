@@ -1,0 +1,18 @@
+work/tree_r1/student_pilot/grounding_train.py:51:    processor = c1.processor_for_receipt(manifest, receipt)
+work/tree_r1/student_pilot/carrier_c1_run.py:1240:def processor_for_receipt(manifest, receipt):
+work/tree_r1/student_pilot/carrier_c1_run.py:1259:        processor._b7_layout = layout(receipt.get('b7_inputs') or receipt)
+work/tree_r1/student_pilot/carrier_c1_run.py:1717:    processor = processor_for_receipt(manifest, receipt)
+work/tree_r1/student_pilot/carrier_c1_run.py:2903:    processor=processor_for_receipt(manifest,receipt)
+work/tree_r1/student_pilot/carrier_c1_run.py:3115:        return encode_plan_rows(receipt, processor_for_receipt(manifest, receipt), plans, ranks, out_path)
+work/tree_r1/student_pilot/carrier_c1_run.py:3143:    processor = processor_for_receipt(manifest, receipt)
+work/tree_r1/student_pilot/carrier_c1_run.py:3311:    processor=processor_for_receipt(manifest,receipt)
+work/tree_r1/student_pilot/s1_routing.py:204:    from .carrier_c1_run import division_admits, processor_for_receipt
+work/tree_r1/student_pilot/s1_routing.py:240:    processor = processor_for_receipt(model, cfg)
+work/tree_r1/student_pilot/live_parity_adapter.py:44:    from student_pilot.carrier_c1_run import processor_for_receipt
+work/tree_r1/student_pilot/live_parity_adapter.py:48:    return processor_for_receipt(manifest,receipt)
+work/tree_r1/launch_r1/p_opener_witness.py:9:    from student_pilot.carrier_c1_run import processor_for_receipt
+work/tree_r1/launch_r1/p_opener_witness.py:26:    processor = processor_for_receipt(dict(manifest,root=str(root)), receipt)
+work/tree_r1/student_pilot/mdg_runtime.py:193:    processor = c1.processor_for_receipt({**manifest, 'root': str(root / 'base')}, receipt)
+work/tree_r1/student_pilot/grounding_eval.py:83:    processor = run.processor_for_receipt(manifest, receipt)
+work/tree_r1/student_pilot/carrier_c1_data.py:161:    if hasattr(processor, '_b7_layout'):
+work/tree_r1/student_pilot/carrier_c1_data.py:209:                                 metadata, row['target'], (processor._b7_layout['min_pixels'], processor._b7_layout['max_pixels']) if hasattr(processor,'_b7_layout') else DEFAULT_PIXELS, 16384)

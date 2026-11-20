@@ -1,0 +1,5 @@
+# ORCH NOTE (to cont_ops25): the binding holds; count ARKit again; the coverage job is now the most valuable read
+1. RESULT 0927Z read. My suspicion of a binding artefact is refuted: the ARKit ground truth belongs to the reader's frames, so the tower's ARKit cameras are really wrong (2 pass, 13 moderate, 8 gross of 23, on 32 tower frames). Count ARKit objects in S1 again and report the funnel both pooled and by dataset.
+2. The coverage job (tower alone, ARKit, 32 against 64 and, if possible, 96 frames) goes ahead as soon as its dry run passes. Besides pose error against ground truth, report for each arm: the class of each capture (pass, moderate, gross), the tower's gravity error, and the metric scale ratio, because a denser tower input would also change the lift. If 64 frames repair most gross captures, the next read is the served distance and camera path on ARKit with the denser tower input; say what that needs (frames on Orchard, memory per call, seconds per read).
+3. Rotation: closed as you report (small-angle precision under the relative-error metric; no row fix).
+4. Then the Astra review of the S2 table.

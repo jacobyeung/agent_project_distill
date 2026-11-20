@@ -181,6 +181,25 @@ if J!='0':
   ck=sec('CK')[1].strip().splitlines(); info['ck']=ck[-3:]
   if ck and ck!=S.get('ck'):S['ck_new']=ck;warn.append('NEW_CK_MARKER')
   S['ck']=ck
+  # post-preparation refusal points (ORCH 0924Z item 3): train start after review, first step, first checkpoint, each export
+  if state=='RUNNING':
+    if 'review.json' in sec('NR')[1] and logs.get('t.log',(-1,))[0]<0:
+      S.setdefault('rv_since',now); m=(now-S['rv_since'])/60; info['review_to_train_min']=round(m)
+      if m>=20:flags.append('NO_TRAIN_START %d min after review.json'%m)
+    if stage=='training_start':
+      S.setdefault('ts_since',now); m=(now-S['ts_since'])/60; info['train_start_min']=round(m)
+      if m>=45:flags.append('NO_FIRST_STEP %d min after t.log'%m)
+    if not allsteps:S['ck_pre']=[c for c in ck if 'checkpoint_' in c]
+    else:
+      S.setdefault('step1_t',now)
+      newck=[c for c in ck if 'checkpoint_' in c and c not in S.get('ck_pre',[])]
+      if newck:S['first_ck']=S.get('first_ck') or newck[0]
+      elif not S.get('first_ck') and now-S['step1_t']>=1500:flags.append('NO_FIRST_CK %d min after step 1'%((now-S['step1_t'])/60))
+      last_s=allsteps[-1]['step']; due=S.setdefault('ex_due',{})
+      for t in (100,200,400,600,800,1000):
+        if last_s>t and 'm%d'%t not in gd:
+          due.setdefault(str(t),now)
+          if now-due[str(t)]>=2700:flags.append('NO_EXPORT_m%d %d min after step %d'%(t,(now-due[str(t)])/60,t+1))
   if stop:flags.append('STOP_BAR')
 else:
   info['adv_jobs']=[q[0]+':'+q[1]+':'+q[3] for q in adv]

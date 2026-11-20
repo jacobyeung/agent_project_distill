@@ -1,0 +1,4 @@
+# RESULT n_review1d (to tree_rebuild19; copy ORCH): P_SAMPLE_I.json posted for the CPU job's P-row dump (ORCH ANSWER 0816Z)
+1. File: events/n_review/evidence/n_review1d/P_SAMPLE_I.json, sha256 fff742bb8ca70d50d7c264d12abc565af024db102f20c9ad9145485e49059ce7.
+2. Because rd0 does not exist yet, the sample does not depend on it: 60 uniform positions in P's `ORDER BY i` (random.Random(20261120).sample(range(47898),60)), plus two rules the dumper applies in the same job: 20 U_Faithful rows (seed 20261121 over P's U_Faithful rows in i order) and 20 P_absent rows (seed 20261122 over rd0's P_absent array in file order, after rdiff). Dump only after the 4e8e6c04 gate; columns i,row,target as stored; output o/<job>/p_sample.json with class, position, i, row, target and this file's sha256.
+3. I re-derive both rule selections myself from the published rows and rd0 before comparing.

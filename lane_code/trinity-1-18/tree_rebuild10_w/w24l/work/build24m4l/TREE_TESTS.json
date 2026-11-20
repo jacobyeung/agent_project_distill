@@ -1,0 +1,31 @@
+{
+  "errors": [
+    [
+      "test_prepare_skips_paired_layout_only_for_single_images (tests.test_carrier_c1_single_image.SingleImageTests.test_prepare_skips_paired_layout_only_for_single_images)",
+      "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24l/work/tree_r1c/tests/test_carrier_c1_single_image.py\", line 228, in test_prepare_skips_paired_layout_only_for_single_images\n    prepared = run.prepare(cfg)\n               ^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24l/work/tree_r1c/student_pilot/carrier_c1_run.py\", line 470, in prepare\n    version_metadata = metadata(cfg)\n                       ^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24l/work/tree_r1c/student_pilot/trace_version.py\", line 24, in metadata\n    return {KEY: require(config.get(KEY)), 'trace_version_binding': 1}\n                 ^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24l/work/tree_r1c/student_pilot/trace_version.py\", line 5, in require\n    if value is None:raise ProgramRefusal('trace_program_version_missing')\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\ntrace_format.program_errors.ProgramRefusal: trace_program_version_missing\n"
+    ],
+    [
+      "test_native_export_bind_audit_and_admit (tests.test_host24j.NativeAdmission.test_native_export_bind_audit_and_admit)",
+      "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24l/work/tree_r1c/tests/test_host24j.py\", line 351, in test_native_export_bind_audit_and_admit\n    self.assertEqual(entry.admit(cfg), 400)\n                     ^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24l/work/tree_r1c/launch_r1/entry.py\", line 84, in admit\n    raise ValueError('R1_LEGACY_PROCESSOR_PIXELS_MUST_USE_DEFAULTS')\nValueError: R1_LEGACY_PROCESSOR_PIXELS_MUST_USE_DEFAULTS\n"
+    ]
+  ],
+  "failures": [],
+  "modules": [
+    "tests.test_r1_processor_compat",
+    "tests.test_carrier_c1_single_image",
+    "tests.test_host24j",
+    "tests.test_carrier_c1_run"
+  ],
+  "skipped": [
+    [
+      "test_mode_p_bytes_match_base (tests.test_host24j.HostReceipt.test_mode_p_bytes_match_base)",
+      "Comparison needs the untouched base tree beside this tree"
+    ],
+    [
+      "test_actual_fsdp_gloo_resume_and_export (tests.test_carrier_c1_run.RunnerTests.test_actual_fsdp_gloo_resume_and_export)",
+      "Local sockets are unavailable; parent CPU job must run Gloo"
+    ]
+  ],
+  "successful": false,
+  "tests": 37
+}

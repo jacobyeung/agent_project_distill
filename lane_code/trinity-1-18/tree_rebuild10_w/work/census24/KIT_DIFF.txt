@@ -1,0 +1,755 @@
+--- n_go/b/rv.py
+
++++ qd/b/rv.py
+
+@@ -277,4 +277,5 @@
+
+         put(live / "WAITING_REVIEW.json", encoded(dict(utc=now.isoformat(), identity=value,
+             v_sha256=hashlib.sha256(raw).hexdigest(), deadline_utc=(now + timedelta(seconds=bound)).isoformat())))
++        return 0
+         while True:
+             if time.monotonic() >= deadline:
+--- n_go/b/pc.sh
+
++++ qd/b/pc.sh
+
+@@ -1,39 +0,0 @@
+
+-export PYTHONDONTWRITEBYTECODE=1
+-# 420 s for the trainer, 10 s for copier shutdown, 155 s for final publication.
+-# Total <=585 s, leaving >=15 s of B:TERM@600; no KillWait grace is assumed.
+-tk_live_finish() {
+-    local status="$1" signal_mode="${2:-}" waited=0 copy_pid
+-    trap '' TERM USR1
+-    trap - EXIT
+-    if [[ -n "$signal_mode" && -n "${TK_WORK_PID:-}" ]]; then
+-        python3 -B -I -s "$ROOT/b/sr.py" "$TK_WORK_PID" 420 signal || waited=$?
+-        if [[ "$waited" == 0 ]]; then
+-            status=0
+-            wait "$TK_WORK_PID" || status=$?
+-        else
+-            status="$waited"
+-        fi
+-    fi
+-    for copy_pid in "${TK_LOG_PID:-}" "${TK_COPY_PID:-}"; do
+-        if [[ -n "$copy_pid" ]]; then
+-            kill -TERM -- "-$copy_pid" 2>/dev/null || true
+-            python3 -B -I -s "$ROOT/b/sr.py" "$copy_pid" 5 || kill -KILL -- "-$copy_pid" 2>/dev/null || true
+-            wait "$copy_pid" 2>/dev/null || true
+-        fi
+-    done
+-    if [[ "$waited" == 0 ]]; then
+-        timeout --signal=TERM --kill-after=5 150 python3 -B -I -s "$ROOT/b/pc.py" "$ROOT" "$N" "$SLURM_JOB_ID" --final || true
+-    else
+-# Do not archive files while an unfinished trainer can still modify them.
+-        timeout --signal=TERM --kill-after=5 150 python3 -B -I -s "$ROOT/b/pc.py" "$ROOT" "$N" "$SLURM_JOB_ID" --small || true
+-    fi
+-    python3 -B -I -s "$ROOT/b/ep.py" "$ROOT" "$N" "$SLURM_JOB_ID" "$status" || true
+-    exit "$status"
+-}
+-trap 'tk_live_finish $?' EXIT
+-trap 'tk_live_finish 143 signal' TERM
+-trap 'tk_live_finish 138 signal' USR1
+-setsid python3 -B -I -s "$ROOT/b/pc.py" "$ROOT" "$N" "$SLURM_JOB_ID" --loop &
+-TK_COPY_PID=$!
+-setsid python3 -B -I -s "$ROOT/b/pc.py" "$ROOT" "$N" "$SLURM_JOB_ID" --loop-small &
+-TK_LOG_PID=$!
+--- n_go/b/gc.py
+
++++ qd/b/gc.py
+
+@@ -1,113 +0,0 @@
+
+-#!/usr/bin/env python3
+-"""Orchard side GCS writer (stdlib only; no Google credential on Orchard).
+-Uploads to resumable-upload session URIs that Trinity minted (rt/GCS_HOWTO.md). Each session URI writes exactly one
+-object name and stays valid for about a week.
+-usage:
+-  gcsput.py put SESSIONS_JSON NAME FILE               one object NAME <- FILE
+-  gcsput.py split SESSIONS_JSON NAME FILE NPARTS [P]  objects NAME.partKK-of-NN <- byte ranges of FILE, P in parallel
+-                                                      (default P = NPARTS); restore = concatenate the parts in order
+-  gcsput.py names NAME NPARTS                         print the part names to mint for `split`
+-Each finished object appends one JSON line to SESSIONS_JSON + ".receipts.jsonl": name, bytes, md5 (checked against the
+-md5Hash GCS reports), sha256 of the bytes, offset, seconds. A part already in the receipts with the same size is skipped,
+-so a rerun resumes. Exit 1 on any failure.
+-"""
+-import base64, hashlib, http.client, json, os, sys, time, urllib.parse
+-from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
+-CHUNK = 16 << 20
+-def part_names(name, nparts):
+-    return [f"{name}.part{k:02d}-of-{nparts:02d}" for k in range(nparts)]
+-def upload(uri, path, offset, length, name):
+-    """PUT bytes [offset, offset+length) of path to the session URI in one request; verify GCS's md5Hash."""
+-    started = time.time()
+-    url = urllib.parse.urlsplit(uri)
+-    md5, sha = hashlib.md5(), hashlib.sha256()
+-    for attempt in range(1):
+-        try:
+-            conn = http.client.HTTPSConnection(url.netloc, timeout=600)
+-            conn.putrequest("PUT", url.path + "?" + url.query)
+-            conn.putheader("Content-Length", str(length))
+-            conn.putheader("Content-Type", "application/octet-stream")
+-            conn.endheaders()
+-            md5, sha = hashlib.md5(), hashlib.sha256()
+-            with open(path, "rb") as stream:
+-                stream.seek(offset)
+-                left = length
+-                while left:
+-                    block = stream.read(min(CHUNK, left))
+-                    if not block:
+-                        raise IOError(f"short read at {offset + length - left}")
+-                    md5.update(block)
+-                    sha.update(block)
+-                    conn.send(block)
+-                    left -= len(block)
+-            reply = conn.getresponse()
+-            body = reply.read()
+-            if reply.status not in (200, 201):
+-                raise IOError(f"HTTP {reply.status}: {body[:300]!r}")
+-            meta = json.loads(body)
+-            if int(meta["size"]) != length or meta.get("md5Hash") != base64.b64encode(md5.digest()).decode():
+-                raise IOError(f"GCS size/md5 mismatch for {name}: {meta.get('size')} {meta.get('md5Hash')}")
+-            return {"name": name, "bytes": length, "offset": offset, "md5": meta["md5Hash"], "sha256": sha.hexdigest(),
+-                    "generation": meta.get("generation"), "seconds": round(time.time() - started, 1)}
+-        except Exception as error:  # a restarted single-request PUT on the same session starts over from byte 0
+-            sys.stderr.write(f"gcsput: {name} attempt {attempt}: {type(error).__name__}: {error}\n")
+-            if attempt == 0:
+-                raise
+-            time.sleep(10 * (attempt + 1))
+-def done(receipts):
+-    out = {}
+-    if os.path.exists(receipts):
+-        for line in open(receipts):
+-            if line.strip():
+-                row = json.loads(line)
+-                out[row["name"]] = row
+-    return out
+-def main(argv):
+-    mode = argv[0]
+-    if mode == "names":
+-        print("\n".join(part_names(argv[1], int(argv[2]))))
+-        return 0
+-    sessions_path, name, path = argv[1], argv[2], argv[3]
+-    sessions = json.load(open(sessions_path))
+-    receipts = sessions_path + ".receipts.jsonl"
+-    size = os.path.getsize(path)
+-    if mode == "put":
+-        jobs = [(name, 0, size)]
+-        parallel = 1
+-    elif mode == "split":
+-        nparts = int(argv[4])
+-        parallel = int(argv[5]) if len(argv) > 5 else nparts
+-        step = -(-size // nparts)
+-        jobs = [(n, k * step, max(0, min(step, size - k * step))) for k, n in enumerate(part_names(name, nparts))]
+-    else:
+-        sys.exit(__doc__)
+-    prior = done(receipts)
+-    todo = [j for j in jobs if not (j[0] in prior and prior[j[0]]["bytes"] == j[2] and prior[j[0]]["offset"] == j[1])]
+-    missing = [j[0] for j in todo if j[0] not in sessions]
+-    if missing:
+-        sys.exit(f"gcsput: no session URI for {missing[:3]} ({len(missing)} missing); mint them on Trinity")
+-    started, failed = time.time(), 0
+-    try:  # processes (fastest); threads where the host has no room for semaphores (Orchard login /dev/shm)
+-        pool = ProcessPoolExecutor(max_workers=max(1, parallel)) if parallel > 1 and len(todo) > 1 else ThreadPoolExecutor(1)
+-    except OSError:
+-        pool = ThreadPoolExecutor(max_workers=max(1, parallel))
+-    with pool:
+-        futures = [(j, pool.submit(upload, sessions[j[0]], path, j[1], j[2], j[0])) for j in todo]
+-        for job, future in futures:
+-            try:
+-                row = future.result()
+-            except Exception as error:
+-                failed += 1
+-                sys.stderr.write(f"gcsput: FAILED {job[0]}: {error}\n")
+-                continue
+-            row["file"] = os.path.abspath(path)
+-            with open(receipts, "a") as stream:
+-                stream.write(json.dumps(row, sort_keys=True) + "\n")
+-    seconds = time.time() - started
+-    moved = sum(j[2] for j in todo)
+-    print(json.dumps({"gcsput": mode, "name": name, "objects": len(jobs), "uploaded": len(todo) - failed, "failed": failed,
+-                      "bytes": moved, "seconds": round(seconds, 1),
+-                      "MBps": round(moved / max(seconds, 1e-3) / 1e6, 1)}), flush=True)
+-    return 1 if failed else 0
+-if __name__ == "__main__":
+-    sys.exit(main(sys.argv[1:]))
+--- n_go/b/h.py
+
++++ qd/b/h.py
+
+@@ -9,5 +9,5 @@
+
+ if q.get('status')!='ADMIT' or q.get('init_milestone')!=400:raise ValueError('E81')
+ p=q['config'];cfg=load(checked(p['path'],p['sha256']))
+-if cfg.get('world_size')!=4 or cfg.get('r1_training',{}).get('init_policy')!='step400_export_weights_fresh_v1':raise ValueError('E85')
++if cfg.get('world_size')!=4 or cfg.get('r1_training',{}).get('proof_mode')!='q' or cfg.get('r1_training',{}).get('init_policy') is not None:raise ValueError('E85')
+ sys.path.insert(0,str(r/'s'))
+ from student_pilot.carrier_c1_run import identity
+--- n_go/b/o.py
+
++++ qd/b/o.py
+
+@@ -5,9 +5,9 @@
+
+ k=Path(__file__).resolve().parents[1];s=load(k/'k/p.json');r=Path(sys.argv[1]);out=Path(s['n_root'])/'o'/os.environ['SLURM_JOB_ID'];out.mkdir(parents=True,exist_ok=True)
+ safe=name_guard(k)
+-files=[r/n for n in ('q.log','rooms.log','rooms.json','h.log','t.log','p/q/RESULT.json','p/q/host.json','p/q/f.json') if (r/n).is_file()]
++files=[r/n for n in ('q.log','rooms.log','rooms.json','p/q/RESULT.json','p/q/host.json','p/q/f.json') if (r/n).is_file()]
+ local=r/'o';local.mkdir(parents=True,exist_ok=True)
+ with tarfile.open(local/'o.tar','w:gz') as t:
+  for p in files:t.add(p,arcname=safe(str(p.relative_to(r))),recursive=False)
+ shutil.copyfile(local/'o.tar',out/'o.tar')
+-write(local/'RESULT.json',dict(proof_rc=int(sys.argv[2]),rooms_rc=int(sys.argv[3]),GO=False,submitted_by_build=False))
++write(local/'RESULT.json',dict(proof_rc=int(sys.argv[2]),rooms_rc=int(sys.argv[3]),GO=False,submitted_by_build=False,discovery=True,claims="nothing"))
+ shutil.copyfile(local/'RESULT.json',out/'RESULT.json')
+--- n_go/b/t.py
+
++++ qd/b/t.py
+
+@@ -1,8 +0,0 @@
+
+-import sys,subprocess,os
+-from pathlib import Path
+-sys.path.insert(0,str(Path(__file__).resolve().parent))
+-from z import load,seal
+-k=Path(__file__).resolve().parents[1];seal(k)
+-if load(k/'k/a.json')['GO'] is not True:raise SystemExit(0)
+-if len(sys.argv)!=3:raise ValueError('E80')
+-raise SystemExit(subprocess.run([sys.executable,'-s','-B','-m','torch.distributed.run','--standalone','--nnodes=1','--nproc_per_node=4','--no-python','/bin/bash',str(k/'b/e.sh'),sys.executable,*sys.argv[1:]],check=False,env={**os.environ,'PYTHONDONTWRITEBYTECODE':'1'}).returncode)
+--- n_go/b/sr.py
+
++++ qd/b/sr.py
+
+@@ -1,65 +0,0 @@
+
+-"""Signal only worker descendants of the batch workload, then await its exit."""
+-import os
+-from pathlib import Path
+-import signal
+-import sys
+-import time
+-
+-
+-def children(pid):
+-    try:
+-        return [int(v) for v in Path('/proc',str(pid),'task',str(pid),'children').read_text().split()]
+-    except (OSError,ValueError):
+-        return []
+-
+-
+-def descendants(pid):
+-    result=[];pending=[pid]
+-    while pending:
+-        parent=pending.pop()
+-        for child in children(parent):
+-            result.append(child);pending.append(child)
+-    return result
+-
+-
+-def alive(pid):
+-    try:
+-        return Path('/proc',str(pid),'stat').read_text().rsplit(')',1)[1].split()[0] != 'Z'
+-    except OSError:
+-        return False
+-
+-
+-def forward(pid, sent):
+-    newly=[]
+-    for child in descendants(pid):
+-        try:
+-            if child in sent:continue
+-            status=Path('/proc',str(child),'status').read_text()
+-            caught=next(line.split()[1] for line in status.splitlines() if line.startswith('SigCgt:'))
+-            if not int(caught,16) & (1 << (signal.SIGUSR1-1)):continue
+-            args=Path('/proc',str(child),'cmdline').read_bytes().split(b'\0')
+-            env=Path('/proc',str(child),'environ').read_bytes().split(b'\0')
+-            # Elastic's agent has no worker RANK and must never receive SIGUSR1.
+-            if any(v.endswith(b'/b/rv.py') for v in args):
+-                os.kill(child,signal.SIGUSR1);newly.append(child)
+-            elif any(v.endswith(b'/b/u.py') for v in args) and any(v.startswith(b'RANK=') for v in env) and any(v.startswith(b'LOCAL_RANK=') for v in env):
+-                os.kill(child,signal.SIGUSR1);newly.append(child)
+-        except (OSError,ProcessLookupError):
+-            continue
+-    return newly
+-
+-
+-def main():
+-    pid=int(sys.argv[1]);bound=int(sys.argv[2]);deadline=time.monotonic()+bound
+-    sent=set()
+-    while alive(pid):
+-        if len(sys.argv)>3:sent.update(forward(pid,sent))
+-        if time.monotonic()>=deadline:
+-            print('R1_COPY_WORK_WAIT_TIMEOUT',flush=True)
+-            return 124
+-        time.sleep(.1)
+-    return 0
+-
+-
+-if __name__=='__main__':
+-    raise SystemExit(main())
+--- n_go/b/e.sh
+
++++ qd/b/e.sh
+
+@@ -1,7 +0,0 @@
+
+-#!/bin/bash
+-set -eu
+-export PYTHONDONTWRITEBYTECODE=1
+-ROOT="$(dirname "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")")"
+-PY="$1"
+-shift
+-exec "$PY" -B -s "$ROOT/b/u.py" "$@"
+--- n_go/b/u.py
+
++++ qd/b/u.py
+
+@@ -1,21 +0,0 @@
+
+-import sys
+-from pathlib import Path
+-sys.path.insert(0,str(Path(__file__).resolve().parent))
+-from z import load,seal
+-k=Path(__file__).resolve().parents[1];seal(k)
+-if load(k/'k/a.json')['GO'] is not True:raise ValueError('E03')
+-r=Path(sys.argv[1]);q=load(r/'q/RESULT.json')
+-if q.get('status')!='ADMIT' or q.get('init_milestone')!=400:raise ValueError('E81')
+-sys.path.insert(0,str(r/'s'))
+-from student_pilot.p3_provenance import load as read,pinned
+-from student_pilot.carrier_c1_run import identity,train
+-from student_pilot.r1_persisted import scope
+-cfg=read(sys.argv[2]);before=read(pinned(q['config']))
+-if identity(cfg)!=identity(before) or cfg['world_size']!=4:raise ValueError('E82')
+-from launch_r1.entry import admit
+-request=load(r.parent/'r.json')
+-from launch_r1.production_proof import verify_staging
+-with scope(request['_paths']),scope(cfg['r1_training']['persisted_files']):
+- verify_staging(request)
+- admit(cfg)
+- train(cfg)
+--- n_go/b/pc.py
+
++++ qd/b/pc.py
+
+@@ -1,420 +0,0 @@
+
+-"""Batch-shell publication of small evidence and immutable native states."""
+-import argparse
+-import base64
+-import fcntl
+-import hashlib
+-import json
+-import os
+-from pathlib import Path
+-import shutil
+-import signal
+-import stat
+-from urllib.parse import urlsplit
+-import subprocess
+-import sys
+-import tarfile
+-import time
+-
+-CAP = 50_000_000
+-LOG_CAP = 40_000_000
+-RESERVE = 50 * 1024**3
+-
+-
+-def read(p):
+-    v = json.loads(Path(p).read_text())
+-    return json.loads(base64.b64decode(v['payload'])) if 'payload' in v else v
+-
+-
+-def sha(p):
+-    h = hashlib.sha256()
+-    with Path(p).open('rb') as f:
+-        for b in iter(lambda: f.read(1 << 20), b''):
+-            h.update(b)
+-    return h.hexdigest()
+-
+-
+-def put(p, v):
+-    p = Path(p)
+-    p.parent.mkdir(parents=True, exist_ok=True)
+-    tmp = p.with_name(p.name + '.part')
+-    tmp.write_text(json.dumps(v, sort_keys=True) + '\n')
+-    os.replace(tmp, p)
+-
+-
+-def beneath(path, root):
+-    return path == root or root in path.parents
+-
+-
+-class Copier:
+-    def __init__(self, kit, root, job, target=None, train=None, home=None, writer=None, sessions=None):
+-        self.kit, self.root = Path(kit).resolve(), Path(root).resolve()
+-        spec = read(self.kit/'k/p.json')
+-        self.cfg = read(self.kit/'k/n.json')
+-        if not Path(spec['n_root']).is_absolute():
+-            raise ValueError('R1_COPY_N_ROOT_NOT_ABSOLUTE')
+-        self.target = Path(spec['n_root']).absolute()
+-        self.job = str(job)
+-        if not self.job.replace('_', '').isalnum():
+-            raise ValueError('E91')
+-        self.live = self.target/'o'/self.job/'live'
+-        self.claims = self.target/'o'/'gcs_claims'
+-        self.checkpoint = self.target/'n_ck'/self.job
+-        self.spool = self.root/'live_spool'
+-        self.train = Path(train) if train else self.root/'p/q/r'
+-        self.sessions = Path(sessions) if sessions is not None else (Path(home)/'sess.json' if home is not None else self.target/'n_s/sess.json')
+-        self.home = self.sessions.parent
+-        self.writer = Path(writer) if writer else self.kit/'b/gc.py'
+-        self.names = read(self.kit/'k/y.json')
+-        if target is not None and Path(target).absolute() != self.target:
+-            raise ValueError('R1_COPY_TARGET_OUTSIDE_N_ROOT')
+-        self.paths()
+-        self.live.mkdir(parents=True, exist_ok=True)
+-        self.spool.mkdir(parents=True, exist_ok=True)
+-        self.claims.mkdir(parents=True, exist_ok=True)
+-        self.final_pass = False
+-
+-    def paths(self):
+-        # Validate before the first mkdir and every pass. Reject symlink ancestors.
+-        forbidden = (self.kit, self.root/'kit', self.root/'h')
+-        for name, path, expected in (
+-            ('LIVE', self.live, self.target/'o'/self.job/'live'),
+-            ('CLAIMS', self.claims, self.target/'o/gcs_claims'),
+-            ('N_CK', self.checkpoint, self.target/'n_ck'/self.job),
+-            ('SESSIONS', self.sessions, self.target/'n_s'/self.sessions.name)):
+-            absolute = path.absolute()
+-            resolved = path.resolve()
+-            if any(resolved == p.resolve() or beneath(resolved, p.resolve()) for p in forbidden):
+-                raise ValueError('R1_COPY_'+name+'_INSIDE_KIT')
+-            if absolute != expected or not beneath(absolute, self.target) or '..' in path.parts:
+-                raise ValueError('R1_COPY_'+name+'_OUTSIDE_N_ROOT')
+-            # The session leaf is checked by session_bytes for its named status.
+-            probe = absolute.parent if name == 'SESSIONS' else absolute
+-            if any(p.is_symlink() for p in (probe, *probe.parents)):
+-                raise ValueError('R1_COPY_'+name+'_PATH_SYMLINK')
+-        if self.root == self.kit or beneath(self.root, self.kit):
+-            raise ValueError('R1_COPY_ROOT_INSIDE_KIT')
+-        if self.spool.is_symlink() or beneath(self.spool.resolve(), self.kit):
+-            raise ValueError('R1_COPY_SPOOL_INSIDE_KIT')
+-
+-    def small(self):
+-        self.paths()
+-        with (self.spool/'small.lock').open('a') as lock:
+-            fcntl.flock(lock, fcntl.LOCK_EX)
+-            return self._small()
+-
+-    def _small(self):
+-        # Each publication has one shared byte budget, including its manifest.
+-        rows, pending = [], []
+-        markers = []
+-        for pattern in ('checkpoint_*/complete.json', 'm*/artifact.json'):
+-            for p in sorted(self.train.glob(pattern)):
+-                if p.is_file() and not p.is_symlink():
+-                    markers.append(dict(name=str(p.relative_to(self.train)), bytes=p.stat().st_size, sha256=sha(p)))
+-        listing = (json.dumps(markers, sort_keys=True) + '\n').encode()
+-        if len(listing) > 1_000_000:
+-            raise ValueError('E92')
+-        pending.append(('markers.json', listing))
+-        metadata_budget = CAP - LOG_CAP - 1_000_000 - len(listing)
+-        candidates = []
+-        for pattern in ('metrics_*.jsonl', 'attempt_*.json', 'run_*.json'):
+-            candidates.extend(self.train.glob(pattern))
+-        candidates.extend(self.root.glob('*.steps'))
+-        candidates.extend((self.root/'h/o').glob('*.steps'))
+-        for p in sorted(candidates):
+-            if not p.is_file() or p.is_symlink():
+-                continue
+-            n = p.stat().st_size
+-            if n > metadata_budget:
+-                rows.append(dict(name=p.name, omitted='copy byte cap', source_bytes=n))
+-                continue
+-            raw = p.read_bytes()
+-            if len(raw) > metadata_budget:
+-                rows.append(dict(name=p.name, omitted='copy byte cap'))
+-                continue
+-            pending.append((p.name, raw))
+-            metadata_budget -= len(raw)
+-        logs = [self.root/n for n in ('t.log', 'q.log', 'h.log', 'rooms.log') if (self.root/n).is_file()]
+-        # Share 40 MB fairly; every retained byte is from a log's tail.
+-        remaining = LOG_CAP
+-        for i, p in enumerate(logs):
+-            allowance = remaining // (len(logs) - i)
+-            with p.open('rb') as f:
+-                f.seek(max(0, p.stat().st_size - allowance))
+-                raw = f.read(allowance)
+-            pending.append((p.name, raw))
+-            remaining -= len(raw)
+-        total = 0
+-        for name, raw in pending:
+-            dest = self.live/name
+-            tmp = dest.with_name(dest.name + '.part')
+-            tmp.write_bytes(raw)
+-            os.replace(tmp, dest)
+-            total += len(raw)
+-            rows.append(dict(name=name, bytes=len(raw), sha256=hashlib.sha256(raw).hexdigest()))
+-        record = dict(time=int(time.time()), files=rows, payload_bytes=total, cap_bytes=CAP)
+-        raw = (json.dumps(record, sort_keys=True)+'\n').encode()
+-        assert total + len(raw) <= CAP
+-        (self.live/'copy.json').write_bytes(raw)
+-        return total + len(raw)
+-
+-    def archive(self, directory, marker):
+-        directory, marker = Path(directory), Path(marker)
+-        identity = sha(marker)
+-        # Persistence has already authenticated and archived this state when its receipt exists.
+-        for suffix in ('.local.json', '.json'):
+-            p = self.train/'persist'/(identity+suffix)
+-            if p.exists():
+-                receipt = read(p)
+-                archive = Path(receipt['archive']['path'])
+-                # Translate paths written inside the view into their node-local host path.
+-                if not archive.is_file():
+-                    archive = self.train/'persist'/archive.name
+-                if archive.is_file() and receipt['source']['sha256'] == identity and sha(archive) == receipt['archive']['sha256']:
+-                    return archive
+-        # Native persistence publishes its receipt after closing the archive.
+-        # Do not make a second weight-sized tar while that writer is active.
+-        if not self.final_pass and any((self.train/'persist'/(identity+s)).exists() for s in ('.local.claim','.claim','.tar')):
+-            raise ValueError('E100')
+-        target = self.spool/(identity+'.tar')
+-        ready = self.spool/(identity+'.ready.json')
+-        if ready.exists():
+-            v = read(ready)
+-            if target.is_file() and sha(target) == v['sha256']:
+-                return target
+-            raise ValueError('E93')
+-        files = sorted(p for p in directory.rglob('*') if p.is_file())
+-        if any(p.is_symlink() for p in directory.rglob('*')):
+-            raise ValueError('E94')
+-        size = sum(p.stat().st_size+1024 for p in files)+10240
+-        if shutil.disk_usage(self.spool).free < size+RESERVE:
+-            raise ValueError('E95')
+-        with tarfile.open(target, 'w') as t:
+-            for p in files:
+-                t.add(p, arcname=str(p.relative_to(directory)), recursive=False)
+-        if sha(marker) != identity:
+-            raise ValueError('E96')
+-        put(ready, dict(sha256=sha(target), bytes=target.stat().st_size))
+-        return target
+-
+-    def claim(self, labels, identity):
+-        # A global project-side lock serializes generations across allocations.
+-        with (self.claims/'lock').open('a') as lock:
+-            fcntl.flock(lock, fcntl.LOCK_EX)
+-            for label in labels:
+-                key = self.names['objects'][label]
+-                p = self.claims/(hashlib.sha256(key.encode()).hexdigest()+'.json')
+-                if p.exists():
+-                    if read(p)['identity'] == identity:
+-                        return label, key
+-                else:
+-                    put(p, dict(identity=identity, object=key, job=self.job))
+-                    return label, key
+-        raise ValueError('E97')
+-
+-    def session_bytes(self):
+-        # Pin both opened objects; never follow a replaced directory or file link.
+-        directory = None
+-        try:
+-            try:
+-                directory = os.open(self.sessions.parent, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+-            except FileNotFoundError:
+-                raise ValueError('directory missing') from None
+-            except OSError:
+-                raise ValueError('directory inaccessible') from None
+-            info = os.fstat(directory)
+-            if info.st_uid != os.getuid():
+-                raise ValueError('directory owner')
+-            if stat.S_IMODE(info.st_mode) != 0o700:
+-                raise ValueError('directory mode')
+-            try:
+-                info = os.stat(self.sessions.name, dir_fd=directory, follow_symlinks=False)
+-            except FileNotFoundError:
+-                raise ValueError('file missing') from None
+-            if stat.S_ISLNK(info.st_mode):
+-                raise ValueError('file symlink')
+-            if not stat.S_ISREG(info.st_mode):
+-                raise ValueError('file not regular')
+-            fd = os.open(self.sessions.name, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=directory)
+-            with os.fdopen(fd, 'rb') as stream:
+-                current = os.fstat(stream.fileno())
+-                if not stat.S_ISREG(current.st_mode) or (current.st_dev, current.st_ino) != (info.st_dev, info.st_ino):
+-                    raise ValueError('file changed')
+-                if stat.S_IMODE(current.st_mode) != 0o600:
+-                    raise ValueError('file mode')
+-                raw = stream.read()
+-            try:
+-                values = json.loads(raw)
+-            except (ValueError, UnicodeError):
+-                raise ValueError('invalid JSON') from None
+-            if not isinstance(values, dict):
+-                raise ValueError('not an object')
+-            for name, value in values.items():
+-                if not isinstance(name, str) or not name or not isinstance(value, str):
+-                    raise ValueError('invalid mapping')
+-                try:
+-                    url = urlsplit(value)
+-                    valid = url.scheme in ('http', 'https') and bool(url.netloc)
+-                except ValueError:
+-                    valid = False
+-                if not valid:
+-                    raise ValueError('invalid URL')
+-            return raw
+-        except OSError:
+-            raise ValueError('file inaccessible') from None
+-        finally:
+-            if directory is not None:
+-                os.close(directory)
+-
+-    def send(self, directory, marker, labels):
+-        identity = sha(marker)
+-        done = self.live/('gcs_'+directory.name+'.done')
+-        if done.exists():
+-            if read(done)['marker_sha256'] != identity:
+-                raise ValueError('E98')
+-            return
+-        archive = self.archive(directory, marker)
+-        try:
+-            raw = self.session_bytes()
+-        except ValueError as error:
+-            put(self.live/('gcs_'+directory.name+'.json'), dict(status='export not uploaded: sessions unusable ('+str(error)+')', archive=str(archive), marker_sha256=identity))
+-            return
+-        label, key = self.claim(labels, identity)
+-        # Session capabilities and their writer sidecars stay in node-local runtime storage.
+-        private = self.spool/'private'
+-        private.mkdir(exist_ok=True, mode=0o700)
+-        local = private/'sess.json'
+-        os.chmod(private, 0o700)
+-        fd = os.open(local, os.O_WRONLY | os.O_CREAT | os.O_TRUNC | os.O_NOFOLLOW, 0o600)
+-        with os.fdopen(fd, 'wb') as stream:
+-            os.fchmod(stream.fileno(), 0o600)
+-            stream.write(raw)
+-        # Never forward writer diagnostics: a transport exception may contain a capability URL.
+-        with open('/dev/null', 'wb') as quiet:
+-            rc = subprocess.run([sys.executable, '-B', str(self.writer), 'split', str(local), key, str(archive), '4', '4'], stdout=quiet, stderr=quiet).returncode
+-        if rc:
+-            put(self.live/('gcs_'+directory.name+'.json'), dict(status='upload pending retry', object=key, returncode=rc))
+-            return
+-        receipts = Path(str(local)+'.receipts.jsonl')
+-        parts = {v['name']:v for v in (json.loads(line) for line in receipts.read_text().splitlines())}
+-        cursor = 0
+-        with archive.open('rb') as f:
+-            for i in range(4):
+-                v = parts[key+f'.part{i:02d}-of-04']
+-                if v['offset'] != cursor or not v.get('generation'):
+-                    raise ValueError('E99')
+-                h, left = hashlib.sha256(), v['bytes']
+-                while left:
+-                    b = f.read(min(left, 1 << 20))
+-                    if not b:
+-                        raise ValueError('E99')
+-                    h.update(b); left -= len(b)
+-                if h.hexdigest() != v['sha256']:
+-                    raise ValueError('E99')
+-                cursor += v['bytes']
+-        if cursor != archive.stat().st_size:
+-            raise ValueError('E99')
+-        put(done, dict(object=key, bytes=cursor, sha256=sha(archive), marker_sha256=identity, generation=label))
+-
+-    def exports(self):
+-        for marker in sorted(self.train.glob('m*/artifact.json')):
+-            if not marker.parent.name[1:].isdigit():
+-                continue
+-            step = int(marker.parent.name[1:])
+-            labels = ['m'+str(step)] if 'm'+str(step) in self.names['objects'] else ['mstop','mstopB','mstopC']
+-            try:
+-                self.send(marker.parent, marker, labels)
+-            except Exception as error:
+-                put(self.live/('gcs_'+marker.parent.name+'.json'),
+-                    dict(status='pending retry', error=type(error).__name__))
+-
+-    def stop_checkpoint(self):
+-        # Select only a checkpoint at the reported final step. A signal may arrive
+-        # before run_*.json is written, in which case the latest completed state wins.
+-        markers = list(self.train.glob('checkpoint_*/complete.json'))
+-        if not markers:
+-            put(self.live/'ckstop.json', dict(status='no completed checkpoint'))
+-            return
+-        marker = max(markers, key=lambda p:(read(p).get('step', -1),p.stat().st_mtime_ns))
+-        identity = sha(marker)
+-        directory = marker.parent
+-        size = sum(p.stat().st_size+1024 for p in directory.rglob('*') if p.is_file())
+-        self.paths()
+-        destination = self.checkpoint
+-        if shutil.disk_usage(self.target).free >= size+RESERVE+10240:
+-            destination.mkdir(parents=True, exist_ok=True)
+-            done = destination/'complete.json'
+-            if done.exists():
+-                if read(done)['marker_sha256'] != identity:
+-                    raise ValueError('E98')
+-                return
+-            target = destination/(directory.name+'.tar')
+-            partial = target.with_name(target.name+'.part')
+-            # Stream directly to the project, without a second node-local copy.
+-            with tarfile.open(partial, 'w') as t:
+-                for p in sorted(directory.rglob('*')):
+-                    if p.is_symlink():
+-                        raise ValueError('E94')
+-                    if p.is_file():
+-                        t.add(p, arcname=str(p.relative_to(directory)), recursive=False)
+-            if sha(marker) != identity:
+-                raise ValueError('E96')
+-            os.replace(partial, target)
+-            result = dict(status='project', path=str(target), bytes=target.stat().st_size, sha256=sha(target), marker_sha256=identity)
+-            put(done, result); put(self.live/'ckstop.json', result)
+-        else:
+-            self.send(directory, marker, ['ckstop'])
+-            put(self.live/'ckstop.json', dict(status='gcs' if (self.live/('gcs_'+directory.name+'.done')).exists() else 'left node-local', marker_sha256=identity, reason='project free space below size plus 50 GiB'))
+-
+-    def pass_once(self, final=False, small=True):
+-        self.paths()
+-        with (self.spool/'lock').open('a') as lock:
+-            fcntl.flock(lock, fcntl.LOCK_EX)
+-            self.final_pass = final
+-            if small:
+-                self.small()
+-            for action in [self.exports] + ([self.stop_checkpoint] if final else []):
+-                try:
+-                    action()
+-                except Exception as e:
+-                    put(self.live/(action.__name__+'.json'), dict(status='pending retry', error=type(e).__name__))
+-
+-
+-def main():
+-    p = argparse.ArgumentParser()
+-    p.add_argument('kit');p.add_argument('root');p.add_argument('job')
+-    p.add_argument('--loop', action='store_true');p.add_argument('--final', action='store_true')
+-    p.add_argument('--small', action='store_true')
+-    p.add_argument('--loop-small', action='store_true')
+-    p.add_argument('--sessions')
+-    args = p.parse_args()
+-    c = Copier(args.kit,args.root,args.job,sessions=args.sessions)
+-    if args.small:
+-        c.small()
+-        return
+-    stop = [False]
+-    for sig in (signal.SIGTERM,signal.SIGUSR1,signal.SIGINT):
+-        signal.signal(sig, lambda *_:stop.__setitem__(0,True))
+-    if args.loop_small:
+-        while not stop[0]:
+-            c.small()
+-            for _ in range(600):
+-                if stop[0]:break
+-                time.sleep(1)
+-        c.small()
+-        return
+-    last = 0.
+-    while True:
+-        now = time.monotonic()
+-        c.pass_once(final=args.final, small=not args.loop)
+-        if now-last>=600:
+-            last=now
+-        if not args.loop:
+-            return
+-        for _ in range(10):
+-            if stop[0]:
+-                return
+-            time.sleep(1)
+-
+-
+-if __name__ == '__main__':
+-    main()

@@ -1,0 +1,160 @@
+{
+  "rcj/rcj.sh": {
+    "bindings": [
+      {
+        "expression": "ROOT=/project/community/jjyeung/okh7/x_22c714e1/qd",
+        "line": 14,
+        "names": [
+          "ROOT"
+        ]
+      },
+      {
+        "expression": "H=/project/community/jjyeung/okh7/x_22c714e1/rcj",
+        "line": 15,
+        "names": [
+          "H"
+        ]
+      },
+      {
+        "expression": "MODE=\"${1:-b}\"",
+        "line": 16,
+        "names": [
+          "MODE"
+        ]
+      },
+      {
+        "expression": "N=\"${SLURM_TMPDIR:-/tmp}/q_22c714e1_${SLURM_JOB_ID:?}\"",
+        "line": 18,
+        "names": [
+          "N"
+        ]
+      },
+      {
+        "expression": "export TMPDIR=\"$N/tmp\" XDG_CACHE_HOME=\"$N/cache\"",
+        "line": 20,
+        "names": [
+          "TMPDIR",
+          "XDG_CACHE_HOME"
+        ]
+      },
+      {
+        "expression": "export HF_HOME=\"$N/cache/hf\" TORCH_HOME=\"$N/cache/torch\" TRITON_CACHE_DIR=\"$N/cache/triton\" MPLCONFIGDIR=\"$N/cache/plot\"",
+        "line": 21,
+        "names": [
+          "HF_HOME",
+          "MPLCONFIGDIR",
+          "TORCH_HOME",
+          "TRITON_CACHE_DIR"
+        ]
+      },
+      {
+        "expression": "export PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 NUMEXPR_NUM_THREADS=8",
+        "line": 22,
+        "names": [
+          "MKL_NUM_THREADS",
+          "NUMEXPR_NUM_THREADS",
+          "OMP_NUM_THREADS",
+          "OPENBLAS_NUM_THREADS",
+          "PYTHONDONTWRITEBYTECODE"
+        ]
+      },
+      {
+        "expression": "export CUDA_VISIBLE_DEVICES= HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 TOKENIZERS_PARALLELISM=false",
+        "line": 23,
+        "names": [
+          "CUDA_VISIBLE_DEVICES",
+          "HF_HUB_OFFLINE",
+          "TOKENIZERS_PARALLELISM",
+          "TRANSFORMERS_OFFLINE"
+        ]
+      },
+      {
+        "expression": "    export R1_OPAQUE_LOGS=1 Q_E1=1 Q_E2=orchard Q_E5=6d38613965 Q_E6=1",
+        "line": 25,
+        "names": [
+          "Q_E1",
+          "Q_E2",
+          "Q_E5",
+          "Q_E6",
+          "R1_OPAQUE_LOGS"
+        ]
+      },
+      {
+        "expression": "    export R1_MODEL_DIR=a32330d0 PYTHONNOUSERSITE=1 HF_HUB_DISABLE_TELEMETRY=1 WANDB_DISABLED=true C1_EXPECT_FLA=1",
+        "line": 26,
+        "names": [
+          "C1_EXPECT_FLA",
+          "HF_HUB_DISABLE_TELEMETRY",
+          "PYTHONNOUSERSITE",
+          "R1_MODEL_DIR",
+          "WANDB_DISABLED"
+        ]
+      },
+      {
+        "expression": "    export R1_MOUNT=/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b",
+        "line": 27,
+        "names": [
+          "R1_MOUNT"
+        ]
+      },
+      {
+        "expression": "    export Q_E3=/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/models",
+        "line": 28,
+        "names": [
+          "Q_E3"
+        ]
+      },
+      {
+        "expression": "    export Q_E4='{\"/data2\":\"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/data2root\"}'",
+        "line": 29,
+        "names": [
+          "Q_E4"
+        ]
+      },
+      {
+        "expression": "    local rc=\"$?\"",
+        "line": 34,
+        "names": [
+          "rc"
+        ]
+      }
+    ],
+    "reason": "Reviewed literal assignments; b/r enum; inherited native runtime aliases; fixed paths; EXIT publication outside sandbox; edits invalidate certificate",
+    "runtime_literal_names": [
+      "C1_EXPECT_FLA",
+      "CUDA_VISIBLE_DEVICES",
+      "H",
+      "HF_HOME",
+      "HF_HUB_DISABLE_TELEMETRY",
+      "HF_HUB_OFFLINE",
+      "MKL_NUM_THREADS",
+      "MODE",
+      "MPLCONFIGDIR",
+      "N",
+      "NUMEXPR_NUM_THREADS",
+      "OMP_NUM_THREADS",
+      "OPENBLAS_NUM_THREADS",
+      "PYTHONDONTWRITEBYTECODE",
+      "PYTHONNOUSERSITE",
+      "Q_E1",
+      "Q_E2",
+      "Q_E3",
+      "Q_E4",
+      "Q_E5",
+      "Q_E6",
+      "R1_MODEL_DIR",
+      "R1_MOUNT",
+      "R1_OPAQUE_LOGS",
+      "ROOT",
+      "TMPDIR",
+      "TOKENIZERS_PARALLELISM",
+      "TORCH_HOME",
+      "TRANSFORMERS_OFFLINE",
+      "TRITON_CACHE_DIR",
+      "WANDB_DISABLED",
+      "XDG_CACHE_HOME",
+      "rc"
+    ],
+    "sha256": "b23393f2db4dfe65bbd91a771fb7c5d34f51a5669b820c33b6158fb68f9f5e8c"
+  }
+}

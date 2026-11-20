@@ -51,3 +51,8 @@
 - Round 5 DONE (no axis/inversion convention repairs alignment; frame_indices match; report copied to files_t2/CAMERA_CONVENTIONS_REPORT5.md). Round 6 RUNNING (tmux c24_r6 on 2-28; NPZ self-consistency + S2 split), not finished at 08:00Z.
 - T1: CPU 173659 passed; GPU job 173662 RUNNING orchard-community-1 since ~07:37Z; 59/160 records at 07:59Z; ETA ~08:30Z. Monitors c24_monT1, c24_monPT1.
 - Successor brief written: B/briefs/cont_ops25_d.md (fetch/pull/score steps for T1; camera BLOCKER criteria).
+## 08:37Z ROTATE (exact)
+- T1 DONE, TRUSTED (150/150, tol 0.00 m). RESULT events/cont_ops/*_RESULT_T1_ground_rerun_trusted_150_of_150_parity.md. Capture 2-28 cap/t1.gz (sha fe9f10b8…), receipts cap/t1ret + events/cont_ops/files_t1.
+- Round 6 FAILED at start (model at capacity, 07:10Z): successor re-dispatches.
+- Nothing of mine runs on Orchard or on GPUs. No Codex round running. Successor cont_ops25 (brief B/briefs/cont_ops25_d.md) does: round 6 (camera / S2), T1 funnel join, T3.
+- Removal candidates: REMOVAL_CANDIDATES.md (Orchard a1abb3a204ff8, a5d6f41359166, a883c5c365aee; /dev/shm/c24 on 3-30, ~60 MB).

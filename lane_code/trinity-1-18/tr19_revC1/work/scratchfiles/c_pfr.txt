@@ -1,0 +1,21 @@
+def processor_for_receipt(manifest, receipt):
+    """Bind native GX readouts and deterministic final-mode head-opener tokens."""
+    processor = processor_for(manifest['root'])
+    processor._s1_rehearsal = rehearsal.fixture_manifest(manifest)
+    if receipt.get('geometry_online'):
+        from .g3t_online import NATIVE_INPUT
+        if receipt['geometry_online']['input'] == NATIVE_INPUT:
+            # Mode-x callers encode READOUT_TARGET as VQA without an explicit GX argument.
+            processor._c1_readout_geometry_online = receipt['geometry_online']
+    if receipt.get('training_mode') == 'final':
+        routing.add_routing_tokens(processor, include_ground=bool(receipt.get('mdg')))
+        from . import ground_tokens
+        if ground_tokens.enabled(receipt):
+            ground_tokens.add(processor)
+        # Per-group `Frame k: ` markers (config switch, off by default); every encode path reads it.
+        processor.tokenizer._c1_frame_markers = bool(receipt.get('frame_markers', False))
+    processor.tokenizer._c1_frame_count = receipt.get('frame_count',32)
+    if receipt.get('b7_inputs'):
+        from .b7_inputs import layout
+        processor._b7_layout = layout(receipt['b7_inputs'])
+    return processor

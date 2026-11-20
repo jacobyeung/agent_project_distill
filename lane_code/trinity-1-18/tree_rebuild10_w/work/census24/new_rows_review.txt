@@ -1,0 +1,653 @@
+b/a.py:3  RuntimeError('Python 3.12 or newer required') IF sys.version_info < (3, 12)
+b/a.py:6 read ValueError('E01') IF hashlib.sha256(r).hexdigest() != v['sha256']
+b/a.py:9  ValueError('E02') IF len(sys.argv) not in (3, 4) or sys.argv[1] not in ('p', 't', 'q', 'r')
+b/a.py:10  ValueError('E02') IF (sys.argv[1] in ('q', 'r')) != (len(sys.argv) == 4)
+b/a.py:11  ValueError('E03') IF sys.argv[1] == 't' and control['GO'] is not True
+b/a.py:13  ValueError('E06') IF root == Path('/tmp') or not root.is_relative_to(Path('/tmp'))
+b/a.py:14  ValueError('E04') IF root.exists() and any(root.iterdir())
+b/a.py:26  ValueError('R1_ROUTING_JOB_ID_REQUIRED') IF sys.argv[1] in ('q', 'r') AND not job.isascii() or not job.isdigit()
+b/a.py:28  ValueError('E05') IF hashlib.sha256(p.read_bytes()).hexdigest() != src['sha256']
+b/a.py:54  ValueError('R1_STAGING_PLAN_REQUIRED') IF sys.argv[1] in ('q', 'r') AND '_resolved' not in incoming
+b/cs.py:33 sources ValueError('R1_CENSUS_POSE_SOURCE_NOT_ROWS') IF stream == 'pose' and receipt.get('schema') == 'c1-pose-mix-v1' AND source['kind'] != 'rows'
+b/cs.py:45 sources ValueError('R1_CENSUS_SOURCE_POPULATION_MISSING:' + stream) IF any((v['population'] is None for v in entries))
+b/cs.py:56 source_rows ValueError('R1_CENSUS_SOURCE_COUNT_DIFFERS') IF count != entry['count']
+b/cs.py:119 emit ValueError(record['refusals'][0]) IF record['refusals'] and (not diagnose)
+b/cs.py:123 emit ValueError('R1_SCENE_EVIDENCE_TOO_LARGE') IF sum(((live / v['protected_keys']['file']).stat().st_size for v in output['streams'].values())) + (live / ('c4.json' if phase == 'final' else 'd4.json')).stat().st_size >= 1000000
+b/cs.py:133 final_sources ValueError('R1_CENSUS_SOURCE_MANIFEST_MISSING') IF not isinstance(h, str) or len(h) != 64
+b/cs.py:136 final_sources ValueError('R1_CENSUS_SOURCE_MANIFEST_MISSING') IF not isinstance(entry, dict)
+b/cs.py:162 _verify ValueError('R1_CENSUS_RECEIPT_MISSING') IF not path.is_file() or path.is_symlink()
+b/cs.py:164 _verify ValueError('R1_CENSUS_RECEIPT_INVALID') IF value.get('schema') != 'r1-protected-census-v1' or value.get('phase') != 'final'
+b/cs.py:166 _verify ValueError('R1_CENSUS_IDENTITY_DIFFERS') IF value.get('config_identity') != expected
+b/cs.py:167 _verify ValueError('R1_CENSUS_STREAMS_INCOMPLETE') IF set(value.get('streams', {})) != set(STREAMS)
+b/cs.py:174 _verify ValueError('R1_CENSUS_IDENTITY_DIFFERS') IF r.get('config_identity') != expected
+b/cs.py:175 _verify ValueError('R1_CENSUS_STORE_PINS_DIFFER:' + stream) IF r.get('store_pins') != stores[stream]
+b/cs.py:176 _verify ValueError('R1_CENSUS_SOURCE_PINS_DIFFER:' + stream) IF r.get('source_pins') != expected_sources[stream]
+b/cs.py:179 _verify ValueError('R1_CENSUS_RECEIPT_INVALID') IF Path(key['file']).name != key['file']
+b/cs.py:181 _verify ValueError('R1_CENSUS_KEYS_DIFFER') IF keys != sorted(set(keys)) or len(keys) != key['count']
+b/cs.py:183 _verify ValueError('R1_CENSUS_NOT_PASS:' + stream) IF r.get('status') != 'PASS' AND not (discovery(kit) and r.get('status') == 'WOULD_REFUSE')
+b/cs.py:185 _verify ValueError('R1_CENSUS_NOT_PASS:' + stream) IF NOT (r.get('status') != 'PASS') AND not isinstance(r.get('result'), dict) or r['result'].get('protected_rows') != 0 or r['refusals'] or keys
+b/cs.py:189 _verify ValueError('R1_CENSUS_NOT_PASS:' + stream) IF r.get('status') == 'PASS' AND any((counts.get(s, 0) for s in (*STATUSES, 'unresolved')))
+b/cs.py:191 _verify ValueError('R1_CENSUS_COUNT_DIFFERS:' + stream) IF r.get('status') == 'PASS' AND result.get('stream') != stream or result.get('admitted_rows') != stores[stream]['count'] or counts.get('admitted') != stores[stream]['count'] or (result.get('source_rows') != sum((e['count'] for e in expected_sources[stream]))) or (counts.get('source') != result['source_rows'])
+b/cs.py:204 verify ValueError('R1_CENSUS_STAGED_PIN_INVALID') IF folder.is_dir() AND len(h) == 64 and all((c in '0123456789abcdef' for c in h)) AND p.is_symlink() or not p.is_file()
+b/ep.py:16 publish ValueError('R1_EVIDENCE_JOB_INVALID') IF not job or not job.isascii() or (not job.isdigit())
+b/ep.py:18 publish ValueError('R1_EVIDENCE_TARGET_INVALID') IF not target.is_absolute() or '..' in target.parts
+b/ep.py:19 publish ValueError('R1_EVIDENCE_TARGET_INVALID') IF any((p.is_symlink() for p in (target, *target.parents)))
+b/ep.py:20 publish ValueError('R1_EVIDENCE_TARGET_INVALID') IF any((target.resolve() == p or p in target.resolve().parents for p in (kit, root)))
+b/ep.py:57 publish ValueError('R1_EVIDENCE_TOO_LARGE') IF sum(map(len, payload.values())) >= 5000000
+b/ep.py:95 publish_artifacts ValueError('R1_ROUTING_ARTIFACT_UNUSABLE') IF p.is_symlink() or not stat.S_ISREG(p.stat().st_mode)
+b/ep.py:98 publish_artifacts ValueError('R1_ROUTING_ARTIFACTS_TOO_LARGE') IF size > 2000000 or total + size > 10000000
+b/g.py:21  RuntimeError('E42') IF x or not ok
+b/h.py:7  ValueError('E84') IF len(sys.argv) != 3
+b/h.py:9  ValueError('E81') IF q.get('status') != 'ADMIT' or q.get('init_milestone') != 400
+b/h.py:11  ValueError('E85') IF cfg.get('world_size') != 4 or cfg.get('r1_training', {}).get('init_policy') != 'step400_export_weights_fresh_v1'
+b/h.py:17  ValueError('R1_HOST_RECEIPT_MISSING') IF not isinstance(hp, dict) or set(hp) != {'path', 'sha256'}
+b/h.py:19  ValueError('R1_HOST_RECEIPT_PATH_DIFFERS') IF hp['path'] != str(source.resolve())
+b/h.py:20  ValueError('R1_HOST_RECEIPT_MISSING') IF not source.is_file() or source.is_symlink()
+b/h.py:22  ValueError('R1_HOST_RECEIPT_INVALID') IF 
+b/h.py:23  ValueError('R1_HOST_RECEIPT_INVALID') IF not isinstance(host, dict)
+b/h.py:24  ValueError('R1_HOST_RECEIPT_NOT_PASS') IF host.get('status') != 'PASS'
+b/h.py:25  ValueError('R1_HOST_IDENTITY_DIFFERS') IF host.get('config_identity') != value
+b/h.py:26  ValueError('R1_HOST_ASSERTIONS_INCOMPLETE') IF not isinstance(host.get('assertions'), dict) or set(host['assertions']) != set(ASSERTIONS) or (not all((v is True for v in host['assertions'].values())))
+b/h.py:27  ValueError('R1_HOST_LOADER_AUDIT_INCOMPLETE') IF not isinstance(host.get('loader_audit'), dict) or host['loader_audit'].get('complete') is not True
+b/h.py:42  ValueError('R1_HOST_IDENTITY_DIFFERS') IF identity(cfg) != value
+b/i.py:31 _refresh ValueError('E86:' + key) IF normalized(before.get(key)) != normalized(after.get(key))
+b/i.py:49 refresh reraise IF 
+b/pc.py:54 Copier.__init__ ValueError('R1_COPY_N_ROOT_NOT_ABSOLUTE') IF not Path(spec['n_root']).is_absolute()
+b/pc.py:58 Copier.__init__ ValueError('E91') IF not self.job.replace('_', '').isalnum()
+b/pc.py:69 Copier.__init__ ValueError('R1_COPY_TARGET_OUTSIDE_N_ROOT') IF target is not None and Path(target).absolute() != self.target
+b/pc.py:87 Copier.paths ValueError('R1_COPY_' + name + '_INSIDE_KIT') IF any((resolved == p.resolve() or beneath(resolved, p.resolve()) for p in forbidden))
+b/pc.py:89 Copier.paths ValueError('R1_COPY_' + name + '_OUTSIDE_N_ROOT') IF absolute != expected or not beneath(absolute, self.target) or '..' in path.parts
+b/pc.py:93 Copier.paths ValueError('R1_COPY_' + name + '_PATH_SYMLINK') IF any((p.is_symlink() for p in (probe, *probe.parents)))
+b/pc.py:95 Copier.paths ValueError('R1_COPY_ROOT_INSIDE_KIT') IF self.root == self.kit or beneath(self.root, self.kit)
+b/pc.py:97 Copier.paths ValueError('R1_COPY_SPOOL_INSIDE_KIT') IF self.spool.is_symlink() or beneath(self.spool.resolve(), self.kit)
+b/pc.py:115 Copier._small ValueError('E92') IF len(listing) > 1000000
+b/pc.py:177 Copier.archive ValueError('E100') IF not self.final_pass and any(((self.train / 'persist' / (identity + s)).exists() for s in ('.local.claim', '.claim', '.tar')))
+b/pc.py:184 Copier.archive ValueError('E93') IF ready.exists()
+b/pc.py:187 Copier.archive ValueError('E94') IF any((p.is_symlink() for p in directory.rglob('*')))
+b/pc.py:190 Copier.archive ValueError('E95') IF shutil.disk_usage(self.spool).free < size + RESERVE
+b/pc.py:195 Copier.archive ValueError('E96') IF sha(marker) != identity
+b/pc.py:212 Copier.claim ValueError('E97') IF 
+b/pc.py:221 Copier.session_bytes ValueError('directory missing') IF 
+b/pc.py:223 Copier.session_bytes ValueError('directory inaccessible') IF 
+b/pc.py:226 Copier.session_bytes ValueError('directory owner') IF info.st_uid != os.getuid()
+b/pc.py:228 Copier.session_bytes ValueError('directory mode') IF stat.S_IMODE(info.st_mode) != 448
+b/pc.py:232 Copier.session_bytes ValueError('file missing') IF 
+b/pc.py:234 Copier.session_bytes ValueError('file symlink') IF stat.S_ISLNK(info.st_mode)
+b/pc.py:236 Copier.session_bytes ValueError('file not regular') IF not stat.S_ISREG(info.st_mode)
+b/pc.py:241 Copier.session_bytes ValueError('file changed') IF not stat.S_ISREG(current.st_mode) or (current.st_dev, current.st_ino) != (info.st_dev, info.st_ino)
+b/pc.py:243 Copier.session_bytes ValueError('file mode') IF stat.S_IMODE(current.st_mode) != 384
+b/pc.py:248 Copier.session_bytes ValueError('invalid JSON') IF 
+b/pc.py:250 Copier.session_bytes ValueError('not an object') IF not isinstance(values, dict)
+b/pc.py:253 Copier.session_bytes ValueError('invalid mapping') IF not isinstance(name, str) or not name or (not isinstance(value, str))
+b/pc.py:260 Copier.session_bytes ValueError('invalid URL') IF not valid
+b/pc.py:263 Copier.session_bytes ValueError('file inaccessible') IF 
+b/pc.py:273 Copier.send ValueError('E98') IF done.exists() AND read(done)['marker_sha256'] != identity
+b/pc.py:304 Copier.send ValueError('E99') IF v['offset'] != cursor or not v.get('generation')
+b/pc.py:309 Copier.send ValueError('E99') IF not b
+b/pc.py:312 Copier.send ValueError('E99') IF h.hexdigest() != v['sha256']
+b/pc.py:315 Copier.send ValueError('E99') IF cursor != archive.stat().st_size
+b/pc.py:348 Copier.stop_checkpoint ValueError('E98') IF shutil.disk_usage(self.target).free >= size + RESERVE + 10240 AND done.exists() AND read(done)['marker_sha256'] != identity
+b/pc.py:356 Copier.stop_checkpoint ValueError('E94') IF shutil.disk_usage(self.target).free >= size + RESERVE + 10240 AND p.is_symlink()
+b/pc.py:360 Copier.stop_checkpoint ValueError('E96') IF shutil.disk_usage(self.target).free >= size + RESERVE + 10240 AND sha(marker) != identity
+b/pl.py:20 selection_pin ValueError('R1_ROUTING_SELECTION_PIN_MISSING') IF not isinstance(pin, dict) or set(pin) != {'path', 'sha256'}
+b/pl.py:22 selection_pin ValueError('R1_ROUTING_SELECTION_PIN_INVALID') IF pin['path'] != 'u/' + pin['sha256']
+b/pl.py:28 selection_pin ValueError('R1_ROUTING_SELECTION_PIN_INVALID') IF not isinstance(h, str) or len(h) != 64 or any((c not in '0123456789abcdef' for c in h))
+b/pl.py:39 plan_payload ValueError('R1_HOST_JOB_TMP_NOT_FRESH') IF q.exists()
+b/pl.py:42 plan_payload ValueError('E32') IF resolved['kit_sha256'] != seal(kit)
+b/pl.py:62 plan_payload ValueError('E33') IF archive AND len(raw) != item['bytes'] or hashlib.sha256(raw).hexdigest() != h
+b/pl.py:82 plan_payload ValueError('R1_ROUTING_SELECTION_BASE_INVALID') IF selected AND chosen is not None AND not isinstance(chosen, dict) or set(chosen) != {'path', 'sha256'} or (not isinstance(chosen['sha256'], str)) or (len(chosen['sha256']) != 64) or any((c not in '0123456789abcdef' for c in chosen['sha256']))
+b/pl.py:91 plan_payload ValueError('P_TRAINED_ROUTING_DATABASE_DIFFERS') IF regeneration and base['sha256'] == 'ca0616dbc67cf9a257774b43a9d5b134957b3f3ce0451e6bf5378f3d7d0c1984' AND output != '4e8e6c04e697d8f12ecd9d705e197e94f73f4a9dc508b7a9e9b4f36487336f84'
+b/pl.py:134 plan_payload ValueError('R1_ROUTING_SELECTION_DATABASE_DIFFERS') IF selected AND database is not None AND not isinstance(database, dict) or set(database) != {'path', 'sha256'} or database.get('sha256') != expected['sha256']
+b/pl.py:137 plan_payload ValueError('R1_STAGED_PIN_SYMLINK') IF selected AND database is not None AND load(kit / 'k/a.json').get('discovery') and expected['sha256'] not in sources AND local.is_symlink() or not local.resolve().is_relative_to(root.parent.resolve())
+b/pl.py:165 plan_payload ValueError('E34') IF hashlib.sha256(code).hexdigest() != spec['code_sha256']
+b/pl.py:176 plan_payload ValueError('E43') IF Path(name).name != name or name in ('.', '..')
+b/pl.py:276 plan_payload ValueError('R1_STAGING_SYMLINK') IF p.is_dir() AND f.is_symlink()
+b/pl.py:279 plan_payload ValueError('R1_STAGING_PATH_MISSING:' + str(p)) IF NOT (p.is_dir()) AND NOT (p.is_file())
+b/pl.py:289 plan_payload.stage ValueError('R1_STAGING_PLAN_DIFFERS') IF Path(directory) != q or received != entries
+b/pl.py:299 plan_payload.stage ValueError('R1_STAGING_CONFIG_DIFFERS') IF (q / 'n.json').read_bytes() != cfgraw
+b/pl.py:311 plan_payload.stage ValueError('R1_ROUTING_OUTPUT_PATH_DIFFERS') IF output AND str(generated) != final_paths[output]
+b/px.py:14 inventory.add ValueError('R1_STAGED_PIN_INVALID') IF not isinstance(h, str) or len(h) != 64
+b/px.py:21 inventory ValueError('R1_STAGED_PIN_INVALID') IF Path(name).is_absolute() or '..' in Path(name).parts
+b/px.py:29 inventory ValueError('R1_STAGED_PIN_INVALID') IF Path(name).is_absolute() or '..' in Path(name).parts
+b/px.py:42 staged_path ValueError('R1_STAGED_PIN_LOCATION_INVALID') IF 
+b/px.py:57 resolver.resolve ValueError('R1_STAGED_PIN_MISSING:' + h + ':' + field) IF not choices
+b/px.py:63 resolver.resolve ValueError('R1_STAGED_PIN_NOT_PRESENT:' + h + ':' + field) IF 
+b/px.py:77 small_members ValueError('R1_STAGED_PIN_SYMLINK') IF path.is_symlink()
+b/rb.py:25 selection_check ValueError('R1_RECONSTRUCTION_SELECTION_DIFFERS:' + name) IF name not in expected or name not in actual or {k: actual[name][k] for k in fields if k in actual[name]} != {k: expected[name][k] for k in fields if k in expected[name]}
+b/rb.py:32 statuses ValueError('R1_ROUTING_SOURCE_STATUS_DIFFERS:' + name) IF name not in actual or name not in expected or actual[name].get('status') != expected[name].get('status')
+b/rb.py:42 routing_status ValueError('R1_ROUTING_REFERENCE_DIFFERS') IF p['s1_routing']['selection']['sha256'] != '5db993b148c7aa1ace685f7c29b0e20daa6ac4e3e5b3613e4c3fc2b24bdde2af'
+b/rb.py:52 mount_inputs.add ValueError('R1_RECONSTRUCTION_PATH_INVALID') IF not target.is_absolute() or '..' in target.parts
+b/rb.py:56 mount_inputs.add ValueError('R1_RECONSTRUCTION_PATH_CONFLICT') IF str(target) in mounts and mounts[str(target)] != item
+b/rb.py:412 command ValueError('R1_BINARY_MISSING:bwrap') IF not binary
+b/rb.py:417 command ValueError('R1_RECONSTRUCTION_PATH_INVALID') IF any((p not in ('/scratch', '/lustre', '/home', '/data', '/data2', '/data3', '/project') for p in roots))
+b/rb.py:438 reconstruct ValueError('P_TRAINED_ROUTING_PIN_DIFFERS') IF pin['sha256'] != 'ca0616dbc67cf9a257774b43a9d5b134957b3f3ce0451e6bf5378f3d7d0c1984'
+b/rb.py:441 reconstruct ValueError('P_TRAINED_ROUTING_DATABASE_DIFFERS') IF receipt['database']['sha256'] != DB
+b/rb.py:447 reconstruct ValueError('R1_RECONSTRUCTION_TREE_DIFFERS') IF tree_pin['sha256'] != TREE or seal['archive']['sha256'] != TREE
+b/rb.py:453 reconstruct ValueError('R1_RECONSTRUCTION_TREE_DIFFERS') IF inventory(tree) != seal['files']
+b/rb.py:463 reconstruct ValueError('P_TRAINED_ROUTING_RECONSTRUCTION_DIFFERS:' + DB) IF result['database']['sha256'] != DB
+b/rd.py:14 publish ValueError('R1_ROUTING_JOB_ID_REQUIRED') IF not job or any((c not in '0123456789' for c in job))
+b/rd.py:17 publish ValueError('R1_ROUTING_DESTINATION_INVALID') IF not target.is_absolute() or '..' in target.parts
+b/rd.py:19 publish ValueError('R1_ROUTING_DESTINATION_INVALID') IF any((p.is_symlink() for p in (target, *target.parents)))
+b/rd.py:21 publish ValueError('R1_ROUTING_DESTINATION_INVALID') IF any((target.resolve() == p or p in target.resolve().parents for p in (kit, root)))
+b/rd.py:32 publish ValueError('R1_ROUTING_EVIDENCE_UNUSABLE') IF source.is_symlink() or not stat.S_ISREG(source.stat().st_mode)
+b/rd.py:38 publish ValueError('R1_ROUTING_EVIDENCE_TOO_LARGE') IF len(raw) > limit
+b/rd.py:55 publish ValueError('R1_ROUTING_SELECTION_MISSING') IF int(returncode) == 0 and 'routing_selection.json' not in records
+b/rg.py:34 regenerate ValueError('P_TRAINED_ROUTING_DATABASE_DIFFERS') IF compare AND receipt['database']['sha256'] != DB
+b/rg.py:40 regenerate ValueError('P_TRAINED_SELECTED_ROW_BYTES_OR_ORDER_DIFFER:' + str(count)) IF compare AND before != after
+b/rv.py:55 location ValueError('R1_REVIEW_FILE_UNUSABLE') IF not target.is_absolute() or '..' in target.parts or (not job.replace('_', '').isalnum())
+b/rv.py:60 location ValueError('R1_REVIEW_FILE_UNUSABLE') IF any((v.is_symlink() for v in (p, *p.parents)))
+b/rv.py:62 location ValueError('R1_REVIEW_FILE_UNUSABLE') IF any((p.resolve().is_relative_to(v.resolve()) for v in (kit, root / 'kit', root / 'h')))
+b/rv.py:70 receipt_bytes ValueError('R1_REVIEW_FILE_UNUSABLE') IF any((p.is_symlink() for p in (path.parent, *path.parent.parents)))
+b/rv.py:76 receipt_bytes ValueError('R1_REVIEW_FILE_UNUSABLE') IF 
+b/rv.py:80 receipt_bytes ValueError('R1_REVIEW_FILE_UNUSABLE') IF ds.st_uid != os.getuid() or stat.S_IMODE(ds.st_mode) != 448
+b/rv.py:86 receipt_bytes ValueError('R1_REVIEW_FILE_UNUSABLE') IF 
+b/rv.py:90 receipt_bytes ValueError('R1_REVIEW_FILE_UNUSABLE') IF not stat.S_ISREG(fs.st_mode) or stat.S_IMODE(fs.st_mode) != 384 or fs.st_uid != os.getuid() or (fs.st_size > CAP)
+b/rv.py:94 receipt_bytes ValueError('R1_REVIEW_FILE_UNUSABLE') IF len(raw) > CAP or (fs.st_size, fs.st_mtime_ns, fs.st_ctime_ns) != (after.st_size, after.st_mtime_ns, after.st_ctime_ns)
+b/rv.py:158 protected_rooms.matches reraise IF not isinstance(error, SceneCoverageError) and (not str(error).startswith(('R1_CENSUS_ROOM_UNRESOLVED:', 'R1_TWIN_ROOM_UNRESOLVED', 'R1_ROOM_CANONICAL_UNRESOLVED')))
+b/rv.py:159 protected_rooms.matches ValueError('R1_PROTECTED_ROOM_UNRESOLVED') IF 
+b/rv.py:186 evidence ValueError('R1_REVIEW_STORE_UNUSABLE') IF len(ids) != total or len(set(ids)) != total or total < 40
+b/rv.py:222 evidence ValueError('R1_REVIEW_EVIDENCE_TOO_LARGE') IF sum(map(len, payloads.values())) >= CAP
+b/rv.py:226 evidence ValueError('R1_PROTECTED_ROOM_ROWS') IF any((any(v['protected_rooms'].values()) for v in counts.values()))
+b/rv.py:228 evidence ValueError('R1_ANSWER_ONLY_ROWS') IF any((counts[stream]['answer_only'] for stream in ('vqa', 'routing')))
+b/rv.py:243 run.interrupted ValueError('R1_REVIEW_INTERRUPTED') IF 
+b/rv.py:248 run ValueError('R1_REVIEW_CONFIG_TOO_LARGE') IF config.stat().st_size > V_CAP
+b/rv.py:255 run ValueError('R1_REVIEW_CONFIG_TOO_LARGE') IF len(raw) > V_CAP
+b/rv.py:263 run reraise IF not discovery(kit) or not str(error).startswith(('R1_PROTECTED_ROOM', 'R1_SCENE_PROTECTED'))
+b/rv.py:271 run ValueError('R1_CENSUS_RECEIPT_PIN_DIFFERS') IF cfg.get('remove_files') AND load(cfg['r1_training']['host_receipt']['path']).get('protected_census') != pin
+b/rv.py:274 run ValueError('R1_REVIEW_FILE_UNUSABLE') IF type(bound) is not int or not 0 < bound <= 7200
+b/rv.py:281 run ValueError('R1_REVIEW_TIMEOUT') IF time.monotonic() >= deadline
+b/rv.py:289 run ValueError('R1_REVIEW_FILE_UNUSABLE') IF review_raw is not None
+b/rv.py:291 run ValueError('R1_REVIEW_FILE_UNUSABLE') IF review_raw is not None AND not isinstance(review, dict) or set(review) - {'verdict', 'config_identity', 'evidence'} or ('evidence' in review and (not isinstance(review['evidence'], dict)))
+b/rv.py:293 run ValueError('R1_REVIEW_NOT_PASS') IF review_raw is not None AND review.get('verdict') != 'PASS'
+b/rv.py:295 run ValueError('R1_REVIEW_IDENTITY_DIFFERS') IF review_raw is not None AND review.get('config_identity') != value
+b/rv.py:297 run ValueError('R1_REVIEW_IDENTITY_DIFFERS') IF review_raw is not None AND sha(config) != hashlib.sha256(raw).hexdigest()
+b/rv.py:304 run ValueError('R1_REVIEW_IDENTITY_DIFFERS') IF review_raw is not None AND identity(cfg) != value
+b/rv.py:332  SystemExit(main()) IF __name__ == '__main__'
+b/sc.py:18 bind ValueError('R1_SCENE_SOURCE_COUNT_DIFFERS') IF len(pose['sources']) != 2
+b/sc.py:25 bind ValueError('R1_SCENE_SOURCE_POPULATION_MISSING:' + name) IF rows[name]['rows'] is None
+b/sc.py:37 bind ValueError('R1_BINARY_MISSING:bwrap') IF not binary
+b/sr.py:65  SystemExit(main()) IF __name__ == '__main__'
+b/sv.py:52 classifier.classify ValueError('R1_CENSUS_ROOM_UNRESOLVED:' + stream) IF 
+b/sv.py:55 classifier.classify reraise IF not candidates
+b/sv.py:57 classifier.classify ValueError('R1_CENSUS_ROOM_UNRESOLVED:' + stream) IF not physical_rooms
+b/t.py:6  SystemExit(0) IF load(k / 'k/a.json')['GO'] is not True
+b/t.py:7  ValueError('E80') IF len(sys.argv) != 3
+b/t.py:8  SystemExit(subprocess.run([sys.executable, '-s', '-B', '-m', 'torch.distributed.run', '--standalone', '--nnodes=1', '--nproc_per_node=4', '--no-python', '/bin/bash', str(k / 'b/e.sh'), sys.executable, *sys.argv[1:]], check=False, env={**os.environ, 'PYTHONDONTWRITEBYTECODE': '1'}).returncode) IF 
+b/u.py:6  ValueError('E03') IF load(k / 'k/a.json')['GO'] is not True
+b/u.py:8  ValueError('E81') IF q.get('status') != 'ADMIT' or q.get('init_milestone') != 400
+b/u.py:14  ValueError('E82') IF identity(cfg) != identity(before) or cfg['world_size'] != 4
+b/z.py:13 load ValueError('E50:' + str(path)) IF 
+b/z.py:16 load ValueError('E01') IF isinstance(v, dict) and v.get('encoding') in ('base64', 'base64-json') AND hashlib.sha256(raw).hexdigest() != v['sha256']
+b/z.py:28 checked ValueError('E10:' + str(path)) IF not path.is_file() or (size is not None and path.stat().st_size != size) or sha(path) != expected
+b/z.py:33 inside ValueError('E11') IF p.is_absolute() or '..' in p.parts
+b/z.py:35 inside ValueError('E11') IF not out.is_relative_to(Path(root).resolve())
+b/z.py:47 seal ValueError('E13') IF actual != expected
+b/z.py:57 selected400 ValueError('E83:' + name) IF part.startswith('checkpoint_')
+b/z.py:59 selected400 ValueError('E83:' + name) IF match and int(match[1]) > 400
+b/z.py:282 exact_path ValueError('E57:' + str(p)) IF not p.is_absolute() or str(p.resolve()) != str(p)
+b/z.py:451 copy_resolved_payload ValueError('E32') IF resolved['kit_sha256'] != seal(kit)
+b/z.py:465 copy_resolved_payload ValueError('E33') IF record AND len(raw) != item['bytes'] or hashlib.sha256(raw).hexdigest() != h
+b/z.py:481 copy_resolved_payload ValueError('E34') IF sha(root / 'source_code.json') != spec['code_sha256']
+b/z.py:488 copy_resolved_payload ValueError('E35') IF not member.isfile() or member.issym() or member.islnk()
+b/z.py:494 copy_resolved_payload ValueError('E36') IF stream.n != resolved['tar_bytes'] or stream.digest.hexdigest() != resolved['tar_sha256']
+b/z.py:501 copy_resolved_payload ValueError('E37:' + label) IF h not in resolved['small_files'] AND h not in byhash
+b/z.py:511 copy_resolved_payload ValueError('E43') IF PurePosixPath(name).name != name or name in ('.', '..')
+b/z.py:543 name_guard.check ValueError('E48') IF not isinstance(name, str) or screen(name, words, hashes) != name
+b/z.py:640 room_report.consume ValueError('E39') IF receipt.get('schema') == 'c1-pose-mix-v1' AND source['kind'] != 'rows'
+launch_r1/build.py:16 verify ValueError('R1_KIT_CONTENT_DIFFERS') IF expected != actual
+launch_r1/build.py:24 verify ValueError('R1_KIT_MIX_EVIDENCE_DIFFERS') IF (root / 'k/8.json').exists() AND hashlib.sha256(raw).hexdigest() != pin['sha256'] or evidence['report_sha256'] != pin['sha256']
+launch_r1/entry.py:19 create_job_tmp ValueError('R1_HOST_JOB_TMP_REQUIRED') IF path == TMP_NAMESPACE.resolve() or not path.resolve().is_relative_to(TMP_NAMESPACE.resolve())
+launch_r1/entry.py:40 temporary_paths ValueError('R1_HOST_PATH_OUTSIDE_JOB_TMP') IF NOT (isinstance(value, dict)) AND NOT (isinstance(value, list)) AND isinstance(value, str) AND '..' in path.parts or not resolved.is_relative_to(job_tmp.resolve())
+launch_r1/entry.py:48 fresh_tmp ValueError('R1_HOST_JOB_TMP_REQUIRED') IF not request.get('job_tmp') or job_tmp == namespace or (not job_tmp.resolve().is_relative_to(namespace)) or job_tmp.is_symlink() or (not root.is_relative_to(job_tmp))
+launch_r1/entry.py:53 fresh_tmp ValueError('R1_HOST_JOB_TMP_TOKEN_INVALID') IF token is not None AND expected != (job_tmp.resolve(), stat.st_dev, stat.st_ino) or stat.st_mode & 511 != 448
+launch_r1/entry.py:55 fresh_tmp ValueError('R1_HOST_JOB_TMP_NOT_EMPTY') IF token is not None AND any(job_tmp.iterdir())
+launch_r1/entry.py:57 fresh_tmp ValueError('R1_HOST_JOB_TMP_NOT_FRESH') IF NOT (token is not None) AND job_tmp.exists()
+launch_r1/entry.py:72 admit ValueError('P_EXPORT_ONLY_TRAINING_LAUNCH_REFUSED') IF value.get('handover_receipt') AND NOT (policy is not None) AND receipt.get('schema') == 'p-export-only-v1'
+launch_r1/entry.py:81 admit ValueError('R1_ALL_STREAM_IDENTITIES_REQUIRED') IF set(value.get('store_hashes', {})) != {'pose', 'vqa', 'routing', 'pointing'}
+launch_r1/entry.py:86 admit ValueError('R1_PRODUCTION_ROW_PLAN_MISSING') IF not cfg.get('r2_sampling')
+launch_r1/entry.py:89 admit ValueError('R1_ROW_PLAN_BINDING_DIFFERS') IF value['row_plan_sha256'] != digest(cfg['r2_sampling'])
+launch_r1/entry.py:95 admit ValueError('R1_HOST_ADMISSION_MISSING') IF host.get('status') != 'PASS' or host.get('config_identity') != identity(cfg) or set(host.get('assertions', {})) != set(ASSERTIONS) or (not all(host['assertions'].values())) or (host.get('loader_audit', {}).get('complete') is not True)
+launch_r1/entry.py:105 admit ValueError('INDEPENDENT_REVIEW_PENDING') IF review.get('verdict') != 'PASS' or review.get('config_identity') != identity(cfg)
+launch_r1/entry.py:115 begin_host ValueError('R1_HOST_ROOT_NOT_EMPTY') IF root.exists() and any(root.iterdir())
+launch_r1/entry.py:160 check_host_runtime ValueError('R1_DISK_PLAN_DIFFERS') IF not result['assertions']['disk_plan']
+launch_r1/entry.py:165 check_host_runtime ValueError('R1_BINARY_MISSING:' + name) IF not binary
+launch_r1/entry.py:180 verify_host_staging ValueError('Staging target escaped the input root') IF not name.startswith('u/') or '..' in Path(name).parts or root not in target.resolve().parents
+launch_r1/entry.py:185 verify_host_staging ValueError('Invalid archive identity') IF 'archive' in item or 'directory' in item AND not isinstance(key, str) or len(key) != 64 or any((c not in '0123456789abcdef' for c in key))
+launch_r1/entry.py:191 verify_host_staging ValueError('Archive has no authenticated inventory') IF 'archive' in item or 'directory' in item AND key not in archives AND NOT (source.get('sha256')) AND not source.get('inventory')
+launch_r1/entry.py:194 verify_host_staging ValueError('Staging inventory escaped its archive') IF 'archive' in item or 'directory' in item AND key not in archives AND Path(member).is_absolute() or '..' in Path(member).parts
+launch_r1/entry.py:199 verify_host_staging ValueError('Staging member escaped its archive') IF 'archive' in item or 'directory' in item AND member.is_absolute() or '..' in member.parts
+launch_r1/entry.py:203 verify_host_staging ValueError('Staging directory differs from its archive') IF 'archive' in item or 'directory' in item AND item.get('directory') AND not target.is_dir() or target.resolve() != origin.resolve()
+launch_r1/entry.py:210 verify_host_staging ValueError('R1_HOST_STAGING_DIFFERS:' + name + ':' + str(error)) IF 
+launch_r1/entry.py:217 stage_host ValueError('R1_HOST_STAGING_AND_SELECTION_INPUTS_MISSING') IF not request.get('staging') or not request.get('routing_selection')
+launch_r1/entry.py:240 stage_host ValueError('R1_ROUTING_COMPOSITION_INPUTS_MISSING') IF not request.get('routing_base') or (not minimal and (not request.get('routing_inputs')))
+launch_r1/entry.py:280 check_host_selection ValueError('R1_ROUTING_SELECTION_DIFFERS') IF not result['assertions']['routing_selection']
+launch_r1/entry.py:293 finish_host ValueError('R1_HOST_ASSERTION_FALSE:' + name) IF named_refusals AND result['assertions'][name] is not True
+launch_r1/entry.py:295 finish_host ValueError('R1_HOST_ASSERTIONS_INCOMPLETE') IF not all(result['assertions'].values()) or not result['loader_audit']['complete']
+launch_r1/entry.py:308 frame_host ValueError('CPU_ONLY_REQUIRED') IF os.environ.get('CUDA_VISIBLE_DEVICES', '')
+launch_r1/p_export_receipt.py:18 stop_step ValueError('P_EXPORT_ONLY_STOP_INVALID') IF limit is not None AND type(limit) is not int or limit <= 0
+launch_r1/p_handover_receipt.py:11 collect ValueError('P_HANDOVER_RUN_KEYS') IF set(p_run) != {'config', 'binding', 'preparation', 'checkpoint'}
+launch_r1/p_handover_receipt.py:20 collect ValueError('P_HANDOVER_STEP_NOT_MILESTONE') IF type(step) is not int or step not in recipe_for(cfg)['milestones']
+launch_r1/p_handover_receipt.py:28 collect ValueError('P_HANDOVER_RUN_BINDING_MISMATCH') IF complete.get('step') != step or type(complete.get('step')) is not int or complete.get('schema') != 'c1-checkpoint-v1' or (complete.get('binding') != bound) or (bound.get('config_sha256') != identity) or (artifact.get('config_sha256') != identity) or (cfg.get('preparation') != p_run['preparation']) or (bound.get('preparation') != p_run['preparation']) or (prep.get('config_sha256') != identity)
+launch_r1/p_handover_receipt.py:37 collect.listed ValueError('P_HANDOVER_PATH_ESCAPE:' + label) IF not path.is_relative_to(root.resolve())
+launch_r1/p_handover_receipt.py:40 collect.listed ValueError('P_HANDOVER_FILE_MISMATCH:' + label) IF actual['sha256'] != pin['sha256'] or ('bytes' in pin and path.stat().st_size != pin['bytes'])
+launch_r1/p_handover_receipt.py:46 collect ValueError('P_HANDOVER_CHECKPOINT_FILES_REQUIRED') IF not files or not complete.get('layouts') or (not any((k.startswith('rng') for k in files)))
+launch_r1/p_handover_receipt.py:50 collect ValueError('P_HANDOVER_STREAMS_MISMATCH') IF set(prep['streams']) != set(cfg['streams'])
+launch_r1/p_handover_receipt.py:54 collect ValueError('P_HANDOVER_STREAM_RECEIPT_MISMATCH:' + name) IF stream['receipt'] != pin
+launch_r1/p_handover_receipt.py:74 verify_receipt ValueError('P_EXPORT_HANDOVER_RECEIPT_REQUIRED') IF not receipt_pin
+launch_r1/p_handover_receipt.py:78 verify_receipt ValueError('P_EXPORT_HANDOVER_RECEIPT_UNVERIFIED') IF 
+launch_r1/p_handover_receipt.py:82 verify_receipt ValueError('P_EXPORT_HANDOVER_RECEIPT_INVALID') IF receipt.get('schema') != 'p-handover-v1' or type(receipt.get('step')) is not int or receipt.get('step') != load(pinned(artifact_pin)).get('step') or (not receipt.get('job_id')) or (not receipt.get('trainer_commit'))
+launch_r1/p_handover_receipt.py:85 verify_receipt ValueError('P_EXPORT_HANDOVER_PIN_MISMATCH:' + key) IF receipt.get('pins', {}).get(key) != pin
+launch_r1/p_handover_receipt.py:88 verify_receipt ValueError('P_EXPORT_HANDOVER_CLOSURE_MISMATCH') IF receipt['pins'] != closure or receipt['trainer_commit'] != commit
+launch_r1/p_opener_witness.py:16 prepared_vocabulary ValueError('P_EXPORT_TOKENIZER_FILES_REQUIRED') IF not required <= files.keys()
+launch_r1/p_opener_witness.py:24 prepared_vocabulary ValueError('P_EXPORT_TOKENIZER_FILE_UNBOUND:' + name) IF name not in files
+launch_r1/p_opener_witness.py:34 produce ValueError('P_EXPORT_ROUTING_OPENER_KEEP_REQUIRED:routing_opener_init') IF not cfg.get('r1_training') or cfg.get('routing_opener_init') != 'keep'
+launch_r1/p_opener_witness.py:37 produce ValueError('Keep requires a full warm start') IF spec.get('lm') != 'full'
+launch_r1/p_opener_witness.py:40 produce ValueError('P_EXPORT_WITNESS_REQUIRES_DONOR_EXPORT') IF artifact_pin['sha256'] == PARENT
+launch_r1/p_opener_witness.py:47 produce ValueError('P_EXPORT_OPENER_LINEAGE_MISMATCH') IF lineage['artifact_sha256'] != PARENT or lineage['step'] != 544 or source.get('init_artifact', {}).get('artifact', {}).get('sha256') != PARENT
+launch_r1/p_opener_witness.py:51 produce ValueError('P_EXPORT_OPENER_VOCABULARY_MISMATCH') IF artifact.get('routing_vocabulary') is not None and artifact['routing_vocabulary'] != recorded
+launch_r1/production_proof.py:13 verify_staging ValueError('R1_PROOF_STAGED_PINS_REQUIRED') IF not entries
+launch_r1/production_proof.py:76 _run ValueError('R1_PROOF_COUNTING_ADMISSION_REQUIRED') IF card.get('counting_admission') != 'procedure_only_v1'
+launch_r1/production_proof.py:80 _run ValueError('R1_PROOF_NATIVE_ROUTING_REQUIRED') IF not cfg.get('s1_routing') or (not minimal and (not cfg['r1_training'].get('routing_inputs')))
+launch_r1/production_proof.py:88 _run ValueError('R1_PROOF_FRAME_HOST_REQUIRED') IF os.uname().nodename.startswith('trinity')
+launch_r1/production_proof.py:115 _run ValueError('R1_PROOF_EXPORT_STEP_REQUIRED') IF step not in (400, 600) or request.get('milestone', step) != step
+launch_r1/production_proof.py:118 _run ValueError('R1_PROOF_MEMORY_REQUEST_INVALID') IF type(memory) is not int or not 8 <= memory <= 512
+launch_r1/production_proof.py:121 _run ValueError('R1_PROOF_DEVICE_INVALID') IF device not in ('cpu', 'cuda:0')
+launch_r1/production_proof.py:166 _run ValueError('R1_PROOF_EXPORT_STEP_REQUIRED') IF result['init_milestone'] not in (400, 600) or result['absolute_resume_step'] != expected_start
+launch_r1/production_proof.py:209  SystemExit(main()) IF __name__ == '__main__'
+launch_r2/build.py:43 scan_value ValueError('Unexpected capsule fields') IF isinstance(value, dict) AND value.get('encoding') in ('base64', 'base64-json') AND set(value) != {'encoding', 'payload', 'sha256'}
+launch_r2/build.py:46 scan_value ValueError('Invalid content capsule') IF isinstance(value, dict) AND value.get('encoding') in ('base64', 'base64-json') AND hashlib.sha256(raw).hexdigest() != value['sha256']
+launch_r2/build.py:50 scan_value ValueError('Forbidden JSON field') IF isinstance(value, dict) AND bad_string(key, hashes)
+launch_r2/build.py:58 scan_value ValueError('Non-opaque or absolute operational string') IF NOT (isinstance(value, dict)) AND NOT (isinstance(value, list)) AND isinstance(value, str) AND value.startswith(('/scratch/', '/home/', '/data', '/project/', '/lustre/')) or Path(value).is_absolute() or '..' in Path(value).parts or bad_string(value, hashes)
+launch_r2/build.py:67 scan ValueError('Forbidden staged path') IF path.is_symlink() or bad_string(relative, hashes)
+launch_r2/build.py:76 scan ValueError('Forbidden job argument or environment value') IF bad_string(value, hashes)
+launch_r2/build.py:82 scan ValueError('Forbidden job path, argument or environment value') IF bad_string(line, hashes)
+launch_r2/build.py:84 scan ValueError('GPU request refused by CPU job') IF script.name == 'f.sh' and re.search('--(?:gpus|gres)\\b', line)
+launch_r2/persistence.py:16 plan ValueError('Persistence plan differs from checkpoint disk guard') IF guard != expected
+launch_r2/persistence.py:27 upload ValueError('Missing durable state persistence binding') IF not spec and (not local_only)
+launch_r2/persistence.py:32 upload ValueError('State is outside the node-local run') IF output not in directory.parents
+launch_r2/persistence.py:38 upload ValueError('Native state predicate refused') IF kind == 'checkpoint' AND marker not in complete_states(output, value['binding'])
+launch_r2/persistence.py:41 upload ValueError('State member digest differs') IF kind == 'checkpoint' AND sha256(directory / name) != pin['sha256']
+launch_r2/persistence.py:56 upload ValueError('Node-local archive reserve is insufficient') IF shutil.disk_usage(spool).free < archive_bound + cfg['checkpoint_disk_guard']['reserve_bytes']
+launch_r2/persistence.py:58 upload ValueError('State symlink refused') IF any((p.is_symlink() for p in directory.rglob('*')))
+launch_r2/persistence.py:64 upload ValueError('Archive inventory differs') IF {m.name for m in handle.getmembers()} != set(entries)
+launch_r2/persistence.py:71 upload ValueError('Archive or source changed') IF h.hexdigest() != entries[m.name]['sha256'] or sha256(directory / m.name) != h.hexdigest()
+launch_r2/persistence.py:85 upload.uploader ValueError('Durable upload failed') IF uploader is None AND module.main(['split', str(sessions), key, str(path), '4', '4'])
+launch_r2/persistence.py:90 upload ValueError('Upload lacks all verified generations') IF len(records) != 4 or any((not r.get('generation') or not r.get('sha256') for r in records))
+launch_r2/persistence.py:95 upload ValueError('Upload ranges differ') IF part['offset'] != cursor
+launch_r2/persistence.py:100 upload ValueError('Upload range exceeds archive') IF not block
+launch_r2/persistence.py:104 upload ValueError('Upload range digest differs') IF h.hexdigest() != part['sha256']
+launch_r2/persistence.py:107 upload ValueError('Upload does not cover archive') IF cursor != archive.stat().st_size
+launch_r2/persistence.py:132 milestone ValueError('Durable persistence refused: ' + result[0]) IF result[0]
+launch_r2/staging.py:39 checked ValueError('Staging digest differs') IF sha(path) != expected
+launch_r2/staging.py:50 unpack ValueError('Archive escaped node-local root') IF Path(m.name).is_absolute() or '..' in Path(m.name).parts or m.isdev() or m.isfifo()
+launch_r2/staging.py:54 unpack ValueError('Archive link escaped node-local root') IF m.issym() or m.islnk() AND destination not in link.parents
+launch_r2/staging.py:73 assemble ValueError('Archive has no authenticated inventory') IF not entry.get('inventory')
+launch_r2/staging.py:94 validate_plan ValueError('Relative pins absent from staging plan: ' + ','.join(sorted(missing))) IF missing
+launch_r2/staging.py:98 validate_plan ValueError('Unresolved staging input: ' + name) IF not e.get('sha256') or not any((k in e for k in ('payload', 'parts', 'archive', 'directory', 'required_parameter')))
+launch_r2/staging.py:108 stage_inputs ValueError('Staging target escaped the input root') IF not name.startswith('u/') or '..' in Path(name).parts or local not in target.resolve().parents
+launch_r2/staging.py:113 stage_inputs ValueError('Invalid archive identity') IF 'archive' in entry or 'directory' in entry AND not isinstance(key, str) or len(key) != 64 or any((c not in '0123456789abcdef' for c in key))
+launch_r2/staging.py:120 stage_inputs ValueError('Staging inventory escaped its archive') IF 'archive' in entry or 'directory' in entry AND key not in archives AND Path(member).is_absolute() or '..' in Path(member).parts
+launch_r2/staging.py:124 stage_inputs ValueError('Staging member escaped its archive') IF 'archive' in entry or 'directory' in entry AND member.is_absolute() or '..' in member.parts
+student_pilot/b7_inputs.py:37 layout ValueError('processor_resolution_pin_missing') IF any((type(result[k]) is not int or result[k] <= 0 for k in ('max_pixels', 'min_pixels')))
+student_pilot/b7_inputs.py:39 layout ValueError('processor_resolution_range') IF result['min_pixels'] > result['max_pixels']
+student_pilot/b7_inputs.py:41 layout ValueError('frame_count_must_be_32_or_64') IF result['frame_count'] not in (32, 64) or type(result['frame_count']) is not int
+student_pilot/b7_inputs.py:43 layout ValueError('training_frame_layout_mismatch') IF result['frame_layout'] != 'duplicate' or result['frame_markers'] is not True
+student_pilot/b7_inputs.py:189 module_trainability ValueError('optimizer_trainable_membership_mismatch') IF p.requires_grad != (id(p) in rates)
+student_pilot/b7_inputs.py:211 assert_policy ValueError('trainable_module_pin_mismatch:' + parameter['name']) IF parameter['trainable'] != trainable
+student_pilot/b7_inputs.py:214 assert_policy ValueError('trainable_learning_rate_pin_mismatch:' + parameter['name']) IF parameter['learning_rate'] not in rates
+student_pilot/camera_config.py:101 normalize ValueError('Camera max_groups must be an integer in 16..48 or 64') IF 'max_groups' in value and (type(value['max_groups']) is not int or not (16 <= value['max_groups'] <= 48 or value['max_groups'] == 64))
+student_pilot/carrier_c1.py:115 CarrierC1.__init__ ValueError('Unsupported frame count') IF frame_count not in (32, 64)
+student_pilot/carrier_c1.py:606 CarrierC1.pose_readout ValueError('Clip pose readout requires every configured frame') IF not valid.all()
+student_pilot/carrier_c1.py:624 CarrierC1.readout ValueError('Readout depth slots must match the configured visible frames') IF points.shape[0] != frame_count or not valid.all()
+student_pilot/carrier_c1_data.py:165 encode_layout_row ValueError('row_training_frame_count_mismatch') IF hasattr(processor, '_b7_layout') AND len(row['student_input']['frames']) != frame_count
+student_pilot/carrier_c1_data.py:264 insert_frame_carriers ValueError('Unsupported frame count') IF frame_count not in (32, 64)
+student_pilot/carrier_c1_data.py:283 insert_frame_carriers ValueError('C1 requires at most 32 frames and a complete native grid') IF not 1 <= groups <= (64 if anchors is not None else frame_count // slots) or h % merge_size or w % merge_size
+student_pilot/carrier_c1_data.py:468 mixed_indices ValueError('Missing bound r2_sampling table') IF require_r2 and (not r2_sampling)
+student_pilot/carrier_c1_data.py:632 build_stream ValueError('C1 preservation rows require 32 pinned native frames or 64 pinned native frames') IF not single_image_row(row, stream, training_mode=training_mode, geometry_online=geometry_online) and (not nested) and (len(inputs['frames']) not in (32, 64) or len(inputs['frame_indices']) != len(inputs['frames']))
+student_pilot/carrier_c1_routing.py:782 c1_row ValueError('RGB manifest differs from the trace frame selection') IF len(frames) not in (32, 64) or [f['source_index'] for f in frames] != row['provenance']['frame_indices']
+student_pilot/carrier_c1_routing.py:911 require_training_think ValueError('LEGACY_DIRECT_SOURCE_EMPTY_THINK_REFUSED') IF not isinstance(target, str) or not target.startswith(THINK) or '</think>' not in target or (not target[len(THINK):target.index('</think>')].strip())
+student_pilot/carrier_c1_routing.py:921 direct_row ValueError('Direct rows require 32 or 64 pinned native frames') IF count not in (32, 64) or len(inputs['frame_indices']) != count
+student_pilot/carrier_c1_routing.py:925 direct_row ValueError('Direct trace answer differs from its declared answer') IF answer != str(raw['answer'])
+student_pilot/carrier_c1_routing.py:928 direct_row ValueError('Direct trace target does not match the training renderer') IF not target.endswith(suffix)
+student_pilot/carrier_c1_run.py:94 validate ValueError('Whole-leg checkpoint disk plan differs from the recipe') IF 'checkpoint_disk_guard' in cfg AND budget.whole_leg and budget.policy != plan(cfg['recipe'], budget.policy['reserve_bytes'], budget.policy.get('retained_archive_copies', 0))
+student_pilot/carrier_c1_run.py:161 validate ValueError('camera_overrides may set nonnegative weight_focal only') IF not isinstance(overrides, dict) or set(overrides) - permitted_overrides or any((type(v) not in (int, float) or not v >= 0 for v in overrides.values()))
+student_pilot/carrier_c1_run.py:513 prepare ValueError('C1 requires the admitted 321152-row all-frame A1 preparation') IF mix is None and (pose.get('schema') != 'decoupled-v-preparation-v1' or (pose.get('count') != 321152 and (not tiny_pose) and (not r2_pose))) or pose['settings']['anchors'] != list(range(1, 33)) or pose['settings']['temporal_grouping'] != 'fused_pairs_all_frames'
+student_pilot/carrier_c1_run.py:676 prepared ValueError('Preparation R1 inputs differ') IF receipt.get('r1_training') != cfg.get('r1_training')
+student_pilot/carrier_c1_run.py:678 prepared ValueError('Preparation R1 sampler differs') IF 'r1_training' in cfg and receipt.get('r2_sampling') != cfg.get('r2_sampling')
+student_pilot/carrier_c1_run.py:682 prepared ValueError('Preparation pinned kit inputs differ') IF 'b7_inputs' in cfg AND receipt.get('b7_inputs') != cfg['b7_inputs'] or layout(receipt['b7_inputs']) != layout(cfg['b7_inputs'])
+student_pilot/carrier_c1_run.py:1116 Rows.row ValueError('R1_POPULATION_POSE_SOURCE_NOT_ROWS') IF stream in getattr(self, 'mixes', {}) AND not hasattr(source, 'conn')
+student_pilot/carrier_c1_run.py:1354 check_row ValueError('Carrier positions must be a prefix of 32 slots') IF positions.shape != (1, getattr(model, 'frame_count', 32)) or torch.any(valid != (valid.long().cumprod(dim=1) > 0))
+student_pilot/carrier_c1_run.py:1374 check_row ValueError('Pose targets name slots without carriers') IF stream == 'pose' AND mask.shape != positions.shape or torch.any(mask & ~valid) or (not mask.any())
+student_pilot/carrier_c1_run.py:1377 check_row ValueError('Depth labels name slots without visible frames') IF stream == 'pose' AND depth is None or depth.shape[:2] != positions.shape or torch.any(depth.any(-1) & ~valid)
+student_pilot/carrier_c1_run.py:1415 fetch ValueError('R1 row failure forbids substituting the pinned row plan') IF not flag.item() and getattr(model, 'r1_training', None)
+student_pilot/carrier_c1_run.py:2333 run_steps ValueError('Missing bound r2_sampling table') IF 'r2_identity' in cfg and (not cfg.get('r2_sampling'))
+student_pilot/checkpoint_space.py:29 Budget.__init__ ValueError('Unknown checkpoint disk guard policy') IF not isinstance(policy, dict) or set(policy) - counts - {'reserve_bytes', 'retained_archive_copies'}
+student_pilot/decoupled_v.py:121 features ValueError('Unexpected temporal groups') IF n not in (allowed if single_slot else tuple(range(groups // 4, groups + 1, groups // 4)) if allow_short else (groups,))
+student_pilot/extent_receipt.py:28 Extents.__init__ ValueError('EXTENT_RECEIPT_SCHEMA') IF self.receipt is not None and self.receipt.get('schema') != 'full-extent-receipt-v1'
+student_pilot/extent_receipt.py:34 Extents.check ValueError('EXTENT_RECEIPT_REQUIRED') IF self.receipt is None
+student_pilot/extent_receipt.py:37 Extents.check ValueError('EXTENT_ROW_UNAUDITED') IF entry is None or entry.get('content_sha256') != digest(content(row))
+student_pilot/extent_receipt.py:42 Extents.check ValueError('EXTENT_BOX_NOT_FULL') IF not boxes or len(statuses) != len(boxes) or any((s != 'full' for s in statuses))
+student_pilot/extent_receipt.py:45 Extents.check ValueError('EXTENT_REPAIR_UNCERTIFIED') IF entry.get('repair_sha256') != (digest(repair) if repair else None)
+student_pilot/fixed_readout.py:33 DepthReadout.forward RenderError('invalid own depth') IF values.shape != (len(points),) or not np.isfinite(values).all() or (values <= 0).any()
+student_pilot/fixed_readout.py:55 HeadingReadout.__init__ ValueError('invalid heading threshold') IF not 0 < float(heading_plane_min) < 1
+student_pilot/fixed_readout.py:65 HeadingReadout.forward ValueError('heading threshold differs from artifact') IF operation == 'availability' AND threshold is not None and threshold != saved
+student_pilot/fixed_readout.py:71 HeadingReadout.forward ValueError('unknown heading operation') IF operation != 'turn'
+student_pilot/ground_rows.py:91 validate ValueError(verdict) IF recovery AND verdict
+student_pilot/ground_rows.py:93 validate ValueError('Grounding membership flags differ') IF record.get('not_seen') and (not recovery) and (not (not new_contracts() and simulated)) or record.get('gt_agrees') is not True or record.get('training_admitted') is not False
+student_pilot/ground_rows.py:105 validate ValueError('Unknown absolute label unit') IF record['type'] == 'object_abs_distance' AND unit not in factors
+student_pilot/ground_rows.py:112 validate ValueError('Absolute label mismatch') IF record['type'] == 'object_abs_distance' AND not valid
+student_pilot/p3_provenance.py:39 load ValueError('Capsule digest differs') IF isinstance(value, dict) and value.get('encoding') == 'base64-json' AND hashlib.sha256(raw).hexdigest() != value['sha256']
+student_pilot/phrases.py:19 normalize_phrase ValueError('invalid_object_name') IF not isinstance(name, str) or not name.strip() or any((ord(c) < 32 or ord(c) == 127 or c in '<>"' for c in name))
+student_pilot/r0_exclusion.py:31 Reserve.__init__ ValueError('r0_authority_sha_mismatch') IF hashlib.sha256(raw).hexdigest() != SHA256
+student_pilot/r0_exclusion.py:62 Reserve.check ValueError('r0_room_refused:' + stream + ':' + ','.join(hits)) IF hits
+student_pilot/r1_absence.py:11 configuration ValueError('NOT_PRESENT_SLOT_FORBIDDEN:' + slot) IF slot not in PREFIXES
+student_pilot/r1_absence.py:17 configuration ValueError('NOT_PRESENT_CONFIG_NAMES_COMPONENT:' + slot) IF not absent
+student_pilot/r1_absence.py:32 prove ValueError('NOT_PRESENT_NATIVE_BUILDER_REQUIRED') IF not isinstance(model, CarrierC1)
+student_pilot/r1_absence.py:34 prove ValueError('NOT_PRESENT_BUILDER_CONFIG_DIFFERS') IF model.carrier_placement != cfg['carrier_placement'] or model.geometry_online != cfg.get('geometry_online')
+student_pilot/r1_absence.py:36 prove ValueError('NOT_PRESENT_BUILT_MODULE:' + slot) IF any((matches(name, slot) for name in modules))
+student_pilot/r1_absence.py:38 prove ValueError('NOT_PRESENT_STATE_TENSOR:' + slot) IF any((matches(name, slot) for name in tensors))
+student_pilot/r1_absence.py:74 evidence ValueError('NOT_PRESENT_SLOT_FORBIDDEN') IF not isinstance(codes, list) or set(codes) != set(SLOT_CODES) or len(codes) != 2
+student_pilot/r1_absence.py:78 evidence ValueError('NOT_PRESENT_STATE_INVENTORY_REQUIRED') IF not pin
+student_pilot/r1_absence.py:80 evidence ValueError('NOT_PRESENT_STATE_INVENTORY_INVALID') IF not isinstance(state, dict)
+student_pilot/r1_absence.py:87 verify ValueError('NOT_PRESENT_RECORD_INVALID:' + slot) IF record.get('slot') != slot or record.get('schema') != 'r1-component-absence-v1'
+student_pilot/r1_absence.py:90 verify ValueError('NOT_PRESENT_CONFIG_DIFFERS:' + slot) IF any((k in cfg and cfg[k] != v for k, v in record['configuration'].items()))
+student_pilot/r1_absence.py:93 verify ValueError('NOT_PRESENT_PROOF_DIFFERS:' + slot) IF actual != entry
+student_pilot/r1_components.py:37 deferred ValueError('DEFERRED_COMPONENT_ROWS_RECORD_REQUIRED:data_rows_r2') IF not pin
+student_pilot/r1_components.py:41 deferred ValueError('DEFERRED_COMPONENT_ROWS_RECORD_INVALID:data_rows_r2') IF rows.get('schema') != 'r1-component-rows-v1' or rows.get('status') != 'DEFERRED' or (not rows.get('proven')) or (not rows.get('unproven')) or (not rows.get('inputs'))
+student_pilot/r1_components.py:59 guard ValueError('COMPONENT_BANK_SCOPE_UNKNOWN:' + boundary) IF not set(banks) <= DEV | set(SCOPE)
+student_pilot/r1_components.py:63 guard ValueError('COMPONENT_EVIDENCE_MISSING:init_m544:' + boundary) IF set(banks) & set(SCOPE) AND (artifact.get('r1_progress') or artifact.get('component_preparation') or artifact.get('component_evidence_sha256')) and (not artifact.get('component_evidence'))
+student_pilot/r1_components.py:66 guard ValueError('COMPONENT_EVIDENCE_DEFERRED:' + name + ':' + boundary) IF set(banks) & set(SCOPE) AND entry.get('status') == 'DEFERRED'
+student_pilot/r1_components.py:71 guard ValueError('COMPONENT_EVIDENCE_SLOTS_DIFFER:' + boundary) IF set(banks) & set(SCOPE) AND status AND set(status) != set((*LINEAGE, *EXTERNAL, *NEW))
+student_pilot/r1_components.py:73 guard ValueError('COMPONENT_EVIDENCE_RECORD_REQUIRED:' + boundary) IF set(banks) & set(SCOPE) AND status AND any((v.get('status') not in ('VERIFIED', 'NOT_PRESENT') or not v.get('record') for v in status.values()))
+student_pilot/r1_components.py:76 guard ValueError('COMPONENT_EVIDENCE_PREPARATION_REQUIRED:' + boundary) IF set(banks) & set(SCOPE) AND status AND not pin
+student_pilot/r1_components.py:81 guard ValueError('COMPONENT_EVIDENCE_PREPARATION_MISMATCH:' + boundary) IF set(banks) & set(SCOPE) AND status AND prep.get('schema') != 'c1-preparation-v1' or recorded != status or artifact.get('component_evidence_sha256') != digest(recorded)
+student_pilot/r1_components.py:95 guard ValueError('COMPONENT_EVIDENCE_SLOTS_DIFFER:' + boundary) IF set(banks) & set(SCOPE) AND status AND absent AND set(registry) != set(expected) or any((any((registry[name].get(k) != spec[k] for k in ('component', 'component_class', 'phase', 'expected_schema'))) for name, spec in expected.items()))
+student_pilot/r1_components.py:100 guard ValueError('COMPONENT_EVIDENCE_RECORD_MISMATCH:' + boundary) IF set(banks) & set(SCOPE) AND status AND normalize(records) != status
+student_pilot/r1_components.py:119 artifact_binding ValueError('COMPONENT_EVIDENCE_PREPARATION_MISMATCH:export') IF not pin or normalize(load(pinned(pin)).get('component_evidence', {})) != status
+student_pilot/r1_counting.py:28 admit ValueError('R1_TOTALS_ROW_REFUSED:' + str(row.get('qid'))) IF cell == 'totals' or classified == 'totals'
+student_pilot/r1_counting.py:30 admit ValueError('R1_COUNTING_LIST_FORM_REFUSED:' + str(row.get('qid'))) IF form.startswith('FS_LIST')
+student_pilot/r1_counting.py:32 admit ValueError('R1_COUNTING_PROCEDURE_REQUIRED:' + str(row.get('qid'))) IF form != 'PROC'
+student_pilot/r1_coverage.py:15 slice_bound ValueError('R1_MINIMAL_SLICE_BOUND:' + field + ':' + str(name) + (':' + legacy if legacy else '')) IF 
+student_pilot/r1_coverage.py:30 deferred ValueError('R1_ROUTING_SLICES_INVALID') IF value['routing_slices'] != 'deferred_first_boundary'
+student_pilot/r1_coverage.py:67 deferred ValueError('R1_ROUTING_BASE_DIFFERS') IF read_pins AND pin is not None AND field == 'request.routing_base' AND pin_values(pin) != pin_values((cfg or {}).get('streams', {}).get('routing'))
+student_pilot/r1_coverage.py:104 deferred_card ValueError('R1_DEFERRED_BASE_CELL_REQUIRED') IF len(base) != 1 or base[0]['stream'] != 'routing' or Fraction(str(base[0]['rows_per_step'])) != 64
+student_pilot/r1_coverage.py:125 routing_request ValueError('R1_ROUTING_BASE_DIFFERS') IF not base or pin_values(base) != pin_values(cfg.get('streams', {}).get('routing'))
+student_pilot/r1_coverage.py:132 routing_request ValueError('R1_ROUTING_BASE_INVALID') IF value.get('schema') != ROUTING_SCHEMA or value.get('scene_role', 'train') != 'train' or value.get('heldout_overlap') != 0
+student_pilot/r1_coverage.py:140 source_names ValueError('R1_COVERAGE_SOURCES_INCOMPLETE') IF extra and extra != set(PINS)
+student_pilot/r1_coverage.py:148 WordingExclusion.__init__ ValueError('R1_WORDING_EXCLUSION_PIN') IF pin.get('sha256') != SPLIT
+student_pilot/r1_coverage.py:150 WordingExclusion.__init__ ValueError('R1_WORDING_EXCLUSION_COUNT') IF len(value.get('held_out', [])) != 8
+student_pilot/r1_coverage.py:156 WordingExclusion.__init__ ValueError('R1_CAMERA_WORDING_PIN') IF camera is not None AND camera.get('sha256') != CAMERA_WORDINGS
+student_pilot/r1_coverage.py:159 WordingExclusion.__init__ ValueError('R1_CAMERA_WORDING_COUNT') IF camera is not None AND len(templates) != 24
+student_pilot/r1_coverage.py:172 WordingExclusion.check ValueError('R1_HELD_OUT_WORDING:' + name) IF isinstance(question, str) AND pattern.fullmatch(normalize(question))
+student_pilot/r1_coverage.py:184 validate_binding ValueError('R1_WORDING_EXCLUSION_REQUIRED') IF extra AND pin is None
+student_pilot/r1_coverage.py:186 validate_binding ValueError('R1_COVERAGE_SOURCE_PIN:' + name) IF extra AND sources[name]['source']['sha256'] != h
+student_pilot/r1_coverage.py:190 validate_binding ValueError('R1_CAMERA_SOURCE_PIN') IF sources[name]['source']['sha256'] != EXTRA_PINS[name]
+student_pilot/r1_coverage.py:192 validate_binding ValueError('R1_CAMERA_WORDING_REQUIRED') IF camera is None or pin is None
+student_pilot/r1_coverage.py:220 union_rows ValueError('R1_K1_UNION_ROW_INVALID') IF set(row) != {'row_key', 'canonical', 'reason'} or row.get('reason') != 'k1_heldout_v7' or (not isinstance(row.get('row_key'), str)) or (not row['row_key']) or (not isinstance(row.get('canonical'), str)) or ('/' not in row['canonical'])
+student_pilot/r1_coverage.py:221 union_rows ValueError('R1_K1_UNION_CONFLICT') IF row['row_key'] in values and values[row['row_key']] != row
+student_pilot/r1_coverage.py:232 verify_union ValueError('R1_K1_UNION_BINDING') IF set(spec) != {'base', 'extra', 'union'} or spec['base'].get('sha256') != base_hash or spec['union'] != pin
+student_pilot/r1_coverage.py:234 verify_union ValueError('R1_K1_UNION_CONTENT') IF read_list(pin) != expected
+student_pilot/r1_coverage.py:238 verify_union ValueError('R1_K1_UNION_ORDER') IF hashes.count(base_hash) != 1 or hashes.count(pin['sha256']) != 1 or n_hash not in hashes or (not hashes.index(base_hash) < hashes.index(pin['sha256']) < hashes.index(n_hash))
+student_pilot/r1_direction_twins.py:21 specifications ValueError('R1_TWIN_K1_UNION_REQUIRED') IF union.get('sha256') != UNION
+student_pilot/r1_direction_twins.py:23 specifications ValueError('R1_TWIN_K1_UNION_COUNT') IF len(read_list(union)) != 4959
+student_pilot/r1_direction_twins.py:25 specifications ValueError('R1_TWIN_PIN:' + key) IF spec.get(key, {}).get('sha256') != expected
+student_pilot/r1_direction_twins.py:35 Binding.__init__ ValueError('R1_TWIN_ROOM_AUTHORITY') IF not aliases.get('complete') or aliases.get('conflicts') or aliases.get('quarantined_tokens')
+student_pilot/r1_direction_twins.py:42 Binding.__init__ ValueError('R1_TWIN_DUPLICATE_BINDING') IF key in self.records
+student_pilot/r1_direction_twins.py:44 Binding.__init__ ValueError('R1_TWIN_BINDING_COUNT') IF len(self.records) != COUNT
+student_pilot/r1_direction_twins.py:50 Binding.__init__ ValueError('R1_TWIN_SOURCE_DUPLICATE') IF key in self.base_keys
+student_pilot/r1_direction_twins.py:55 Binding.__init__ ValueError('R1_TWIN_SOURCE_ABSENT_FROM_V7') IF set(self.sources) != wanted
+student_pilot/r1_direction_twins.py:56 Binding.__init__ ValueError('R1_TWIN_KEY_COLLISION') IF set(self.records) & self.base_keys
+student_pilot/r1_direction_twins.py:61 Binding.room ValueError('R1_TWIN_ROOM_UNRESOLVED') IF not canonical
+student_pilot/r1_direction_twins.py:67 Binding.check ValueError('R1_TWIN_ROW_DIGEST') IF not record or digest(row) != record['twin_sha256']
+student_pilot/r1_direction_twins.py:68 Binding.check ValueError('R1_TWIN_FACING_FIELD') IF 'facing' in row
+student_pilot/r1_direction_twins.py:72 Binding.check ValueError('R1_TWIN_SOURCE_ROOM_DIFFERS') IF record['source_room'] != source['room'] or self.room(row) != source['room'] or row.get('dataset') != source['dataset'] or (row.get('scene') != source['scene'])
+student_pilot/r1_direction_twins.py:74 Binding.check ValueError('R1_TWIN_SOURCE_REMOVAL_KEY') IF row_keys(row) != {row['qid'], record['source_key']}
+student_pilot/r1_direction_twins.py:82 Binding.rows ValueError('R1_TWIN_ROW_DUPLICATE') IF row['qid'] in seen
+student_pilot/r1_direction_twins.py:84 Binding.rows ValueError('R1_TWIN_ROWS_INCOMPLETE') IF seen != set(self.records)
+student_pilot/r1_direction_twins.py:89 verify_augmented ValueError('R1_TWIN_AUGMENTATION_REQUIRED') IF not augmentation
+student_pilot/r1_direction_twins.py:94 verify_augmented ValueError('R1_TWIN_AUGMENTATION_BINDING') IF proof.get('schema') != 'r1-direction-augmentation-v1' or proof.get('database') != actual or proof.get('binding') != spec['binding'] or (proof.get('source_database') != spec['source_database']) or (proof.get('rows') != spec['rows'])
+student_pilot/r1_direction_twins.py:99 verify_augmented ValueError('R1_TWIN_BASE_POPULATION_DIFFERS') IF next(cursor, None) != row
+student_pilot/r1_direction_twins.py:103 verify_augmented ValueError('R1_TWIN_AUGMENTED_ROW_DIFFERS') IF current is None or json.loads(current[0]) != row or json.loads(current[1]) != {}
+student_pilot/r1_direction_twins.py:104 verify_augmented ValueError('R1_TWIN_AUGMENTED_EXTRA_ROW') IF next(cursor, None) is not None
+student_pilot/r1_direction_twins.py:112 augment ValueError('R1_TWIN_BASE_STORE_REQUIRED') IF receipt['database']['sha256'] != STORE
+student_pilot/r1_direction_twins.py:115 augment ValueError('R1_TWIN_OUTPUT_EXISTS') IF path.exists()
+student_pilot/r1_handover.py:72 stream_identity.check ValueError('P_EXPORT_TARGET_STORE_INVALID:' + name) IF not isinstance(pin, dict) or set(pin) != {'path', 'sha256'} or (not isinstance(pin['path'], str)) or (not pin['path']) or (not re.fullmatch('[0-9a-f]{64}', str(pin['sha256'])))
+student_pilot/r1_handover.py:77 stream_identity ValueError('P_EXPORT_TARGET_STORE_INVALID:' + name) IF receipt.get('schema') == 'c1-pose-mix-v1' AND name != 'pose' or set(receipt) - {'schema', 'sources', 'division'}
+student_pilot/r1_handover.py:93 prepared_stream_identity ValueError('P_EXPORT_STORE_RECEIPT_MISMATCH:' + name) IF receipt.get('schema') != 'c1-pose-mix-v1' AND stream.get('database') != receipt.get('database')
+student_pilot/r1_handover.py:98 prepared_stream_identity ValueError('P_EXPORT_STORE_RECEIPT_MISMATCH:' + name) IF value.get('kind') != 'mix' or len(value.get('sources', [])) != len(receipt['sources']) or value.get('division') != receipt.get('division')
+student_pilot/r1_handover.py:103 prepared_stream_identity ValueError('P_EXPORT_STORE_RECEIPT_MISMATCH:' + name) IF any((part.get(k) != source[k] for k in keys))
+student_pilot/r1_handover.py:107 prepared_stream_identity ValueError('P_EXPORT_STORE_RECEIPT_MISMATCH:' + name) IF source['kind'] == 'rows' AND child.get('database') != part.get('database')
+student_pilot/r1_handover.py:116 prepared_stream_identity ValueError('P_EXPORT_INDEX_COUNT_MISMATCH:' + name) IF len(order) != value['count'] or len({tuple(v) for v in order}) != len(order) or any((len(v) != 2 or any((type(i) is not int for i in v)) or (not 0 <= v[0] < len(limits)) or (not 0 <= v[1] < limits[v[0]]) for v in order)) or any((sum((v[0] == k for v in order)) != part['count'] for k, part in enumerate(value['sources'])))
+student_pilot/r1_handover.py:121 prepared_stream_identity ValueError('P_EXPORT_INDEX_COUNT_MISMATCH:' + name) IF stream is not value AND len(selected) != stream['count'] or len({tuple(v) for v in selected}) != len(selected) or (not {tuple(v) for v in selected} <= {tuple(v) for v in order})
+student_pilot/r1_handover.py:133 effective_camera ValueError('P_EXPORT_CAMERA_METADATA_UNVERIFIED') IF 
+student_pilot/r1_handover.py:153 compare_configs ValueError('P_EXPORT_ROUTING_OPENER_KEEP_REQUIRED:routing_opener_init') IF (target.get('init_artifact') or 'routing_opener_init' in target) and target.get('routing_opener_init', 'reset') != 'keep'
+student_pilot/r1_handover.py:158 compare_configs ValueError('P_EXPORT_LR_SCHEDULE_MISMATCH:' + key) IF pin_values(setting) != pin_values(target_optimizer[key])
+student_pilot/r1_handover.py:171 compare_configs ValueError('P_EXPORT_CONFIG_DIFFERENCE:h1') IF key == 'h1' AND (set(a) | set(b)) - known or a.get('faithful_own_camera_rows', False) != b.get('faithful_own_camera_rows', False)
+student_pilot/r1_handover.py:175 compare_configs ValueError('P_EXPORT_CONFIG_DIFFERENCE:' + key) IF (key not in source or key not in target) and key not in EFFECTIVE_DEFAULTS and (key != 'camera_overrides')
+student_pilot/r1_handover.py:186 compare_configs ValueError('P_EXPORT_CONFIG_DIFFERENCE:' + key) IF pin_values(a) != pin_values(b)
+student_pilot/r1_handover.py:204 donor_meta_model ValueError('P_EXPORT_TOPOLOGY_METADATA_UNVERIFIED') IF 
+student_pilot/r1_handover.py:206 donor_meta_model ValueError('P_EXPORT_TOPOLOGY_UNSUPPORTED') IF cfg.get('geometry_online') or cfg.get('mdg')
+student_pilot/r1_handover.py:270 head_init ValueError('P_EXPORT_HEAD_INIT_UNVERIFIED') IF 
+student_pilot/r1_handover.py:304 verify_trainable_groups ValueError('P_EXPORT_TRAINABLE_GROUP_MISMATCH') IF tables['source'] != tables['target']
+student_pilot/r1_handover.py:316 donor ValueError('P_EXPORT_HANDOVER_ARTIFACT_MISMATCH') IF 'persisted_files' in value AND artifact != load(pinned(cfg['init_artifact']['artifact']))
+student_pilot/r1_handover.py:338 _donor ValueError('P_EXPORT_HANDOVER_RECEIPT_UNVERIFIED') IF value.get('handover_receipt')
+student_pilot/r1_handover.py:345 _donor ValueError('P_EXPORT_RUN_FILE_REQUIRED:' + filename) IF not pins.get(key)
+student_pilot/r1_handover.py:349 _donor ValueError('P_EXPORT_CONFIG_MISMATCH') IF identity != artifact.get('config_sha256') or identity != value.get('donor_config_sha256')
+student_pilot/r1_handover.py:355 _donor ValueError('P_EXPORT_CHECKPOINT_BINDING_MISMATCH') IF not only and (complete.get('schema') != 'c1-checkpoint-v1' or complete.get('step') != artifact.get('step') or complete.get('binding') != bound)
+student_pilot/r1_handover.py:360 _donor ValueError('P_EXPORT_RUN_BINDING_MISMATCH') IF not _same_pin_bytes(source.get('preparation'), pins['preparation']) or not _same_pin_bytes(bound.get('preparation'), pins['preparation']) or bound.get('config_sha256') != identity or (preparation.get('config_sha256') != identity) or (preparation.get('schema') != 'c1-preparation-v1')
+student_pilot/r1_handover.py:366 _donor ValueError('P_EXPORT_RECIPE_MISMATCH') IF preparation.get('recipe') != source.get('recipe') or bound.get('world_size') != recipe['world_size'] or preparation.get('training_mode') != source.get('training_mode', 'mixed')
+student_pilot/r1_handover.py:372 _donor ValueError('P_EXPORT_STORE_RECEIPT_MISMATCH:' + name) IF stream.get('receipt') != receipt_pin
+student_pilot/r1_handover.py:382 _donor ValueError('P_EXPORT_INDEX_COUNT_MISMATCH:' + name) IF stream.get('indices') AND len(rows) != counts[name] or len(set(rows)) != len(rows) or any((type(i) is not int or not 0 <= i < source_count for i in rows))
+student_pilot/r1_handover.py:385 _donor ValueError('P_EXPORT_RUN_FILE_REQUIRED:' + name + '_indices.json') IF NOT (stream.get('indices')) AND counts[name] != source_count
+student_pilot/r1_handover.py:409 progress ValueError('P_EXPORT_SAMPLER_UNSUPPORTED:run must write an authenticated sampler implementation') IF source.get('r2_sampling') or source.get('r1_training') or plan['offset']
+student_pilot/r1_handover.py:420 progress ValueError('P_EXPORT_SAMPLER_POSITION_MISMATCH') IF dict(positions) != expected['sampler_positions']
+student_pilot/r1_handover.py:425 progress ValueError('P_EXPORT_PROGRESS_MISMATCH:explicit sha-bound handover_mapping required') IF actual != target AND not pin
+student_pilot/r1_handover.py:429 progress ValueError('P_EXPORT_MAPPING_MISMATCH') IF actual != target AND mapping != dict(schema='r1-handover-map-v1', artifact_sha256=cfg['init_artifact']['artifact']['sha256'], step=expected['step'], source=actual, target=target)
+student_pilot/r1_launch22.py:29 validate_removals ValueError('R1_NAMING_REMOVAL_BINDING_REQUIRED') IF not isinstance(spec, dict)
+student_pilot/r1_launch22.py:34 validate_removals ValueError('R1_NAMING_REMOVAL_ORDER') IF tuple(actual) not in (REMOVAL_ORDER, REMOVAL_ORDER[:-1] + (POINTING_K1_REMOVE, NAMING_REMOVE)) or actual != spec.get('removal_order') or (not actual) or (actual[-1] != NAMING_REMOVE) or (actual.count(NAMING_REMOVE) != 1)
+student_pilot/r1_launch22.py:44 naming_rows ValueError('R1_NAMING_REMOVAL_CONTENT') IF len(keys) != 109 or len(set(keys)) != 109 or any((not isinstance(k, str) or not k for k in keys))
+student_pilot/r1_loader.py:40 production_audit ValueError('R1_FULL_AUDIT_REQUIRES_FRAME_HOST') IF os.uname().nodename.startswith('trinity')
+student_pilot/r1_loader.py:48 production_audit ValueError('R1_PRODUCTION_ROW_PLAN_MISSING') IF not binding
+student_pilot/r1_loader.py:50 production_audit ValueError('R1_PRODUCTION_ROW_PLAN_CHANGED') IF cfg['r1_training'].get('row_plan_sha256') != digest(binding)
+student_pilot/r1_loader.py:93 production_audit ValueError('R1_REPEAT_LIMIT_EXCEEDED') IF max(repeats.values(), default=0) > 4
+student_pilot/r1_mix.py:11 allocate ValueError('R1_CARD_INVALID') IF card.get('schema') != 'r1-card-v1' or card.get('steps') != 1000 or card.get('quotas') != STREAMS
+student_pilot/r1_mix.py:21 allocate ValueError('R1_CELL_POPULATION_MISMATCH') IF len({c['type'] for c in cells}) != len(cells) or set(counts) != {c['type'] for c in cells}
+student_pilot/r1_mix.py:23 allocate ValueError('R1_POPULATION_INVALID') IF any((type(n) is not int or n < 0 for n in counts.values()))
+student_pilot/r1_mix.py:26 allocate ValueError('R1_NEGATIVE_CELL') IF any((n < 0 for n in requested.values()))
+student_pilot/r1_mix.py:33 allocate ValueError('R1_CARD_QUOTA_MISMATCH:' + stream) IF sum((requested[k] for k in names)) != quota * 1000
+student_pilot/r1_mix.py:42 allocate ValueError('R1_POST_FILTER_CAPACITY_SHORTFALL:' + stream) IF not available
+student_pilot/r1_mix.py:59 validate_binding ValueError('R1_COMPLETE_FILTERED_POPULATION_REQUIRED') IF population.get('schema') != 'r1-population-v1' or population.get('complete') is not True or population.get('after_all_filters') is not True or (not population.get('evidence')) or (population.get('card_sha256') != binding['card']['sha256']) or (indices.get('population_sha256') != binding['population']['sha256'])
+student_pilot/r1_mix.py:64 validate_binding ValueError('R1_INDICES_DIFFER') IF set(indices.get('cells', {})) != set(proof['draws'])
+student_pilot/r1_mix.py:71 plans ValueError('R1_PLAN_POSITION_INVALID') IF world != 4 or not 0 <= start_step <= steps <= 1000
+student_pilot/r1_mix.py:79 plans ValueError('R1_INDEX_OVERLAP_OR_COUNT') IF len(values) != proof['eligible'][kind] or len(set(values)) != len(values) or any((type(i) is not int or not 0 <= i < counts[stream] for i in values)) or used[stream] & set(values)
+student_pilot/r1_mix.py:84 plans ValueError('R1_INDEX_COVERAGE') IF any((len(used[s]) != counts[s] for s in STREAMS))
+student_pilot/r1_persisted.py:29 init_policy ValueError('P_EXPORT_INIT_POLICY_INVALID') IF value['init_policy'] != INIT_POLICY
+student_pilot/r1_persisted.py:31 init_policy ValueError('P_EXPORT_INIT_TRAIN_MODE_REQUIRED') IF value.get('proof_mode') != 'train'
+student_pilot/r1_persisted.py:33 init_policy ValueError('P_EXPORT_INIT_RECEIPT_REQUIRED') IF not value.get('handover_receipt') or 'persisted_files' not in value
+student_pilot/r1_persisted.py:40 export_only ValueError('P_EXPORT_INIT_POLICY_INVALID') IF init_policy is not None AND init_policy != INIT_POLICY
+student_pilot/r1_persisted.py:42 export_only ValueError('P_EXPORT_INIT_TRAIN_MODE_REQUIRED') IF init_policy is not None AND mode != 'train'
+student_pilot/r1_persisted.py:44 export_only ValueError('P_EXPORT_INIT_STEP400_ONLY') IF init_policy is not None AND receipt.get('schema') != 'p-export-only-v1' or type(receipt.get('step')) is not int or receipt['step'] != 400
+student_pilot/r1_persisted.py:48 export_only ValueError('P_EXPORT_ONLY_PROOF_MODE_Q_REQUIRED_TRAINING_REFUSED') IF init_policy is None and (mode != 'q' or not _proof.get())
+student_pilot/r1_persisted.py:72 verify ValueError('P_EXPORT_HANDOVER_RECEIPT_REQUIRED') IF not receipt_pin
+student_pilot/r1_persisted.py:76 verify ValueError('P_EXPORT_HANDOVER_RECEIPT_UNVERIFIED') IF 
+student_pilot/r1_persisted.py:80 verify ValueError('P_EXPORT_HANDOVER_RECEIPT_INVALID') IF receipt.get('schema') not in ('p-handover-v1', 'p-export-only-v1') or type(receipt.get('step')) is not int or (not receipt.get('job_id')) or (not receipt.get('trainer_commit'))
+student_pilot/r1_persisted.py:84 verify ValueError('P_EXPORT_HANDOVER_PIN_MISMATCH:' + key) IF pins.get(key, {}).get('sha256') != pin.get('sha256')
+student_pilot/r1_persisted.py:87 verify ValueError('P_EXPORT_HANDOVER_RUN_KEYS') IF set(p_run) != run_keys
+student_pilot/r1_persisted.py:90 verify ValueError('P_EXPORT_HANDOVER_PIN_INVALID') IF any((not isinstance(p, dict) or set(p) != {'path', 'sha256'} or (not re.fullmatch('[0-9a-f]{64}', p.get('sha256', ''))) for p in pins.values()))
+student_pilot/r1_persisted.py:92 verify ValueError('P_EXPORT_HANDOVER_UNBOUND_RELOCATION') IF set(paths) - {p['sha256'] for p in pins.values()}
+student_pilot/r1_persisted.py:98 verify.read ValueError('P_EXPORT_HANDOVER_FILE_REQUIRED:' + label) IF label not in pins
+student_pilot/r1_persisted.py:102 verify.read ValueError('P_EXPORT_HANDOVER_FILE_REQUIRED:' + label) IF not path.is_absolute() or not path.is_file()
+student_pilot/r1_persisted.py:104 verify.read ValueError('P_EXPORT_HANDOVER_FILE_MISMATCH:' + label) IF sha256(path) != pin['sha256']
+student_pilot/r1_persisted.py:117 verify ValueError('P_EXPORT_ONLY_STOP_REQUIRES_CHECKPOINT') IF only AND receipt['step'] >= stop_step(cfg)
+student_pilot/r1_persisted.py:119 verify ValueError('P_EXPORT_ONLY_CHECKPOINT_STATUS_MISMATCH') IF only AND receipt.get('checkpoint_status') != NO_CHECKPOINT or receipt.get('stop_step') != stop_step(cfg)
+student_pilot/r1_persisted.py:127 verify ValueError('P_EXPORT_HANDOVER_RUN_BINDING_MISMATCH') IF receipt['step'] != artifact.get('step') or (not only and complete.get('step') != artifact.get('step')) or artifact.get('step') not in recipe_for(cfg)['milestones'] or (not only and (complete.get('schema') != 'c1-checkpoint-v1' or complete.get('binding') != bound)) or (bound.get('config_sha256') != identity) or (artifact.get('config_sha256') != identity) or (cfg.get('preparation') != pins['preparation']) or (bound.get('preparation') != pins['preparation']) or (prep.get('config_sha256') != identity) or (receipt['trainer_commit'] != bound.get('trainer_commit'))
+student_pilot/r1_persisted.py:131 verify ValueError('P_EXPORT_HANDOVER_CLOSURE_MISMATCH:' + key) IF artifact.get(key) != pins.get(key)
+student_pilot/r1_persisted.py:134 verify ValueError('P_EXPORT_HANDOVER_CHECKPOINT_FILES_REQUIRED') IF not only and (not files or not complete.get('layouts') or (not any((k.startswith('rng') for k in files))))
+student_pilot/r1_persisted.py:137 verify ValueError('P_EXPORT_HANDOVER_PATH_ESCAPE:' + name) IF Path(name).is_absolute() or '..' in Path(name).parts
+student_pilot/r1_persisted.py:141 verify ValueError('P_EXPORT_HANDOVER_CLOSURE_MISMATCH:' + label) IF pins.get(label, {}).get('sha256') != pin.get('sha256')
+student_pilot/r1_persisted.py:145 verify ValueError('P_EXPORT_HANDOVER_FILE_MISMATCH:' + label) IF name.startswith('rng') AND 'bytes' in pin and path.stat().st_size != pin['bytes']
+student_pilot/r1_persisted.py:153 verify ValueError('P_EXPORT_HANDOVER_STREAMS_MISMATCH') IF set(prep['streams']) != set(cfg['streams'])
+student_pilot/r1_persisted.py:157 verify ValueError('P_EXPORT_HANDOVER_STREAM_RECEIPT_MISMATCH:' + name) IF stream['receipt'] != cfg['streams'][name] or pins.get(label) != stream['receipt']
+student_pilot/r1_persisted.py:162 verify ValueError('P_EXPORT_HANDOVER_CLOSURE_MISMATCH:' + label) IF stream.get('indices') AND pins.get(label) != stream['indices']
+student_pilot/r1_persisted.py:166 verify ValueError('P_EXPORT_HANDOVER_EXPORT_FILES_REQUIRED') IF not export_labels
+student_pilot/r1_persisted.py:169 verify ValueError('P_EXPORT_HANDOVER_CLOSURE_MISMATCH') IF set(pins) != expected
+student_pilot/r1_persisted.py:180 verify ValueError('P_EXPORT_HANDOVER_EXPORT_MANIFEST_MISMATCH') IF 'full_weights' in reads AND {'export/' + p['name'] for p in listed} != export_labels
+student_pilot/r1_persisted.py:184 verify ValueError('P_EXPORT_HANDOVER_PATH_ESCAPE:' + label) IF 'full_weights' in reads AND Path(name).is_absolute() or '..' in Path(name).parts
+student_pilot/r1_persisted.py:186 verify ValueError('P_EXPORT_HANDOVER_CLOSURE_MISMATCH:' + label) IF 'full_weights' in reads AND pins[label]['sha256'] != pin['sha256']
+student_pilot/r1_persisted.py:188 verify ValueError('P_EXPORT_HANDOVER_FILE_MISMATCH:' + label) IF 'full_weights' in reads AND label in reads and 'bytes' in pin and (Path(reads[label]['path']).stat().st_size != pin['bytes'])
+student_pilot/r1_population.py:62 Membership.__init__ ValueError('R1_SOURCE_MEMBERSHIP_INVALID') IF value.get('schema') != 'r1-source-membership-v1'
+student_pilot/r1_population.py:72 Membership.__init__ ValueError('R1_SLICE_CELL_INVALID:' + kind) IF kind not in (*SLICE_CELLS, *PINS, *EXTRA_PINS)
+student_pilot/r1_population.py:76 Membership.__init__ ValueError('R1_SLICE_QID_OVERLAP:' + qid) IF qid in self.rows
+student_pilot/r1_population.py:82 Membership.cell ValueError('R1_DEFERRED_ROW_PRESENT:' + row['qid']) IF self.minimal and stream == 'routing' AND row.get('r1_source')
+student_pilot/r1_population.py:88 Membership.cell ValueError('R1_SLICE_ROW_MISFILED:' + row['qid']) IF entry is None AND marker
+student_pilot/r1_population.py:91 Membership.cell ValueError('R1_BASE_DISTANCE_OR_UNIT_RETAINED:' + row['qid']) IF entry is None AND stream == 'routing' and kind in SLICE_CELLS
+student_pilot/r1_population.py:95 Membership.cell ValueError('R1_SLICE_ROW_MISFILED:' + row['qid']) IF marker != dict(family=kind, sha256=source_hash) or digest(row) != row_hash
+student_pilot/r1_population.py:136 produce ValueError('R1_UNASSIGNED_TYPES:' + str(dict(sorted(unknown.items())))) IF unknown
+student_pilot/r1_population.py:172 bind_prepared ValueError('R1_DEFERRED_MEMBERSHIP_NONEMPTY') IF deferred(cfg) AND routing.get('source_membership')
+student_pilot/r1_population.py:241 scene_receipt ValueError('R1_READER_SELECTION_DIFFERS:' + stream) IF len(selected) != len(keys) or len(offsets) != value['count'] or [x for x in parent_keys if x in selected] != keys or ({k: v for k, v in value.items() if k not in ('reader_source', 'count', key)} != {k: v for k, v in original.items() if k not in ('count', key)})
+student_pilot/r1_rooms.py:22 Rooms.__init__ ValueError('R1_ROOM_AUTHORITY_PIN_MISMATCH') IF set(pins) != set(AUTHORITY) or any((pins[k]['sha256'] != v for k, v in AUTHORITY.items()))
+student_pilot/r1_rooms.py:26 Rooms.__init__ ValueError('R1_ROOM_TEACHER_MISMATCH') IF split['teacher_k1']['sha256'] != TEACHER
+student_pilot/r1_rooms.py:35 Rooms.__init__ ValueError('R1_ROOM_AUTHORITY_COUNT_MISMATCH') IF len(self.k1) != 50 or len(self.reserve) != 372
+student_pilot/r1_rooms.py:68 Rooms.room ValueError('R1_ROOM_CANONICAL_UNRESOLVED') IF 
+student_pilot/r1_rooms.py:83 Rooms.admit ValueError('R1_ROOM_ROW_REFUSED:' + status) IF status != 'ok'
+student_pilot/r1_rooms.py:100 verify_audit ValueError('R1_PROOF_ROOM_AUTHORITY_INCOMPLETE') IF audit.get('schema') != 'r1-room-audit-v1' or audit.get('complete') is not True or audit.get('unknown_overlap') != 0 or (pin_values(audit.get('row_sources')) != pin_values(value['row_sources'])) or ([{k: v for k, v in p.items() if k != 'path'} for p in audit.get('remove_files', [])] != [{k: v for k, v in p.items() if k != 'path'} for p in cfg['remove_files']]) or (pin_values(audit.get('authority')) != pin_values(value.get('room_authority')))
+student_pilot/r1_rooms.py:108 verify_audit ValueError('R1_PROOF_ROOM_SLICE_UNCERTIFIED:' + kind) IF pin_values(report['source']) != pin_values(sources[kind]['source']) or report['unresolved'] != 0 or report['unremoved_hits'] != 0
+student_pilot/r1_rooms.py:116 verify_audit ValueError('R1_PROOF_ROOM_STORE_UNCERTIFIED') IF pin_values(store['database']) != pin_values(actual) or pin_values(store['certification']) != pin_values(audit['authority']['build']) or store['scope'] != 'resolvable_rows_and_pinned_build_record'
+student_pilot/r1_rooms.py:120 verify_audit ValueError('R1_TWIN_BINDING_REQUIRED_FOR_STORE') IF actual['sha256'] != STORE and bound(cfg) and (not augmented)
+student_pilot/r1_rooms.py:125 verify_audit ValueError('R1_PROOF_ROOM_STORE_PIN_MISMATCH') IF actual['sha256'] != STORE and (not augmented) and (store['unresolved'] != 0)
+student_pilot/r1_rooms.py:134 verify_audit ValueError('R1_PROOF_V7_K1_REMOVAL_REQUIRED') IF actual['sha256'] == STORE or augmented AND not union and pin.get('sha256') != V7_K1_LIST or hashes.count(V7_K1_LIST) != 1 or N_LIST not in hashes or (hashes.index(V7_K1_LIST) >= hashes.index(N_LIST)) or (pin_values(store.get('k1_removal')) != pin_values(pin))
+student_pilot/r1_rooms.py:137 verify_audit ValueError('R1_PROOF_V7_K1_UNREMOVED') IF actual['sha256'] == STORE or augmented AND store.get('unremoved_hits') != 0
+student_pilot/r1_training.py:18 row_check ValueError('OWN_VALUED_ROW_REFUSED') IF row.get('response_source') in ('own', 'predicted') or row.get('own_valued') or provenance.get('geometry_source') in ('own', 'predicted') or ((row.get('ground_record') or {}).get('geometry_mode') in ('own', 'predicted'))
+student_pilot/r1_training.py:24 row_check ValueError('CAMERA_OBJECT_ABSOLUTE_DISTANCE_EXCLUDED') IF kind in ('camera_object_absolute_distance', 'camera_object_abs_distance', 'camera_obj_abs_dist')
+student_pilot/r1_training.py:26 row_check ValueError('QUALITATIVE_TRACE_REQUIRED') IF not isinstance(text, str) or '<think>' not in text or '</think>' not in text
+student_pilot/r1_training.py:29 row_check ValueError('ROOM_PROGRAM_REFUSED') IF kind in ('room_size_estimation', 'absolute_size_room') AND stream == 'routing' or '<ground' in text or '<tool_response>' in text
+student_pilot/r1_training.py:32 row_check ValueError('ONE_LINE_ROOM_REFUSED') IF kind in ('room_size_estimation', 'absolute_size_room') AND len(re.findall('\\bframe\\s+\\d+\\b', thought, re.I)) < 2 or len(thought.strip().splitlines()) < 3
+student_pilot/r1_training.py:36 row_check ValueError('ROOM_TRACE_INVALID:' + ','.join(sorted({e.rule_id for e in errors}))) IF kind in ('room_size_estimation', 'absolute_size_room') AND errors
+student_pilot/r1_training.py:47 training_components ValueError('Component registry differs') IF set(registry) != set(expected)
+student_pilot/r1_training.py:49 training_components ValueError('R1_FUSION_REFUSED') IF cfg.get('geometry_connector') != 'none' or cfg.get('geometry_online')
+student_pilot/r1_training.py:56 training_components ValueError('Component slot was reclassified') IF any((entry.get(k) != spec[k] for k in ('component', 'component_class', 'phase', 'expected_schema')))
+student_pilot/r1_training.py:73 validate ValueError('R1_S2_MUST_BE_OFF') IF value.get('schema') != 'r1-training-v1' or value.get('s2') is not False
+student_pilot/r1_training.py:75 validate ValueError('R1_FUSION_REFUSED') IF cfg.get('geometry_connector') != 'none' or cfg.get('geometry_online') or cfg.get('r2_schedule')
+student_pilot/r1_training.py:79 validate ValueError('R1_RECIPE_DIFFERS') IF recipe['steps'] != 1000 or recipe['world_size'] != 4 or recipe['global_batch'] != 288
+student_pilot/r1_training.py:81 validate ValueError('R1_OWN_PROBABILITY_REFUSED') IF recipe.get('scheduled_sampling', {}).get('max_own_probability') != 0
+student_pilot/r1_training.py:83 validate ValueError('R1_OWN_ROWS_REFUSED') IF cfg.get('h1', {}).get('faithful_own_camera_rows')
+student_pilot/r1_training.py:85 validate ValueError('R1_FRAME_LAYOUT_DIFFERS') IF (cfg.get('frame_count'), cfg.get('frame_layout'), cfg.get('frame_markers')) != (32, 'duplicate', True)
+student_pilot/r1_training.py:92 validate ValueError('R1_SCALE_WEIGHT_DIFFERS') IF type(scale) not in (int, float) or not math.isfinite(scale) or scale < 0 or (card.get('weight_scale') != scale) or (cfg.get('camera_overrides', {}).get('weight_scale') != scale)
+student_pilot/r1_training.py:94 validate ValueError('R1_CAMERA_OVERRIDES_DIFFER') IF cfg.get('camera_overrides') != {'weight_scale': scale, 'weight_focal': 2.0}
+student_pilot/r1_training.py:97 validate ValueError('R1_STOP_STEP_INVALID') IF stop is not None and (type(stop) is not int or not 1 <= stop <= 1000)
+student_pilot/r1_training.py:99 validate ValueError('R1_MILESTONES_DIFFER') IF recipe['milestones'] != [100, 200, 400, 600, 800, 1000]
+student_pilot/r1_training.py:121 boundary ValueError('R1_CONTINUATION_IDENTITIES_REQUIRED') IF any((not re.fullmatch('[0-9a-f]{64}', str(value.get(k) or '')) for k in ('continuation_identity', 'row_plan_sha256')))
+student_pilot/r1_training.py:123 boundary ValueError('R1_PROGRESS_STEP_INVALID') IF type(step) is not int or not 0 <= step <= 1000
+student_pilot/r1_training.py:126 boundary ValueError('P_EXPORT_TARGET_CONFIG_MISMATCH') IF value['continuation_identity'] != target['config_identity']
+student_pilot/r1_training.py:128 boundary ValueError('P_EXPORT_TARGET_STORES_MISMATCH') IF value.get('store_hashes') != target['stores']
+student_pilot/r1_training.py:153 _start ValueError('R1_EXPORT_FORMAT_DIFFERS') IF artifact.get('schema') != 'carrier-c1-artifact-v1'
+student_pilot/r1_training.py:156 _start ValueError('R1_PARENT_STEP_DIFFERS') IF spec['sha256'] == PARENT AND artifact.get('step') != 544
+student_pilot/r1_training.py:171 scale_init ValueError('PARTIAL_SCALE_HEAD_REFUSED') IF present and present != names
+student_pilot/r2_contract.py:14 init_identity ValueError('Missing pinned init identity') IF not isinstance(value, dict) or not re.fullmatch('[0-9a-f]{64}', str(value.get('artifact_sha256', '')))
+student_pilot/r2_contract.py:16 init_identity ValueError('Incomplete pinned init lineage') IF any((not value.get(k) for k in ('parent_run', 'parent_kit', 'parent_source_seal', 'parent_configuration_prefix'))) or type(value.get('step')) is not int or value['step'] < 0
+student_pilot/r2_contract.py:18 init_identity ValueError('Incomplete pinned init lineage') IF not re.fullmatch('[0-9a-f]{64}', str(value['parent_source_seal']))
+student_pilot/r2_contract.py:48 check_init ValueError('Next-leg init identity differs from the accepted export') IF spec.get('contract') != CONTRACT
+student_pilot/r2_contract.py:50 check_init ValueError('Changed code or mixture requires a new warm-start run') IF spec.get('mode') != 'warm_start' or not spec.get('run_id') or spec['run_id'] == init['parent_run']
+student_pilot/r2_contract.py:53 check_init ValueError('New run needs full code and mixture identities') IF not re.fullmatch('[0-9a-f]{64}', str(spec.get(key, '')))
+student_pilot/r2_contract.py:55 check_init ValueError('EXPORT_ARTIFACT.json does not bind the accepted artifact sha256') IF metadata.get('artifact_sha256') != init['artifact_sha256']
+student_pilot/r2_contract.py:59 check_init ValueError('Export metadata contradicts ' + key) IF key in metadata and metadata[key] != init[key]
+student_pilot/r2_contract.py:61 check_init ValueError('Export parent configuration prefix differs') IF 'parent_configuration' in metadata and (not metadata['parent_configuration'].startswith(init['parent_configuration_prefix']))
+student_pilot/r2_contract.py:77 preparation ValueError('R1_SCENE_AND_SAMPLER_BINDINGS_REQUIRED') IF 'r1_training' in cfg AND not cfg.get('r2_all_stream_exclusions') or not cfg.get('r2_sampling')
+student_pilot/r2_contract.py:85 preparation ValueError('Missing bound r2_sampling table') IF NOT ('r1_training' in cfg) AND 'geometry_connector' in cfg AND not cfg.get('r2_sampling')
+student_pilot/r2_contract.py:88 preparation ValueError('Next-leg membership requires the init and new-run binding') IF cfg.get('r2_membership') and spec is None
+student_pilot/r2_contract.py:93 preparation ValueError('New run code identity differs') IF spec is not None AND load(pinned(cfg['code'])).get('tree_sha256') != spec['code_sha256']
+student_pilot/r2_contract.py:95 preparation ValueError('New run mixture identity differs') IF spec is not None AND digest({key: cfg.get(key) for key in ('recipe', 'streams', 'route_table')}) != spec['mixture_sha256']
+student_pilot/r2_contract.py:108 lineage_init ValueError('Foreign lineage') IF artifact.get('schema') != 'carrier-c1-artifact-v1' or artifact.get('r2_identity', {}).get('init') != init or (not isinstance(artifact.get('source_seal'), dict))
+student_pilot/r2_contract.py:112 lineage_init ValueError('Trainer init artifact differs from next-leg binding') IF 
+student_pilot/r2_contract.py:216 Admission.__init__ ValueError('Wrong membership contract') IF self.manifest.get('contract') != CONTRACT
+student_pilot/r2_contract.py:221 Admission.check ValueError('Row missing or changed in sealed membership') IF expected is None or expected != digest(dict(row=row, target=target, stream=stream))
+student_pilot/r2_contract.py:223 Admission.check ValueError('Native reader refuses a withheld room') IF self.withheld.touches(row, {})
+student_pilot/r2_contract.py:240 event_row ValueError('R2 program lacks its event schema or response lineage') IF row.get('schema') != 'derivgen-row-v2' or row.get('infrastructure_only') is not False or row.get('response_source') != 'ground_truth' or (record.get('mask_source') != 'gt') or (record.get('geometry_source') != 'gt') or (record.get('gt_authority') == 'selector') or (not re.fullmatch('[0-9a-f]{64}', row.get('provenance', {}).get('source_row_sha256', '')))
+student_pilot/r2_contract.py:244 event_row ValueError('R2 events differ from target or response spans') IF target != row['target'] or spans != row['tool_output_spans']
+student_pilot/r2_contract.py:248 event_row ValueError('R2 fallback calls again after a failed response') IF failed and event['kind'] == 'ground_call'
+student_pilot/r2_contract.py:252 event_row ValueError('Failed response needs a located direct continuation') IF failed and (not re.search('\\b(?:in frame|frame)\\s+[1-9]\\d*\\b', target.split('</tool_response>')[-1], re.I))
+student_pilot/r2_frames.py:18 resolve_frame ValueError('Frame path must be absolute without traversal') IF not raw.is_absolute() or '..' in raw.parts
+student_pilot/r2_frames.py:21 resolve_frame ValueError('STUDENT_FRAME_ROOT_MAP must be a JSON object') IF not isinstance(mapping, dict)
+student_pilot/r2_frames.py:25 resolve_frame ValueError('Invalid frame root map') IF not source.is_absolute() or not destination.is_absolute() or '..' in destination.parts
+student_pilot/r2_frames.py:29 resolve_frame ValueError('Frame symlink escapes mapped root') IF raw.is_relative_to(source) AND not target.resolve().is_relative_to(destination.resolve())
+student_pilot/r2_frames.py:34 resolve_frame NeedsFrameHost('needs the frame host: unmapped logical frame root ' + str(raw)) IF resolved.parts[1] == 'home' or resolved.parts[1].startswith('data')
+student_pilot/r2_frames.py:36 resolve_frame NeedsFrameHost('needs the frame host: missing mapped RGB ' + str(raw)) IF not raw.is_file()
+student_pilot/r2_frames.py:43 FrameMemo.__init__ ValueError('Frame memo capacity must be positive') IF capacity < 1
+student_pilot/r2_frames.py:65 FrameMemo.verify ValueError('Frame changed while hashing') IF identity != self.identity(os.fstat(handle.fileno())) or identity != self.identity(path.stat())
+student_pilot/r2_frames.py:67 FrameMemo.verify ValueError('Stale frame pin: ' + pin['path']) IF value != pin['sha256']
+student_pilot/r2_grammar.py:16 check_shared ValueError('Shared grammar digest differs') IF hashlib.sha256(Path(shared.__file__).read_bytes()).hexdigest() != SHARED_SHA256
+student_pilot/r2_grammar.py:144 validate_direct ValueError('Missing trace or answer') IF not match
+student_pilot/r2_grammar.py:151 validate_direct ValueError('Empty think block') IF explicit AND not body.strip()
+student_pilot/r2_grammar.py:155 validate_direct ValueError('An object has an exhaustive or duplicate frame list') IF explicit AND len(set(normalized)) != len(normalized)
+student_pilot/r2_grammar.py:157 validate_direct ValueError('Relate must relate located objects') IF explicit AND re.search('^\\s*Relate:', body, re.M) and (not located)
+student_pilot/r2_grammar.py:163 validate_direct ValueError('Shared grammar: ' + ','.join((e.rule_id for e in errors))) IF errors
+student_pilot/r2_grammar.py:165 validate_direct ValueError('Frames must be named by number') IF re.search('\\d\\s*(?:seconds?|secs?\\b)', body, re.I)
+student_pilot/r2_mix.py:37 table ValueError('Pinned minority count required') IF both_path is not None AND set(both_path) != {'minority_count'} or type(both_path['minority_count']) is not int or both_path['minority_count'] <= 0
+student_pilot/r2_mix.py:45 validate_table ValueError('Mix differs from the bound allocation') IF value != table(value.get('fallback', False), value.get('both_path'))
+student_pilot/r2_mix.py:70 preflight ValueError('Mix needs complete post-filter metadata before materialization') IF counts.get('schema') != 'r2-filtered-counts-v1' or counts.get('after_filtering') is not True or counts.get('mix_sha256') != mix_pin['sha256'] or (not counts.get('receipts'))
+student_pilot/r2_mix.py:77 preflight ValueError('Population receipt lacks complete filtering evidence') IF receipt.get('schema') != 'r2-filtered-population-v1' or receipt.get('complete') is not True or receipt.get('exclusions') != SEALED or (receipt.get('withheld_sha256') != WITHHELD_SHA256) or (not receipt.get('cells'))
+student_pilot/r2_mix.py:80 preflight ValueError('Invalid filtered population count') IF type(count) is not int or count < 0
+student_pilot/r2_mix.py:83 preflight ValueError('Post-filter counts differ from their receipts') IF reconciled != counts.get('cells')
+student_pilot/r2_mix.py:87 preflight ValueError('Fallback requires the frame host to find the second source absent') IF mix['fallback'] AND presence.get('schema') != 'r2-frame-host-presence-v1' or presence.get('second_pose_source') != 'absent'
+student_pilot/r2_mix.py:90 preflight ValueError('Mix has missing or foreign cells') IF set(counts.get('cells', {})) != set(totals)
+student_pilot/r2_mix.py:95 preflight ValueError('Empty or invalid mix cell: ' + kind) IF type(population) is not int or population <= 0
+student_pilot/r2_mix.py:98 preflight ValueError('Cell exceeds 4.0 repeats: ' + kind) IF repeats[kind] > 4
+student_pilot/r2_mix.py:211 plans ValueError('Native type index binding differs') IF world != mix['world'] or steps > mix['steps'] or (not 0 <= start_step <= steps) or (groups.get('schema') != 'r2-type-indices-v1') or (groups.get('counts_sha256') != proof['counts_sha256']) or (set(groups.get('cells', {})) != set(populations))
+student_pilot/r2_mix.py:220 plans ValueError('Type indices overlap, are empty or differ from counts') IF len(flat) != populations[kind] or len(set(flat)) != len(flat) or any((type(i) is not int or not 0 <= i < counts[stream] for i in flat)) or used[stream] & set(flat) or (kind == 'facing_pairs' and any((len(pair) != 2 for pair in pool)))
+student_pilot/r2_mix.py:225 plans ValueError('Type indices do not cover the native reader') IF any((len(used[s]) != counts[s] for s in used))
+student_pilot/r2_openers.py:15 policy ValueError('Unknown routing opener initialization') IF policy not in ('keep', 'reset')
+student_pilot/r2_openers.py:20 policy ValueError('P_EXPORT_ROUTING_OPENER_KEEP_REQUIRED:routing_opener_init') IF cfg.get('r1_training') AND artifact.get('sha256') != PARENT and policy != 'keep'
+student_pilot/r2_openers.py:30 preparation ValueError('Keep requires a full warm start') IF init.get('lm') != 'full'
+student_pilot/r2_openers.py:39 preparation ValueError('Missing routing vocabulary witness for keep warm start') IF not witness_pin
+student_pilot/r2_openers.py:44 preparation ValueError('Routing opener lineage or vocabulary differs') IF witness.get('artifact_sha256') != init['artifact']['sha256'] or witness.get('lineage_sha256') != bound_init(cfg)['artifact_sha256'] or (not witness.get('vocabulary_sha256')) or (not witness.get('tokens'))
+student_pilot/r2_openers.py:55 start_context ValueError('R1_OPENER_START_CONFIG_REQUIRED') IF not isinstance(cfg, dict)
+student_pilot/r2_openers.py:60 start_context ValueError('R1_OPENER_START_CONFIG_MISMATCH') IF identity(cfg) != receipt.get('config_sha256') or any((cfg.get(k) != receipt.get(k) for k in ('r1_training', 'init_artifact', 'routing_opener_init', 'routing_vocabulary'))) or cfg.get('streams') != {k: v['receipt'] for k, v in receipt.get('streams', {}).items()}
+student_pilot/r2_openers.py:77 initialize ValueError('Keep requires a full warm start in the bound lineage') IF selected == 'keep' and (not (warm and same))
+student_pilot/r2_openers.py:81 initialize ValueError('Missing routing vocabulary witness for keep warm start') IF selected == 'keep' and warm and same AND not witness_pin
+student_pilot/r2_openers.py:87 initialize ValueError('Routing opener lineage or vocabulary differs') IF selected == 'keep' and warm and same AND witness.get('artifact_sha256') != init['artifact']['sha256'] or witness.get('lineage_sha256') != bound_init(receipt)['artifact_sha256'] or any((witness.get(k) != v for k, v in live.items()))
+student_pilot/r2_policy.py:32 record ValueError('Missing component evidence: ' + slot['component']) IF not slot.get('record')
+student_pilot/r2_policy.py:37 record ValueError('Component record schema, class, phase or inputs differ') IF data.get('schema') != slot['expected_schema'] or data.get('component') != slot['component'] or data.get('component_class') != slot['component_class'] or (data.get('phase') != slot['phase']) or (not data.get('inputs'))
+student_pilot/r2_policy.py:41 record ValueError('Unknown component evidence is not a pass') IF data.get('verdict') not in ('PROVEN_CLEAN', 'OVERLAP_FOUND', 'EXEMPT_FROZEN')
+student_pilot/r2_policy.py:44 record ValueError('External exemption requires frozen pretrained weights') IF slot['component_class'] == 'external_frozen' AND data['verdict'] != 'EXEMPT_FROZEN' or data.get('frozen') is not True
+student_pilot/r2_policy.py:47 record ValueError('Lineage needs explicit overlap and checked-bank evidence') IF NOT (slot['component_class'] == 'external_frozen') AND slot['component_class'] == 'lineage' AND not isinstance(data.get('overlaps'), list) or not isinstance(data.get('checked_banks'), list)
+student_pilot/r2_policy.py:49 record ValueError('Unknown claim-scope overlap') IF NOT (slot['component_class'] == 'external_frozen') AND slot['component_class'] == 'lineage' AND not set(SCOPE) <= set(data['checked_banks'])
+student_pilot/r2_policy.py:51 record ValueError('Overlap inside claim scope') IF NOT (slot['component_class'] == 'external_frozen') AND slot['component_class'] == 'lineage' AND any((x['bank'] in SCOPE and str(x.get('venue')) != '381879' for x in data['overlaps']))
+student_pilot/r2_policy.py:54 record ValueError('New training requires complete clean scene evidence') IF NOT (slot['component_class'] == 'external_frozen') AND NOT (slot['component_class'] == 'lineage') AND slot['component_class'] == 'new_training' AND data['verdict'] != 'PROVEN_CLEAN' or data.get('exclusions_complete') is not True
+student_pilot/r2_policy.py:62 components ValueError('Component registry or phase differs') IF set(registry) != set(expected) or phase not in ('training', 'native_evaluation')
+student_pilot/r2_policy.py:67 components ValueError('Component slot was reclassified') IF any((entry.get(k) != spec[k] for k in ('component', 'component_class', 'phase', 'expected_schema')))
+student_pilot/r2_portable.py:12 bound ValueError('Bound record escaped the kit') IF path.is_symlink() or not path.resolve().is_relative_to(root)
+student_pilot/r2_scene_bindings.py:41 require_merged ValueError('Upstream scene coverage has foreign lists or missing datasets') IF not pin or pin.get('sha256') != expected
+student_pilot/r2_scene_bindings.py:48 decoded ValueError('Local metadata slices must contain at most 2000 rows per family') IF index >= 2000 and os.uname().nodename.startswith('trinity')
+student_pilot/r2_scene_bindings.py:201 verify ValueError('Scene exclusion binding differs') IF cfg.get('r2_identity') and (not cfg.get('r2_all_stream_exclusions'))
+student_pilot/r2_scene_bindings.py:208 verify ValueError('Scene exclusion binding differs') IF value['files'] != rule.files or value['scene_coverage'] != cfg.get('scene_coverage')
+student_pilot/r2_scene_bindings.py:210 verify ValueError('Scene rebuild requires every stream and both pose sources') IF set(value['receipts']) != set(SOURCES) or set(value['reports']) != set(SOURCES.values())
+student_pilot/r2_scene_bindings.py:218 verify ValueError('Independent scene census uses a different withheld population') IF reference.get('withhold_file') != rule.files['dev']
+student_pilot/r2_scene_bindings.py:220 verify ValueError('Independent scene census uses a different withheld population') IF reference.get('exact_rebuilt_population') is not True or reference.get('benchmark_file') != rule.files['benchmark']
+student_pilot/r2_scene_bindings.py:224 verify ValueError('Host counts differ from the admitted mixture') IF cfg.get('r2_build2') AND counts.get('merged_dev') != rule.files['dev'] or cfg['r2_sampling']['counts'] != cfg['r2_build2']['counts']
+student_pilot/r2_units.py:23 asked_unit ValueError('Metric question has no unambiguous asked unit') IF unit is None or (kind in ROOM) != (unit in ('m2', 'ft2'))
+student_pilot/r2_withheld.py:22 shape ValueError('Wrong withheld size or balance') IF len(set(rooms)) != 80 or len(rooms) != 80 or data['seed'] != 20261115 or (sum((x.startswith('scannet/') for x in rooms)) != 40) or (sum((x.startswith('scannetpp/') for x in rooms)) != 40)
+student_pilot/r2_withheld.py:31 Withheld.__init__ ValueError('Foreign or edited withheld-room list') IF pin is not None and pin['sha256'] != SHA256 or hashlib.sha256(raw).hexdigest() != SHA256
+student_pilot/routing_requirements.py:26 require ValueError(','.join(missing)) IF missing
+student_pilot/row_text_audit.py:121 check ValueError('rows_lane_rule_only_text:' + family + ':' + ','.join(found)) IF found
+student_pilot/s1_exclusions.py:320 coverage_report ValueError('Filter differs from independent scene census: ' + name) IF reference.get('exact_rebuilt_population') and (observed_dev != dev or observed_benchmark != benchmark_reference)
+student_pilot/scene_division_gate.py:22 check_rows ValueError('SCENE_GATE_DUPLICATE_QID') IF row['qid'] in seen
+student_pilot/scene_division_gate.py:26 check_rows ValueError('SCENE_DIVISION_REFUSED:' + str(counts)) IF counts['outside'] or counts['heldout']
+student_pilot/stop_control.py:9 requested ValueError('stop_after_step must be a positive integer') IF limit is not None and (type(limit) is not int or limit <= 0)
+student_pilot/trace_grammar.py:317 validate_trace ValueError('form must be direct/program and n_frames must be nonnegative') IF form not in {'direct', 'program'} or n_frames < 0
+student_pilot/trace_grammar.py:614  SystemExit(main()) IF __name__ == '__main__'
+student_pilot/training_contract.py:14 admission_phrases ValueError('contract_operand_outside_candidates') IF any((normalize_phrase(n) not in names for n in operands))
+student_pilot/training_contract.py:39 call_responses ValueError('mismatched_call_id') IF NOT ('call' in event and 'response' in event) AND NOT (kind.endswith('_call') or ('call' in event and 'response' not in event)) AND kind.endswith('_response') AND ('call_id' in call or 'call_id' in event) and call.get('call_id') != event.get('call_id')
+student_pilot/training_contract.py:131 audit_training_contract TypeError('row') IF not isinstance(row, dict)
+student_pilot/training_contract.py:134 audit_training_contract TypeError('routing') IF not isinstance(routing, dict) or not isinstance(routing.get('events', []), list)
+student_pilot/training_contract.py:137 audit_training_contract TypeError('event') IF not isinstance(event, dict) or not isinstance(event.get('kind', ''), str)
+student_pilot/training_contract.py:140 audit_training_contract TypeError('call') IF key in event and (not isinstance(event[key], str))
+trace_format/box_v313.py:177 split_instances ValueError('box_name_mismatch') IF any((parse(b)['name'] != m[1] for b in observations))
+trace_format/box_v313.py:333 replay_audit ValueError('audit_provider_or_runtime_mismatch') IF (m := GROUND.fullmatch(call)) AND NOT (event['audit'].get('metric_only')) AND NOT (failure) AND not audit.get('box_provider') or audit.get('numpy_version') != np.__version__
+trace_format/box_v313.py:336 replay_audit ValueError('audit_box_label_mismatch') IF (m := GROUND.fullmatch(call)) AND NOT (event['audit'].get('metric_only')) AND NOT (failure) AND len(blocks) == 1 AND audit.get('box_label') != parse(body)['label']
+trace_format/box_v313.py:339 replay_audit ValueError('audit_box_label_mismatch') IF (m := GROUND.fullmatch(call)) AND NOT (event['audit'].get('metric_only')) AND NOT (failure) AND NOT (len(blocks) == 1) AND audit.get('box_labels') != [parse(b)['label'] for b in blocks]
+trace_format/box_v313.py:342 replay_audit ValueError('box_name_mismatch') IF (m := GROUND.fullmatch(call)) AND NOT (event['audit'].get('metric_only')) AND NOT (failure) AND record['name'] != m[1]
+trace_format/box_v313.py:572 ground ValueError('box_not_gravity_aligned') IF session.spec_version == '3.13' and (not metric_only) AND abs(abs(axes[vertical, 1]) - 1) > 1e-08 or np.max(np.abs(axes[horizontal, 1])) > 1e-08
+trace_format/contracts.py:17 heading_plane_min ValueError('heading_plane_min_must_be_finite_in_open_interval_0_1') IF type(value) not in (int, float) or not math.isfinite(value) or (not 0 < value < 1)
+trace_format/contracts.py:35 contract_epoch ValueError('contract_epoch_must_be_boolean') IF type(enabled) is not bool
+trace_format/point_events.py:5 structured_tool_pair ValueError('mismatched_tool_response') IF call['call_id'] != event['call_id'] or call['name'] != event['name']
+trace_format/point_events.py:33 structured_tool_pair ValueError('unbacked_tool: ' + str(name)) IF NOT (name == 'depth_at') AND NOT (name == 'pose') AND NOT (name == 'move')
