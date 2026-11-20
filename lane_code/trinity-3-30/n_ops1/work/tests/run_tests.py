@@ -5,8 +5,9 @@ JOUT=open(W+'/t1/last.raw').read().split('@@JOUT 12906\n')[1].split('@@JTAIL')[0
 SM={"pose":0.12423441559076309,"vqa":0.06256272686161424,"routing":4.030109835184703e-05,"pointing":0.46920966994366}
 def rank(r,sm=None,wall=134.3,ck=0,nf=False):
   return dict(rank=r,wall=wall,data=32.1,skip=0,sm=sm or dict(SM),csum=0.18,gn={"llm":0.86},nf=nf,peak=64282614272,ck=ck,ex=0)
-def raw(t,J='99',state='RUNNING',steps=(),qlog=None,tlog=True,cpu=0,anon=50,mx=800,tmp=5000,df=400,others=False,name='a15_cot_ap1a2b3c4d',left='20:00:00',gpu=(90,90,90,90),srun=0,qres='{"status": "ADMIT", "init_milestone": 400}',errs=0,end=True,jout=JOUT):
+def raw(t,J='99',state='RUNNING',steps=(),qlog=None,tlog=True,cpu=0,anon=50,mx=800,tmp=5000,df=400,others=False,name='a15_cot_ap1a2b3c4d',left='20:00:00',gpu=(90,90,90,90),srun=0,qres='{"status": "ADMIT", "init_milestone": 400}',errs=0,end=True,jout=JOUT,reason=None,lstate=None):
   s=['@@NOW 2026-11-19T%s'%t,'@@SQ','%s|%s|advanced|%s|3:00:00|1-00:00:00|%s|orchard-community-1|orchard-community-1|x'%(J,name,state,left)]
+  if reason:s[-1]=s[-1].replace('|orchard-community-1|orchard-community-1|','|'+reason+'|'+reason+'|')
   if others:s.append('173241|a15_cot_apda6f7936c1779|advanced|RUNNING|0:18|4:00:00|3:59:42|n|n|x')
   s+=['@@NEWEST %s.out'%J,'@@DF %d'%df,'@@SACCT','%s|%s|advanced|%s|0:0|3:00:00|1-00:00:00|x|n|a|b|c'%(J,name,state),'@@SCTL','JobName='+name,'Command=/project/community/jjyeung/okh7/x_22c714e1/j.sh',
      '@@JOUT %d'%len(jout),jout.rstrip('\n'),'@@JTAIL','@@ODIR']
@@ -17,6 +18,7 @@ def raw(t,J='99',state='RUNNING',steps=(),qlog=None,tlog=True,cpu=0,anon=50,mx=8
     s+=['@@PROG','@@PCOUNT 100','@@MP /tmp/q/x/runs/r/metrics_%s.jsonl'%J if steps else '@@MP -']
     for st in steps:s.append('@@STEP '+json.dumps(st))
     s+=['@@CK','@@CG /sys/fs/cgroup/job max=%d cur=1 anon %d file 1 shmem 0 cpu_usec=%d'%(mx*2**30,anon*2**30,cpu),'@@GPU']+['%d, %d, 70000, 81559'%(i,g) for i,g in enumerate(gpu)]+['@@PS','@@SRUN rc=%d'%srun]
+  if lstate:s+=['@@LSTATE']+lstate
   s+=['@@EXTRA']+(['@@END'] if end else [])
   return '\n'.join(s)+'\n'
 def step(n,**kw):
@@ -84,4 +86,8 @@ res.append(run('first_ck_ok',[ckr(T(0),[step(1)]),ckr(T(26),[step(1),step(2)],'1
 res.append(run('no_export_m100',[ckr(H(17,0),[step(101)],'17:00:00.0 r/x/checkpoint_000001\n'),ckr(H(17,46),[step(101),step(102)],'17:00:00.0 r/x/checkpoint_000001\n')],['NO_EXPORT_m100']))
 gde=lambda t,steps:ckr(t,steps,'17:00:00.0 r/x/checkpoint_000001\n').replace('@@ODIR','@@LIVE\n-rw------- 1 u g 107 19:00:00 gcs_m100.done\n@@ODIR')
 res.append(run('export_m100_ok',[gde(H(17,0),[step(101)]),gde(H(17,46),[step(101),step(102)])],['"gcs_done":["m100"]'],['NO_EXPORT','NO_FIRST_CK']))
+res.append(run('held_ok',[raw(T(0),state='PENDING',reason='(JobHeldUser)'),raw(T(10),state='PENDING',reason='(JobHeldUser)')],['held 10 min'],['FLAG']))
+res.append(run('held_16',[raw(T(0),state='PENDING',reason='(JobHeldUser)'),raw(T(16),state='PENDING',reason='(JobHeldUser)')],['HELD 16 min']))
+res.append(run('pending_qos_not_held',[raw(T(0),state='PENDING',reason='(QOSMaxGRESPerUser)'),raw(T(20),state='PENDING',reason='(QOSMaxGRESPerUser)')],['QOSMaxGRES'],['HELD','held']))
+res.append(run('gcs_done_lstate',[raw(T(0),lstate=['-rw------- 1 u g 107 19:00:00 gcs_m100.done'])],['NEW_GCS_DONE m100']))
 print('ALL PASS' if all(res) else 'SOME FAIL', sum(res),'/',len(res))

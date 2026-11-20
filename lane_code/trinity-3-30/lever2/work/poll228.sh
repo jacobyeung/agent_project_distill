@@ -4,3 +4,4 @@ echo "-- nogt $(tail -1 $C/nogt/stage.log 2>/dev/null) $(du -s --block-size=1M $
 for d in $(ls -td $R/*lever[12]_* 2>/dev/null | head -4); do echo "== $(basename $d) $(stat -c %s $d/transcript.log) final=$([ -f $d/final_message.md ] && echo y || echo n)"; grep -v WARN $d/transcript.log | tail -c 500 | tr -d '\r'; echo; done
 uptime
 df -h /scratch | tail -1
+echo "-- arkref $(tail -2 $C/nogt/ark_ref_stage.log 2>/dev/null | tr "\n" " ")"; ls $C/r1rev4 2>/dev/null

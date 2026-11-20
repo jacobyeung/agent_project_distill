@@ -37,7 +37,7 @@ def members(raw):
 
 FILES=members((ROOT/'out/delivery.tgz').read_bytes())
 PAYLOAD=members(FILES['0.tgz'])
-DATA=json.loads(PAYLOAD['1.json'])
+DATA=builder.storage.loads(PAYLOAD['1.json'])
 
 
 class Tokenizer:
@@ -126,7 +126,7 @@ class ProbeTests(unittest.TestCase):
                 for v in x:walk(v)
         for name,raw in FILES.items():
             if name.endswith('.json'):walk(json.loads(raw))
-        code=json.loads(gzip.decompress(FILES['8.bin']))
+        code=builder.storage.loads(FILES['8.bin'])
         self.assertTrue(all(n.endswith('.py') or n=='c/tree/trace_format/vsi_scannet_vocab.json' for n in code))
         self.assertFalse(any('/tests/' in n or '/items/' in n or '/inputs/' in n for n in code))
         # Known item identifiers and the original label-field serialization must
@@ -142,7 +142,7 @@ class ProbeTests(unittest.TestCase):
             for name,raw in container.items():
                 check(name)
                 if name.endswith(('.py','.sh')):check(raw.decode())
-        cfg=json.loads(FILES['2.json']);check(cfg['package']);check(cfg['token'])
+        cfg=builder.storage.loads(FILES['2.json']);check(cfg['package']);check(cfg['token'])
         for a in cfg['inputs']['archives']:
             for part in a['parts']:check(part['path'])
         for key in ('python','frames_root'):check(cfg['inputs'][key])
@@ -171,11 +171,9 @@ class ProbeTests(unittest.TestCase):
         for p in (ROOT/'src').glob('*.py'):compile(p.read_text(),str(p),'exec')
         # Import native interfaces in the CPU environment. No model or processor
         # is constructed and no remote/local weight is opened.
-        code=json.loads(gzip.decompress(FILES['8.bin']))
+        code=builder.storage.loads(FILES['8.bin'])
         root=ROOT/'out'/('imports_'+uuid.uuid4().hex)
-        for name,text in code.items():
-            p=root/name;p.parent.mkdir(parents=True,exist_ok=True);p.write_text(text)
-        sys.path[:0]=[str(root/'c/b'),str(root/'c/tree')]
+        builder.storage.materialize(root,code)
         from e2e_reader.parity import load_native,trainer_row
         from parity_kit.stage_restore import stage
         from student_pilot.carrier_c1_decode import _prepare_decode,consume_cache_tokens
@@ -225,7 +223,9 @@ class ProbeTests(unittest.TestCase):
         for term in builder.DENY:
             with self.assertRaises(ValueError):control.opaque(['/tmp/'+term])
             with self.assertRaises(ValueError):control.opaque(['A_X='+term])
-        control.opaque(['--dev-bind','/dev','CUDA_VISIBLE_DEVICES=0','a15_cot_apabcdef123'])
+        control.opaque(['a15_cot_apabcdef123'])
+        self.assertEqual(set(control.EXTERNAL), {'--dev-bind','/dev'})
+        with self.assertRaises(ValueError):control.opaque(['CUDA_VISIBLE_DEVICES=ground'])
 
     def test_sealed_package(self):
         pins=json.loads(FILES['0.json'])

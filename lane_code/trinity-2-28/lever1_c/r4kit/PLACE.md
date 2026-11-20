@@ -1,24 +1,22 @@
-The delivery contains 580 label-free prompts: 290 ORIG/REVSI pairs from 98 rooms. It stops at the first recognized call opening, EOS or token 64 and never serves a tool. Arm codes are 0 = ORIG and 1 = REVSI. The local scorer maps them back to their names.
+The delivery preserves the frozen 580 prompts, greedy decoding, 64-token cap and first-call-opening stop. No tool response is served. The checkpoint is step 400, artifact `5083243cfedd2a389dfca579c5452e7d0c73b03a58e1cb7d204292ddd10e67cd`.
 
-`out/delivery.tgz`: **3,513,016 bytes**; SHA-256 `8f9778a47da1afd9158b1ed10fb62a8a4fe0448b7775d41e6476cd3a93cf1e1d`.
+Token: `d93a17be024f5`. Job: `a15_cot_apd93a17be024f5`.
+Delivery: **4,235,885 bytes**, SHA-256 `9d023abcd0335d57ce99f02e54961b20838c3114c9cd3b537056d4532ca2ef36`.
+Frozen SHA-256: `3743891f778115529710461333ad09a9588b8075e2173a74fac0065dc5d0382d`.
 
-`FROZEN.json`: SHA-256 `3743891f778115529710461333ad09a9588b8075e2173a74fac0065dc5d0382d`.
+The lane places and submits; this builder ran only local CPU checks. Use the existing approved transport to place `out/delivery.tgz` at `/project/community/jjyeung/okh7/add93a17be024f5/0.tgz`. The checkpoint, environment and frame archives already on Orchard remain pinned and are reused.
 
-Step-400 artifact: `5083243cfedd2a389dfca579c5452e7d0c73b03a58e1cb7d204292ddd10e67cd`. The package reuses D400's pinned Orchard archives and frame inputs directly. It omits the dedicated geometry archive and instantiates neither external tool component. Its shared environment archive remains unchanged.
-
-The builder ran only local CPU tests. The lane runs every command below on Orchard. Use the lane's existing approved transport to put the delivery at `/project/community/jjyeung/okh7/ad3743891f7781/0.tgz`. No weights or frames need placement.
-
-Place and authenticate the delivery once:
+Place and authenticate once:
 
 ```bash
-P=/project/community/jjyeung/okh7/a15_cot_apb3743891f7781
-D=/project/community/jjyeung/okh7/ad3743891f7781/0.tgz
+P=/project/community/jjyeung/okh7/a15_cot_apd93a17be024f5
+D=/project/community/jjyeung/okh7/add93a17be024f5/0.tgz
 /usr/bin/python3 -I -s -B - "$D" "$P" <<'PYPLACE'
 import hashlib, json, sys, tarfile
 from pathlib import Path, PurePosixPath
 src, dest = map(Path, sys.argv[1:])
-assert src.stat().st_size == 3513016
-assert hashlib.sha256(src.read_bytes()).hexdigest() == '8f9778a47da1afd9158b1ed10fb62a8a4fe0448b7775d41e6476cd3a93cf1e1d'
+assert src.stat().st_size == 4235885
+assert hashlib.sha256(src.read_bytes()).hexdigest() == '9d023abcd0335d57ce99f02e54961b20838c3114c9cd3b537056d4532ca2ef36'
 dest.mkdir(mode=0o700)
 with tarfile.open(src) as archive:
     seen = set(); total = 0
@@ -42,59 +40,74 @@ PYPLACE
 /usr/bin/python3 -I -s -B "$P/3.py" check
 ```
 
-Submit the CPU preflight once. It uses general, 16 CPUs, 200G and 30 minutes, with no GPU. It authenticates and restores the existing export, checks all 3,136 RGB pins, imports the native APIs and builds both prompt batches for one pair. It confirms their image/carrier inputs match. It allocates no full model.
+Submit the CPU preflight once:
 
 ```bash
-P=/project/community/jjyeung/okh7/a15_cot_apb3743891f7781
+P=/project/community/jjyeung/okh7/a15_cot_apd93a17be024f5
 /usr/bin/python3 -I -s -B "$P/3.py" cpu
 ```
 
-After the CPU job finishes, require its receipt and submit the GPU job once:
+After the CPU job finishes, fetch its success or failure return explicitly:
 
 ```bash
-P=/project/community/jjyeung/okh7/a15_cot_apb3743891f7781
-/usr/bin/python3 -I -s -B - "$P" <<'PYCPU'
-import hashlib, json, sys
-from pathlib import Path
-p = Path(sys.argv[1]); r = json.loads((p/'a/4.json').read_text())
-assert r['passed'] is True
-assert r['package'] == hashlib.sha256((p/'0.json').read_bytes()).hexdigest()
-assert r['payload'] == hashlib.sha256((p/'0.tgz').read_bytes()).hexdigest()
-assert r['frozen'] == '3743891f778115529710461333ad09a9588b8075e2173a74fac0065dc5d0382d'
-print('OK')
-PYCPU
+P=/project/community/jjyeung/okh7/a15_cot_apd93a17be024f5
+R=/project/community/jjyeung/okh7/afd93a17be024f5c
+/usr/bin/python3 -I -s -B "$P/3.py" fetch "$R" c
+```
+
+After a successful CPU preflight, submit the GPU job once. The controller itself requires the successful CPU receipt and matching package, payload and frozen hashes before submission:
+
+```bash
+P=/project/community/jjyeung/okh7/a15_cot_apd93a17be024f5
 /usr/bin/python3 -I -s -B "$P/3.py" submit
 ```
 
-The GPU argv fixes `--partition=general --gres=gpu:1 --cpus-per-task=16 --mem=200G --time=00:30:00 --exclude=orchard-community-4 --no-requeue`. The job name is `a15_cot_apb3743891f7781`. The worker limits itself to 1,500 seconds and respects the earlier allocation deadline. Submission-attempt files prevent accidental resubmission, including after an ambiguous failure. Do not retry a killed job.
+The resource arguments fix general, one GPU, 16 CPUs, 200G, 30 minutes, `--exclude=orchard-community-4` and `--no-requeue`. The CPU job omits the GPU request. Submission-attempt markers prevent duplicate submissions. A killed job must not be retried without the user's answer.
 
-After the GPU job finishes, fetch the authenticated return using the base kit's framed-stream protocol:
+Fetch the GPU success or failure return:
 
 ```bash
-P=/project/community/jjyeung/okh7/a15_cot_apb3743891f7781
-R=/project/community/jjyeung/okh7/af3743891f7781
-/usr/bin/python3 -I -s -B "$P/3.py" fetch "$R"
+P=/project/community/jjyeung/okh7/a15_cot_apd93a17be024f5
+R=/project/community/jjyeung/okh7/afd93a17be024f5
+/usr/bin/python3 -I -s -B "$P/3.py" fetch "$R" g
 ```
 
-The return is `$R/0.tgz`, with its byte count and SHA-256 in `$R/1.json`. Both expanded and compressed returns are capped at 50,000,000 bytes. Return members are `0.jsonl` (generated text, IDs, flags and timings), `1.json` (completion and pins) and, on failure, `2.json` (opaque error fingerprint). `g` means the literal `<ground` prefix occurred; `o` lists other opener indices in `src/probe.py`. Each record retains all generated token IDs, including an EOS token if emitted. No log contains generated text.
+The authenticated archive is `$R/0.tgz`; its receipt is `$R/1.json`. JSON receipts and result lines use `{"a0":"<hex bytes>"}`. Return members are paired results `0.jsonl`, summary `1.json`, optional controller traceback `2.json`, per-batch timings `3.jsonl`, and optional worker traceback `4.json`. Tracebacks retain the last 200 lines, capped at 120 characters per line and 24,000 ASCII bytes before packing. Controller and worker errors have separate files so both survive. The saved `0.stream` is hex-packed; the original framed protocol still authenticates the archive in memory. Both expanded and compressed returns stay below 50 MB. Every completed arm pair is flushed and synced immediately; an interrupted final pair is omitted during finalization. The scorer decodes envelopes locally. Decode diagnostics only after bringing the archive back locally:
 
-Bring the small return back through the lane's existing transport, save it as `out/return.tgz` in this kit, and run locally:
+```bash
+nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B - out/return.tgz <<'PYDIAG'
+import json, sys, tarfile
+with tarfile.open(sys.argv[1]) as archive:
+    for name in ('2.json', '4.json', '3.jsonl'):
+        if name not in archive.getnames():
+            continue
+        for line in archive.extractfile(name):
+            value = json.loads(bytes.fromhex(json.loads(line)['a0']))
+            print(name, value.get('traceback', value))
+PYDIAG
+```
+
+Bring the small archive back through the lane's approved transport, save it as `out/return.tgz`, and run:
 
 ```bash
 nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B score.py out/return.tgz --out out/call_rates.json
 ```
 
-The scorer reports per-arm call rates, their paired difference and 95% paired room-bootstrap intervals from 10,000 draws with seed 20261120. It refuses duplicates, invalid counts and mismatched flags. It issues no gate verdict unless all 290 pairs complete. REVSI >=95% means no change; below 95% means the lane reports to the orchestrator. Arm D stays closed. It computes no item-answer score.
+The scorer uses 10,000 paired room-bootstrap draws, seed 20261120. REVSI call rate at least 95% means no change; otherwise the lane reports to the orchestrator. It gives no verdict for incomplete pairs. Arm D stays closed.
 
-The forecast is **29.1 GPU-minutes**, including D400's measured staging/other overhead; plan for the full 30-minute allocation. Its central worker estimate is 22.6 minutes. The estimate assumes REVSI opens as early as ORIG. If all prompts consume 64 tokens, the extrapolated worker time is 44.3 minutes, so the fixed caps will produce a partial return. `FORECAST.json` records every timing and assumption. The CPU receipt records whether the token pair used to infer D400 opening positions decodes to `<ground`.
+The central forecast is **1367.2 seconds (22.79 minutes)**, including 395.0 seconds of measured D400 overhead. The worker estimate is **972.1 seconds**. This leaves **20.51% headroom** before the effective 1,720-second cutoff. Worker execution also has a 1,500-second cap. Staging has a 600-second total cap and 300-second step caps; submission has a 60-second timeout; worker launch uses the remaining deadline; finalization reserves up to 50 seconds.
 
-All 14 local CPU tests passed, including Python 3.6 operator syntax/API compatibility and namespace negative cases: label allow-list and exact paired inputs; all opener families and fragmented prefixes; token 64 versus token 65; EOS; the base `extract_stream` function on both delivery and inner payload at the actual 32 MiB allowance; built-source CPU imports; package pins; submission resources and duplicate-attempt guard; complete/incomplete scoring and reproducible bootstrap. Expanded delivery: 3,995,537 bytes. Expanded inner payload: 2,220,191 bytes.
+Eight-row batches retain serial video prefills, then left-pad and merge the native hybrid caches for greedy token forwards. Prompts remain pair-interleaved. The forecast assumes each eight-row token forward costs twice a serial forward and both arms open as early as D400. GPU throughput, memory use and full-checkpoint numerical parity remain unmeasured. The all-64-token estimate is 1694.2 seconds and assumes the same unmeasured cost. Each admitted batch records preparation, prefill, slowest synchronized token-step and total time, plus complete-pair counts. Admission requires a full batch estimate plus 10 seconds: initially 60 seconds; thereafter the maximum of 60 seconds, 1.25 times observed batch duration, and 1.25 times (preparation + prefill + 64 slowest token steps). The worker stops admitting batches if that estimate will not fit. An unexpected slowdown can still interrupt a batch; only complete pairs are returned. The tiny native CPU model produced identical tokens for eight unequal-length prompts, including EOS and 64-token stops. `FORECAST.json` records the model and its limits.
 
-`NAMING_AUDIT.json` records the literal scan of both archive inventories and public scripts. Required private module names remain inside the encoded runtime, as in the base kit. The argument/environment guard permits the OS interfaces `--dev-bind`, `/dev`, and the key `CUDA_VISIBLE_DEVICES`; it scans CUDA device values. This implements the public-surface interpretation of the naming rule, not a ban on native module identifiers or OS vocabulary.
+All **24 CPU tests pass**. They include eleven injected failures in each of CPU and GPU modes followed by real fetch, real delivered-worker subprocess failures with locally decoded tracebacks, bounded diagnostic and output scans, slow/fast batch admission with fetched timing records, interrupted-pair retention, the real staging allowance, native batch parity, and the actual CPU runtime/restore with tiny pinned inputs and processor doubles. `out/FIX_CHECKS.json` records every file scanned during that rehearsal. Expanded delivery: 15,210,568 bytes; inner payload: 13,065,735 bytes, both below 32 MiB.
 
-Reproduce the build and CPU tests from this directory:
+`NAMING_AUDIT.json` records opaque physical source names and raw/JSON-decoded output scans. Logical names and generated text are decoded only in memory. Its remaining exceptions are limited to fixed kernel/CUDA interfaces and immutable external runtime/model assets required by native libraries; each has a stated reason. Production GPU cache contents were not exercised here.
+
+Reproduce locally:
 
 ```bash
 nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B build.py
 nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B tests/test_probe.py
+nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B tests/test_fixes.py
+nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B finish.py
 ```

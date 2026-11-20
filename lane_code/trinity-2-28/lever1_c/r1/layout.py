@@ -40,12 +40,13 @@ def reshape(pf, B, here):
     request='b/work/n13/ret/native/paired/request.json'
     pf[request]=b'{}\n'
     assets={n for n in pf if n.startswith('b/work/meta/') and n.endswith(('FRAMES.json','DENSE_MANIFEST.json','config.json','s1_receipt.json','data_receipt.json'))}
-    assets.update([request,'items/devs1_routed.json','g/0.json','g/1.json','g/8.json','tree/student_pilot/tower_scale_rule.json'])
+    assets.update([request,'items/devs1_routed.json','g/0.json','g/1.json','g/2.json','g/8.json','tree/student_pilot/tower_scale_rule.json'])
     assets.update(n for n in pf if n.startswith('tree/student_pilot/assets/') or n.startswith('orchard_h10/vendor/') and n.endswith('.json'))
     # Keep the transitive static import graph, including imports inside functions.
     candidates={n:d for n,d in pf.items() if n.endswith('.py') and not n.startswith(('tree/tests/','tree/scripts/','tree/tools/','h1eval/reader_core/'))}
     modules={}
-    for prefix in ('tree/','', 'b/'):
+    vendor='tree/student_pilot/g3t_vendor/'
+    for prefix in ('tree/','', 'b/', vendor):
         for n in candidates:
             if prefix and not n.startswith(prefix):continue
             s=n[len(prefix):] if prefix else n
@@ -56,6 +57,8 @@ def reshape(pf, B, here):
     roots={n for n in candidates if n.startswith(('orchard_h10/','g/')) and n not in ('g/p.py','g/q.py','orchard_h10/build.py','orchard_h10/inventory.py')}
     roots.update(n for n in candidates if n.startswith('b/heads/'))
     roots.update(n for n in candidates if n.startswith('b/work/'))
+    # Dynamic source_import and the source digest require the entire vendor tree.
+    roots.update(n for n in candidates if n.startswith(vendor))
     roots.update(['8.py','h1eval/h10/parity_adapter.py','b/parity_kit/stage_restore.py','b/parity_kit/build_manifest.py','tree/student_pilot/tower_scale_rule.py'])
     keep=set();todo=list(roots)
     reverse={n:mod for mod,n in modules.items()}
@@ -115,6 +118,8 @@ def reshape(pf, B, here):
     output['l.json']=B.jd(dict(edges=[[list(k),v] for k,v in edges.items()],modules=encoded))
     # Encode logical names in the map; no descriptive paths are materialized.
     data=json.loads(output['l.json']);data['edges']=[[ [a,b.encode().hex()],v] for (a,b),v in edges.items()]
+    data['views']={mapping[vendor.rstrip('/')]:{
+        mapping[n]:n[len(vendor):].encode().hex() for n in retained if n.startswith(vendor)}}
     output['l.json']=B.jd(data)
     source_proof={mapping[n]:dict(source=n,sha256=B.sha(v)) for n,v in retained.items() if n.endswith('.py') and v==original.get(n) and n.startswith(('b/','tree/','h1eval/'))}
     return output,dict(paths=mapping,sources=source_proof,bindings=proof,removed=sorted(set(original)-set(retained)))

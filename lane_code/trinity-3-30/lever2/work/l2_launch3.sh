@@ -1,0 +1,46 @@
+C=/scratch/jjyeung/orch_n30/lever1_c; S=/data3/jjyeung/orch_n13_20261026/io_governor/streams; grep -q "PIPE_RC 0 0 0 0" $C/nogt/ark_ref_stage.log && mv $S/lever2_ark_ref.json $S/lever2_ark_ref.done.$(date +%s) && ls $S | grep lever2_ark; cat $C/nogt/ARK_REF_STREAM_src.sha
+base64 -d > $C/BRIEF_R5C.md <<'B64'
+IyBSb3VuZCAzIG9mIE5PR1QgKHJhbmsgNSk6IEFSS2l0IHJlZmVyZW5jZSBpbnB1dHMgcmVzdGFn
+ZWQgaW4gdGltZXN0YW1wIG9yZGVyOyByZXByb2R1Y2UsIHRoZW4gYnVpbGQgdGhlIDcgQVJLaXQg
+Y2FwdHVyZXMKCkNvbnRpbnVlIGluIGAvc2NyYXRjaC9qanlldW5nL29yY2hfbjMwL2xldmVyMV9j
+L25vZ3QvYCB1bmRlciBgL3NjcmF0Y2gvamp5ZXVuZy9vcmNoX24zMC9sZXZlcjFfYy9CUklFRl9S
+NS5tZGAgYW5kIGBCUklFRl9SNUIubWRgIChhbGwgcnVsZXMgaG9sZDsgbG9jYWwgL3NjcmF0Y2gg
+cmVhZHMgYXBwcm92ZWQgYXQgYW55IHZvbHVtZSwgZG8gbm90IHN0b3AgdG8gYXNrOyBubyAvaG9t
+ZSBvciAvZGF0YSogcmVhZHMsIG5vIHNzaC9naXQvbmV0d29yay9HUFUva2lsbCkuCllvdXIgcm91
+bmQtMiByZXBvcnQgKGBvdXQvTk9HVF9SRVBPUlQubWRgKSBsZWZ0IEFSS2l0IHVuYnVpbHQ6IHJl
+ZmVyZW5jZSA0MTA2OTA1MyBsYWNrZWQgdGhlIDMyIHRpbWVzdGFtcC1zb3J0ZWQgYW5jaG9yIGRl
+cHRoIFBOR3MgYW5kIHBpbmNhbXMgKGBvdXQvQVJLSVRfTUlTU0lOR19SRUZFUkVOQ0VfSU5QVVRT
+LnR4dGApLiBUaG9zZSA2NCBmaWxlcyBhcmUgbm93IHN0YWdlZCBpbiBgbm9ndC9yYXcvYCBhdCB0
+aGVpciBORlMtcmVsYXRpdmUgcGF0aHMgKGxpc3QgYG5vZ3QvYXJrX3JlZl9saXN0LnR4dGA7IGBh
+cmtfcmVmX3N0YWdlLmxvZ2AgbXVzdCBzaG93IGBQSVBFX1JDIDAgMCAwIDBgIGJlZm9yZSB5b3Ug
+dXNlIHRoZW0pLiBUaGUgbGFuZSBjaGVja2VkIHRoZSBzZXZlbiBuZXcgQVJLaXQgY2FwdHVyZXMn
+IGxpc3RpbmdzIChgbm9ndC9hcmtpdF9saXN0aW5nLmpzb25gKTogZm9yIGVhY2gsIGxleGljYWwg
+YW5kIGNocm9ub2xvZ2ljYWwgb3JkZXIgb2YgZGVwdGggbmFtZXMgYXJlIGlkZW50aWNhbCwgc28g
+dGhlaXIgc3RhZ2VkIGFuY2hvcnMgYXJlIGFscmVhZHkgdGhlIGNocm9ub2xvZ2ljYWwgb25lczsg
+dmVyaWZ5IHRoYXQgeW91cnNlbGYgZnJvbSB0aGUgbGlzdGluZyBiZWZvcmUgYnVpbGRpbmcuCjEu
+IFVzZSB0aGUgdG9sZXJhbmNlIGFscmVhZHkgcmVnaXN0ZXJlZCBpbiBgb3V0L1JFUFJPX1RPTEVS
+QU5DRS5tZGAgKGRvIG5vdCBjaGFuZ2UgaXQpLiBSZWJ1aWxkIEFSS2l0IDQxMDY5MDUzIGZyb20g
+cmF3IGluIGNocm9ub2xvZ2ljYWwgYW5jaG9yIG9yZGVyIGFuZCBjb21wYXJlIGFnYWluc3QgYC9z
+Y3JhdGNoL2pqeWV1bmcvb3JjaF9uMzAvY29udF9vcHMyNF9jL2d0L2Fya2l0X2d0L2d0L2AuIElm
+IGl0IGZhaWxzLCBkbyBub3QgYnVpbGQ7IHJlcG9ydCB3aGljaCBhcnJheXMgZGlmZmVyIGJ5IGhv
+dyBtdWNoIGFuZCB3aHkuCjIuIElmIGl0IHBhc3NlcywgYnVpbGQgdGhlIDcgQVJLaXQgY2FwdHVy
+ZXMgd2l0aCB0aGUgc2FtZSBjb2RlIHBhdGggYW5kIHJ1biB0aGUgc2VsZi1jb25zaXN0ZW5jeSBh
+bmQgc2FtZS1mcmFtZSBiaW5kaW5nIGNoZWNrcyBwZXIgY2FwdHVyZS4gRG8gbm90IHRvdWNoIHRo
+ZSAxNSBidWlsdCBTY2FuTmV0L1NjYW5OZXQrKyBOUFpzICh0aGVpciBieXRlcyBtdXN0IHN0YXkg
+aWRlbnRpY2FsOyB2ZXJpZnkgYWdhaW5zdCB0aGUgZXhpc3RpbmcgU0hBMjU2U1VNUykuCkRlbGl2
+ZXI6IEFSS2l0IE5QWnMgdW5kZXIgYG91dC9ndC9hcmtpdF9ndC9ndC9gLCB1cGRhdGUgYG91dC9O
+T0dUX1JFUE9SVC5tZGAgKG5ldyBzZWN0aW9uLCBrZWVwIHRoZSBvbGQgdGV4dCksIENBUFRVUkVf
+Q0hFQ0tTLmpzb24sIFJFUFJPRFVDVElPTi5qc29uLCBgb3V0L1NIQTI1NlNVTVNgIChhZGQgbGlu
+ZXMsIGtlZXAgdGhlIG9sZCBvbmVzKSwgdGVzdHMuIEZpbmFsIG1lc3NhZ2U6IEFSS2l0IHJlcHJv
+ZHVjdGlvbiB2ZXJkaWN0LCBwZXItY2FwdHVyZSBwYXNzL2ZhaWwsIG5ldyB0b3RhbCBvdXQgb2Yg
+MjIsIGZpbGVzIGFuZCBzaGEyNTYgb2YgZWFjaCBuZXcgTlBaLiBCZSBxdWljay4K
+B64
+cat > $C/r5c_run.sh <<'RUN'
+B=/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30; C=/scratch/jjyeung/orch_n30/lever1_c
+echo "START $(date -u +%FT%TZ)"
+mkdir -p $C/nogt
+bash $B/tools/codex_local.sh implement $C/nogt $C/BRIEF_R5C.md --model gpt-6-astra --effort high --label lever2_r5c --skip-git-check --writable-root $C/nogt
+echo "r5c DONE rc=$? $(date -u +%FT%TZ)"
+RUN
+tmux new-session -d -s l2_r5c "bash $C/r5c_run.sh > $C/r5c_run.log 2>&1"
+R=/scratch/jjyeung/orch_n30/codex_local/agent/scratch/codex_runs; d=$(ls -td $R/*lever2_r1rev4 | head -1); head -c 2500 $d/final_message.md; echo; echo ==BOX; d=$(ls -td $R/*lever2_boxdev | head -1); cat $d/final_message.md | head -c 2500; echo; head -c 3000 $C/boxdev/BUILD_RESULTS.md; ls -la $C/r1/orchard; du -sh $C/r1/orchard; sleep 2; tmux ls | grep l2_

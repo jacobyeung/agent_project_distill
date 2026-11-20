@@ -10,6 +10,8 @@ import tarfile
 ROOT=Path(__file__).resolve().parent
 spec=importlib.util.spec_from_file_location('probe',ROOT/'src/probe.py')
 probe=importlib.util.module_from_spec(spec);spec.loader.exec_module(probe)
+spec=importlib.util.spec_from_file_location('a_storage',ROOT/'src/storage.py')
+C=importlib.util.module_from_spec(spec);spec.loader.exec_module(C)
 
 
 def percentile(x,p):
@@ -76,8 +78,8 @@ def main():
         if '1.json' not in {m.name for m in members}:
             result=dict(complete=False,gate='incomplete; no verdict',arm_D='closed')
         else:
-            receipt=json.load(t.extractfile('1.json'))
-            rows=[json.loads(x) for x in t.extractfile('0.jsonl')] if '0.jsonl' in {m.name for m in members} else []
+            receipt=C.loads(t.extractfile('1.json').read())
+            rows=[C.loads(x) for x in t.extractfile('0.jsonl')] if '0.jsonl' in {m.name for m in members} else []
             result=score(rows,receipt)
     Path(a.out).write_text(json.dumps(result,sort_keys=True,indent=2)+'\n')
     print(json.dumps(result,sort_keys=True))

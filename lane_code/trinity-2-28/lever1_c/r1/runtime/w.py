@@ -2,6 +2,7 @@
 import argparse
 import hashlib
 import json
+import os
 from pathlib import Path
 import signal
 import time
@@ -22,7 +23,25 @@ def compare(actual, expected, bounds):
     return dict(trusted=bool(ok), max_deviations=deltas)
 
 
-def capture_one(gen,bound,ref):
+def start_tower(spec,settings,bound):
+    import torch
+    from e2e_reader.artifact import Artifact, Audit
+    from e2e_reader.real import TowerG3T
+    artifact=Artifact(spec['root'],spec['name'],spec['sha256'],
+        code_roots=spec.get('code_roots'),env_roots=settings.get('env_roots',()),
+        write_roots=[os.environ[k] for k in ('TRITON_CACHE_DIR','TORCHINDUCTOR_CACHE_DIR','XDG_CACHE_HOME',
+                                            'HF_HOME','TORCH_HOME') if os.environ.get(k)],required_roles=('g3t',))
+    # Authenticate only the early tower here. The normal factory verifies the
+    # complete original manifest before allocating the shared carrier model.
+    artifact.manifest=dict(artifact.manifest,components={'g3t':artifact.manifest['components']['g3t']})
+    artifact.verify()
+    early=TowerG3T(artifact,'cuda:0')
+    with torch.no_grad(), Audit(artifact):result=early(bound['frames'])
+    torch.cuda.synchronize()
+    return early,result
+
+
+def capture_one(gen,bound,ref,*,tower_result=None):
     import torch
     from student_pilot.carrier_c1_decode import _prepare_decode
     from student_pilot.ground_context import closed_adapters
@@ -37,11 +56,13 @@ def capture_one(gen,bound,ref):
     memo=getattr(gen.perception,'memo',None)
     if memo is not None:memo.item_id=ref['item_id'];memo.begin_read()
     counter=EntryCounter(gen.model.model.language_model); old=gen.perception.socket
+    tower=gen.perception.g3t
     timings={}
     try:
         # lazy() constructs identical geometry before touching this socket. With
         # no socket its ground route raises Unserved after publishing servers.
         gen.perception.socket=None
+        if tower_result is not None:gen.perception.g3t=lambda frames:tower_result
         with torch.no_grad(), Audit(gen.artifact) as audit:
             state=closed_adapters(_prepare_decode)(gen.model,gen.processor,batch,max_new_tokens=16384)
             servers,built=gen.perception.lazy(frames,state,timings)
@@ -58,7 +79,7 @@ def capture_one(gen,bound,ref):
                 grid_convention='square endpoint canvas 0..1000; mask pixel centres (x+.5)/W,(y+.5)/H',
                 tower_scale=record['scale'],scale_applied=record['scale']))
     finally:
-        counter.remove();gen.perception.socket=old
+        counter.remove();gen.perception.socket=old;gen.perception.g3t=tower
     if counter.prefills!=1 or counter.steps!=0:raise ValueError('E02')
     result.update(timings=timings,prefills=counter.prefills,decode_steps=counter.steps)
     return result
@@ -71,7 +92,7 @@ def run(config,stop_at,*,clock=time.time):
     reference=json.loads((Path(__file__).parent/'8.json').read_text())
     refs=load_rows();by_id={r['item_id']:r for r in refs}
     selected=[by_id[i] for i in reference['representatives']]
-    writer=Writer(path);checks=[];timings=[];failure=None
+    writer=Writer(path);checks=[];timings=[];failure=None;monitor=None
     def stop(n,f):marker.write_text(str(n)+'\n')
     old={n:signal.signal(n,stop) for n in (signal.SIGTERM,signal.SIGUSR1,signal.SIGINT)}
     try:
@@ -81,6 +102,9 @@ def run(config,stop_at,*,clock=time.time):
         from e2e_reader import parity
         import torch
         if 'H100' not in torch.cuda.get_device_name(0):raise ValueError('E03')
+        from .m import Monitor
+        from orchard_h10.s import stage_capture
+        monitor=Monitor(meta,torch);monitor.begin(selected[0]['capture'])
         settings=settings_for(config['settings'],'devs1_routed');prepare_runtime(settings)
         if any(settings.get(k) for k in ('sam3','selector_head','scale_head')):raise ValueError('E07')
         if settings['save_own_depth'] or settings['perception_memo_modules']!=['g3t']:raise ValueError('E04')
@@ -90,28 +114,52 @@ def run(config,stop_at,*,clock=time.time):
             native=ref['task']['native']
             if digest(ref['task'])!=ref['mapping']['task_sha256'] or digest(dict(anchors=captures[native],dense=dense[native]))!=ref['mapping']['frame_binding_sha256']:
                 raise ValueError('E05')
-        factory=make_capped_real(settings['export_dir'],artifact_spec(settings['artifact_manifest']),
+        # Run the first tower before allocating the shared carrier model. Keep
+        # its exact output for capture_one; this does not add a second forward.
+        stage_capture(settings,selected[0]['capture'])
+        bound=parity.bind_item(selected[0]['task'],settings)
+        spec=artifact_spec(settings['artifact_manifest'])
+        monitor.phase('1');tower_started=time.perf_counter()
+        early,first_tower=start_tower(spec,settings,bound)
+        first_tower_seconds=time.perf_counter()-tower_started
+        monitor.phase('2')
+        factory=make_capped_real(settings['export_dir'],spec,
                                 [r['task'] for r in refs],settings=settings,device='cuda:0')
         if factory.load_info['export'].get('step')!=544:raise ValueError('E06')
+        factory.generator.perception.g3t=early
         assert_reader_root(root)
-        for ref in selected:
+        for index,ref in enumerate(selected):
             if clock()>=stop_at or marker.exists():break
-            started=time.perf_counter();bound=parity.bind_item(ref['task'],settings)
+            if index:
+                monitor.begin(ref['capture'])
+                stage_capture(settings,ref['capture'])
+                bound=parity.bind_item(ref['task'],settings)
+            monitor.phase('3')
             # One representative per capture makes every tower call fresh.
-            with fresh_perception(factory.generator):row=capture_one(factory.generator,bound,ref)
-            torch.cuda.synchronize();row['seconds']=time.perf_counter()-started
+            with fresh_perception(factory.generator):
+                row=capture_one(factory.generator,bound,ref,tower_result=first_tower if index==0 else None)
+            if index==0:row['timings']['g3t_s']=first_tower_seconds
+            torch.cuda.synchronize()
+            monitor.phase('4');row['seconds']=monitor.current['seconds']
             per_item=[]
             for iid,expected in reference['geometry'].items():
                 if expected['capture']==ref['capture']:
                     per_item.append(dict(item_id=iid,**compare(row['metadata']['geometry'],expected['geometry'],reference['bounds'])))
             row['parity']=dict(trusted=all(x['trusted'] for x in per_item),items=per_item)
+            row['memory']=dict(monitor.current)
             writer.append(row);checks.append(dict(capture=ref['capture'],**row['parity']))
-            timings.append(dict(seconds=row['seconds'],**row['timings']))
             write(meta/'4.json',dict(items=writer.items,bytes=writer.bytes))
+            timings.append(monitor.finish('written'))
+            # Release per-capture RGB and geometry before staging the next one.
+            del bound,row
+            if index==0:del first_tower
     except Exception as e:
-        # No source paths, model names, arbitrary exception messages or traceback.
+        from orchard_h10.e import exception
+        exception(meta/'7.json',e)
         failure='E99:'+type(e).__name__.encode().hex()
     finally:
+        if monitor is not None:
+            monitor.close();timings=monitor.rows
         writer.close()
         maxima={k:max((v['max_deviations'][k] for x in checks for v in x['items']),default=None) for k in reference['bounds']}
         receipt=dict(trusted=len(checks)==60 and all(x['trusted'] for x in checks) and failure is None,

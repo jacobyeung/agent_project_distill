@@ -1,16 +1,23 @@
 {
-  "allocation_planning_minutes": 30.750224128999495,
+  "allocation_margin_s": 134.9865522600303,
+  "allocation_planning_minutes": 37.7502241289995,
+  "allocation_s": 2400,
   "allowances_measured": false,
   "captures": 60,
-  "caveat": "T1 per-item timings include SAM/linking and exclude staging; staging allowances are planning estimates. No GPU timing of this worker exists.",
+  "caveat": "T1 replay is 16.75 min, including SAM/linking. Add 6 min shared loading and 1 min indexed RGB/telemetry inside worker, plus 10 min shared archive staging and 4 min publication. All allowances are unmeasured; no first-output or GPU wall-time guarantee.",
   "compressed_return_conservative_bytes": 80000000,
   "compressed_return_forecast_bytes": 40000000,
   "float16_depth_bytes": 9987840,
+  "indexed_staging_monitor_allowance_s": 60,
   "lossless_depth_plane_bytes": 49939200,
   "publication_allowance_s": 240,
   "return_cap_bytes": 1000000000,
+  "shared_load_allowance_s": 360,
   "staging_allowance_s": 600,
   "t1_first_per_capture_replay_s": 1005.0134477399697,
   "t1_first_per_capture_tower_s": 430.61447064887034,
-  "worker_forecast_minutes": 16.750224128999495
+  "t1_replay_minutes": 16.750224128999495,
+  "worker_cap_s": 1800,
+  "worker_forecast_minutes": 23.750224128999495,
+  "worker_margin_s": 374.9865522600303
 }

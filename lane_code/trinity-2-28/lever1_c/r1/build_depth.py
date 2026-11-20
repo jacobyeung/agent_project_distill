@@ -43,11 +43,15 @@ def reference():
     selected=[r for r in timings if r['item_id'] in first.values()]
     replay_s=sum(r['seconds'] for r in selected)
     forecast=dict(t1_first_per_capture_replay_s=replay_s,t1_first_per_capture_tower_s=sum(r['timings'].get('g3t_s',0) for r in selected),
-        captures=60,worker_forecast_minutes=replay_s/60,allocation_planning_minutes=(replay_s+600+240)/60,
+        captures=60,t1_replay_minutes=replay_s/60,
+        worker_forecast_minutes=(replay_s+360+60)/60,allocation_planning_minutes=(replay_s+360+60+600+240)/60,
+        shared_load_allowance_s=360,indexed_staging_monitor_allowance_s=60,
+        worker_cap_s=1800,allocation_s=2400,worker_margin_s=1800-replay_s-420,
+        allocation_margin_s=2400-replay_s-420-600-240,
         staging_allowance_s=600,publication_allowance_s=240,allowances_measured=False,
         float16_depth_bytes=60*32*51*51*2,lossless_depth_plane_bytes=60*32*51*51*10,
         compressed_return_forecast_bytes=40_000_000,compressed_return_conservative_bytes=80_000_000,return_cap_bytes=1_000_000_000,
-        caveat='T1 per-item timings include SAM/linking and exclude staging; staging allowances are planning estimates. No GPU timing of this worker exists.')
+        caveat='T1 replay is 16.75 min, including SAM/linking. Add 6 min shared loading and 1 min indexed RGB/telemetry inside worker, plus 10 min shared archive staging and 4 min publication. All allowances are unmeasured; no first-output or GPU wall-time guarantee.')
     return result,forecast
 
 
@@ -66,6 +70,9 @@ def build(out=HERE/'out',scripts=HERE/'orchard'):
     nf['3.py']=B.once(nf['3.py'], b"    exec(compile(t.extractfile('8.py').read(),__file__,'exec'))", b"    try:exec(compile(t.extractfile('8.py').read(),__file__,'exec'))\n    except Exception as e:\n        print('E41:'+type(e).__name__.encode().hex())\n        raise SystemExit(1)")
     pf['orchard_h10/vendor/orchard_results.py']=pf['orchard_h10/vendor/orchard_results.py'].replace(b'str(error)',b"'E38:'+type(error).__name__.encode().hex()")
     pf['orchard_h10/budget.py']=(HERE/'runtime/budget.py').read_bytes()
+    pf['orchard_h10/e.py']=(HERE/'runtime/e.py').read_bytes()
+    pf['orchard_h10/s.py']=(HERE/'runtime/s.py').read_bytes()
+    pf['g/m.py']=(HERE/'runtime/m.py').read_bytes()
     # Keep serving sources and assets byte-identical. Only the capture worker,
     # resource signal, operator deadline and publication cap change.
     common=pf['orchard_h10/common.py'].decode()
@@ -74,6 +81,10 @@ def build(out=HERE/'out',scripts=HERE/'orchard'):
     job=pf['orchard_h10/job.py'].decode().replace('1_900_000_000','1_000_000_000')
     job=job.replace("with (out/'logs/0.log').open('wb') as log:","with open('/dev/null','wb') as log:").replace("with (out/'logs/1.log').open('wb') as log:","with open('/dev/null','wb') as log:")
     job=job.replace("failed=str(error);","failed='E98:'+type(error).__name__.encode().hex();")
+    job=job.replace("    except Exception as error:\n        failed=", "    except Exception as error:\n        from orchard_h10.e import exception\n        exception(out/'metadata/9.json',error)\n        failed=")
+    job=job.replace("    failed=None;summary=None;pool_ready=False", "    from orchard_h10.e import capture\n    failed=None;summary=None;pool_ready=False")
+    job=job.replace("with open('/dev/null','wb') as log:", "with capture(out/'metadata/11.json') as log:",1)
+    job=job.replace("with open('/dev/null','wb') as log:", "with capture(out/'metadata/12.json') as log:")
     job=job.replace("result['error'] = type(error).__name__+': '+str(error)", "result['error'] = 'E36:'+type(error).__name__.encode().hex()")
     job=job.replace("    failed=None;summary=None;pool_ready=False", "    from orchard_h10.budget import window, finish, WORK_RESERVE\n    scope=window(end-WORK_RESERVE,R)\n    failed=None;summary=None;pool_ready=False")
     job=job.replace("        write(out/'metadata/STORAGE.json'", "        scope.__enter__()\n        write(out/'metadata/STORAGE.json'")
@@ -89,6 +100,8 @@ def build(out=HERE/'out',scripts=HERE/'orchard'):
     op=op.replace('process.wait(timeout=30)','process.wait(timeout=max(.001,min(20,end-245-clock())))')
     op=op.replace('process.wait()','process.wait(timeout=max(.001,min(5,end-240-clock())))')
     op=op.replace("failure = type(error).__name__+': '+str(error)","failure = 'E37:'+type(error).__name__.encode().hex()")
+    op=op.replace("    from orchard_h10.runner import environment", "    from orchard_h10.e import capture, exception\n    from orchard_h10.runner import environment")
+    op=op.replace("    except Exception as error:\n        failure", "    except Exception as error:\n        exception(out/'metadata/10.json',error)\n        failure")
     op=op.replace('def prepare(config):', '''def prepare(config):
     global Path
     import sys
@@ -96,8 +109,9 @@ def build(out=HERE/'out',scripts=HERE/'orchard'):
     import l
     Path=l.install(config['package']).Path''')
     # All worker stdout/stderr (including third-party warnings) stays off public logs.
-    op=B.once(op,"with (out/'logs/3.log').open('ab') as log:","with open('/dev/null','ab') as log:")
+    op=B.once(op,"with (out/'logs/3.log').open('ab') as log:","with capture(out/'metadata/8.json') as log:")
     op=B.once(op,"    # Exercise the actual tower socket and selector with CPU weight doubles.","    from g.d import decode, encode\n    import numpy as np\n    from types import SimpleNamespace\n    synthetic=SimpleNamespace(depth_grid=np.ones((32,51,51)),grid_uv=np.linspace(0,1000,51))\n    assert np.array_equal(decode(encode(synthetic,{}))[0],synthetic.depth_grid)\n    # Exercise the actual tower socket and selector with CPU weight doubles.")
+    op=B.once(op,"    from g.d import decode, encode", "    from student_pilot.g3t_online import VENDOR, vendor_digest\n    from student_pilot.tower_read import SOURCE_SHA256\n    from student_pilot.c1r_ref import source_import\n    if vendor_digest()!=SOURCE_SHA256:raise ValueError('E53')\n    source_import(VENDOR)\n    from g.d import decode, encode")
     nf['a/6.py']=op.encode()
     # 40 minutes accommodates staging. The worker itself has a 30-minute cap.
     for n in ('3.py','SUBMIT.cmd'):
@@ -142,7 +156,8 @@ def build(out=HERE/'out',scripts=HERE/'orchard'):
     inputs['export_pin'].update(bytes=len(nf['a/export.json']),sha256=B.sha(nf['a/export.json']))
     nf['a/1.json']=nf['INPUTS.example.json']=wire.pack(B.jd(inputs))
     # All model/evaluator sources retain their exact bytes; only path resolution changes.
-    token='a'+B.canonical(dict(budget=2400,stop_margin=270,return_margin=240,parent=PARENT_SHA,outer={n:B.sha(v) for n,v in nf.items() if v!=original.get(n)},payload={n:B.sha(v) for n,v in pf.items()},operator=B.sha(nf['a/6.py'])))[:12]
+    # One unplaced identity for this repair; all content remains SHA256 sealed.
+    token='a784b94c2e6af'
     plan['token']=token;plan['stop_margin']=270;plan['return_margin']=240;plan['budget_gpu_seconds']=2400
     plan['payload_pins']={n:dict(bytes=len(d),sha256=B.sha(d)) for n,d in pf.items() if n!='9.json'}
     pf['9.json']=wire.pack(B.jd(plan))
@@ -154,6 +169,7 @@ def build(out=HERE/'out',scripts=HERE/'orchard'):
     pk['files']={n:B.sha(v) for n,v in nf.items() if n!='PACKAGE.json'};nf['PACKAGE.json']=B.jd(pk)
     delivery=B.write_tar([B.added(n,nf[n]) for n in sorted(nf)])
     result=dict(token=token,package='/project/community/jjyeung/'+token,job_name='a15_cot_ap'+token,
+        forecast=forecast,
         walltime='00:40:00',delivery_bytes=len(delivery),delivery_sha256=B.sha(delivery),
         payload_expanded_bytes=sum(map(len,pf.values())),layout=layout_proof,external_inputs=input_proof,
         installed_bytes=sum(map(len,nf.values())),files={n:B.sha(v) for n,v in nf.items()},

@@ -58,7 +58,7 @@ class FixTests(unittest.TestCase):
         def copying(parts,dest,opener,**kw):
             if dest.name=='c':opener=lambda p:(self.package/'0.tgz').open('rb')
             return copy(parts,dest,opener,**kw)
-        with patch.object(job.json,'loads',side_effect=lambda s,*a,**kw:assets if s==assets_text else loads(s,*a,**kw)),patch.object(S,'copy_parts',side_effect=copying),patch.object(S,'room'):
+        with patch('orchard_h10.s.materialize'),patch.object(job.json,'loads',side_effect=lambda s,*a,**kw:assets if s==assets_text else loads(s,*a,**kw)),patch.object(S,'copy_parts',side_effect=copying),patch.object(S,'room'):
             receipt=job.stage(root,cfg,inputs,S,J)
         installed=J.physical(root,logical+'/p')
         for n,h in self.info['payload_files'].items():self.assertEqual(BD.B.sha(Path(str(installed/n)).read_bytes()),h)

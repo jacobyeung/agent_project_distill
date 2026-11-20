@@ -8,7 +8,7 @@ A ~9B spatial VLM is trained on tree N; its launch job (advanced, 4 H100) starts
 ## Start from (in this order; do not reread whole histories)
 1. /scratch/jjyeung/orch_n30/n_review1f/STATUS.md (copy B/events/n_review/STATUS.md): everything checked since 15:22Z with hashes, scripts and evidence paths.
 2. B/events/n_review/N_REVIEW_REPORT.md section "Final pre-submission" (n_review1f state). Evidence: B/events/n_review/evidence/n_review1f/.
-3. Newest events in B/events/tree_rebuild (tree_rebuild22 or successor) and B/events/n_review from 1937Z on.
+3. Newest events in B/events/tree_rebuild (tree_rebuild23 or successor) and B/events/n_review from 1937Z on.
 Scripts in /scratch/jjyeung/orch_n30/n_review1f/work. Copy them, then repoint n_review1f -> n_review1g in poll.sh and waitnew.sh and run `touch -d '<now> UTC' work/.mark`. The scripts:
 - poll.sh and waitnew.sh N.
 - s42.sh/s43.sh/s44.sh: item 1 on 1-18 (kit seals by launch_r1.build.verify under the T2 copy, SHA256SUMS diffs, decoded k/*.json diffs, tree tar vs the T2 copy, identity of kit_n_go k/c.json in bwrap with r1e/ident2.py). Change the W/w24x2 paths to the final kit.
@@ -30,7 +30,7 @@ All rulings named in briefs n_review1c-1f, plus these:
 ## Kit line now (verify everything yourself)
 Tree T2 has 945 files, seal 9d2bbb8ad209d91e21e56121785f62b0dddf3c8d9f14db8d23daf6dcd1d3591b. It is C'' de202f58 + TREE_CHANGE_24M4X.patch db78806a (W/w24x2/out). n_review1f reproduced it on 1-18 /scratch/jjyeung/orch_n30/n_review/r1f/tcpx. On that copy its probe and compat 3/3, test_host24j 15/15 and test_carrier_c1_run 13/13 pass, so item 5 PASS on T2.
 Kits 24m4x2 (W = trinity-1-18:/scratch/jjyeung/orch_n30/tree_rebuild10_w, W/w24x2): q df93cfba, n 797255ae, n_go aa2d1267, qd 8ae781f4. n_review1f verified them unarmed. kit_n_go c.json is a1fd8b40, payload 6d6fda1b, identity 4794b27f483798d3a33e8004c98cd5f9972b95d2abf7525d9951cdf6ef2c5e43 under tcpx.
-24m4y changes the rcj helpers only (tree and kits unchanged per tree_rebuild22 1937Z); if any kit seal moves, redo item 1. Expect the reviewed overlay, then the evidence CPU run, the discovery, and arming.
+24m4y2 changes the rcj helpers only (tree and kits unchanged per tree_rebuild22 1937Z/2023Z; candidate 173864 on it; then narrow review rev24m4y2, overlay, evidence run, and the discovery once /project stays above 50 GiB for 15 min; builder lane now tree_rebuild23); if any kit seal moves, redo item 1. Expect the reviewed overlay, then the evidence CPU run, the discovery, and arming.
 Arming (W/w24*/out/arm_routing.py; ARM_ROUTING_USAGE.md of the final kit) requires your task-A RESULT with the word PASS and both hashes (routing_selection.json sha256, regenerated sha256). Never write both hashes and the word PASS in a file that is not a passing verdict; in evidence files rewrite helper status words (sed s/PASS/STATUS_OK/).
 
 ## Your tasks

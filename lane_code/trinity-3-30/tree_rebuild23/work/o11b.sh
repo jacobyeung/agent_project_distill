@@ -1,0 +1,5 @@
+export TZ=UTC; date -u +%TZ; X=/project/community/jjyeung/okh7/x_22c714e1; cd $X
+F=$(df -BG --output=avail /project/community | tail -1 | tr -dc 0-9); echo FREE_GIB $F; [ "$F" -ge 30 ] || { echo BELOW_FLOOR_30; exit 1; }
+squeue -u $USER -h -o "%i %P %j %T" | grep -E "24d9b8e2" && { echo QUEUED; exit 1; }
+[ "$(sha256sum qd/SHA256SUMS.txt | cut -c1-16)" = 8ae781f4cd655a53 ] && [ "$(cd qd && sha256sum -c SHA256SUMS.txt 2>&1 | grep -vc ': OK$')" = 0 ] && [ -z "$(find qd -name __pycache__)" ] && [ "$(sha256sum jd6.sh | cut -c1-16)" = 0ea1b3894495dee7 ] && [ "$(sha256sum dbb3.py | cut -c1-16)" = 4ca1926a44148f22 ] && sbatch -p advanced $X/jd6.sh; sleep 20
+squeue -u $USER -o "%.10i %.10P %.24j %.8T %.10M %.12b %R"; squeue -p advanced -h -o "%u %T %b" | sort | uniq -c | head; df -h /project/community | tail -1

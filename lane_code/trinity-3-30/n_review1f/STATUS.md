@@ -39,3 +39,7 @@ Lane n_review1f (Devin Opus high, trinity-3-30, start 15:22Z, hard limit ~21:20Z
 - 19:52Z N_REVIEW_REPORT.md final table rewritten (state 19:50Z); previous 95fc9ec4 at evidence/n_review1f/N_REVIEW_REPORT_before_1950Z.md.
 - 19:58Z successor brief draft out/n_review1g_draft.md (write tool; an exec heredoc was blocked by rm_guard as 'unparsable', queued in agent_project PENDING_USER_COMMANDS.md although it deleted nothing).
 - 20:00Z ORCH ORDER 1955Z (project fs 81 GiB): ENOSPC test on final kit bytes, card states free space + pre-training bytes; wrapper may move logs to node-local disk (item 7 re-read). Added to successor draft.
+## 20:28Z rotate to n_review1g (brief B/briefs/n_review1g.md 64da43a4)
+- Done: tree T (7a8022ad) and T2 (9d2bbb8a) reproduced and reviewed, item 5 PASS on T2; item 1 on unarmed 24m4x2; item 2 on 24m4x2; P tree (e5be8157) has no extent reader; task-A reader chk/taska.py + dry runs on candidates; card defect counts (RESULT 1913Z); views on 1549Z/1556Z/1937Z; N_REVIEW_REPORT table (state 19:50Z, sha 9e652781).
+- Not done: task A on the reviewed kit's evidence run; discovery items (d), P1, selection 655b953d compare, census, first batch, admit test; item 1 on final/armed kit; items 6-8; n_review2 brief update (still 70c03ecb); final verdict.
+- Builder: tree_rebuild23; 24m4y2 helpers; candidate 173864; Orchard /project ~41 GiB (floors RULING 1959Z); launch QUESTION ~23:00Z or later.

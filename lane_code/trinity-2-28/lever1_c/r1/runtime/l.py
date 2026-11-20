@@ -19,6 +19,7 @@ def install(root):
     data = json.loads((root/'l.json').read_text())
     edges = {(k[0], bytes.fromhex(k[1]).decode()): v for k,v in data['edges']}
     modules = {bytes.fromhex(k).decode(): v for k,v in data['modules'].items()}
+    views = data.get('views', {})
 
     def translate(value):
         p = pathlib.Path(value)
@@ -51,6 +52,31 @@ def install(root):
                 values=list(result);values[6]=len(j.raw(pathlib.Path(str(self)).read_bytes()))
                 return os.stat_result(values)
             return result
+        def rglob(self, pattern, *args, **kwargs):
+            try:relative=str(pathlib.Path(str(self)).relative_to(root))
+            except ValueError:
+                yield from super().rglob(pattern, *args, **kwargs)
+                return
+            view=views.get(relative)
+            if view is None:
+                yield from super().rglob(pattern, *args, **kwargs)
+                return
+            # Integrity hashes use original relative names and ordering, while
+            # every read still opens the opaque physical file and hashes its bytes.
+            for physical in pathlib.Path(str(self)).rglob(pattern, *args, **kwargs):
+                encoded=view.get(str(physical.relative_to(root)))
+                logical=bytes.fromhex(encoded).decode() if encoded is not None else physical.relative_to(self).as_posix()
+                entry=DigestPath(physical)
+                entry.logical=logical;entry.base=str(self)
+                yield entry
+
+    class DigestPath(Path):
+        def relative_to(self, other, *args, **kwargs):
+            if str(other)==self.base:return pathlib.PurePosixPath(self.logical)
+            return super().relative_to(other, *args, **kwargs)
+        def __lt__(self, other):
+            if isinstance(other,DigestPath):return self.logical < other.logical
+            return super().__lt__(other)
 
     proxy = types.ModuleType('pathlib')
     proxy.__dict__.update(vars(pathlib));proxy.Path = Path

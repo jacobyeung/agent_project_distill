@@ -54,6 +54,6 @@ class Writer:
         chunk=trial.compress(data)+trial.flush(zlib.Z_SYNC_FLUSH)
         if self.bytes+len(chunk)+len(trial.copy().flush())>self.cap:
             raise ValueError('return cap')
-        self.codec=trial; self.stream.write(chunk); self.bytes+=len(chunk);self.items+=1
+        self.codec=trial; self.stream.write(chunk); self.stream.flush(); self.bytes+=len(chunk);self.items+=1
     def close(self):
         chunk=self.codec.flush();self.stream.write(chunk);self.bytes+=len(chunk);self.stream.close()

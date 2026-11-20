@@ -1,13 +1,15 @@
 {
-  "tests": 28,
+  "tests": 32,
   "existing_tests": 14,
   "review_regressions": 14,
+  "failure_regressions": 4,
   "passed": true,
   "real_T1_printed_gap_items": 20,
   "gap_tolerance_m": 0.0,
   "imports": true,
   "entry_stub": true,
   "dry_run": "depth return missing",
+  "python_files_compiled": 330,
   "shell_syntax": {
     "orchard/o_check_sub.sh": {
       "returncode": 0,
@@ -38,18 +40,44 @@
       "stderr": ""
     }
   },
-  "delivery_sha256": "672076c0edda7703c22500f4c9b3ce1b7f6e6421f23b3cc5d2174eef5b8115dd",
-  "delivery_bytes": 3490726,
-  "payload_expanded_bytes": 29515891,
+  "token": "a784b94c2e6af",
+  "delivery_sha256": "b7b0148bb78b2d7ac49a64dd1dfc264cf70ee122c4781293abe35c8235095302",
+  "delivery_bytes": 3522551,
+  "payload_expanded_bytes": 29706935,
   "gpu_executed": false,
   "submitted": false,
   "status": "ready for independent re-review",
-  "python_files_compiled": 303,
-  "token": "a99a83187be42",
-  "input_paths_scanned": 27,
-  "rgb_paths_scanned": 2912,
-  "json_strings_scanned": 1081,
-  "unused_input_opens": 0,
+  "failure_checks": {
+    "payload_sha256": "c0475990df75c91450b84da5a9cdc8e28b56600c8edec3633263c09d1056fd6c",
+    "delivery_sha256": "b7b0148bb78b2d7ac49a64dd1dfc264cf70ee122c4781293abe35c8235095302",
+    "diagnostics": {
+      "passed": true,
+      "max_lines": 200,
+      "max_line_chars": 2048,
+      "authenticated_members": 2
+    },
+    "capture": {
+      "passed": true,
+      "dense": 64,
+      "anchors": 32,
+      "prefills": 1,
+      "decode_steps": 0,
+      "scale": 2.0,
+      "real": "preprocessing, conversion, sampling, validation, own scaling, capture",
+      "stubbed": "neural forwards and weight identity"
+    },
+    "source": {
+      "passed": true,
+      "files": 26,
+      "parent_digest": "df1ea59a73b0ad08b51670bfa37da84eace99b9d0c45c8d270f7052b42e98701",
+      "corrupt_source_rejected": true
+    },
+    "worker_failure": {
+      "passed": true,
+      "code": "E99:546f7765724572726f72",
+      "lines": 13
+    }
+  },
   "cpu_rehearsal_output_scan": {
     "passed": true,
     "raw": true,
@@ -80,7 +108,7 @@
       {
         "path": "metadata/IDENTITY.json",
         "bytes": 2937,
-        "sha256": "244498ea75b12a42957404157821ca36d18987630fd4038e3787ebdc0b20b687"
+        "sha256": "442c14b3a800299b46858c27b0a2ddf576825edaf8a25cd007ccde780fdf56db"
       },
       {
         "path": "metadata/MEMORY.json",
@@ -100,7 +128,7 @@
       {
         "path": "metadata/a/30.json",
         "bytes": 4271,
-        "sha256": "acff24321dd2fe8fca9e50533662f971f9b687e9cb1bd04e9f77b74a670bb48b"
+        "sha256": "35952e0f31876c217265dcdcc3bb0ad90682fdba225f0628dab80d9cfc6a5be2"
       },
       {
         "path": "metadata/a/5.py",
@@ -110,16 +138,182 @@
       {
         "path": "metadata/reads/0/metadata/0.json",
         "bytes": 1865,
-        "sha256": "7bc9e2978aa62246536e6f012f538f4347e995404f3d71a121a4219a52f6b598"
+        "sha256": "94d51ce294bc1d90a10598f1bd2e5b2234d7d4e38802123b0a31acb5aa5f31ca"
       },
       {
         "path": "metadata/reads/0/metadata/READ_IDENTITY.json",
         "bytes": 3141,
-        "sha256": "4aa78cc155326025c4339978b0d9c87b36dccb33e47bd6075cf6c3a390a1030c"
+        "sha256": "9a5f39b0712493a7216ede114474a70433317699b4d8128222f623fd8d6279e7"
       }
     ]
   },
-  "item_copy_exact": true,
-  "repeated_rehearsal": true,
-  "copied_entry_executed": true
+  "workspace_limit_bytes": 2000000000,
+  "cpu_rehearsal": {
+    "passed": true,
+    "stub_weights": true,
+    "actual_operator_rehearsal": true,
+    "entries": [
+      {
+        "read": 0,
+        "types": [
+          "object_abs_distance"
+        ],
+        "args": [
+          "--export-pin",
+          "0.json",
+          "--items",
+          "/scratch/jjyeung/orch_n30/lever1_c/r1/tests/case_p8tyiv4q/r/metadata/a/3.json",
+          "--export",
+          "e",
+          "--artifact-manifest",
+          "b",
+          "--reader-root",
+          "/scratch/jjyeung/orch_n30/lever1_c/r1/tests/case_67zopw9v/p/b",
+          "--settings",
+          "/scratch/jjyeung/orch_n30/lever1_c/r1/tests/case_p8tyiv4q/r/metadata/reads/0/metadata/0.json",
+          "--out",
+          "/scratch/jjyeung/orch_n30/lever1_c/r1/tests/case_p8tyiv4q/r/metadata/journals",
+          "--arms",
+          "tower",
+          "--shard",
+          "0/1",
+          "--device",
+          "cpu",
+          "--stop-at",
+          "1",
+          "--finish-by",
+          "2",
+          "--stop-file",
+          "/scratch/jjyeung/orch_n30/lever1_c/r1/tests/case_p8tyiv4q/r/metadata/STOP",
+          "--modes",
+          "none",
+          "--types",
+          "object_abs_distance",
+          "--type-journals"
+        ],
+        "worker_argv": [
+          "/scratch/jjyeung/envs/p1cpu/bin/python",
+          "-B",
+          "-I",
+          "5.py",
+          "30.json"
+        ],
+        "settings": {
+          "perception_memo": "verify",
+          "perception_memo_modules": [
+            "g3t"
+          ],
+          "perception_memo_verify_ids": [
+            "vsi590k_042574",
+            "vsi590k_042581",
+            "vsi590k_042584",
+            "vsi590k_042588",
+            "vsi590k_042597",
+            "vsi590k_042604",
+            "vsi590k_042608",
+            "vsi590k_042612",
+            "vsi590k_042613",
+            "vsi590k_042627",
+            "vsi590k_042632",
+            "vsi590k_042644",
+            "vsi590k_042645",
+            "vsi590k_042656",
+            "vsi590k_042674",
+            "vsi590k_042690",
+            "vsi590k_042715",
+            "vsi590k_042717",
+            "vsi590k_044593",
+            "vsi590k_044597",
+            "vsi590k_044622",
+            "vsi590k_045538",
+            "vsi590k_045546",
+            "vsi590k_045785",
+            "vsi590k_045786",
+            "vsi590k_046210",
+            "vsi590k_046212",
+            "vsi590k_047592",
+            "vsi590k_050188",
+            "vsi590k_050630"
+          ],
+          "save_own_depth": false,
+          "stage1_select_rule": "candidates_argmax",
+          "tree": "/scratch/jjyeung/orch_n30/lever1_c/r1/tests/case_67zopw9v/p/tree"
+        },
+        "expected": 150
+      }
+    ],
+    "payload": "c0475990df75c91450b84da5a9cdc8e28b56600c8edec3633263c09d1056fd6c",
+    "plan": "ac4b8b79365255ed1d44ea99a85884bb60f529b107f5e78dd0c24c5f49b4b868",
+    "output_scan": {
+      "passed": true,
+      "raw": true,
+      "decoded_json": true,
+      "deny": [
+        "split",
+        "vsi",
+        "revsi",
+        "scannet",
+        "arkit",
+        "sam",
+        "g3t",
+        "depth",
+        "distill",
+        "qwen",
+        "ground",
+        "dev",
+        "bench",
+        "mask",
+        "tower",
+        "reader",
+        "student",
+        "teacher",
+        "k1",
+        "t1"
+      ],
+      "files": [
+        {
+          "path": "metadata/IDENTITY.json",
+          "bytes": 2937,
+          "sha256": "442c14b3a800299b46858c27b0a2ddf576825edaf8a25cd007ccde780fdf56db"
+        },
+        {
+          "path": "metadata/MEMORY.json",
+          "bytes": 1081,
+          "sha256": "3c02ddd2581a0fac0e354e55d0f4fc212b8ce5fc4bece7686474437a7c4c74f6"
+        },
+        {
+          "path": "metadata/a/3.json",
+          "bytes": 251092,
+          "sha256": "392ea8e67828e2577f335f841722168f854bc085c7f97d6053fefba67a4d58b5"
+        },
+        {
+          "path": "metadata/a/3.lock",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "metadata/a/30.json",
+          "bytes": 4271,
+          "sha256": "35952e0f31876c217265dcdcc3bb0ad90682fdba225f0628dab80d9cfc6a5be2"
+        },
+        {
+          "path": "metadata/a/5.py",
+          "bytes": 7660,
+          "sha256": "20747680945a4dfbe85792b5d3c70452b189fd28dd39f60fa8c8e1ff39104b52"
+        },
+        {
+          "path": "metadata/reads/0/metadata/0.json",
+          "bytes": 1865,
+          "sha256": "94d51ce294bc1d90a10598f1bd2e5b2234d7d4e38802123b0a31acb5aa5f31ca"
+        },
+        {
+          "path": "metadata/reads/0/metadata/READ_IDENTITY.json",
+          "bytes": 3141,
+          "sha256": "9a5f39b0712493a7216ede114474a70433317699b4d8128222f623fd8d6279e7"
+        }
+      ]
+    },
+    "item_copy_exact": true,
+    "repeated_rehearsal": true
+  }
 }

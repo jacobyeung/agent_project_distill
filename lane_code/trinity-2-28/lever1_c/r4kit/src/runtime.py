@@ -6,6 +6,11 @@ from pathlib import Path
 import signal
 import sys
 import time
+import importlib.util
+
+C = None
+
+def read(path): return C.loads(Path(path).read_bytes())
 
 
 def sha(path):
@@ -14,16 +19,67 @@ def sha(path):
 
 
 def write(path, value):
-    Path(path).write_text(json.dumps(value, sort_keys=True, allow_nan=False)+'\n')
+    C.store(path, value)
 
 
 class Deadline(Exception):
     pass
 
 
+class PairWriter:
+    def __init__(self, stream, rows, progress, started):
+        self.stream, self.rows, self.progress, self.started = stream, rows, progress, started
+        self.pending = {}
+
+    def emit(self, i, result):
+        row = self.rows[i]
+        result.update(i=row['i'], r=row['r'], a=row['a'], s=time.monotonic()-self.started)
+        self.pending[i] = result
+        pair = i-i%2
+        if pair in self.pending and pair+1 in self.pending:
+            raw = b''.join(C.pack(json.dumps(self.pending[j], sort_keys=True, allow_nan=False)) for j in (pair,pair+1))
+            assert len(raw) <= 262144 and self.stream.tell()+len(raw) < 49000000
+            self.stream.write(raw); self.stream.flush(); os.fsync(self.stream.fileno())
+            self.progress[0] += 2
+            del self.pending[pair]; del self.pending[pair+1]
+
+
+def run_batches(out, rows, progress, end, prepare_rows, generate, deadline):
+    # The first batch is a measurement; subsequent admission uses the slowest
+    # observed prefill and token step, extrapolated to the frozen 64-token cap.
+    required = 60.0
+    with (out/'0.jsonl').open('xb') as stream, (out/'3.jsonl').open('xb') as timings:
+        for start in range(0, len(rows), 8):
+            remaining = end-time.time()
+            group = rows[start:start+8]
+            assert all(group[j]['i']==group[j+1]['i'] and (group[j]['a'],group[j+1]['a'])==(0,1) for j in range(0,len(group),2))
+            record = dict(batch=start//8, rows=len(group), remaining_s=remaining, required_s=required)
+            if remaining < required+10:
+                record.update(status='not_admitted', completed_pairs=0)
+                timings.write(C.pack(json.dumps(record))); timings.flush(); os.fsync(timings.fileno())
+                return 'timeout'
+            deadline()
+            t0 = time.monotonic(); before = progress[0]; metrics = {}; state = 'failed'; prep_s = 0.
+            try:
+                batches = prepare_rows(group)
+                prep_s = time.monotonic()-t0
+                writer = PairWriter(stream, group, progress, t0)
+                generate(batches, writer.emit, deadline, metrics)
+                batches = None
+                state = 'complete'
+            finally:
+                elapsed = time.monotonic()-t0
+                required = max(required, 1.25*(prep_s+metrics.get('prefill_s', 0)+64*metrics.get('max_step_s', 0)), 1.25*elapsed)
+                record.update(status=state, elapsed_s=elapsed, prepare_s=prep_s, completed_pairs=(progress[0]-before)//2,
+                              next_required_s=required, **metrics)
+                timings.write(C.pack(json.dumps(record))); timings.flush(); os.fsync(timings.fileno())
+    return 'complete'
+
+
 def run(package, mode, end):
     # Staging and namespace are the base package's implementations. This process
     # runs inside that namespace, after the original archives pass their pins.
+    global C
     started = time.monotonic()
     end = min(float(end), time.time()+1500)
     def deadline(*unused):
@@ -32,13 +88,15 @@ def run(package, mode, end):
     signal.signal(signal.SIGALRM, deadline)
     signal.setitimer(signal.ITIMER_REAL, max(.001, end-time.time()))
     p = Path(package)
-    cfg = json.loads((p/'2.json').read_text())
+    spec = importlib.util.spec_from_file_location('a_storage', p/'9.py')
+    C = importlib.util.module_from_spec(spec); spec.loader.exec_module(C)
+    cfg = read(p/'2.json')
     d = Path(cfg['logical'])/'d'
     out = p/'a'
     out.mkdir(exist_ok=True)
+    finder = C.install(p, outputs=[d/'e'])
     (p/'c/b/work/tmp').mkdir(parents=True, exist_ok=True)
-    sources = p/'c'
-    sys.path[:0] = [str(sources/'b'), str(sources/'tree'), str(p)]
+    sources = finder.Path(p/'c')
     for root in cfg['inputs']['env_roots']:
         sys.path.insert(0, root)
     import torch
@@ -48,7 +106,6 @@ def run(package, mode, end):
     from evalpath.runtime import prompt_batch
     from student_pilot.carrier_c1_decode import _prepare_decode, consume_cache_tokens
     from student_pilot.ground_context import closed_adapters
-    import importlib.util
     spec = importlib.util.spec_from_file_location('a0', p/'7.py')
     probe = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(probe)
@@ -66,7 +123,7 @@ def run(package, mode, end):
         export_pins=pins, data_root=d)
     settings = dict(tree=str(sources/'tree'),
                     config=str(d/pins['preparation']['config']['path']))
-    data = json.loads((p/'1.json').read_text())
+    data = read(p/'1.json')
     assert len(data['rows']) == 580 and len(data['captures']) == 98
     # Every RGB is authenticated once; the same capture is used in both arms.
     for capture in data['captures'].values():
@@ -79,13 +136,13 @@ def run(package, mode, end):
         return trainer_row(task, data['captures'][row['r']], cfg['inputs']['frames_root'], verify=False)
     if mode == 'c':
         from student_pilot import carrier_c1_run as trainer
-        receipt = json.loads((export/'receipt.json').read_text())
-        config = json.loads(Path(settings['config']).read_text())
+        receipt = read(export/'receipt.json')
+        config = read(settings['config'])
         receipt.update(align=config.get('align'), init_artifact=config.get('init_artifact'),
                        frame_markers=config.get('frame_markers', False),
                        pointing_weights=config.get('pointing_weights'),
                        camera={**receipt['camera'], **config.get('camera_overrides', {})})
-        manifest = json.loads(Path(receipt['model']['path']).read_text())
+        manifest = read(receipt['model']['path'])
         processor = trainer.processor_for_receipt(manifest, receipt)
         checked = []
         previous = None
@@ -103,6 +160,7 @@ def run(package, mode, end):
             frames=98*32, artifact=pins['artifact']['sha256'], frozen=cfg['frozen'],
             seconds=time.monotonic()-started, model_loaded=False,
             prefix_27_1884=processor.tokenizer.decode([27,1884],skip_special_tokens=False)=='<ground'))
+        signal.setitimer(signal.ITIMER_REAL, 0)
         return
     load_start = time.monotonic()
     model, processor, loaded = load_native(export, device='cuda:0', settings=settings)
@@ -115,61 +173,47 @@ def run(package, mode, end):
     carrier = getattr(model, 'carrier_id', None)
     if carrier is not None:
         reserved.append(int(carrier))
-    records = 0
-    status = 'complete'
+    spec = importlib.util.spec_from_file_location('a_batch', p/'10.py')
+    batched = importlib.util.module_from_spec(spec); spec.loader.exec_module(batched)
+    progress = [0]
+    status = 'failed'
     try:
-        with (out/'0.jsonl').open('x') as stream, torch.no_grad():
-            for row in data['rows']:
-                deadline()
-                t0 = time.monotonic()
-                batch = prompt_batch(processor, row_for(row), loaded['config'], 'routed')
-                batch = {k:v.to('cuda:0') if hasattr(v, 'to') else v for k,v in batch.items()}
-                t1 = time.monotonic()
-                # Native prefill rejects explicit caps below 16384. None leaves
-                # it unchanged; probe.decode owns the strict 64-token limit.
-                state = closed_adapters(_prepare_decode)(model, processor, batch, max_new_tokens=None)
-                assert state.cap >= 64
-                t2 = time.monotonic()
-                eos = state.native.generation_config.eos_token_id
-                eos = set(eos if isinstance(eos, (list, tuple)) else [eos or tokenizer.eos_token_id])
-                eos.add(tokenizer.eos_token_id)
-                cache = [state.output.past_key_values]
-                def choose(output):
-                    logits = output.logits[:, -1, :].float().clone()
-                    logits[..., reserved] = -float('inf')
-                    return logits.argmax(-1).item()
-                def advance(ids):
-                    full = torch.cat((batch['input_ids'], batch['input_ids'].new_tensor([ids])), 1)
-                    attn = torch.cat((batch['attention_mask'], batch['attention_mask'].new_ones((1,len(ids)))), 1)
-                    output, cache[0] = consume_cache_tokens(state.native, full, attn, cache[0], observer=state.stream)
-                    return output
-                result = probe.decode(state.output, choose, advance, tokenizer, eos, deadline)
-                result.update(i=row['i'], r=row['r'], a=row['a'], s=time.monotonic()-t0,
-                              b=t1-t0, p=t2-t1, d=time.monotonic()-t2)
-                raw = json.dumps(result, sort_keys=True, allow_nan=False)+'\n'
-                assert len(raw.encode()) <= 65536 and stream.tell()+len(raw.encode()) < 49000000
-                stream.write(raw); stream.flush()
-                records += 1
-                # Avoid keeping the preceding prefill/cache alive across items.
-                state = batch = cache = None
-    except Deadline:
+        def prepare_rows(rows):
+            batches = [prompt_batch(processor, row_for(row), loaded['config'], 'routed') for row in rows]
+            return [{k:v.to('cuda:0') if hasattr(v, 'to') else v for k,v in b.items()} for b in batches]
+        def generate(batches, emit, check, metrics):
+            batched.generate(model, processor, batches, probe, emit, check, metrics=metrics)
+        with torch.no_grad():
+            status = run_batches(out, data['rows'], progress, end, prepare_rows, generate, deadline)
+    except Deadline as error:
         status = 'timeout'
+        write(out/'4.json', C.diagnostic(error))
     finally:
         signal.setitimer(signal.ITIMER_REAL, 0)
+        records = progress[0]
         write(out/'1.json', dict(passed=status=='complete' and records==580, mode='g',
             records=records, status=status, frozen=cfg['frozen'], artifact=pins['artifact']['sha256'],
             load_s=loading, seconds=time.monotonic()-started, tools_served=0,
             external_components_loaded=False, max_new_tokens=64))
 
 
+def main(package, mode, end):
+    global C
+    try:
+        run(package, mode, end)
+        return 0
+    except BaseException as error:
+        signal.setitimer(signal.ITIMER_REAL, 0)
+        root = Path(package); (root/'a').mkdir(exist_ok=True)
+        if C is None:
+            spec = importlib.util.spec_from_file_location('a_storage', root/'9.py')
+            C = importlib.util.module_from_spec(spec); spec.loader.exec_module(C)
+        write(root/'a/4.json', C.diagnostic(error))
+        return 1
+
+
 if __name__ == '__main__':
-    # Library diagnostics never enter a scheduler log or the returned records.
+    # Native output is suppressed; packed tracebacks travel in the return.
     sink = os.open(os.devnull, os.O_WRONLY)
     os.dup2(sink, 1); os.dup2(sink, 2); os.close(sink)
-    try:
-        run(*sys.argv[1:])
-    except BaseException as error:
-        root = Path(sys.argv[1]); (root/'a').mkdir(exist_ok=True)
-        write(root/'a/2.json', dict(passed=False,
-            error=hashlib.sha256((type(error).__name__+str(error)).encode()).hexdigest()))
-        raise SystemExit(1)
+    raise SystemExit(main(*sys.argv[1:]))

@@ -246,14 +246,14 @@ class PackageTests(unittest.TestCase):
         manifests={r['task']['native']:r['mapping']['frame_binding_sha256'] for r in refs}
         original_digest=items.digest
         def digest(v):return v['anchors'] if 'anchors' in v else original_digest(v)
-        def one(gen,bound,ref):
+        def one(gen,bound,ref,**kw):
             md=dict(reference['geometry'][ref['item_id']]['geometry'])
             md['scale']+=1.
             return dict(metadata=dict(capture=ref['capture'],geometry=md),timings={})
         root=temp();cfg=dict(output=str(root/'r'),settings='0.json',stop_file=str(root/'stop'))
         settings=dict(save_own_depth=False,perception_memo_modules=['g3t'],export_dir='e',artifact_manifest='a')
         factory=types.SimpleNamespace(load_info={'export':{'step':544}},generator=types.SimpleNamespace(perception=types.SimpleNamespace(memo=None)))
-        with patch.object(w,'bind_reader_root',return_value=self.payload/'b'),patch.object(w,'assert_reader_root'),patch.object(adapter,'settings_for',return_value=settings),patch.object(adapter,'prepare_runtime'),patch.object(adapter,'artifact_spec',return_value=None),patch.object(adapter,'make_capped_real',return_value=factory),patch.object(parity,'_captures',return_value=manifests),patch.object(parity,'bind_item',return_value={}),patch.object(items,'digest',side_effect=digest),patch.object(w,'capture_one',side_effect=one),patch.object(torch.cuda,'get_device_name',return_value='H100'),patch.object(torch.cuda,'synchronize'):
+        with patch.object(w,'start_tower',return_value=(None,{})),patch.object(torch.cuda,'reset_peak_memory_stats'),patch.object(torch.cuda,'max_memory_allocated',return_value=0),patch.object(w,'bind_reader_root',return_value=self.payload/'b'),patch.object(w,'assert_reader_root'),patch.object(adapter,'settings_for',return_value=settings),patch.object(adapter,'prepare_runtime'),patch.object(adapter,'artifact_spec',return_value=None),patch.object(adapter,'make_capped_real',return_value=factory),patch.object(parity,'_captures',return_value=manifests),patch.object(parity,'bind_item',return_value={}),patch.object(items,'digest',side_effect=digest),patch.object(w,'capture_one',side_effect=one),patch.object(torch.cuda,'get_device_name',return_value='H100'),patch.object(torch.cuda,'synchronize'):
             result=w.run(cfg,100.,clock=lambda:0.)
         receipt=json.loads((root/'r/metadata/PARITY.json').read_text())
         self.assertTrue(result['complete']);self.assertEqual(result['completed'],60)

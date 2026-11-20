@@ -1,0 +1,10 @@
+from pathlib import Path
+p=Path('src/runtime.py');s=p.read_text().replace('    import importlib.util\n','');p.write_text(s)
+p=Path('src/storage.py');s=p.read_text().replace("    output_roots = [pathlib.Path(p).resolve() for p in outputs]", "    output_roots = getattr(sys, '_a_output_roots', [])\n    output_roots.extend(pathlib.Path(p).resolve() for p in outputs)\n    sys._a_output_roots = output_roots")
+p.write_text(s)
+p=Path('tests/test_fixes.py');s=p.read_text()
+s=s.replace("        raw=p.read_bytes();check(raw,str(p))", "        raw=p.read_bytes()\n        if p.suffix=='.tgz':\n            for name,data in members(raw).items():\n                check(name.encode(),str(p))\n                if name.endswith('.tgz'):\n                    for n,v in members(data).items():check(n.encode(),n);check(v,n)\n                else:check(data,name)\n        else:check(raw,str(p))")
+s=s.replace("                def failed(*args,**kwargs):raise RuntimeError(case)", "                injected=[]\n                def failed(*args,**kwargs):\n                    injected.append(case);raise RuntimeError(case)\n                def extracting(stream,target,*args,**kwargs):\n                    for n,v in FILES.items():(target/n).write_bytes(v)\n                S.extract_stream=extracting")
+s=s.replace("                    C.materialize=lambda *a:None", "                    C.store(p/'2.json',cfg)")
+s=s.replace("                dest=p/'f';ctl.fetch(p,dest)", "                if case in ('check','materialize','room','storage','extract','copy','unpack'):\n                    self.assertEqual(injected,[case])\n                dest=p/'f';ctl.fetch(p,dest)")
+p.write_text(s)

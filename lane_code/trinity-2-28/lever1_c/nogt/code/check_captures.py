@@ -46,8 +46,11 @@ def geometry_check(z,dataset):
     passed=finite and max(ortho,det,bottom)<=1e-4 and invalid==0 and not unknown and np.all(z['depth']>=0) and len(rows)>0 and bbox/len(rows)>.5 and containment>=.95
     return dict(passed=bool(passed),pose_orthogonality_max=ortho,pose_det_error_max=det,pose_bottom_error_max=bottom,finite=bool(finite),labeled_nonpositive_depth=invalid,unknown_ids=sorted(unknown),visible_instance_frames=len(rows),bbox_iou_gt025_count=bbox,bbox_iou_gt025_share=bbox/len(rows) if rows else None,contained_pixels=inside,labeled_pixels=total,containment_share=containment,instance_frames=rows)
 
-def run_checks():
+def run_checks(selected=None):
     builds=read(OUT/'BUILDS.json');manifest={m['scene']:m for m in read(ROOT/'DEVS1_MANIFEST.json')['captures']}
+    previous=read(OUT/'CAPTURE_CHECKS.json') if selected is not None else None
+    if selected is not None:
+        builds={c:b for c,b in builds.items() if c in selected}
     data={};results={};objects=[]
     for canonical,build in builds.items():
         if not build['built']:continue
@@ -89,6 +92,9 @@ def run_checks():
         r['colmap_passed']=builds[c].get('evidence',{}).get('colmap',{}).get('passed',True)
         r['passed']=r['identity_passed'] and r['geometry']['passed'] and r['binding_passed'] and r['colmap_passed']
         print('CAPTURE',c,r['passed'],[(arm,a['same_median'],a['best_alternative_median']) for arm,a in r['arms'].items()],flush=True)
+    if previous is not None:
+        results={**previous['captures'],**results}
+        objects=[o for o in previous['objects'] if o['capture'] not in selected]+objects
     write(OUT/'CAPTURE_CHECKS.json',dict(captures=results,objects=objects,receipts=receipts,rules_sha256=sha(OUT/'CHECK_RULES.md')))
 
 if __name__=='__main__':run_checks()

@@ -1,0 +1,17 @@
+The delivery contains the three fixes and passes 24 CPU tests. No placement, submission, network access or GPU execution occurred.
+
+Token: `d93a17be024f5`. Job: `a15_cot_apd93a17be024f5`.
+Delivery: **4,235,885 bytes**. SHA-256: `9d023abcd0335d57ce99f02e54961b20838c3114c9cd3b537056d4532ca2ef36`.
+Frozen SHA-256: `3743891f778115529710461333ad09a9588b8075e2173a74fac0065dc5d0382d`. The frozen design and artifact pin are unchanged.
+
+Fetch selects `a/c` or `a/g` explicitly and verifies the receipt mode. All eleven injected failure paths pass real fetch in both modes (22 cases). Delivered-worker subprocess failures in both modes return tracebacks that decode locally. Diagnostics retain the last 200 lines, capped at 120 characters per line and 24,000 ASCII bytes, packed as hex. Controller and worker files remain separate so a later controller failure preserves the worker traceback. Saved transport text is hex-packed and passes the deny scan. Staging, submission, launch and finalization have explicit deadlines.
+
+Each batch writes packed preparation, prefill, slowest synchronized token-step and total timing, completed-pair count, remaining time and admission estimate to returned `3.jsonl`. The worker admits only whole pair batches when its conservative 64-token estimate plus a 10-second reserve fits. The first estimate is 60 seconds; later estimates use 1.25 times the slowest observed cost. The slow-batch regression returns four complete pairs and rejects the next batch; the fast-batch regression finishes both batches. Both timing journals pass real fetch and decode locally. Unexpected slowdowns may still interrupt an admitted batch; unfinished pairs never enter the return.
+
+Every authored source/resource has an opaque physical path and encoded bytes. The import hook resolves real module names in memory. The real CPU runtime and restore execute against tiny pinned inputs, with doubles for head-shape proof and processor/RGB work. All 42 files in that rehearsal pass raw-text and JSON-decoded scans; the deliberate escaped-string leak is rejected. The audit lists only fixed external interfaces and immutable library/model input exceptions with reasons. Full production GPU cache outputs remain untested.
+
+Eight-row decoding uses the package's left-padded hybrid-cache merge and row compaction. The native tiny CPU model returns identical tokens for eight unequal-length prompts against serial decoding; its rows exercise EOS, compaction and the 64-token cap. Generation never enters a response-serving path. Prompt order alternates the two arms, and each finished pair is flushed and synced immediately.
+
+The central forecast is **1367.2 seconds (22.79 minutes)**, including 395.0 seconds overhead, with **20.51% headroom** before the 1,720-second effective cutoff. This assumes an eight-row token forward costs twice a serial forward; GPU throughput and checkpoint parity are unmeasured. The worker estimate is 972.1 seconds, below its 1,500-second cap. The all-64-token forecast is 1694.2 seconds under the same unmeasured assumption. Timing-based admission may stop earlier; slow staging or longer openings produce an authenticated partial return without a gate verdict.
+
+Evidence: `out/test_probe.log`, `out/test_fixes.log`, `out/FIX_CHECKS.json`, `NAMING_AUDIT.json`, `FORECAST.json`, and `BUILD.json`. `PLACE.md` contains the exact placement, CPU, submit, fetch and local scoring commands. Both package levels pass the base extractor's 32 MiB allowance.

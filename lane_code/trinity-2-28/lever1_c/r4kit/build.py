@@ -7,6 +7,9 @@ from pathlib import Path
 import tarfile
 
 ROOT = Path(__file__).resolve().parent
+import importlib.util
+_spec=importlib.util.spec_from_file_location('a_storage',ROOT/'src/storage.py')
+storage=importlib.util.module_from_spec(_spec);_spec.loader.exec_module(storage)
 BASE = ROOT/'in/D400'
 SRC = BASE/'src'
 DENY = 'split vsi revsi scannet arkit sam g3t depth distill qwen ground dev bench mask tower reader student teacher k1 t1 word template'.split()
@@ -68,14 +71,14 @@ def build():
     for name,h in f['sources'].items():
         assert digest((ROOT/name).read_bytes())==h
     data,mapping=inputs()
-    token='b'+digest(frozen)[:12]
+    token='d93a17be024f5'
     package='/project/community/jjyeung/okh7/a15_cot_ap'+token
     base_inputs=json.loads((BASE/'package/a/1.json').read_text())
     # Geometry's dedicated archive is not needed. The shared environment archive
     # stays pinned; neither external component is instantiated or served.
     ins={k:base_inputs[k] for k in ('archives','env_roots','python','frames_root')}
     ins['archives']=[a for i,a in enumerate(ins['archives']) if i!=1]
-    ins['files']={k:base_inputs['files'][k] for k in ('artifact','heads','full_weights','base_config','original_model','env','policy')}
+    ins['files']={k:base_inputs['files'][k] for k in ('artifact','heads','full_weights','base_config','original_model')}
     assets=json.loads((SRC/'orchard_h10/vendor/ORCHARD_ASSETS.json').read_text())
     assets={k:assets[k] for k in ('groups','bwrap_pin')}
     cfg=dict(token=token,package=package,frozen=digest(frozen),logical='/scratch/jjyeung/b01ec87a6f29b',
@@ -95,8 +98,20 @@ def build():
     sources['c/'+str(p.relative_to(SRC))]=p.read_text()
     for p in sorted((SRC/'orchard_h10/vendor').glob('*.py')):
         sources['v/'+p.name]=p.read_text()
-    source_blob=gzip.compress(jd(sources),mtime=0)
-    payload={'1.json':jd(data),'2.json':jd(cfg),'6.json':b'{}\n',
+    # Authenticate full archives, but materialize only admitted inputs. Native
+    # third-party runtime/model assets retain their required wire representation.
+    n='v/orchard_stage.py'
+    text=sources[n].replace('strip=0, overlay=False):', 'strip=0, overlay=False, retain_roots=None):')
+    text=text.replace('            target = destination/str(path)',
+        "            if retain_roots is not None and path.parts[0] not in retain_roots:\n                continue\n            target = destination/str(path)")
+    text=text.replace("with archive.extractfile(item) as source, target.open('wb' if overlay else 'xb') as output:",
+        "with archive.extractfile(item) as source, _output(target, 'wb' if overlay else 'xb', retain_roots is not None and path.parts[0] in ('p0','m400') and target.suffix=='.json' and 'full_weights' not in path.parts) as output:")
+    text += "\n@contextmanager\ndef _output(path, mode, encode):\n    if not encode:\n        with path.open(mode) as f: yield f\n    else:\n        import io\n        with io.BytesIO() as f:\n            yield f\n            path.write_text(json.dumps({'a0':f.getvalue().hex()})+'\\n')\n"
+    sources[n]=text
+    source_blob=storage.pack(jd(sources))
+    payload={'1.json':storage.pack(jd(data)),'2.json':storage.pack(jd(cfg)),'6.json':b'{}\n',
+             '9.py':wrap((ROOT/'src/storage.py').read_bytes()),
+             '10.py':wrap((ROOT/'src/batch.py').read_bytes()),
              '5.py':wrap((ROOT/'src/runtime.py').read_bytes()),
              '7.py':wrap((ROOT/'src/probe.py').read_bytes()),'8.bin':source_blob}
     files=dict(payload)

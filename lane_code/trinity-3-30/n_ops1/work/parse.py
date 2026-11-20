@@ -52,6 +52,11 @@ if J!='0':
     el=dur(mine[0][4]);lim=dur(mine[0][5]);left=dur(mine[0][6]);info.update(node=mine[0][8],elapsed=mine[0][4],limit=mine[0][5],left=mine[0][6])
     if state=='PENDING':info['reason']=mine[0][7]
   else:left=None
+  if state=='PENDING' and 'held' in str(info.get('reason','')).lower():  # 24m4z: sbatch --hold until n_ops mints sess_<job>.json (ORCH 2058Z: normal up to 15 min)
+    S.setdefault('held_since',now); m=(now-S['held_since'])/60; info['held_min']=round(m)
+    if m>=15:flags.append('HELD %d min'%m)
+    else:warn.append('held %d min'%m)
+  else:S.pop('held_since',None)
   # stage from j.out
   jo=sec('JOUT'); jtxt=jo[1]; jsz=int((jo[0] or '-1').split()[0])
   stage='submitted'
@@ -168,7 +173,7 @@ if J!='0':
       else:S['gpu0']=0
   S['sig']=sig;S['cpu']=cpu;S['t']=now
   info['stage']=stage; S['stage']=stage
-  live=sec('LIVE')[1]; gd=sorted(set(re.findall(r'gcs_(m\w+)\.done',live))); info['gcs_done']=gd
+  live=sec('LIVE')[1]+sec('LSTATE')[1]; gd=sorted(set(re.findall(r'gcs_(m\w+)\.done',live))); info['gcs_done']=gd
   if gd!=S.get('gcs_done',[]):warn.append('NEW_GCS_DONE '+','.join(gd));S['gcs_done']=gd
   if re.search(r'gcs_m\w+\.json',live):warn.append('gcs_json_present(export not uploaded?)')
   if re.search(r'WAITING_REVIEW',live):
