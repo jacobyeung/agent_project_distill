@@ -1,0 +1,40 @@
+{
+  "schema": "k1-fov-variants-v1",
+  "capture_sha256": "76316bd9d18e3fa444f3d11bd5f046202d14349783a434498992c794bb2f8cbd",
+  "canonical": "scannetpp/bb87c292ad",
+  "checkpoint": {
+    "path": "/scratch/jjyeung/orch_cd/evalx/inbox/20261114T141906Z_cp2_m544_artifact.json",
+    "sha256": "1d6eeb28f51688c414cfe069d3d9da2f9308a4d8cc7b80261b14a5973c5f15ef"
+  },
+  "served_depth_sha256": "9054a924437b26250db5f7852c9885e5d63ea00515d4a234179e9d1e3e548e22",
+  "sources": {
+    "B": "live pose-head FoV, stages[-1][...,7:9] as passed to the served encode",
+    "V1": "1e-4+(pi-2e-4)*sigmoid(depth.fov(states)) on a separate private feature pass (scale_donor V1)",
+    "V2": "frozen G3T raw_pose9[anchor_slots,7:9] from the K1 tower phase cache (scale_donor V2)"
+  },
+  "g3t": {
+    "path": "/scratch/jjyeung/76e2c177ec2a.json",
+    "sha256": "c616ef0cbfb5e5fcf66cc0cab06320c34f145462675fd4b2aff2e9ea2d766c4a"
+  },
+  "missing": {},
+  "checks": {
+    "second_pass_pose_fov_bit_identical": true,
+    "second_pass_pose_fov_max_abs": 0.0
+  },
+  "seconds": {
+    "features": 0.10787043799064122,
+    "V1": 0.008636386002763174,
+    "V2": 0.008595412989961915
+  },
+  "keys": [
+    "depth_V1",
+    "depth_V2",
+    "fov_B",
+    "fov_V1",
+    "fov_V2"
+  ],
+  "files": {
+    "fov.npz": "035a44c403ad5dc68d7fdd89bfaa4dda957b0bf49ecb2816561de88cbf9a1cf5"
+  },
+  "boundaries_sha256": "454e9b27fedf7fd7008760dedc4e0961f6156cc3d8afdcd203e340921c52826c"
+}

@@ -5,7 +5,7 @@ import subprocess
 import sys
 import time
 
-def bind(cfg, sources, scratch, destination, kit, routing_base=None):
+def bind(cfg, sources, scratch, destination, kit, routing_base=None,pool_inputs=None):
     from student_pilot.p3_provenance import load, pinned
     from student_pilot.r1_persisted import scope
     from z import write, sha
@@ -25,7 +25,8 @@ def bind(cfg, sources, scratch, destination, kit, routing_base=None):
             if rows[name]['rows'] is None:raise ValueError('R1_SCENE_SOURCE_POPULATION_MISSING:'+name)
             pinned(rows[name]['rows'])
         pool=load(pinned(effective['s1_routing']['selection']))
-        spec=dict(sources=rows,pool_manifest=pool['manifest'],remove_files=cfg['remove_files'],tokenizer=pool.get('tokenizer'))
+        original=pool_inputs or pool
+        spec=dict(sources=rows,pool_manifest=original['manifest'],remove_files=cfg['remove_files'],tokenizer=original.get('tokenizer'))
         pinned(spec['pool_manifest'])
     physical=scratch/'sc';physical.mkdir(mode=0o700)
     control=scratch/'sc.json'

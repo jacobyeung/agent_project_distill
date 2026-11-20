@@ -1,0 +1,1 @@
+W=/scratch/jjyeung/orch_n30/tree_rebuild10_w; date -u +%TZ; cd $W/work/conf24m4/pkg; ls; ls out | head -50; ls -l $W/w24/out/POINTING_REMOVAL_BLOCKER.md $W/w24/out/PRODUCTION_BLOCKERS.md; head -c 1500 $W/w24/out/PRODUCTION_BLOCKERS.md; ls -la $W/w24/out | grep -i "kit"

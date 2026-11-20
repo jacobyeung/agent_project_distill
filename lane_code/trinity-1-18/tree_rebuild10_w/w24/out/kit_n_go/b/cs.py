@@ -116,9 +116,10 @@ def emit(kit,root,cfg,source,admitted,stores,job,*,phase='final'):
         output['status']=('WOULD_REFUSE' if diagnose else 'REFUSE') if failures else 'PASS'
         put(live/('c4.json' if phase=='final' else 'd4.json'),encoded(output))
         if record['refusals'] and not diagnose:
-            write(Path(root)/('c5.json' if phase=='final' else 'd6.json'),output)
+            (Path(root)/('c5.json' if phase=='final' else 'd6.json')).write_bytes(encoded(output))
             raise ValueError(record['refusals'][0])
-    pin=write(Path(root)/('c5.json' if phase=='final' else 'd6.json'),output)
+    path=Path(root)/('c5.json' if phase=='final' else 'd6.json')
+    path.write_bytes(encoded(output));pin=file_pin(path)
     if sum((live/v['protected_keys']['file']).stat().st_size for v in output['streams'].values())+(live/('c4.json' if phase=='final' else 'd4.json')).stat().st_size>=1_000_000:
         raise ValueError('R1_SCENE_EVIDENCE_TOO_LARGE')
     return pin
@@ -137,7 +138,15 @@ def preflight(kit,root,cfg,source,job):
 def final_sources(root,cfg):
     from student_pilot.p3_provenance import load,pinned
     from student_pilot.carrier_c1_run import Rows
-    root=Path(root);source=load(root/'p/q/ss.json')
+    from z import checked
+    root=Path(root)
+    host=load(root/'p/q/host.json')
+    h=host.get('staging_plan_sha256')
+    if not isinstance(h,str) or len(h)!=64:raise ValueError('R1_CENSUS_SOURCE_MANIFEST_MISSING')
+    manifest=load(checked(root/'p/i/staging.json',h))
+    entry=manifest.get('entries',{}).get('ss.json')
+    if not isinstance(entry,dict):raise ValueError('R1_CENSUS_SOURCE_MANIFEST_MISSING')
+    source=load(checked(root/'p/q/ss.json',entry['sha256'],entry['bytes']))
     # Native VQA augmentation can add source rows before stream materialization.
     source=deepcopy(source)
     for stream in ('vqa','pointing'):
@@ -157,7 +166,7 @@ def publish(kit,root,cfg,job):
     try:return emit(kit,root,cfg,source,admitted,store_pins(cfg),job)
     finally:reader.close()
 
-def verify(kit,root,cfg):
+def _verify(kit,root,cfg):
     from student_pilot.carrier_c1_run import identity
     from student_pilot.p3_provenance import file_pin
     from z import load,checked
@@ -171,6 +180,7 @@ def verify(kit,root,cfg):
     from rv import location
     import os
     live,_=location(Path(kit),root,os.environ['SLURM_JOB_ID'])
+    checked(live/'c4.json',file_pin(path)['sha256'])
     for stream in STREAMS:
         r=value['streams'][stream]
         if r.get('config_identity')!=expected:raise ValueError('R1_CENSUS_IDENTITY_DIFFERS')
@@ -190,3 +200,18 @@ def verify(kit,root,cfg):
             if result.get('stream')!=stream or result.get('admitted_rows')!=stores[stream]['count'] or counts.get('admitted')!=stores[stream]['count'] or result.get('source_rows')!=sum(e['count'] for e in expected_sources[stream]) or counts.get('source')!=result['source_rows']:
                 raise ValueError('R1_CENSUS_COUNT_DIFFERS:'+stream)
     return file_pin(path)
+
+def verify(kit,root,cfg):
+    from student_pilot.r1_persisted import scope
+    # Receipt bodies retain their authenticated original pins. Resolve those
+    # pins only through the native job's content-addressed staged bytes.
+    folder=Path(root)/'p/q/u'
+    paths={}
+    if folder.is_dir():
+        for p in folder.iterdir():
+            h=p.name
+            if len(h)==64 and all(c in '0123456789abcdef' for c in h):
+                if p.is_symlink() or not p.is_file():raise ValueError('R1_CENSUS_STAGED_PIN_INVALID')
+                paths[h]=str(p)
+    with scope(paths):
+        return _verify(kit,root,cfg)

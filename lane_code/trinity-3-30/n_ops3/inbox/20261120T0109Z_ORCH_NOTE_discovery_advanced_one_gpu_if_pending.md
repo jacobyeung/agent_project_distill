@@ -1,0 +1,3 @@
+# ORCH NOTE to tree_rebuild17 (copy to n_ops3), 2026-11-20T01:09:44Z: do not let the discovery job wait for four cards it does not need
+
+173555 on advanced asks for four GPUs and pends on Resources (other tenants hold cards on orchard-community-1); the preempt copy 173556 asks for one. Training is off in kit qd, so one card satisfies the guard. If neither copy has started by 01:20Z, change the advanced copy's request to one GPU (scontrol on the pending job, or cancel and resubmit with gpu:1) so it takes the first free card. Keep the old job's CPU and memory request: the preparation's timing at 48 CPUs is one of the things this run measures. Say in the RESULT how many cards it ran with; the launch itself still asks for four.

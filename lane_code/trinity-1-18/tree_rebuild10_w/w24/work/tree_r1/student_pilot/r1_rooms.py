@@ -92,6 +92,10 @@ def check_protected_rooms(cfg, stream, source_rows, admitted_rows):
         raise ValueError('R1_PROTECTED_REMOVAL_STREAM_REQUIRED')
     validate_removals(cfg)
     rooms = Rooms(cfg['r1_training']['room_authority'])
+    vqa_rooms = None
+    if stream == 'vqa' and cfg['r1_training'].get('direction_twins'):
+        from .r1_direction_twins import Binding
+        vqa_rooms = Binding(cfg)
     withheld = Withheld()
     protected = rooms.k1 | rooms.r0
     files = [p for p in cfg.get('remove_files', [])
@@ -102,19 +106,41 @@ def check_protected_rooms(cfg, stream, source_rows, admitted_rows):
     source_count = admitted_count = 0
 
     def protected_row(row):
-        canonical = ((row.get('provenance') or {}).get('canonical_scene')
-                     if stream == 'pointing' else None)
-        if canonical is None:
-            canonical, _ = rooms.canonical(row)
+        canonical, _ = rooms.canonical(row)
+        canonicals = [canonical] if canonical else []
+        pointing_index = None
+        pointing_unresolved = False
+        if stream == 'pointing':
+            pointing = (row.get('provenance') or {}).get('canonical_scene')
+            if pointing is not None:
+                pointing_index = len(canonicals)
+                canonicals.append(pointing)
+        resolved = []
+        if vqa_rooms is not None:
+            try:
+                resolved.append(vqa_rooms.room(row))
+            except (AttributeError, ValueError, TypeError):
+                pass
+        else:
+            for index, canonical in enumerate(canonicals):
+                try:
+                    resolved.append(rooms.room(canonical))
+                except (AttributeError, ValueError, TypeError):
+                    if index == pointing_index:
+                        pointing_unresolved = True
+        # An unresolved pointing scene must reach the withheld fallback first.
+        if not pointing_unresolved and any(room in protected for room in resolved):
+            return True
         try:
-            # Withheld carries opaque aliases that Rooms.room cannot canonicalize.
+            # Include tiered physical rooms as well as the withheld opaque aliases.
             candidate = dict(row, dataset=row.get('dataset', 'unknown'), scene=row.get('scene', 'unknown'))
-            if withheld.touches(candidate, dict(names=[canonical] if canonical else [])):
+            if withheld.touches(candidate, dict(names=canonicals + resolved)):
                 return True
-            room = rooms.room(canonical)
         except (AttributeError, ValueError, TypeError):
             raise ValueError('R1_PROTECTED_ROOM_UNRESOLVED:'+stream) from None
-        return room in protected
+        if pointing_unresolved or not resolved:
+            raise ValueError('R1_PROTECTED_ROOM_UNRESOLVED:'+stream)
+        return False
 
     for row in source_rows:
         source_count += 1

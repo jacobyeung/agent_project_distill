@@ -261,6 +261,8 @@ def run(kit, root, config, job, *, interval=30):
         if any(p.get('role')=='protected_rooms' for p in cfg.get('remove_files',[])):
             from cs import verify as verify_census
             pin=verify_census(kit,root,cfg)
+            from z import checked
+            checked(live/'h0.json',cfg['r1_training']['host_receipt']['sha256'])
             if load(cfg['r1_training']['host_receipt']['path']).get('protected_census')!=pin:
                 raise ValueError('R1_CENSUS_RECEIPT_PIN_DIFFERS')
         bound = load(kit / "k/a.json")["review_wait_seconds"]

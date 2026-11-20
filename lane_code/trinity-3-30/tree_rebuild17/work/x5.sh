@@ -1,0 +1,1 @@
+J=/scratch/jjyeung/orch_n30/tree_rebuild15_w24l; date -u +%TZ; ls $J/work; ls $J/out | grep -i "24l4[._]\|24L4[._]\|24L4_\|b24l4_"; cat $J/out/BUILD24L4_REPORT.md 2>/dev/null | head -20; ls /scratch/jjyeung/orch_n30 | grep rev; cat /scratch/jjyeung/orch_n30/tr16_rev24l4*/PROMPT.md 2>/dev/null | head -0

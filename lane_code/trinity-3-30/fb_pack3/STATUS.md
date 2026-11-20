@@ -1,5 +1,5 @@
 # fb_pack STATUS (successor resumes from this file alone)
-Updated 2026-11-19T23:47Z by fb_pack3 (Devin Opus high, session trinity-3-30 /scratch/jjyeung/orch_n30/fb_pack3, from 22:41Z; brief B/briefs/fb_pack3.md; fb_pack2 ran 21:08-22:41Z, fb_pack1 18:38-21:10Z). fb_pack3 scripts in fb_pack3/work. Predecessor scripts: fb_pack1/work, fb_pack2/work (reuse by absolute path).
+Updated 2026-11-20T00:53Z by fb_pack3 (Devin Opus high, session trinity-3-30 /scratch/jjyeung/orch_n30/fb_pack3, from 22:41Z; brief B/briefs/fb_pack3.md; fb_pack2 ran 21:08-22:41Z, fb_pack1 18:38-21:10Z). fb_pack3 scripts in fb_pack3/work. Predecessor scripts: fb_pack1/work, fb_pack2/work (reuse by absolute path).
 B = /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30. Events: B/events/fb_pack. Read every `*_ORCH_*` there (newest last) before acting.
 
 ## Hosts, paths, mechanics
@@ -52,13 +52,17 @@ B = /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n3
 
 - 23:42Z fbp_fovrev GO AFTER FIXES: A1 answered with evidence (anchor/grid contract 242/242; boundaries.py differs, parity covers it); B1 -> BARS_FOV_544_AMEND1.json e23ffd29 (P1-P5) frozen 23:45Z; addendum to k1fwd2 (events/fb_pack + k1fwd 2345Z); RESULT 2345Z.
 
+- 23:53-00:00Z k1fwd2 exchanges: no own.npz in delivery (served depth = own_170235), fov.npz without depth key; mapping of P1-P4 to their fields accepted (ANSWERs 2353Z, 0000Z-ish in events/fb_pack + k1fwd); they add per-key anchor/grid statements to FOV_CHECK.json. Job 173486 full run ~00:55Z, grids 1-18 ~02:45Z.
+- 00:05Z fbp_fovscore DONE: F1/fov/build/score_fov.py 3fed65b2 (synthetic 1/1 -> V2, 1/1.02 -> V1, 1.02/1.02 -> NONE; arm-A parity exact; ~6-12 min per run).
+
+- 00:48Z fbp_fovscore2 DONE: F1/fov/build2/score_fov.py ed1fd262. 00:50Z build3 = build2 + adapter for FOV_CHECK rows (c97b8f20; DIFF a7ea40ca; probe t3.py pass). RESULT 0051Z with real-run command (--fov-check in/own_544_fov/k1fwd2/FOV_CHECK.json, out out/fov544_score).
+
 ## Running (1-18)
-- Codex Astra fbp_fovscore (tmux, F1/fov/build, prompt fb_pack3/work/prompts/fbp_fovscore.md 8b072193; 23:31Z): score_fov.py + synthetic/refusal tests; REPORT.md.
-- fbp_fovrev DONE (receipt 1-18 codex_local/.../20261119T233110Z_fbp_fovrev/final_message.md).
-- Ready: prompt fb_pack3/work/prompts/fbp_fovscore2.md (delta build F1/fov/build2: P1-P5) -> launch when fovscore ends, then Cursor review of build2.
+- Cursor Opus xhigh fbp_fovcrev (tmux, F1/fov/crev, PROMPT 6884b58d = fb_pack3/work/prompts/fbp_fovcrev_PROMPT.md, 00:51Z, timeout 5400 s) -> F1/fov/crev/REVIEW_VERDICT.md.
+- k1fwd2 job 173486 (Orchard): grids to 1-18 sb_own400/in/own_544_fov ~02:45Z.
 
 ## Next (in order)
-0. On fovscore done: Cursor Opus review of score_fov.py on 1-18 (pattern fb_pack2/work/l9.sh; AGENTS.md from 1-18 /scratch/jjyeung/orch_n30/sb_cursor_probe/AGENTS.md). Grids ~02:45Z: run the REPORT.md command (out/fov544_score), RESULT with choice to fb_pack + tree_rebuild by ~03:15Z; update manifest (fov_source) and repost.
+0. fovcrev verdict: MUST -> fix (small: self; else Codex) + confirm. Grids ~02:45Z (k1fwd2 RESULT): run the real-run command in RESULT 0051Z in tmux on 1-18 (fresh out/fov544_score), RESULT choice + numbers to fb_pack + tree_rebuild by ~03:15Z; manifest v3 (fov_source; donor binds or not) via fb_pack3/work/manifest_extra.json -> F1/mf/extra.json -> mk_manifest.py; repost; redo mirror.
 1. Poll every 10 min: events/fb_pack ORCH, fb_pack3/inbox, events/tree_rebuild (tree_rebuild16 merge, upload names, first-batch request).
 2. FoV answer: if ORCH orders a V1/V2 forward, score with sb_own400 kit/score_400b.py into a fresh out dir (may need the same native-layout 2-assert change as score_400n); update manifest fov_variant.
 3. When tree_rebuild16 merges the boundary tree: build + run every rank's first batch of the boundary config through the full forward on CPU on 2-28 (real Qwen3.5 processor; pointing counts check from the pointing record); patch C exposure job is tree_rebuild16's (ANSWER 2133Z): from its per-type/per-rule counts state N's per-step exposure per prose form (64 routing rows/step x shares + slice share). Not in by 06:00Z -> camera binds without patch C.

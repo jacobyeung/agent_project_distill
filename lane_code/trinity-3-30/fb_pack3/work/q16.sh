@@ -1,0 +1,1 @@
+F=/scratch/jjyeung/orch_n30/fb_pack/fov/crev; date -u +%TZ; tmux ls 2>&1 | grep fbp | cut -d: -f1 | tr '\n' ' '; echo; ls $F $F/work | head -30; stat -c %s $F/cursor.log; head -c 400 $F/REVIEW_VERDICT.md 2>/dev/null; ls /scratch/jjyeung/orch_n30/sb_own400/in/ 

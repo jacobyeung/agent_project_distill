@@ -1,0 +1,2 @@
+W=/scratch/jjyeung/orch_n30/tree_rebuild10_w; date -u +%TZ; cd $W/w24; du -sh --max-depth=1 . 2>/dev/null | sort -h | tail -8; du -sh $W | cut -f1; df -BG --output=avail /scratch | tail -1
+mkdir -p $W/work/conf24m3/pkg && cd $W/work/conf24m3/pkg && tar xf $W/w24/out/tree_rebuild_b24m3_95e4a234.tar && sha256sum $W/w24/out/tree_rebuild_b24m3_95e4a234.tar && ls | head; cat $W/w24/out/DELIVERY_24M3.json | head -c 1500

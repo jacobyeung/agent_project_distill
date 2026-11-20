@@ -1,5 +1,5 @@
-# n_ops1 batched Orchard check (read-only). Placeholders: 0 (job id or 0), - (cached metrics path or -)
-export TZ=UTC; J=0; MP='-'; X=/project/community/jjyeung/okh7/x_22c714e1
+# n_ops1 batched Orchard check (read-only). Placeholders: 173555 (job id or 0), - (cached metrics path or -)
+export TZ=UTC; J=173555; MP='-'; X=/project/community/jjyeung/okh7/x_22c714e1
 echo "@@NOW $(date -u +%FT%TZ)"
 echo "@@SQ"; squeue -u $USER -h -o "%i|%j|%P|%T|%M|%l|%L|%R|%N|%S"
 echo "@@NEWEST $(ls $X/j/ 2>/dev/null | grep -E '^[0-9]+\.out$' | sort -n | tail -1)"
@@ -7,10 +7,11 @@ echo "@@DF $(df -BG --output=avail /project/community | tail -1 | tr -d ' G')"
 if [[ $J != 0 ]]; then
  echo "@@SACCT"; sacct -j $J -X -n -P -o JobID,JobName%40,Partition,State,ExitCode,Elapsed,Timelimit,AllocTRES%90,NodeList,Submit,Start,End
  echo "@@SCTL"; scontrol show job $J 2>/dev/null | tr ' ' '\n' | grep -E '^(JobName|Command|WorkDir|StdOut|StdErr|TimeLimit|RunTime|NodeList|Partition|JobState|Reason)=' | cut -c1-300
- O=$X/j/$J.out
+ O=$X/j/$J.out; [[ -f $O ]] || { O2=$(ls $X/j/*_$J.log 2>/dev/null | head -1); [[ -n $O2 ]] && O=$O2; }
  echo "@@JOUT $(stat -c %s $O 2>/dev/null || echo -1)"
  test -f $O && grep -v "_cgroup_procs_check\|unable to read" $O | grep -E "gpu0|resolve|^[0-9a-f]{64}$|stage |frames f|init mirror|overlay on|^\{\"v\"|ADMIT|REFUS|Traceback|Error|error|E[0-9][0-9]|job done|rc=|Killed|CANCEL|DUE TO|oom" | cut -c1-300 | tail -40
  echo "@@JTAIL"; test -f $O && grep -v "_cgroup_procs_check\|unable to read" $O | tail -6 | cut -c1-300
+ E2=${O%.log}.err; [[ $O == *.log && -s $E2 ]] && { echo "@@JERR $(stat -c %s $E2)"; grep -v "_cgroup_procs_check\|unable to read\|FutureWarning\|warnings.warn" $E2 | tail -8 | cut -c1-300; }
  echo "@@LIVE"; ls -la --time-style=+%T $X/o/$J/live 2>/dev/null | tail -n +4 | cut -c1-200 | tail -25; for m in $X/o/$J/live/gcs_*.done $X/o/$J/live/gcs_*.json; do test -f $m && { echo "== $m"; head -c 600 $m; echo; }; done
  echo "@@NR"; ls -la --time-style=+%T $X/n_r 2>/dev/null | tail -n +4; for m in $X/o/$J/live/WAITING_REVIEW*; do test -f $m && { echo "== $m"; head -c 400 $m; echo; }; done
  echo "@@NCK"; ls -la --time-style=+%T /project/community/jjyeung/okh7/n_ck/$J 2>/dev/null | tail -n +2 | head -8
@@ -19,7 +20,7 @@ if [[ $J != 0 ]]; then
  if squeue -j $J -h -o %T 2>/dev/null | grep -q RUNNING; then
   echo "@@NODE"
   timeout 150 srun --overlap --jobid $J -n1 -N1 timeout 120 nice -n 19 bash -s <<'INNER' 2>&1 | cut -c1-600
-J=0; MP='-'
+J=173555; MP='-'
 Q=/tmp/q_22c714e1_$J; [[ -d $Q ]] || Q=${SLURM_TMPDIR:-/tmp}/q_22c714e1_$J
 echo "@@Q $Q $(test -d $Q && echo present || echo absent)"
 echo "@@TMPDF $(df -BG --output=avail /tmp | tail -1 | tr -d ' G')"

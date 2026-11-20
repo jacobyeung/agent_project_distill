@@ -108,9 +108,12 @@ def check_protected_rooms(cfg, stream, source_rows, admitted_rows):
     def protected_row(row):
         canonical, _ = rooms.canonical(row)
         canonicals = [canonical] if canonical else []
+        pointing_index = None
+        pointing_unresolved = False
         if stream == 'pointing':
             pointing = (row.get('provenance') or {}).get('canonical_scene')
             if pointing is not None:
+                pointing_index = len(canonicals)
                 canonicals.append(pointing)
         resolved = []
         if vqa_rooms is not None:
@@ -119,13 +122,14 @@ def check_protected_rooms(cfg, stream, source_rows, admitted_rows):
             except (AttributeError, ValueError, TypeError):
                 pass
         else:
-            for canonical in canonicals:
+            for index, canonical in enumerate(canonicals):
                 try:
                     resolved.append(rooms.room(canonical))
                 except (AttributeError, ValueError, TypeError):
-                    pass
-        # A protected resolution cannot be overridden by another row field.
-        if any(room in protected for room in resolved):
+                    if index == pointing_index:
+                        pointing_unresolved = True
+        # An unresolved pointing scene must reach the withheld fallback first.
+        if not pointing_unresolved and any(room in protected for room in resolved):
             return True
         try:
             # Include tiered physical rooms as well as the withheld opaque aliases.
@@ -134,7 +138,7 @@ def check_protected_rooms(cfg, stream, source_rows, admitted_rows):
                 return True
         except (AttributeError, ValueError, TypeError):
             raise ValueError('R1_PROTECTED_ROOM_UNRESOLVED:'+stream) from None
-        if not resolved:
+        if pointing_unresolved or not resolved:
             raise ValueError('R1_PROTECTED_ROOM_UNRESOLVED:'+stream)
         return False
 

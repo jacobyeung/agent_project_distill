@@ -1,8 +1,8 @@
 # n_ops2 STATUS (successor resumes from this file alone)
-Updated: 2026-11-20T00:04Z by n_ops2 (Devin Opus high, trinity-3-30, started 20:42:53Z, hard limit 02:42Z).
+Updated: 2026-11-20T00:29Z by n_ops2 at rotation (successor n_ops3).
 Brief: B/briefs/n_ops2.md. B=/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30. Events: B/events/n_ops. Predecessor state: /scratch/jjyeung/orch_n30/n_ops1/STATUS.md (watcher, sessions, pointers; still exact).
 ## State
-- Launch not submitted. tree_rebuild16 (successor of 15 at 22:50Z) owns kits, discovery and launch. Discovery job on 24m2c (due ~00:50Z) submits ~01:00Z; launch after kit review + rehearsal + n_review1b PASS + ORCH GO (no fixed forecast yet). Rotation plan: ~00:40Z, before the discovery submission (limit 02:42Z); if discovery is submitted earlier, rotate after its first 30 min, by 02:10Z at the latest.
+- Launch not submitted (not before ~03:00Z). Discovery job first (see below).
 - Watcher tmux nops_mon alive (pane pid 432537), mon/job=0 (auto-detect), sleep 120. 20:41Z: proj_free_G 362; advanced RUNNING 173258, 173333, 173243 (cont_ops21 / k1fwd1; must yield within 5 min of N's submission).
 - Sessions file okh7/x_22c714e1/n_s/sess.json sha256 15c543a1...f800 (minted 18:59Z, expires ~11-26 18:59Z). Ledger: n_ops1/work/ORCHARD_LEDGER.jsonl.
 - n_review2 brief exists (B/briefs/n_review2.md, 6299 B, 20:08 local). Start it when prep passes ~75%.
@@ -19,3 +19,9 @@ Brief: B/briefs/n_ops2.md. B=/data2/jjyeung/agent_project_data/distillation_orch
 - 173487 (plan B pbjob.sh 3aeb20ae unchanged, a15_cot_ap1535950c, okh7/pb_1535950c now empty) PREEMPTED 23:56:13Z by another user's advanced job 173497. BLOCKER 0000Z: not resubmitted; waiting for ORCH's word (default wait; nothing needs it until the user picks 600). Resubmit = extra.submit2.sh pattern in n_ops2/work/pe with a NEW token (out dir must not exist).
 - Discovery 173496 (tree_rebuild16; kit qd 4659b14c, wrapper jd2.sh, log x_22c714e1/j/a15_cot_ap24d9b8e2_173496.log) ended 23:55:55Z PREEMPTED in staging after FileNotFoundError /tmp/q_22c714e1_173496/h/k/0.json (23:55:54Z work exit 1). BLOCKER 0004Z (copy in events/tree_rebuild). mon2/job=none until a resubmission id arrives.
 - remote_tpl.sh change 23:56Z: JOUT falls back to x_22c714e1/j/*_<job>.log (discovery wrapper's log name) and prints @@JERR from the .err. Backup n_ops2/work/remote_tpl.sh.bak_2356.
+- ORCH ANSWER 0001Z: resubmit the receipt on preempt; if preempted again once more; third time wait for general (~02:30Z) and run there. 173499 a15_cot_ape7a50bab (preempt, orchard-community-3, 00:11:20Z) -> okh7/pb_e7a50bab, resubmission 1. Check ~00:30Z via mon/extra.sh (pb_report.json, h.json sha256); post path + sha256.
+- ORCH ORDER 0005Z: tree_rebuild16 submits discovery on preempt AND advanced (orchard-community-1, pends until k1fwd2's 173486 ends ~00:55Z); one is cancelled once the other passes staging. I watch both (mon2 + mon; set mon/noadv? NO: mon keeps ADV checks for the launch; put the 2nd discovery copy in mon only if needed, with noadv), report stage/refusals; routing selection, db_bytes.json, census row keys go to n_review1b and fb_pack3 at once.
+- 00:20Z: discovery 173512 (preempt) in mon2; discovery 173513 (advanced, -w orchard-community-1, pending behind 173486) TEMPORARILY in mon with mon/noadv touched. When the launch is submitted: mv mon/noadv mon/noadv.used and write the launch id to mon/job (ADV checks back on).
+- DONE 00:24Z: step-600 handover receipt okh7/pb_e7a50bab/h.json sha256 1d8ea58779d96cd7fb74491b296f1d587580cabeeb476542d4ce2d18878780e4 (job 173499, PASS, p-handover-v1, step 600, 29 pins); RESULT 0030Z (copy in events/tree_rebuild). Step-600 receipt duty closed.
+- 00:30Z: discovery 173512 (preempt, PENDING Priority; mon2) and 173513 (advanced, PENDING QOSMaxGRESPerUser behind 173486 ~00:55Z; mon with noadv). /project free 275 GiB (falling ~10 GiB per 20 min from other lanes; watcher WARN <250, FLAG <150).
+- ROTATION 00:3xZ: successor n_ops3 (brief B/briefs/n_ops3.md).

@@ -29,6 +29,9 @@ def apply(root,stream,source):
  kits={n:root/('out/kit_n_go' if n=='n_go' else 'out/kit_qd' if n=='qd' else 'work/build24/kits/'+n) for n in ('q','n','n_go','qd')}
  # Validate every kit before making any change.
  for name,k in kits.items():
+  expected={n:h for h,n in (line.split('  ',1) for line in (k/'SHA256SUMS.txt').read_text().splitlines())}
+  actual={str(p.relative_to(k)):sha(p) for p in k.rglob('*') if p.is_file() and p.name not in ('BUILD.json','SHA256SUMS.txt')}
+  if expected!=actual or load(k/'BUILD.json')['kit_sha256']!=sha(k/'SHA256SUMS.txt'):raise ValueError('R1_KIT_CONTENT_DIFFERS')
   control=load(k/'k/a.json')
   if control['GO']!=(name=='n_go'):raise ValueError('R1_GO_SCOPE_DIFFERS')
   if not all((k/'b'/f).is_file() for f in ('sc.py','cs.py')):raise ValueError('R1_NATIVE_REGENERATION_STEP_MISSING')
@@ -68,13 +71,15 @@ def apply(root,stream,source):
     if not p.is_file():continue
     rel=str(p.relative_to(k))
     if before[name].get(rel)==sha(p):continue
-    target=delivery/name/rel;target.parent.mkdir(parents=True,exist_ok=True);os.link(p,target)
+    target=(delivery.with_name(delivery.name+'_go')/'n'/rel) if name=='n_go' else (delivery/name/rel);target.parent.mkdir(parents=True,exist_ok=True);os.link(p,target)
     out.append(dict(name=('n' if name=='n_go' else name)+'/'+rel,sha256=sha(p),bytes=p.stat().st_size,mode=format(p.stat().st_mode&511,'04o'),local_path=str(target)))
   out.append(dict(name='u/'+h,sha256=h,bytes=len(raw),mode='0644',local_path=str(u/h)))
   return out
  files=records(('q','n','qd'));go=records(('n_go',))
  value=dict(schema='protected-kit-delta-v1',stream=stream,list_sha256=h,row_keys=len(rows),stream_root=str(delivery),top_directories=['q','n','qd','u'],files=files,kits=seals,GO=False,
             dependent_receipts='Regenerated in each fresh job by native pool prepare, room census, scene rebuild, stream materialization/target-filter and preparation; final census is rebound by h.py.',
+            pose_cleanup=('BLOCKED_IF_PROTECTED_POSE_ROWS_REMAIN' if stream=='pose' else 'Not requested'),
+            pose_cleanup_blocker=('out/REMOVAL_RECEIPTS_BLOCKER.md' if stream=='pose' else None),
             launch='Requires bound PASS census, native host PASS, independent matching review and orchestrator GO.')
  out=root/'out'/('UPLOADS_PROTECTED_'+h[:16]+'.json')
  replace(out,encoded(value));replace(out.with_suffix('.list'),''.join(v['name']+'\n' for v in files).encode())

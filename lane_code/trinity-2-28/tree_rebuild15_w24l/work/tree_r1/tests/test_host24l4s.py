@@ -43,9 +43,10 @@ class RoomResolution(ProtectedRooms):
             row = dict(qid='shared', canonical='scannet/scene0001_02',
                        provenance=dict(canonical_scene=canonical))
             with self.subTest(canonical=canonical):
-                with self.assertRaisesRegex(ValueError, '^R1_PROTECTED_ROOM_ROWS:pointing$'):
+                with self.assertRaisesRegex(ValueError, '^R1_PROTECTED_ROOM_UNRESOLVED:pointing$'):
                     self.call([row], [row])
-                self.assertEqual(self.call([row], [], [self.role()])['checked_keys'], 1)
+                with self.assertRaisesRegex(ValueError, '^R1_PROTECTED_ROOM_UNRESOLVED:pointing$'):
+                    self.call([row], [], [self.role()])
 
     def test_pointing_clean_and_withheld_fields_keep_native_behavior(self):
         clean = dict(self.good, canonical='scannet/scene9001_00',

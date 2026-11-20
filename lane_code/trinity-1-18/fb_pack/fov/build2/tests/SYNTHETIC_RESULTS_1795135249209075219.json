@@ -1,0 +1,87 @@
+{
+  "input_sha256": {
+    "/scratch/jjyeung/orch_n30/fb_pack/fov/build2/score_fov.py": "ed1fd2627b15fd8a92c32007dfc7054381228292fd02a980807e3fadec888439",
+    "/scratch/jjyeung/orch_n30/fb_pack/fov/build2/tests/run_synthetic.py": "2ecd0d52ca291e884009f86d1913de88268d6919f4f255e88049e72a9e772cb8",
+    "/scratch/jjyeung/orch_n30/sb_own400/out/real400_score_n/SCORE_RESULT.json": "b404c88c8a3b269dceae8d08292cc97e995edcabc54420819b40b98fe71d5beb",
+    "/scratch/jjyeung/orch_n30/fb_pack/fov/build2/tests/full_1_1/FOV_RESULT.json": "290c1531ffc56a8121c33d98c5b893f2e507d2d0b66468b4237fda92dfaf7582",
+    "/scratch/jjyeung/orch_n30/fb_pack/fov/build2/tests/full_1_1p02/FOV_RESULT.json": "a0d2099da0c5e2adc9848e44d74aa4d8859529a48037bf2460f14ed381c2d048",
+    "/scratch/jjyeung/orch_n30/fb_pack/fov/build2/tests/full_1p02_1p02/FOV_RESULT.json": "1baff2a3ef21f008d333186167ea254b216a3a47ade21a31f3d34b5301f3adf0"
+  },
+  "synthetic": true,
+  "decision_usable": false,
+  "command": "/scratch/jjyeung/envs/p1cpu/bin/python -B /scratch/jjyeung/orch_n30/fb_pack/fov/build2/tests/run_synthetic.py",
+  "tests": [
+    {
+      "name": "full_1_1",
+      "pass": true,
+      "choice": "V2",
+      "seconds": 356.1024125991389,
+      "baseline_arm_A_parity": "EXACT: both folds and combined, both metrics",
+      "command": "env OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 CUDA_VISIBLE_DEVICES= nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -B /scratch/jjyeung/orch_n30/fb_pack/fov/build2/score_fov.py --synthetic 1.0 1.0 --out /scratch/jjyeung/orch_n30/fb_pack/fov/build2/tests/full_1_1",
+      "V1-A": {
+        "points": 0.0,
+        "ci95": [
+          0.0,
+          0.0
+        ],
+        "rooms": 219
+      },
+      "V2-A": {
+        "points": 0.0,
+        "ci95": [
+          0.0,
+          0.0
+        ],
+        "rooms": 219
+      }
+    },
+    {
+      "name": "full_1_1p02",
+      "pass": true,
+      "choice": "V1",
+      "seconds": 694.2520860992372,
+      "baseline_arm_A_parity": "EXACT: both folds and combined, both metrics",
+      "command": "env OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 CUDA_VISIBLE_DEVICES= nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -B /scratch/jjyeung/orch_n30/fb_pack/fov/build2/score_fov.py --synthetic 1.0 1.02 --out /scratch/jjyeung/orch_n30/fb_pack/fov/build2/tests/full_1_1p02",
+      "V1-A": {
+        "points": 0.0,
+        "ci95": [
+          0.0,
+          0.0
+        ],
+        "rooms": 219
+      },
+      "V2-A": {
+        "points": -1.0179799471292441,
+        "ci95": [
+          -1.2945098500304826,
+          -0.743281116600842
+        ],
+        "rooms": 219
+      }
+    },
+    {
+      "name": "full_1p02_1p02",
+      "pass": true,
+      "choice": "NONE",
+      "seconds": 695.4707381618209,
+      "baseline_arm_A_parity": "EXACT: both folds and combined, both metrics",
+      "command": "env OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 CUDA_VISIBLE_DEVICES= nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -B /scratch/jjyeung/orch_n30/fb_pack/fov/build2/score_fov.py --synthetic 1.02 1.02 --out /scratch/jjyeung/orch_n30/fb_pack/fov/build2/tests/full_1p02_1p02",
+      "V1-A": {
+        "points": -1.0179799471292441,
+        "ci95": [
+          -1.2945098500304826,
+          -0.743281116600842
+        ],
+        "rooms": 219
+      },
+      "V2-A": {
+        "points": -1.0179799471292441,
+        "ci95": [
+          -1.2945098500304826,
+          -0.743281116600842
+        ],
+        "rooms": 219
+      }
+    }
+  ]
+}

@@ -1,0 +1,377 @@
+--- a/student_pilot/r1_rooms.py
++++ b/student_pilot/r1_rooms.py
+@@ -92,6 +92,10 @@
+         raise ValueError('R1_PROTECTED_REMOVAL_STREAM_REQUIRED')
+     validate_removals(cfg)
+     rooms = Rooms(cfg['r1_training']['room_authority'])
++    vqa_rooms = None
++    if stream == 'vqa' and cfg['r1_training'].get('direction_twins'):
++        from .r1_direction_twins import Binding
++        vqa_rooms = Binding(cfg)
+     withheld = Withheld()
+     protected = rooms.k1 | rooms.r0
+     files = [p for p in cfg.get('remove_files', [])
+@@ -102,19 +106,41 @@
+     source_count = admitted_count = 0
+ 
+     def protected_row(row):
+-        canonical = ((row.get('provenance') or {}).get('canonical_scene')
+-                     if stream == 'pointing' else None)
+-        if canonical is None:
+-            canonical, _ = rooms.canonical(row)
++        canonical, _ = rooms.canonical(row)
++        canonicals = [canonical] if canonical else []
++        pointing_index = None
++        pointing_unresolved = False
++        if stream == 'pointing':
++            pointing = (row.get('provenance') or {}).get('canonical_scene')
++            if pointing is not None:
++                pointing_index = len(canonicals)
++                canonicals.append(pointing)
++        resolved = []
++        if vqa_rooms is not None:
++            try:
++                resolved.append(vqa_rooms.room(row))
++            except (AttributeError, ValueError, TypeError):
++                pass
++        else:
++            for index, canonical in enumerate(canonicals):
++                try:
++                    resolved.append(rooms.room(canonical))
++                except (AttributeError, ValueError, TypeError):
++                    if index == pointing_index:
++                        pointing_unresolved = True
++        # An unresolved pointing scene must reach the withheld fallback first.
++        if not pointing_unresolved and any(room in protected for room in resolved):
++            return True
+         try:
+-            # Withheld carries opaque aliases that Rooms.room cannot canonicalize.
++            # Include tiered physical rooms as well as the withheld opaque aliases.
+             candidate = dict(row, dataset=row.get('dataset', 'unknown'), scene=row.get('scene', 'unknown'))
+-            if withheld.touches(candidate, dict(names=[canonical] if canonical else [])):
++            if withheld.touches(candidate, dict(names=canonicals + resolved)):
+                 return True
+-            room = rooms.room(canonical)
+         except (AttributeError, ValueError, TypeError):
+             raise ValueError('R1_PROTECTED_ROOM_UNRESOLVED:'+stream) from None
+-        return room in protected
++        if pointing_unresolved or not resolved:
++            raise ValueError('R1_PROTECTED_ROOM_UNRESOLVED:'+stream)
++        return False
+ 
+     for row in source_rows:
+         source_count += 1
+--- /dev/null
++++ b/tests/test_host24l4s.py
+@@ -0,0 +1,163 @@
++"""Post-condition room authorities, using native parsers and authenticated fixtures."""
++import copy
++import json
++import sqlite3
++import unittest
++from unittest.mock import patch
++from tests.test_host24l4r import Fixture, ProtectedRooms
++from student_pilot import r1_rooms as rooms, r1_direction_twins as twins
++from student_pilot.p3_provenance import file_pin, write
++from student_pilot.r2_withheld import Withheld
++
++
++class RoomResolution(ProtectedRooms):
++
++    def pointing_rows(self):
++        for canonical in ('scannet/scene0001_02', 'scannet/scene0800_00', 'scannet/scene1001_00'):
++            for field in ('canonical', 'provenance.canonical', 'dataset_scene'):
++                row = dict(qid='shared', provenance=dict(canonical_scene='scannet/scene9000_00'))
++                if field == 'canonical':
++                    row['canonical'] = canonical
++                elif field == 'provenance.canonical':
++                    row['provenance']['canonical'] = canonical
++                else:
++                    row['dataset'], row['scene'] = canonical.split('/')
++                yield field, row
++
++    def test_pointing_clean_canonical_scene_cannot_hide_native_protected_room(self):
++        authority = rooms.Rooms(self.pins)
++        for field, row in self.pointing_rows():
++            with self.subTest(field=field, row=row):
++                self.assertIn(authority.status(row)[0], ('k1_heldout', 'r0'))
++                with self.assertRaisesRegex(ValueError, '^R1_PROTECTED_ROOM_ROWS:pointing$'):
++                    self.call([row], [row])
++
++    def test_pointing_list_accepts_native_protected_room_with_clean_canonical_scene(self):
++        role = self.role()
++        for field, row in self.pointing_rows():
++            with self.subTest(field=field, row=row):
++                self.assertEqual(self.call([row, self.good], [self.good], [role])['checked_keys'], 1)
++
++    def test_pointing_unresolved_canonical_scene_cannot_hide_protected_room(self):
++        for canonical in ('unknown/token', 'bad'):
++            row = dict(qid='shared', canonical='scannet/scene0001_02',
++                       provenance=dict(canonical_scene=canonical))
++            with self.subTest(canonical=canonical):
++                with self.assertRaisesRegex(ValueError, '^R1_PROTECTED_ROOM_UNRESOLVED:pointing$'):
++                    self.call([row], [row])
++                with self.assertRaisesRegex(ValueError, '^R1_PROTECTED_ROOM_UNRESOLVED:pointing$'):
++                    self.call([row], [], [self.role()])
++
++    def test_pointing_clean_and_withheld_fields_keep_native_behavior(self):
++        clean = dict(self.good, canonical='scannet/scene9001_00',
++                     provenance=dict(canonical_scene='scannet/scene9002_00'))
++        self.assertEqual(self.call([clean], [clean])['admitted_rows'], 1)
++        alias = sorted(Withheld().aliases)[0]
++        for field in ('canonical', 'alias'):
++            row = copy.deepcopy(clean); row['provenance'][field] = alias
++            with self.subTest(field=field):
++                with self.assertRaisesRegex(ValueError, '^R1_PROTECTED_ROOM_ROWS:pointing$'):
++                    self.call([row], [row])
++                row['qid'] = 'shared'
++                self.assertEqual(self.call([row], [], [self.role()])['checked_keys'], 1)
++
++    def vqa_authority(self):
++        # Only pinned hash/count constants change. Binding construction, byte checks,
++        # strict/tiered resolution, SQLite reads and the withheld file run natively.
++        withheld = next(x for x in sorted(Withheld().aliases) if x.startswith('scannet/scene'))
++        mapping = dict(clean='scannet/scene9000_00', heldout='scannet/scene0001_02',
++                       reserve='scannet/scene1001_00', r0='scannet/scene0800_00', withheld=withheld)
++        aliases = {'d1/opaque_'+key: dict(canonical=value) for key, value in mapping.items()}
++        path = self.root/'tiered.json'
++        write(path, dict(complete=True, conflicts=[], quarantined_tokens=[], aliases=aliases))
++        rows = self.jsonl('twins.jsonl', [])
++        binding = self.jsonl('binding.jsonl', [dict(twin_key='twin', source_key='source')])
++        union = self.jsonl('union.jsonl', [dict(row_key='union'+str(i)) for i in range(4959)])
++        db = self.root/'vqa.sqlite'
++        source = dict(qid='source', dataset='d1', scene='opaque_clean')
++        with sqlite3.connect(db) as conn:
++            conn.execute('CREATE TABLE rows(i INTEGER PRIMARY KEY,row TEXT)')
++            conn.execute('INSERT INTO rows VALUES(0,?)', (json.dumps(source),))
++        spec = dict(rows=rows, binding=binding, aliases=file_pin(path), source_database=file_pin(db))
++        self.cfg0['r1_training'].update(direction_twins=spec, v7_k1_removal=union)
++        for name, pin in [('ROWS', rows), ('BINDING', binding), ('ALIASES', spec['aliases']), ('UNION', union)]:
++            self.stack.enter_context(patch.object(twins, name, pin['sha256']))
++        self.stack.enter_context(patch.object(twins, 'COUNT', 1))
++        self.stack.enter_context(patch.object(rooms, 'STORE', spec['source_database']['sha256']))
++        return mapping, source
++
++    def test_vqa_native_tiered_clean_alias_passes(self):
++        _, source = self.vqa_authority()
++        self.assertEqual(rooms.Rooms(self.pins).status(source)[0], 'unresolved')
++        self.assertEqual(twins.Binding(self.cfg0).room(source), 'scannet/scene9000')
++        self.assertEqual(self.call([source], [source], stream='vqa')['admitted_rows'], 1)
++
++    def test_vqa_native_tiered_protected_aliases_refuse(self):
++        mapping, _ = self.vqa_authority()
++        for key in mapping.keys() - {'clean'}:
++            row = dict(qid='shared', dataset='d1', scene='opaque_'+key)
++            with self.subTest(key=key):
++                self.assertEqual(rooms.Rooms(self.pins).status(row)[0], 'unresolved')
++                with self.assertRaisesRegex(ValueError, '^R1_PROTECTED_ROOM_ROWS:vqa$'):
++                    self.call([row], [row], stream='vqa')
++
++    def test_vqa_list_accepts_native_tiered_protected_aliases(self):
++        mapping, source = self.vqa_authority()
++        role = self.role('vqa')
++        for key in mapping.keys() - {'clean'}:
++            row = dict(qid='shared', dataset='d1', scene='opaque_'+key)
++            with self.subTest(key=key):
++                self.assertEqual(self.call([row, source], [source], [role], 'vqa')['checked_keys'], 1)
++
++    def test_vqa_tiered_clean_list_key_refuses(self):
++        _, source = self.vqa_authority(); source['qid'] = 'shared'
++        with self.assertRaisesRegex(ValueError, '^R1_PROTECTED_LIST_KEY_NOT_PROTECTED:vqa$'):
++            self.call([source], [], [self.role('vqa')], 'vqa')
++
++    def test_vqa_native_unknown_alias_still_refuses(self):
++        self.vqa_authority()
++        row = dict(qid='shared', dataset='d1', scene='absent')
++        with self.assertRaisesRegex(ValueError, '^R1_TWIN_ROOM_UNRESOLVED$'):
++            twins.Binding(self.cfg0).room(row)
++        with self.assertRaisesRegex(ValueError, '^R1_PROTECTED_ROOM_UNRESOLVED:vqa$'):
++            self.call([row], [row], stream='vqa')
++        with self.assertRaisesRegex(ValueError, '^R1_PROTECTED_ROOM_UNRESOLVED:vqa$'):
++            self.call([row], [], [self.role('vqa')], 'vqa')
++
++    def test_vqa_authority_bytes_remain_authenticated(self):
++        self.vqa_authority()
++        from pathlib import Path
++        Path(self.cfg0['r1_training']['direction_twins']['aliases']['path']).write_text('{}')
++        with self.assertRaisesRegex(ValueError, 'Missing or changed pinned input'):
++            self.call([self.good], [self.good], stream='vqa')
++
++    def test_non_vqa_streams_do_not_use_tiered_aliases(self):
++        _, source = self.vqa_authority()
++        for stream in ('pose', 'routing', 'pointing'):
++            with self.subTest(stream=stream):
++                with self.assertRaisesRegex(ValueError, '^R1_PROTECTED_ROOM_UNRESOLVED:'+stream+'$'):
++                    self.call([source], [source], stream=stream)
++
++    def test_vqa_census_and_postcondition_use_same_native_authority(self):
++        _, source = self.vqa_authority()
++        cfg = copy.deepcopy(self.cfg0)
++        write(self.root/'sources.json', {})
++        write(self.root/'store.json', dict(database=cfg['r1_training']['direction_twins']['source_database']))
++        cfg['r1_training']['row_sources'] = file_pin(self.root/'sources.json')
++        cfg['streams'] = dict(vqa=file_pin(self.root/'store.json'))
++        self.jsonl('empty.jsonl', [])
++        write(self.root/'naming.json', dict(rows=[dict(qid='n'+str(i)) for i in range(109)]))
++        with patch('student_pilot.r1_coverage.deferred'), \
++                patch('student_pilot.r1_coverage.validate_binding', return_value=None), \
++                patch('student_pilot.r1_coverage.source_names', return_value=()), \
++                patch('student_pilot.row_removals.pinned', return_value=self.root/'empty.jsonl'):
++            audit, _ = rooms.census(cfg)
++        result = rooms.check_protected_rooms(cfg, 'vqa', [source], [source])
++        self.assertEqual(audit['store']['unresolved'], 0)
++        self.assertEqual(audit['store']['canonical_from'], dict(pinned_tiered_room=1))
++        self.assertEqual(audit['store']['ok'], result['admitted_rows'])
++
++
++def load_tests(loader, tests, pattern):
++    return unittest.TestSuite(RoomResolution(name) for name in sorted(RoomResolution.__dict__)
++                              if name.startswith('test_'))
+--- /dev/null
++++ b/tests/test_host24l4t.py
+@@ -0,0 +1,145 @@
++"""Pointing scenes fail closed; differential checks retain native refusals."""
++import copy
++import importlib.util
++import json
++import os
++from pathlib import Path
++import random
++import unittest
++from unittest.mock import patch
++
++from tests.test_host24l4r import ProtectedRooms
++from student_pilot import r1_rooms as rooms
++from student_pilot.r2_withheld import Withheld
++
++
++class PointingResolution(ProtectedRooms):
++    def unresolved_clean(self, scene):
++        row = dict(self.good, qid='shared', canonical='scannet/scene9000_00',
++                   provenance=dict(canonical_scene=scene))
++        self.assertEqual(rooms.Rooms(self.pins).status(row)[0], 'ok')
++        with self.assertRaisesRegex(ValueError, '^R1_PROTECTED_ROOM_UNRESOLVED:pointing$'):
++            self.call([row], [row])
++        with self.assertRaisesRegex(ValueError, '^R1_PROTECTED_ROOM_UNRESOLVED:pointing$'):
++            self.call([row], [], [self.role()])
++
++    def test_uppercase_scene_with_clean_ordinary_room_refuses(self):
++        self.unresolved_clean('ScanNet/scene0001_02')
++
++    def test_empty_capture_with_clean_ordinary_room_refuses(self):
++        self.unresolved_clean('scannet/')
++
++    def test_opaque_scene_with_clean_ordinary_room_refuses(self):
++        self.unresolved_clean('d1/opaque')
++
++    def test_unknown_scene_with_clean_ordinary_room_refuses(self):
++        self.unresolved_clean('unknown/token')
++
++    def test_listed_protected_ordinary_room_does_not_resolve_bad_scene(self):
++        role = self.role()
++        for scene in ('ScanNet/scene0001_02', 'scannet/', 'd1/opaque', 'unknown/token', '', 7, [], {}):
++            for canonical in ('scannet/scene0001_02', 'scannet/scene0800_00', 'scannet/scene1001_00'):
++                row = dict(qid='shared', canonical=canonical, provenance=dict(canonical_scene=scene))
++                with self.subTest(scene=scene, canonical=canonical):
++                    with self.assertRaisesRegex(ValueError, '^R1_PROTECTED_ROOM_UNRESOLVED:pointing$'):
++                        self.call([row], [], [role])
++                    with self.assertRaisesRegex(ValueError, '^R1_PROTECTED_ROOM_UNRESOLVED:pointing$'):
++                        self.call([row], [row])
++
++    def test_withheld_hit_keeps_native_opaque_alias_protection(self):
++        withheld = Withheld()
++        authority = rooms.Rooms(self.pins)
++        opaque = []
++        for alias in sorted(withheld.aliases):
++            try:
++                authority.room(alias)
++            except (AttributeError, TypeError, ValueError):
++                opaque.append(alias)
++        self.assertTrue(opaque)
++        role = self.role()
++        for scene in (opaque[0], 'unknown/token'):
++            row = dict(self.good, qid='shared', provenance=dict(canonical_scene=scene, alias=opaque[0]))
++            with self.subTest(scene=scene):
++                with self.assertRaisesRegex(ValueError, '^R1_PROTECTED_ROOM_ROWS:pointing$'):
++                    self.call([row], [row])
++                self.assertEqual(self.call([row], [], [role])['checked_keys'], 1)
++
++    def test_absent_scene_and_other_streams_keep_native_resolution(self):
++        for provenance in ({}, dict(canonical_scene=None)):
++            row = dict(self.good, provenance=provenance)
++            self.assertEqual(self.call([row], [row])['admitted_rows'], 1)
++        for stream in ('pose', 'routing', 'vqa'):
++            row = dict(self.good, provenance=dict(canonical_scene='unknown/token'))
++            self.assertEqual(self.call([row], [row], stream=stream)['admitted_rows'], 1)
++
++    def test_random_rows_never_admit_a_baseline_refusal(self):
++        # Compare the actual sealed implementations, with the same native authority
++        # objects. Like the reviewer's fuzz, VQA uses strict Rooms (twins disabled).
++        baseline_root = Path(os.environ.get('HOST24L4T_BASE_ROOT', Path(__file__).resolve().parents[2]))
++        functions = {'24l4t': rooms.check_protected_rooms}
++        authority = rooms.Rooms(self.pins)
++        withheld = Withheld()
++        for version in ('24l4r', '24l4s'):
++            source = baseline_root/('tree_r1_'+version)/'student_pilot/r1_rooms.py'
++            self.assertTrue(source.is_file(), str(source))
++            spec = importlib.util.spec_from_file_location('student_pilot._compare_'+version, source)
++            module = importlib.util.module_from_spec(spec)
++            spec.loader.exec_module(module)
++            self.stack.enter_context(patch.object(module, 'Rooms', return_value=authority))
++            functions[version] = module.check_protected_rooms
++        self.stack.enter_context(patch.object(rooms, 'Rooms', return_value=authority))
++        self.stack.enter_context(patch('student_pilot.r2_withheld.Withheld', return_value=withheld))
++        rng = random.Random(24420)
++        values = [None, '', 'scannet/scene9000_00', 'scannet/scene0001_02',
++                  'scannet/scene0800_00', 'scannet/scene1001_00', 'ScanNet/scene0001_02',
++                  'scannet/', 'd1/opaque', 'unknown/token', 'bad', 7, [], {},
++                  'arkitscenes/123', 'scannetpp/abcdef0123', sorted(withheld.aliases)[0]]
++        samples = []
++        for i in range(2500):
++            row = dict(qid='random-'+str(i))
++            if rng.random() < .8:
++                row.update(dataset=rng.choice(('scannet', 'd1', 'scannetpp', 'd2', 'arkitscenes', 'unknown')),
++                           scene=rng.choice(('scene9000_00', 'scene0001_02', 'scene0800_00', 'scene1001_00',
++                                             'alias', 'opaque', '', '123', 'abcdef0123')))
++            if rng.random() < .65:
++                row['canonical'] = copy.deepcopy(rng.choice(values))
++            for field in ('provenance', 'ground_record', 'gt_authority', 'routing'):
++                nested = {}
++                if rng.random() < .3:
++                    nested['canonical'] = copy.deepcopy(rng.choice(values))
++                if field == 'provenance':
++                    if rng.random() < .8:
++                        nested['canonical_scene'] = copy.deepcopy(rng.choice(values))
++                    if rng.random() < .15:
++                        nested['alias'] = rng.choice(('unknown/token', sorted(withheld.aliases)[0]))
++                if nested:
++                    row[field] = nested
++            samples.append(row)
++        counts = {}
++        for stream in ('pose', 'vqa', 'routing', 'pointing'):
++            tally = {v: dict(admitted=0, refused=0) for v in functions}
++            for row in samples:
++                outcomes = {}
++                for version, function in functions.items():
++                    try:
++                        function(self.cfg0, stream, iter([row]), iter([row]))
++                    except (ValueError, TypeError, AttributeError) as error:
++                        outcomes[version] = str(error)
++                        tally[version]['refused'] += 1
++                    else:
++                        outcomes[version] = None
++                        tally[version]['admitted'] += 1
++                if outcomes['24l4t'] is None:
++                    self.assertIsNone(outcomes['24l4r'], (stream, row, outcomes))
++                    self.assertIsNone(outcomes['24l4s'], (stream, row, outcomes))
++            self.assertGreater(tally['24l4t']['admitted'], 0)
++            self.assertGreater(tally['24l4t']['refused'], 0)
++            counts[stream] = tally
++        output = Path(os.environ.get('LANE_TEST_OUTPUT', str(self.root)))/'fuzz24l4t.json'
++        output.write_text(json.dumps(dict(seed=24420, rows_per_stream=2500, twins=False,
++                                         counts=counts), indent=2)+'\n')
++
++
++def load_tests(loader, tests, pattern):
++    return unittest.TestSuite(PointingResolution(name) for name in sorted(PointingResolution.__dict__)
++                              if name.startswith('test_'))

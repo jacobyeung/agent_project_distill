@@ -180,6 +180,11 @@ def plan_payload(kit, resolved, root, *, regeneration=False):
         paths[h]=str(q/'w'/name)
     cfg['r1_training']['persisted_files']={h:paths.get(h,str(q/'u'/h)) for h in cfg['r1_training']['persisted_files']}
     request=deepcopy(resolved['request'])
+    scene_pool_inputs=None
+    if not regeneration and cfg.get('r2_all_stream_exclusions'):
+        with scope(sources):
+            pool_before=load(pinned(cfg['s1_routing']['selection']))
+            scene_pool_inputs={key:pool_before.get(key) for key in ('manifest','tokenizer')}
     cfgpin=write(scratch/'pre.json',cfg)
     refresh_request=dict(request,config=cfgpin,staged_pins=[cfgpin])
     with scope(sources):
@@ -219,7 +224,7 @@ def plan_payload(kit, resolved, root, *, regeneration=False):
     scene=None;source_record=None
     if not regeneration and cfg.get('r2_all_stream_exclusions'):
         from student_pilot.r1_rooms import census,verify_audit
-        from cs import sources as census_sources,preflight
+        from cs import sources as census_sources,preflight,discovery
         from sc import bind
         effective=deepcopy(cfg);effective['streams']['routing']=localize(base)
         with scope(sources):
@@ -232,7 +237,7 @@ def plan_payload(kit, resolved, root, *, regeneration=False):
             request['room_audit']=staged_audit
         with scope(sources):
             verify_audit(effective,staged_audit)
-        scene=bind(cfg,sources,scratch,q,kit,routing_base=localize(base))
+        scene=bind(cfg,sources,scratch,q,kit,routing_base=localize(base),pool_inputs=scene_pool_inputs)
         for p in scene.rglob('*'):
             if p.is_file():remember(p)
         from rv import location,put
@@ -242,7 +247,7 @@ def plan_payload(kit, resolved, root, *, regeneration=False):
         effective.update(r2_scene_rebuild=cfg['r2_scene_rebuild'],scene_coverage=cfg['scene_coverage'])
         with scope(sources):
             source_record=census_sources(effective)
-            preflight(kit,root.parent,effective,source_record,os.environ['SLURM_JOB_ID'])
+            if discovery(kit):preflight(kit,root.parent,effective,source_record,os.environ['SLURM_JOB_ID'])
     cfgraw=raw_json(cfg); cfgpath=metadata/'n.json';cfgpath.write_bytes(cfgraw);cfgh=remember(cfgpath)
     request=localize(request)
     request.update(config=dict(path=str(q/'n.json'),sha256=cfgh),job_tmp=str(q),binaries=load(kit/'k/h.json')['binaries'])

@@ -1,4 +1,4 @@
-Item 2b is not installed. It becomes buildable in mode q once every listed input resolves and the camera/routing population named by its source receipt authenticates in-job. Mode r can reconstruct the exact 4e8e6c04 population and requires its full hash; qd reuses that authenticated result, while armed q/n must stage it. The eac5f9f0 catalog still depends on the runtime e00 member index.
+The native scene-rebuild step is installed in all four kits. It authenticates the listed inputs, calls student_pilot.r2_scene_bindings.rebuild with the unchanged verifier, and binds the two returned evidence pins before preparation. The camera/routing population comes from the routing base named by the request's selection and native routing substitution; host.json records its original and substituted hashes. All other 53 original inputs remain authenticated, including the original pool manifest and tokenizer before relocation. The new pointing-role list is an additional input.
 
 Native rebuild reads the benchmark and merged dev lists, the source-relative withheld-80 list, five source receipts and their populations, and pool evidence, exclusions, removals and tokenizer. R0 and K1 are read by the requested native room census; rebuild itself does not read those authorities.
 
@@ -17,7 +17,7 @@ Native rebuild reads the benchmark and merged dev lists, the source-relative wit
 | source receipt vqa | e3ee51daa46af30fa8e84a05c12448d7fc3dc9cade05284707f9df322bbe44d0 | k/p.json upload; checked and staged as u/<sha256> |
 | source population vqa | 210b25349b23af5b38a5b5d90caa97be2bb296dbabd8773d54e658e0aad22443 | k/l.json extra.32; planner resolves by SHA256, checks and stages u/<sha256> |
 | source receipt camera | ca0616dbc67cf9a257774b43a9d5b134957b3f3ce0451e6bf5378f3d7d0c1984 | k/p.json upload; checked and staged as u/<sha256> |
-| source population camera | 4e8e6c04e697d8f12ecd9d705e197e94f73f4a9dc508b7a9e9b4f36487336f84 | Mode-r native reconstruction; full SHA256 must match before reuse in q |
+| source population camera | Selected routing receipt database pin; P reconstruction expects 4e8e6c04e697d8f12ecd9d705e197e94f73f4a9dc508b7a9e9b4f36487336f84 | Native request routing substitution; authenticate the complete selected database hash before rebuild |
 | source receipt pointing | 93b21a3aeeda01efab90d9f818eff78a6ca182c18c964534279008e4af91733a | k/p.json upload; checked and staged as u/<sha256> |
 | source population pointing | c09bb5ca44158df467449f3c5fed865d81eb5520fb704785b19e73abc5536938 | k/l.json staged_inputs.files.12; planner resolves by SHA256, checks and stages u/<sha256> |
 | source receipt pose_a2v3 | 30612832cc84ad83f9500ecbeac57704767568ff24482475feb42a92c7f166b8 | k/p.json upload; checked and staged as u/<sha256> |
@@ -57,8 +57,10 @@ Native rebuild reads the benchmark and merged dev lists, the source-relative wit
 | removal 8 | 1c7c930d1a533a3b18b08486bc2c2a9b49086b0809492963498b369ac8be45a2 | k/p.json upload; checked and staged as u/<sha256> |
 | removal 9 | 02315a74ed9020a9b7aa2f1a70ac765701bf17c71d4027d4424b9fdf0678a411 | k/p.json upload; checked and staged as u/<sha256> |
 | removal 10 | caba6a5695781491036de5b3acdb20db2d42ab581e5775fec3fe07fbd2114aad | k/p.json upload; checked and staged as u/<sha256> |
-| removal 11 | d1454a4461e96fda9e0db27eb75fe0080a555d77a4d05f8e036d49530626db29 | k/p.json upload; checked and staged as u/<sha256> |
+| protected pointing list | d21e374f39048c0e142680e0d3b26e5b2b774138747610c1fc4a00da0ec580e1 | k/p.json upload; role and stream survive localisation to u/<sha256> |
+| NAMING_REMOVE (last) | d1454a4461e96fda9e0db27eb75fe0080a555d77a4d05f8e036d49530626db29 | k/p.json upload; checked and staged as u/<sha256> |
 
-The complete input census has 54 entries. Installation requires successful authentication of the reconstructed or selected routing population and every remaining input. The scene-rebuild verifier also requires the population pin to equal the source receipt’s database pin. Null rebuild/coverage fields remain unchanged because this build does not install item 2b.
 
-After the routing source is staged, mode q will still need native scene rebuild evidence before preparation. The kit census reports admitted rows and protected-status row keys only after successful native preparation; it grants no exemption from the verifier.
+The inventory contains the 54 original entries plus the pointing-role list. The source receipt must bind the exact selected population pin and count; the native rebuild refuses a mismatch. Missing inputs still refuse by SHA256 before preparation.
+
+The kit publishes the native rebuild receipt and coverage to live/s0.json and s1.json. The final census publishes live/c4.json and c0.json through c3.json before WAITING_REVIEW; h.py pins the exact census bytes in live/h0.json. Only qd records census/post-condition refusals as WOULD_REFUSE and continues. The scene verifier is unchanged.

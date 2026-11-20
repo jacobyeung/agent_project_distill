@@ -1,0 +1,1 @@
+date -u +%TZ; tmux ls | grep tr16; for l in tree_rebuild_d173496 tree_rebuild24m3; do d=$(ls -dt /home/jjyeung/agent_project_distill/agent/scratch/codex_runs/*_$l | head -1); echo "== $l"; test -f $d/final_message.md && cat $d/final_message.md || tail -c 500 $d/transcript.log | tr -cd "[:print:]\n" | tail -2 | cut -c1-250; done

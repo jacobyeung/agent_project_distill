@@ -32,6 +32,11 @@ if any(p.get('role')=='protected_rooms' for p in cfg.get('remove_files',[])):
  host['protected_census']=verify_census(k,r.parent,cfg)
 # Host evidence is pinned before the prepared config is published.
 cfg['r1_training']['host_receipt']=write(r/'hr.json',host)
+if 'protected_census' in host:
+ import os
+ from rv import location,put
+ live,_=location(k,r.parent,os.environ['SLURM_JOB_ID'])
+ put(live/'h0.json',(r/'hr.json').read_bytes())
 from rv import sync_preparation
 sync_preparation(cfg,r,'ph.json')
 if identity(cfg)!=value:raise ValueError('R1_HOST_IDENTITY_DIFFERS')
