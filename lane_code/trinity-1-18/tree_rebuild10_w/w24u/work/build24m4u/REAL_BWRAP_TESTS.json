@@ -1,0 +1,829 @@
+{
+  "binary": "/usr/bin/bwrap",
+  "binary_sha256": "e60f175f82b2d6779a543ba52152f636f6260d092e44b195713f7650fb7bed76",
+  "records": [
+    {
+      "access": {
+        "compare_calls": [
+          {
+            "result": "PASS",
+            "source": "T0_gaps"
+          },
+          {
+            "result": "PASS",
+            "source": "OTHER"
+          },
+          {
+            "result": "PASS",
+            "source": "U_Faithful"
+          },
+          {
+            "result": "PASS",
+            "source": "T0_gaps"
+          },
+          {
+            "result": "PASS",
+            "source": "OTHER"
+          },
+          {
+            "result": "PASS",
+            "source": "U_Faithful"
+          },
+          {
+            "result": "PASS",
+            "source": "camera"
+          },
+          {
+            "result": "PASS",
+            "source": "camera"
+          },
+          {
+            "result": "PASS",
+            "source": "pointing"
+          },
+          {
+            "result": "PASS",
+            "source": "pointing"
+          },
+          {
+            "result": "PASS",
+            "source": "pose_a2v3"
+          },
+          {
+            "result": "PASS",
+            "source": "pose_a2v3"
+          },
+          {
+            "result": "PASS",
+            "source": "pose_a3v2"
+          },
+          {
+            "result": "PASS",
+            "source": "pose_a3v2"
+          },
+          {
+            "result": "PASS",
+            "source": "vqa"
+          },
+          {
+            "result": "PASS",
+            "source": "vqa"
+          },
+          {
+            "result": "PASS",
+            "source": "camera"
+          },
+          {
+            "result": "PASS",
+            "source": "pointing"
+          },
+          {
+            "result": "PASS",
+            "source": "pose_a2v3"
+          },
+          {
+            "result": "PASS",
+            "source": "pose_a3v2"
+          },
+          {
+            "result": "PASS",
+            "source": "vqa"
+          },
+          {
+            "result": "PASS",
+            "source": "OTHER"
+          },
+          {
+            "result": "PASS",
+            "source": "T0_gaps"
+          },
+          {
+            "result": "PASS",
+            "source": "U_Faithful"
+          },
+          {
+            "result": "PASS",
+            "source": "OTHER"
+          },
+          {
+            "result": "PASS",
+            "source": "T0_gaps"
+          },
+          {
+            "result": "PASS",
+            "source": "U_Faithful"
+          },
+          {
+            "result": "PASS",
+            "source": "camera"
+          },
+          {
+            "result": "PASS",
+            "source": "pointing"
+          },
+          {
+            "result": "PASS",
+            "source": "pose_a2v3"
+          },
+          {
+            "result": "PASS",
+            "source": "pose_a3v2"
+          },
+          {
+            "result": "PASS",
+            "source": "vqa"
+          },
+          {
+            "result": "PASS",
+            "source": "pointing"
+          },
+          {
+            "result": "PASS",
+            "source": "pose_a2v3"
+          },
+          {
+            "result": "PASS",
+            "source": "pose_a3v2"
+          },
+          {
+            "result": "PASS",
+            "source": "camera"
+          },
+          {
+            "result": "PASS",
+            "source": "OTHER"
+          },
+          {
+            "result": "PASS",
+            "source": "T0_gaps"
+          },
+          {
+            "result": "PASS",
+            "source": "U_Faithful"
+          },
+          {
+            "result": "PASS",
+            "source": "vqa"
+          }
+        ],
+        "dev": true,
+        "proc": true,
+        "readonly": {
+          "input": 30,
+          "other_tmp": 30,
+          "output_alias": 30,
+          "root": 30,
+          "tree": 30
+        }
+      },
+      "command": [
+        "/usr/bin/bwrap",
+        "--ro-bind",
+        "/",
+        "/",
+        "--bind",
+        "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24u",
+        "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24u",
+        "--bind",
+        "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24u/work/build24m4u/real_1795190545162173089/q/tmp",
+        "/tmp",
+        "--dev-bind",
+        "/dev",
+        "/dev",
+        "--proc",
+        "/proc",
+        "--setenv",
+        "PYTHONPATH",
+        "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24u/work/build24m4u/instrument",
+        "/scratch/jjyeung/envs/p1cpu/bin/python",
+        "-I",
+        "-s",
+        "-B",
+        "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24u/work/build24m4u/scene_fixture.py",
+        "outer",
+        "q",
+        "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24u/work/build24m4u/real_1795190545162173089/q/node"
+      ],
+      "inner_commands": [
+        [
+          "/usr/bin/bwrap",
+          "--symlink",
+          "usr/bin",
+          "/bin",
+          "--ro-bind",
+          "/boot",
+          "/boot",
+          "--ro-bind",
+          "/compute",
+          "/compute",
+          "--ro-bind",
+          "/data",
+          "/data",
+          "--ro-bind",
+          "/data2",
+          "/data2",
+          "--ro-bind",
+          "/data3",
+          "/data3",
+          "--ro-bind",
+          "/data4",
+          "/data4",
+          "--ro-bind",
+          "/etc",
+          "/etc",
+          "--ro-bind",
+          "/home",
+          "/home",
+          "--symlink",
+          "usr/lib",
+          "/lib",
+          "--symlink",
+          "usr/lib64",
+          "/lib64",
+          "--ro-bind",
+          "/lost+found",
+          "/lost+found",
+          "--ro-bind",
+          "/media",
+          "/media",
+          "--ro-bind",
+          "/mnt",
+          "/mnt",
+          "--ro-bind",
+          "/opt",
+          "/opt",
+          "--ro-bind",
+          "/root",
+          "/root",
+          "--ro-bind",
+          "/run",
+          "/run",
+          "--symlink",
+          "usr/sbin",
+          "/sbin",
+          "--ro-bind",
+          "/scratch",
+          "/scratch",
+          "--ro-bind",
+          "/srv",
+          "/srv",
+          "--ro-bind",
+          "/ssd0",
+          "/ssd0",
+          "--ro-bind",
+          "/ssd1",
+          "/ssd1",
+          "--ro-bind",
+          "/sys",
+          "/sys",
+          "--ro-bind",
+          "/usr",
+          "/usr",
+          "--ro-bind",
+          "/var",
+          "/var",
+          "--dev-bind",
+          "/dev",
+          "/dev",
+          "--proc",
+          "/proc",
+          "--tmpfs",
+          "/tmp",
+          "--ro-bind",
+          "/tmp/q_22c714e1/u/b.json",
+          "/tmp/q_22c714e1/u/b.json",
+          "--ro-bind",
+          "/tmp/q_22c714e1/z/i",
+          "/tmp/q_22c714e1/z/i",
+          "--ro-bind",
+          "/tmp/q_22c714e1/z/s",
+          "/tmp/q_22c714e1/z/s",
+          "--ro-bind",
+          "/tmp/q_22c714e1/z/i/0.gz",
+          "/tmp/q_22c714e1/z/i/0.gz",
+          "--ro-bind",
+          "/tmp/q_22c714e1/z/i/1.gz",
+          "/tmp/q_22c714e1/z/i/1.gz",
+          "--ro-bind",
+          "/tmp/q_22c714e1/z/i/2.gz",
+          "/tmp/q_22c714e1/z/i/2.gz",
+          "--ro-bind",
+          "/tmp/q_22c714e1/z/i/2.tsv",
+          "/tmp/q_22c714e1/z/i/2.tsv",
+          "--ro-bind",
+          "/tmp/q_22c714e1/z/i/dev.json",
+          "/tmp/q_22c714e1/z/i/dev.json",
+          "--ro-bind",
+          "/tmp/q_22c714e1/z/i/manifest.json",
+          "/tmp/q_22c714e1/z/i/manifest.json",
+          "--ro-bind",
+          "/tmp/q_22c714e1/z/i/old.json",
+          "/tmp/q_22c714e1/z/i/old.json",
+          "--ro-bind",
+          "/tmp/q_22c714e1/z/i/pool.json",
+          "/tmp/q_22c714e1/z/i/pool.json",
+          "--ro-bind",
+          "/tmp/q_22c714e1/z/i/pose.json",
+          "/tmp/q_22c714e1/z/i/pose.json",
+          "--ro-bind",
+          "/tmp/q_22c714e1/z/i/s0.json",
+          "/tmp/q_22c714e1/z/i/s0.json",
+          "--ro-bind",
+          "/tmp/q_22c714e1/z/i/s0.jsonl",
+          "/tmp/q_22c714e1/z/i/s0.jsonl",
+          "--ro-bind",
+          "/tmp/q_22c714e1/z/i/s1.json",
+          "/tmp/q_22c714e1/z/i/s1.json",
+          "--ro-bind",
+          "/tmp/q_22c714e1/z/i/s1.jsonl",
+          "/tmp/q_22c714e1/z/i/s1.jsonl",
+          "--ro-bind",
+          "/tmp/q_22c714e1/z/i/s2.json",
+          "/tmp/q_22c714e1/z/i/s2.json",
+          "--ro-bind",
+          "/tmp/q_22c714e1/z/i/s2.jsonl",
+          "/tmp/q_22c714e1/z/i/s2.jsonl",
+          "--ro-bind",
+          "/tmp/q_22c714e1/z/i/s3.json",
+          "/tmp/q_22c714e1/z/i/s3.json",
+          "--ro-bind",
+          "/tmp/q_22c714e1/z/i/s3.jsonl",
+          "/tmp/q_22c714e1/z/i/s3.jsonl",
+          "--ro-bind",
+          "/tmp/q_22c714e1/z/i/s4.json",
+          "/tmp/q_22c714e1/z/i/s4.json",
+          "--ro-bind",
+          "/tmp/q_22c714e1/z/i/s4.jsonl",
+          "/tmp/q_22c714e1/z/i/s4.jsonl",
+          "--ro-bind",
+          "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24u/out/kit_qd/b",
+          "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24u/out/kit_qd/b",
+          "--ro-bind",
+          "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24u/work/build24m4u/instrument",
+          "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24u/work/build24m4u/instrument",
+          "--bind",
+          "/tmp/q_22c714e1/z/i/sc",
+          "/tmp/q_22c714e1/z/q",
+          "--remount-ro",
+          "/tmp",
+          "--remount-ro",
+          "/",
+          "--chdir",
+          "/tmp/q_22c714e1/z",
+          "/scratch/jjyeung/envs/p1cpu/bin/python",
+          "-B",
+          "-s",
+          "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24u/out/kit_qd/b/sc.py",
+          "/tmp/q_22c714e1/z/i/sc.json",
+          "/tmp/q_22c714e1/z/s"
+        ]
+      ],
+      "log": "work/build24m4u/real_1795190545162173089/q/run.log",
+      "mode": "q",
+      "result": {
+        "compare_sha256": "34d30e3fccd6444b804d82132e8c4b38d336fdaaa75682b678d9b4b3348ff3ea",
+        "mode": "q",
+        "negative_refusal": "Filter differs from independent scene census: pool/T0_gaps/dev_matches",
+        "other_streams_byte_identical": {
+          "camera": "PASS",
+          "pointing": "PASS",
+          "pose_a2v3": "PASS",
+          "pose_a3v2": "PASS",
+          "vqa": "PASS"
+        },
+        "pool_compare": {
+          "OTHER": "PASS",
+          "T0_gaps": "PASS",
+          "U_Faithful": "PASS"
+        },
+        "selected": {
+          "OTHER": [
+            "OTHER0"
+          ],
+          "T0_gaps": [
+            "T0_gaps0"
+          ],
+          "U_Faithful": [
+            "U_Faithful0"
+          ]
+        },
+        "status": "PASS"
+      },
+      "returncode": 0
+    },
+    {
+      "access": {
+        "compare_calls": [
+          {
+            "result": "PASS",
+            "source": "T0_gaps"
+          },
+          {
+            "result": "PASS",
+            "source": "OTHER"
+          },
+          {
+            "result": "PASS",
+            "source": "U_Faithful"
+          },
+          {
+            "result": "PASS",
+            "source": "T0_gaps"
+          },
+          {
+            "result": "PASS",
+            "source": "OTHER"
+          },
+          {
+            "result": "PASS",
+            "source": "U_Faithful"
+          },
+          {
+            "result": "PASS",
+            "source": "camera"
+          },
+          {
+            "result": "PASS",
+            "source": "camera"
+          },
+          {
+            "result": "PASS",
+            "source": "pointing"
+          },
+          {
+            "result": "PASS",
+            "source": "pointing"
+          },
+          {
+            "result": "PASS",
+            "source": "pose_a2v3"
+          },
+          {
+            "result": "PASS",
+            "source": "pose_a2v3"
+          },
+          {
+            "result": "PASS",
+            "source": "pose_a3v2"
+          },
+          {
+            "result": "PASS",
+            "source": "pose_a3v2"
+          },
+          {
+            "result": "PASS",
+            "source": "vqa"
+          },
+          {
+            "result": "PASS",
+            "source": "vqa"
+          },
+          {
+            "result": "PASS",
+            "source": "camera"
+          },
+          {
+            "result": "PASS",
+            "source": "pointing"
+          },
+          {
+            "result": "PASS",
+            "source": "pose_a2v3"
+          },
+          {
+            "result": "PASS",
+            "source": "pose_a3v2"
+          },
+          {
+            "result": "PASS",
+            "source": "vqa"
+          },
+          {
+            "result": "PASS",
+            "source": "OTHER"
+          },
+          {
+            "result": "PASS",
+            "source": "T0_gaps"
+          },
+          {
+            "result": "PASS",
+            "source": "U_Faithful"
+          },
+          {
+            "result": "PASS",
+            "source": "OTHER"
+          },
+          {
+            "result": "PASS",
+            "source": "T0_gaps"
+          },
+          {
+            "result": "PASS",
+            "source": "U_Faithful"
+          },
+          {
+            "result": "PASS",
+            "source": "camera"
+          },
+          {
+            "result": "PASS",
+            "source": "pointing"
+          },
+          {
+            "result": "PASS",
+            "source": "pose_a2v3"
+          },
+          {
+            "result": "PASS",
+            "source": "pose_a3v2"
+          },
+          {
+            "result": "PASS",
+            "source": "vqa"
+          },
+          {
+            "result": "PASS",
+            "source": "pointing"
+          },
+          {
+            "result": "PASS",
+            "source": "pose_a2v3"
+          },
+          {
+            "result": "PASS",
+            "source": "pose_a3v2"
+          },
+          {
+            "result": "PASS",
+            "source": "camera"
+          },
+          {
+            "result": "PASS",
+            "source": "OTHER"
+          },
+          {
+            "result": "PASS",
+            "source": "T0_gaps"
+          },
+          {
+            "result": "PASS",
+            "source": "U_Faithful"
+          },
+          {
+            "result": "PASS",
+            "source": "vqa"
+          }
+        ],
+        "dev": true,
+        "proc": true,
+        "readonly": {
+          "input": 30,
+          "other_tmp": 30,
+          "output_alias": 30,
+          "root": 30,
+          "tree": 30
+        }
+      },
+      "command": [
+        "/usr/bin/bwrap",
+        "--ro-bind",
+        "/",
+        "/",
+        "--bind",
+        "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24u",
+        "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24u",
+        "--bind",
+        "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24u/work/build24m4u/real_1795190545162173089/r/tmp",
+        "/tmp",
+        "--dev-bind",
+        "/dev",
+        "/dev",
+        "--proc",
+        "/proc",
+        "--setenv",
+        "PYTHONPATH",
+        "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24u/work/build24m4u/instrument",
+        "/scratch/jjyeung/envs/p1cpu/bin/python",
+        "-I",
+        "-s",
+        "-B",
+        "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24u/work/build24m4u/scene_fixture.py",
+        "outer",
+        "r",
+        "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24u/work/build24m4u/real_1795190545162173089/r/node"
+      ],
+      "inner_commands": [
+        [
+          "/usr/bin/bwrap",
+          "--symlink",
+          "usr/bin",
+          "/bin",
+          "--ro-bind",
+          "/boot",
+          "/boot",
+          "--ro-bind",
+          "/compute",
+          "/compute",
+          "--ro-bind",
+          "/data",
+          "/data",
+          "--ro-bind",
+          "/data2",
+          "/data2",
+          "--ro-bind",
+          "/data3",
+          "/data3",
+          "--ro-bind",
+          "/data4",
+          "/data4",
+          "--ro-bind",
+          "/etc",
+          "/etc",
+          "--ro-bind",
+          "/home",
+          "/home",
+          "--symlink",
+          "usr/lib",
+          "/lib",
+          "--symlink",
+          "usr/lib64",
+          "/lib64",
+          "--ro-bind",
+          "/lost+found",
+          "/lost+found",
+          "--ro-bind",
+          "/media",
+          "/media",
+          "--ro-bind",
+          "/mnt",
+          "/mnt",
+          "--ro-bind",
+          "/opt",
+          "/opt",
+          "--ro-bind",
+          "/project",
+          "/project",
+          "--ro-bind",
+          "/root",
+          "/root",
+          "--ro-bind",
+          "/run",
+          "/run",
+          "--symlink",
+          "usr/sbin",
+          "/sbin",
+          "--ro-bind",
+          "/scratch",
+          "/scratch",
+          "--ro-bind",
+          "/srv",
+          "/srv",
+          "--ro-bind",
+          "/ssd0",
+          "/ssd0",
+          "--ro-bind",
+          "/ssd1",
+          "/ssd1",
+          "--ro-bind",
+          "/sys",
+          "/sys",
+          "--ro-bind",
+          "/usr",
+          "/usr",
+          "--ro-bind",
+          "/var",
+          "/var",
+          "--dev-bind",
+          "/dev",
+          "/dev",
+          "--proc",
+          "/proc",
+          "--tmpfs",
+          "/tmp",
+          "--ro-bind",
+          "/tmp/q_22c714e1/u/b.json",
+          "/tmp/q_22c714e1/u/b.json",
+          "--ro-bind",
+          "/tmp/q_22c714e1/z/i",
+          "/tmp/q_22c714e1/z/i",
+          "--ro-bind",
+          "/tmp/q_22c714e1/z/s",
+          "/tmp/q_22c714e1/z/s",
+          "--ro-bind",
+          "/tmp/q_22c714e1/z/i/0.gz",
+          "/tmp/q_22c714e1/z/i/0.gz",
+          "--ro-bind",
+          "/tmp/q_22c714e1/z/i/1.gz",
+          "/tmp/q_22c714e1/z/i/1.gz",
+          "--ro-bind",
+          "/tmp/q_22c714e1/z/i/2.gz",
+          "/tmp/q_22c714e1/z/i/2.gz",
+          "--ro-bind",
+          "/tmp/q_22c714e1/z/i/2.tsv",
+          "/tmp/q_22c714e1/z/i/2.tsv",
+          "--ro-bind",
+          "/tmp/q_22c714e1/z/i/dev.json",
+          "/tmp/q_22c714e1/z/i/dev.json",
+          "--ro-bind",
+          "/tmp/q_22c714e1/z/i/manifest.json",
+          "/tmp/q_22c714e1/z/i/manifest.json",
+          "--ro-bind",
+          "/tmp/q_22c714e1/z/i/old.json",
+          "/tmp/q_22c714e1/z/i/old.json",
+          "--ro-bind",
+          "/tmp/q_22c714e1/z/i/pool.json",
+          "/tmp/q_22c714e1/z/i/pool.json",
+          "--ro-bind",
+          "/tmp/q_22c714e1/z/i/pose.json",
+          "/tmp/q_22c714e1/z/i/pose.json",
+          "--ro-bind",
+          "/tmp/q_22c714e1/z/i/s0.json",
+          "/tmp/q_22c714e1/z/i/s0.json",
+          "--ro-bind",
+          "/tmp/q_22c714e1/z/i/s0.jsonl",
+          "/tmp/q_22c714e1/z/i/s0.jsonl",
+          "--ro-bind",
+          "/tmp/q_22c714e1/z/i/s1.json",
+          "/tmp/q_22c714e1/z/i/s1.json",
+          "--ro-bind",
+          "/tmp/q_22c714e1/z/i/s1.jsonl",
+          "/tmp/q_22c714e1/z/i/s1.jsonl",
+          "--ro-bind",
+          "/tmp/q_22c714e1/z/i/s2.json",
+          "/tmp/q_22c714e1/z/i/s2.json",
+          "--ro-bind",
+          "/tmp/q_22c714e1/z/i/s2.jsonl",
+          "/tmp/q_22c714e1/z/i/s2.jsonl",
+          "--ro-bind",
+          "/tmp/q_22c714e1/z/i/s3.json",
+          "/tmp/q_22c714e1/z/i/s3.json",
+          "--ro-bind",
+          "/tmp/q_22c714e1/z/i/s3.jsonl",
+          "/tmp/q_22c714e1/z/i/s3.jsonl",
+          "--ro-bind",
+          "/tmp/q_22c714e1/z/i/s4.json",
+          "/tmp/q_22c714e1/z/i/s4.json",
+          "--ro-bind",
+          "/tmp/q_22c714e1/z/i/s4.jsonl",
+          "/tmp/q_22c714e1/z/i/s4.jsonl",
+          "--ro-bind",
+          "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24u/out/kit_qd/b",
+          "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24u/out/kit_qd/b",
+          "--ro-bind",
+          "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24u/work/build24m4u/instrument",
+          "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24u/work/build24m4u/instrument",
+          "--bind",
+          "/tmp/q_22c714e1/z/i/sc",
+          "/tmp/q_22c714e1/z/q",
+          "--remount-ro",
+          "/tmp",
+          "--remount-ro",
+          "/",
+          "--chdir",
+          "/tmp/q_22c714e1/z",
+          "/scratch/jjyeung/envs/p1cpu/bin/python",
+          "-B",
+          "-s",
+          "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24u/out/kit_qd/b/sc.py",
+          "/tmp/q_22c714e1/z/i/sc.json",
+          "/tmp/q_22c714e1/z/s"
+        ]
+      ],
+      "log": "work/build24m4u/real_1795190545162173089/r/run.log",
+      "mode": "r",
+      "result": {
+        "compare_sha256": "34d30e3fccd6444b804d82132e8c4b38d336fdaaa75682b678d9b4b3348ff3ea",
+        "mode": "r",
+        "negative_refusal": "Filter differs from independent scene census: pool/T0_gaps/dev_matches",
+        "other_streams_byte_identical": {
+          "camera": "PASS",
+          "pointing": "PASS",
+          "pose_a2v3": "PASS",
+          "pose_a3v2": "PASS",
+          "vqa": "PASS"
+        },
+        "pool_compare": {
+          "OTHER": "PASS",
+          "T0_gaps": "PASS",
+          "U_Faithful": "PASS"
+        },
+        "selected": {
+          "OTHER": [
+            "OTHER0"
+          ],
+          "T0_gaps": [
+            "T0_gaps0"
+          ],
+          "U_Faithful": [
+            "U_Faithful0"
+          ]
+        },
+        "status": "PASS"
+      },
+      "returncode": 0
+    }
+  ],
+  "scope": "Synthetic rows; unchanged native rebuild, verify and census comparison; actual sc.bind subprocess command; private /tmp carrier and mode-r host_root outer view.",
+  "status": "PASS"
+}

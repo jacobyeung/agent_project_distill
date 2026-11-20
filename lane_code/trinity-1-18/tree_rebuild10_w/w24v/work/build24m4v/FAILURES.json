@@ -1,0 +1,314 @@
+{
+  "failures": [
+    {
+      "log": "work/build24m4v/scans_1795191475695288935.log",
+      "name": "scans",
+      "output": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/work/build24m4v/run_suite.py\", line 13, in <module>\n    sys.argv=sys.argv[1:];runpy.run_path(sys.argv[0],run_name='__main__')\n                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<frozen runpy>\", line 287, in run_path\n  File \"<frozen runpy>\", line 98, in _run_module_code\n  File \"<frozen runpy>\", line 88, in _run_code\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/work/build24m4v/scans.py\", line 6, in <module>\n    full=scan(kit(name),name);raw=json.dumps(full,sort_keys=True).encode();target=D/(\"SCAN_\"+name+\".json.gz\");target.write_bytes(gzip.compress(raw,mtime=0))\n         ^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/work/build24m4v/support.py\", line 29, in scan\n    result=mod.scan_decoded(k)\n           ^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/work/build24m4v/naming24m1_q.py\", line 246, in scan_decoded\n    visit(value,relative);maps.append(relative)\n    ^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/work/build24m4v/naming24m1_q.py\", line 188, in visit\n    visit(json.loads(decode(v,where)),doc,parts);return\n    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/work/build24m4v/naming24m1_q.py\", line 209, in visit\n    raise ValueError('SOURCE_INVENTORY:'+where)\nValueError: SOURCE_INVENTORY:k/7.json:/\n",
+      "resolved_by": "work/build24m4v/scans_1795191781450898846.log",
+      "returncode": 1
+    },
+    {
+      "log": "work/build24m4v/naming_tests_1795191483225162272.log",
+      "name": "naming_tests",
+      "output": "test_environment_mutations (__main__.Naming.test_environment_mutations) ... \n  test_environment_mutations (__main__.Naming.test_environment_mutations) (source='key,value=(\"BeNcHmArK\",\"q\")\\nos.environ[key]=value') ... FAIL\n  test_environment_mutations (__main__.Naming.test_environment_mutations) (source='os.putenv(\"BeNcHmArK\",\"q\")') ... FAIL\n  test_environment_mutations (__main__.Naming.test_environment_mutations) (source='os.environ.setdefault(\"BeNcHmArK\",\"q\")') ... FAIL\n  test_environment_mutations (__main__.Naming.test_environment_mutations) (source='for key,value in [(\"BeNcHmArK\",\"q\")]:\\n os.environ[key]=value') ... FAIL\n  test_environment_mutations (__main__.Naming.test_environment_mutations) (source='os.environ[f\"{runtime}\"]=\"q\"') ... FAIL\n  test_environment_mutations (__main__.Naming.test_environment_mutations) (source='def helper(e):\\n e[\"BeNcHmArK\"]=\"q\"\\ne={**os.environ}\\nhelper(e)\\nsubprocess.run([],env=e)') ... FAIL\ntest_shell_edit_invalidates_certificate (__main__.Naming.test_shell_edit_invalidates_certificate) ... ok\ntest_stage_name_mutation (__main__.Naming.test_stage_name_mutation) ... ok\ntest_21d_python_negative_controls (naming_test21f.Naming21f.test_21d_python_negative_controls) ... ok\ntest_unresolved_python_forms (naming_test21f.Naming21f.test_unresolved_python_forms) ... ok\ntest_inherited_positive (naming_test21g.Naming21g.test_inherited_positive) ... ok\ntest_inherited_negative (naming_test21g.Naming21g.test_inherited_negative) ... ok\n\n======================================================================\nFAIL: test_environment_mutations (__main__.Naming.test_environment_mutations) (source='key,value=(\"BeNcHmArK\",\"q\")\\nos.environ[key]=value')\n----------------------------------------------------------------------\nValueError: SOURCE_INVENTORY:k/7.json:/\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/work/build24m4v/naming_tests.py\", line 26, in test_environment_mutations\n    with self.subTest(source=source),patch.object(Path,'read_text',lambda q,*a,**kw:raw if q==p else original(q,*a,**kw)),self.assertRaisesRegex(ValueError,'(INPUT_NAME|ENV_UNRESOLVED)'):self.scan()\n                                                                                                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: \"(INPUT_NAME|ENV_UNRESOLVED)\" does not match \"SOURCE_INVENTORY:k/7.json:/\"\n\n======================================================================\nFAIL: test_environment_mutations (__main__.Naming.test_environment_mutations) (source='os.putenv(\"BeNcHmArK\",\"q\")')\n----------------------------------------------------------------------\nValueError: SOURCE_INVENTORY:k/7.json:/\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/work/build24m4v/naming_tests.py\", line 26, in test_environment_mutations\n    with self.subTest(source=source),patch.object(Path,'read_text',lambda q,*a,**kw:raw if q==p else original(q,*a,**kw)),self.assertRaisesRegex(ValueError,'(INPUT_NAME|ENV_UNRESOLVED)'):self.scan()\n                                                                                                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: \"(INPUT_NAME|ENV_UNRESOLVED)\" does not match \"SOURCE_INVENTORY:k/7.json:/\"\n\n======================================================================\nFAIL: test_environment_mutations (__main__.Naming.test_environment_mutations) (source='os.environ.setdefault(\"BeNcHmArK\",\"q\")')\n----------------------------------------------------------------------\nValueError: SOURCE_INVENTORY:k/7.json:/\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/work/build24m4v/naming_tests.py\", line 26, in test_environment_mutations\n    with self.subTest(source=source),patch.object(Path,'read_text',lambda q,*a,**kw:raw if q==p else original(q,*a,**kw)),self.assertRaisesRegex(ValueError,'(INPUT_NAME|ENV_UNRESOLVED)'):self.scan()\n                                                                                                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: \"(INPUT_NAME|ENV_UNRESOLVED)\" does not match \"SOURCE_INVENTORY:k/7.json:/\"\n\n======================================================================\nFAIL: test_environment_mutations (__main__.Naming.test_environment_mutations) (source='for key,value in [(\"BeNcHmArK\",\"q\")]:\\n os.environ[key]=value')\n----------------------------------------------------------------------\nValueError: SOURCE_INVENTORY:k/7.json:/\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/work/build24m4v/naming_tests.py\", line 26, in test_environment_mutations\n    with self.subTest(source=source),patch.object(Path,'read_text',lambda q,*a,**kw:raw if q==p else original(q,*a,**kw)),self.assertRaisesRegex(ValueError,'(INPUT_NAME|ENV_UNRESOLVED)'):self.scan()\n                                                                                                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: \"(INPUT_NAME|ENV_UNRESOLVED)\" does not match \"SOURCE_INVENTORY:k/7.json:/\"\n\n======================================================================\nFAIL: test_environment_mutations (__main__.Naming.test_environment_mutations) (source='os.environ[f\"{runtime}\"]=\"q\"')\n----------------------------------------------------------------------\nValueError: SOURCE_INVENTORY:k/7.json:/\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/work/build24m4v/naming_tests.py\", line 26, in test_environment_mutations\n    with self.subTest(source=source),patch.object(Path,'read_text',lambda q,*a,**kw:raw if q==p else original(q,*a,**kw)),self.assertRaisesRegex(ValueError,'(INPUT_NAME|ENV_UNRESOLVED)'):self.scan()\n                                                                                                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: \"(INPUT_NAME|ENV_UNRESOLVED)\" does not match \"SOURCE_INVENTORY:k/7.json:/\"\n\n======================================================================\nFAIL: test_environment_mutations (__main__.Naming.test_environment_mutations) (source='def helper(e):\\n e[\"BeNcHmArK\"]=\"q\"\\ne={**os.environ}\\nhelper(e)\\nsubprocess.run([],env=e)')\n----------------------------------------------------------------------\nValueError: SOURCE_INVENTORY:k/7.json:/\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/work/build24m4v/naming_tests.py\", line 26, in test_environment_mutations\n    with self.subTest(source=source),patch.object(Path,'read_text',lambda q,*a,**kw:raw if q==p else original(q,*a,**kw)),self.assertRaisesRegex(ValueError,'(INPUT_NAME|ENV_UNRESOLVED)'):self.scan()\n                                                                                                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: \"(INPUT_NAME|ENV_UNRESOLVED)\" does not match \"SOURCE_INVENTORY:k/7.json:/\"\n\n----------------------------------------------------------------------\nRan 7 tests in 4.658s\n\nFAILED (failures=6)\n",
+      "resolved_by": "work/build24m4v/naming_tests_1795191829983659382.log",
+      "returncode": 1
+    },
+    {
+      "log": "work/build24m4v/resolver600_tests_1795191499051463986.log",
+      "name": "resolver600_tests",
+      "output": "setUpClass (__main__.Resolver24) ... ERROR\n\n======================================================================\nERROR: setUpClass (__main__.Resolver24)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/work/build24m4v/resolver600_tests.py\", line 79, in setUpClass\n    def setUpClass(cls):cls.f=fixture()\n                              ^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/work/build24m4v/resolver600_tests.py\", line 72, in fixture\n    template=root/'n';shutil.copytree(D/'kits/n',template,dirs_exist_ok=True,copy_function=lambda a,b: shutil.copyfile(a,b) if Path(a).suffix!='.tar' else __import__('os').link(a,b))\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/shutil.py\", line 600, in copytree\n    return _copytree(entries=entries, src=src, dst=dst, symlinks=symlinks,\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/shutil.py\", line 554, in _copytree\n    raise Error(errors)\nshutil.Error: [('/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/work/build24/kits/n/k/t_e047002134f979bd.tar', '/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/work/build24m4v/proofs/resolver600_v2/f/n/k/t_e047002134f979bd.tar', \"[Errno 17] File exists: '/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/work/build24/kits/n/k/t_e047002134f979bd.tar' -> '/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/work/build24m4v/proofs/resolver600_v2/f/n/k/t_e047002134f979bd.tar'\")]\n\n----------------------------------------------------------------------\nRan 0 tests in 0.030s\n\nFAILED (errors=1)\n",
+      "resolved_by": "work/build24m4v/resolver600_tests_1795191889517732976.log",
+      "returncode": 1
+    },
+    {
+      "log": "work/build24m4v/guard_q_new_1795191508588181286.log",
+      "name": "guard_q_new",
+      "output": "test_absent_version (__main__.Guard23d.test_absent_version) ... ok\ntest_all_diagnostic_read_failures (__main__.Guard23d.test_all_diagnostic_read_failures) ... ok\ntest_device_name_allowlist (__main__.Guard23d.test_device_name_allowlist) ... ok\ntest_device_name_rejection (__main__.Guard23d.test_device_name_rejection) ... ok\ntest_environment_is_summary_only (__main__.Guard23d.test_environment_is_summary_only) ... ok\ntest_serialization_failure_becomes_E42 (__main__.Guard23d.test_serialization_failure_becomes_E42) ... ok\ntest_torch_import_failure (__main__.Guard23d.test_torch_import_failure) ... ok\ntest_unknown_memory_refuses (__main__.Guard23d.test_unknown_memory_refuses) ... ok\n\n----------------------------------------------------------------------\nRan 8 tests in 0.060s\n\nOK\nTraceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/work/build24m4v/run_suite.py\", line 13, in <module>\n    sys.argv=sys.argv[1:];runpy.run_path(sys.argv[0],run_name='__main__')\n                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<frozen runpy>\", line 287, in run_path\n  File \"<frozen runpy>\", line 98, in _run_module_code\n  File \"<frozen runpy>\", line 88, in _run_code\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/work/build24m4v/guard_q_new.py\", line 72, in <module>\n    (D/'GUARD_TESTS.json').write_text(json.dumps(dict(successful=result.wasSuccessful(),tests=result.testsRun,cases=cases,changed_statement_lines=sorted(statements),covered=sorted(hits),missing=sorted(statements-hits),stand_in='torch only; diagnostic node checks mocked; no GPU'),indent=2)+'\\n')\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py\", line 1047, in write_text\n    with self.open(mode='w', encoding=encoding, errors=errors, newline=newline) as f:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py\", line 1013, in open\n    return io.open(self, mode, buffering, encoding, errors, newline)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nFileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/work/build24m4v/guard_q/GUARD_TESTS.json'\n",
+      "resolved_by": "work/build24m4v/guard_q_new_1795191896098240533.log",
+      "returncode": 1
+    },
+    {
+      "log": "work/build24m4v/guard_q_legacy_1795191508781681037.log",
+      "name": "guard_q_legacy",
+      "output": "test_70gib (__main__.Guard.test_70gib) ... ok\ntest_below_threshold (__main__.Guard.test_below_threshold) ... ok\ntest_exact_threshold (__main__.Guard.test_exact_threshold) ... ok\ntest_generator_matches (__main__.Guard.test_generator_matches) ... ok\ntest_missing_nodes_are_diagnostic (__main__.Guard.test_missing_nodes_are_diagnostic) ... ok\ntest_no_cuda (__main__.Guard.test_no_cuda) ... ok\ntest_properties_unavailable (__main__.Guard.test_properties_unavailable) ... ok\ntest_reported_80gb (__main__.Guard.test_reported_80gb) ... ok\ntest_zero_count (__main__.Guard.test_zero_count) ... ok\n\n----------------------------------------------------------------------\nRan 9 tests in 0.030s\n\nOK\nTraceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/work/build24m4v/run_suite.py\", line 13, in <module>\n    sys.argv=sys.argv[1:];runpy.run_path(sys.argv[0],run_name='__main__')\n                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<frozen runpy>\", line 287, in run_path\n  File \"<frozen runpy>\", line 98, in _run_module_code\n  File \"<frozen runpy>\", line 88, in _run_code\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/work/build24m4v/guard_q_legacy.py\", line 55, in <module>\n    (D/'LEGACY_GUARD_TESTS.json').write_text(json.dumps(dict(successful=result.wasSuccessful(),tests=result.testsRun,cases=records,changed_statement_lines=sorted(statements),covered=sorted(hits),missing=sorted(statements-hits),stand_in='torch module only; no CUDA/GPU calls'),indent=2)+'\\n')\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py\", line 1047, in write_text\n    with self.open(mode='w', encoding=encoding, errors=errors, newline=newline) as f:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py\", line 1013, in open\n    return io.open(self, mode, buffering, encoding, errors, newline)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nFileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/work/build24m4v/guard_q/LEGACY_GUARD_TESTS.json'\n",
+      "resolved_by": "work/build24m4v/guard_q_legacy_1795191896282372021.log",
+      "returncode": 1
+    },
+    {
+      "log": "work/build24m4v/guard_n_new_1795191508942638789.log",
+      "name": "guard_n_new",
+      "output": "test_absent_version (__main__.Guard23d.test_absent_version) ... ok\ntest_all_diagnostic_read_failures (__main__.Guard23d.test_all_diagnostic_read_failures) ... ok\ntest_device_name_allowlist (__main__.Guard23d.test_device_name_allowlist) ... ok\ntest_device_name_rejection (__main__.Guard23d.test_device_name_rejection) ... ok\ntest_environment_is_summary_only (__main__.Guard23d.test_environment_is_summary_only) ... ok\ntest_serialization_failure_becomes_E42 (__main__.Guard23d.test_serialization_failure_becomes_E42) ... ok\ntest_torch_import_failure (__main__.Guard23d.test_torch_import_failure) ... ok\ntest_unknown_memory_refuses (__main__.Guard23d.test_unknown_memory_refuses) ... ok\n\n----------------------------------------------------------------------\nRan 8 tests in 0.059s\n\nOK\nTraceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/work/build24m4v/run_suite.py\", line 13, in <module>\n    sys.argv=sys.argv[1:];runpy.run_path(sys.argv[0],run_name='__main__')\n                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<frozen runpy>\", line 287, in run_path\n  File \"<frozen runpy>\", line 98, in _run_module_code\n  File \"<frozen runpy>\", line 88, in _run_code\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/work/build24m4v/guard_n_new.py\", line 72, in <module>\n    (D/'GUARD_TESTS.json').write_text(json.dumps(dict(successful=result.wasSuccessful(),tests=result.testsRun,cases=cases,changed_statement_lines=sorted(statements),covered=sorted(hits),missing=sorted(statements-hits),stand_in='torch only; diagnostic node checks mocked; no GPU'),indent=2)+'\\n')\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py\", line 1047, in write_text\n    with self.open(mode='w', encoding=encoding, errors=errors, newline=newline) as f:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py\", line 1013, in open\n    return io.open(self, mode, buffering, encoding, errors, newline)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nFileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/work/build24m4v/guard_n/GUARD_TESTS.json'\n",
+      "resolved_by": "work/build24m4v/guard_n_new_1795191896447572750.log",
+      "returncode": 1
+    },
+    {
+      "log": "work/build24m4v/guard_n_legacy_1795191509129169335.log",
+      "name": "guard_n_legacy",
+      "output": "test_70gib (__main__.Guard.test_70gib) ... ok\ntest_below_threshold (__main__.Guard.test_below_threshold) ... ok\ntest_exact_threshold (__main__.Guard.test_exact_threshold) ... ok\ntest_generator_matches (__main__.Guard.test_generator_matches) ... ok\ntest_missing_nodes_are_diagnostic (__main__.Guard.test_missing_nodes_are_diagnostic) ... ok\ntest_no_cuda (__main__.Guard.test_no_cuda) ... ok\ntest_properties_unavailable (__main__.Guard.test_properties_unavailable) ... ok\ntest_reported_80gb (__main__.Guard.test_reported_80gb) ... ok\ntest_zero_count (__main__.Guard.test_zero_count) ... ok\n\n----------------------------------------------------------------------\nRan 9 tests in 0.025s\n\nOK\nTraceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/work/build24m4v/run_suite.py\", line 13, in <module>\n    sys.argv=sys.argv[1:];runpy.run_path(sys.argv[0],run_name='__main__')\n                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<frozen runpy>\", line 287, in run_path\n  File \"<frozen runpy>\", line 98, in _run_module_code\n  File \"<frozen runpy>\", line 88, in _run_code\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/work/build24m4v/guard_n_legacy.py\", line 55, in <module>\n    (D/'LEGACY_GUARD_TESTS.json').write_text(json.dumps(dict(successful=result.wasSuccessful(),tests=result.testsRun,cases=records,changed_statement_lines=sorted(statements),covered=sorted(hits),missing=sorted(statements-hits),stand_in='torch module only; no CUDA/GPU calls'),indent=2)+'\\n')\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py\", line 1047, in write_text\n    with self.open(mode='w', encoding=encoding, errors=errors, newline=newline) as f:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py\", line 1013, in open\n    return io.open(self, mode, buffering, encoding, errors, newline)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nFileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/work/build24m4v/guard_n/LEGACY_GUARD_TESTS.json'\n",
+      "resolved_by": "work/build24m4v/guard_n_legacy_1795191896661749703.log",
+      "returncode": 1
+    },
+    {
+      "log": "work/build24m4v/arm_tests_1795191509265307772.log",
+      "name": "arm_tests",
+      "output": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/work/build24m4v/run_suite.py\", line 13, in <module>\n    sys.argv=sys.argv[1:];runpy.run_path(sys.argv[0],run_name='__main__')\n                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<frozen runpy>\", line 287, in run_path\n  File \"<frozen runpy>\", line 98, in _run_module_code\n  File \"<frozen runpy>\", line 88, in _run_code\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/work/build24m4v/arm_tests.py\", line 39, in <module>\n    result=arm.apply(F/\"routing_selection.json\",F/\"db_bytes.json\",fixture_root/\"out/armed\",base_path=F/\"base.json\",**auth)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/work/build24m4v/arm_fixture.py\", line 110, in apply\n    full=scan(target,name);packed=gzip.compress(json.dumps(full,sort_keys=True).encode(),mtime=0)\n         ^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/work/build24m4v/support.py\", line 29, in scan\n    result=mod.scan_decoded(k)\n           ^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/work/build24m4v/naming24m1_q.py\", line 246, in scan_decoded\n    visit(value,relative);maps.append(relative)\n    ^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/work/build24m4v/naming24m1_q.py\", line 188, in visit\n    visit(json.loads(decode(v,where)),doc,parts);return\n    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/work/build24m4v/naming24m1_q.py\", line 209, in visit\n    raise ValueError('SOURCE_INVENTORY:'+where)\nValueError: SOURCE_INVENTORY:k/7.json:/\n",
+      "resolved_by": "work/build24m4v/arm_tests_1795191896812497318.log",
+      "returncode": 1
+    },
+    {
+      "log": "work/build24m4v/arm_missing_test_1795191513303562993.log",
+      "name": "arm_missing_test",
+      "output": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/work/build24m4v/run_suite.py\", line 13, in <module>\n    sys.argv=sys.argv[1:];runpy.run_path(sys.argv[0],run_name='__main__')\n                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<frozen runpy>\", line 287, in run_path\n  File \"<frozen runpy>\", line 98, in _run_module_code\n  File \"<frozen runpy>\", line 88, in _run_code\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/work/build24m4v/arm_missing_test.py\", line 5, in <module>\n    F=D/\"arming_final\";record=J.load(D/\"ARM_TESTS.json\")[\"records\"][0];dh=record[\"staged_member\"].split(\"/\")[1]\n                              ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/out/kit_qd/b/z.py\", line 12, in load\n    try:v=json.loads(Path(path).read_text())\n                     ^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py\", line 1027, in read_text\n    with self.open(mode='r', encoding=encoding, errors=errors) as f:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py\", line 1013, in open\n    return io.open(self, mode, buffering, encoding, errors, newline)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nFileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/work/build24m4v/ARM_TESTS.json'\n",
+      "resolved_by": "work/build24m4v/arm_missing_test_1795191932874367311.log",
+      "returncode": 1
+    },
+    {
+      "log": "work/build24m4v/native_arm_tests_1795191513408157929.log",
+      "name": "native_arm_tests",
+      "output": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/work/build24m4v/run_suite.py\", line 13, in <module>\n    sys.argv=sys.argv[1:];runpy.run_path(sys.argv[0],run_name='__main__')\n                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<frozen runpy>\", line 287, in run_path\n  File \"<frozen runpy>\", line 98, in _run_module_code\n  File \"<frozen runpy>\", line 88, in _run_code\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/work/build24m4v/native_arm_tests.py\", line 25, in <module>\n    result=arm.apply(N/'selection.json',N/'metadata.json',workspace/'out/native_armed',base_path=F/'base.json',**auth)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/work/build24m4v/arm_fixture.py\", line 110, in apply\n    full=scan(target,name);packed=gzip.compress(json.dumps(full,sort_keys=True).encode(),mtime=0)\n         ^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/work/build24m4v/support.py\", line 29, in scan\n    result=mod.scan_decoded(k)\n           ^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/work/build24m4v/naming24m1_q.py\", line 246, in scan_decoded\n    visit(value,relative);maps.append(relative)\n    ^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/work/build24m4v/naming24m1_q.py\", line 188, in visit\n    visit(json.loads(decode(v,where)),doc,parts);return\n    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/work/build24m4v/naming24m1_q.py\", line 209, in visit\n    raise ValueError('SOURCE_INVENTORY:'+where)\nValueError: SOURCE_INVENTORY:k/7.json:/\n",
+      "resolved_by": "work/build24m4v/native_arm_tests_1795191935133424464.log",
+      "returncode": 1
+    },
+    {
+      "log": "work/build24m4v/review_tests_1795191517245737422.log",
+      "name": "review_tests",
+      "output": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/work/build24m4v/run_suite.py\", line 13, in <module>\n    sys.argv=sys.argv[1:];runpy.run_path(sys.argv[0],run_name='__main__')\n                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<frozen runpy>\", line 287, in run_path\n  File \"<frozen runpy>\", line 98, in _run_module_code\n  File \"<frozen runpy>\", line 88, in _run_code\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/work/build24m4v/review_tests.py\", line 63, in <module>\n    result=J.load(workspace/\"out/armed/UPLOADS_ROUTING_ARMED.json\")\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/out/kit_qd/b/z.py\", line 12, in load\n    try:v=json.loads(Path(path).read_text())\n                     ^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py\", line 1027, in read_text\n    with self.open(mode='r', encoding=encoding, errors=errors) as f:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py\", line 1013, in open\n    return io.open(self, mode, buffering, encoding, errors, newline)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nFileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/work/build24m4v/arming_final/workspace/out/armed/UPLOADS_ROUTING_ARMED.json'\n",
+      "resolved_by": "work/build24m4v/review_tests_1795191973104814799.log",
+      "returncode": 1
+    },
+    {
+      "log": "work/build24m4v/coverage_tests_1795191517588167231.log",
+      "name": "coverage_tests",
+      "output": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/work/build24m4v/run_suite.py\", line 13, in <module>\n    sys.argv=sys.argv[1:];runpy.run_path(sys.argv[0],run_name='__main__')\n                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<frozen runpy>\", line 287, in run_path\n  File \"<frozen runpy>\", line 98, in _run_module_code\n  File \"<frozen runpy>\", line 88, in _run_code\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/work/build24m4v/coverage_tests.py\", line 14, in <module>\n    exec(compile(s,str(D/\"review_tests.py\"),\"exec\"),{\"__name__\":\"__main__\",\"__file__\":str(D/\"review_tests.py\")})\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/work/build24m4v/review_tests.py\", line 63, in <module>\n    result=J.load(workspace/\"out/armed/UPLOADS_ROUTING_ARMED.json\")\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/out/kit_qd/b/z.py\", line 12, in load\n    try:v=json.loads(Path(path).read_text())\n                     ^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py\", line 1027, in read_text\n    with self.open(mode='r', encoding=encoding, errors=errors) as f:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py\", line 1013, in open\n    return io.open(self, mode, buffering, encoding, errors, newline)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nFileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/work/build24m4v/arming_final/workspace/out/armed/UPLOADS_ROUTING_ARMED.json'\n",
+      "resolved_by": "work/build24m4v/coverage_tests_1795191973572091067.log",
+      "returncode": 1
+    },
+    {
+      "log": "work/build24m4v/qd_tests_1795191518520826683.log",
+      "name": "qd_tests",
+      "output": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/work/build24m4v/run_suite.py\", line 13, in <module>\n    sys.argv=sys.argv[1:];runpy.run_path(sys.argv[0],run_name='__main__')\n                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<frozen runpy>\", line 287, in run_path\n  File \"<frozen runpy>\", line 98, in _run_module_code\n  File \"<frozen runpy>\", line 88, in _run_code\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/work/build24m4v/qd_tests.py\", line 16, in <module>\n    with P.scope(replicas):compare_configs(source,cfg,replicas=replicas)\n                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/work/tree_r1c/student_pilot/r1_handover.py\", line 175, in compare_configs\n    raise ValueError('P_EXPORT_CONFIG_DIFFERENCE:'+key)\nValueError: P_EXPORT_CONFIG_DIFFERENCE:extent_pool_sources\n",
+      "resolved_by": "work/build24m4v/qd_tests_1795192065327089020.log",
+      "returncode": 1
+    },
+    {
+      "log": "work/build24m4v/planner_tests_1795191521673804646.log",
+      "name": "planner_tests",
+      "output": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/work/build24m4v/run_suite.py\", line 13, in <module>\n    sys.argv=sys.argv[1:];runpy.run_path(sys.argv[0],run_name='__main__')\n                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<frozen runpy>\", line 287, in run_path\n  File \"<frozen runpy>\", line 98, in _run_module_code\n  File \"<frozen runpy>\", line 88, in _run_code\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/work/build24m4v/planner_tests.py\", line 78, in <module>\n    request,sources,stage=pl.plan_payload(kit('qd'),resolved,root/'native',regeneration=mode=='r')\n                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/out/kit_qd/b/pl.py\", line 165, in plan_payload\n    if hashlib.sha256(code).hexdigest()!=spec['code_sha256']:raise ValueError('E34')\n                                                             ^^^^^^^^^^^^^^^^^^^^^^^\nValueError: E34\n",
+      "resolved_by": "work/build24m4v/planner_tests_1795192069777915000.log",
+      "returncode": 1
+    },
+    {
+      "log": "work/build24m4v/sample_tests_1795191566183564304.log",
+      "name": "sample_tests",
+      "output": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/work/build24m4v/run_suite.py\", line 13, in <module>\n    sys.argv=sys.argv[1:];runpy.run_path(sys.argv[0],run_name='__main__')\n                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<frozen runpy>\", line 287, in run_path\n  File \"<frozen runpy>\", line 98, in _run_module_code\n  File \"<frozen runpy>\", line 88, in _run_code\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/work/build24m4v/sample_tests.py\", line 8, in <module>\n    F=D/'rcj_l';F.mkdir();records=[]\n                ^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py\", line 1311, in mkdir\n    os.mkdir(self, mode)\nFileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/work/build24m4v/sample/rcj_l'\n",
+      "resolved_by": "work/build24m4v/sample_tests_1795192095301878009.log",
+      "returncode": 1
+    },
+    {
+      "log": "work/build24m4v/contract_tests_1795191566354010340.log",
+      "name": "contract_tests",
+      "output": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/work/build24m4v/run_suite.py\", line 13, in <module>\n    sys.argv=sys.argv[1:];runpy.run_path(sys.argv[0],run_name='__main__')\n                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<frozen runpy>\", line 287, in run_path\n  File \"<frozen runpy>\", line 98, in _run_module_code\n  File \"<frozen runpy>\", line 88, in _run_code\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/work/build24m4v/contract_tests.py\", line 6, in <module>\n    F=D/'rcj_contract';F.mkdir();root=F/'node';root.mkdir()\n                       ^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py\", line 1311, in mkdir\n    os.mkdir(self, mode)\nFileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/work/build24m4v/contract/rcj_contract'\n",
+      "resolved_by": "work/build24m4v/contract_tests_1795192180992733685.log",
+      "returncode": 1
+    },
+    {
+      "log": "work/build24m4v/pc_test_1795191573375856606.log",
+      "name": "pc_test",
+      "output": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/work/build24m4v/run_suite.py\", line 13, in <module>\n    sys.argv=sys.argv[1:];runpy.run_path(sys.argv[0],run_name='__main__')\n                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<frozen runpy>\", line 287, in run_path\n  File \"<frozen runpy>\", line 98, in _run_module_code\n  File \"<frozen runpy>\", line 88, in _run_code\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/work/build24m4v/pc_test.py\", line 12, in <module>\n    assets=D/'assets2';asset_files={p.name:z.sha(p) for p in assets.iterdir() if p.is_file()}\n                                                             ^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py\", line 1056, in iterdir\n    for name in os.listdir(self):\n                ^^^^^^^^^^^^^^^^\nFileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/work/build24m4v/assets2'\n",
+      "resolved_by": "work/build24m4v/pc_test_1795192095806937834.log",
+      "returncode": 1
+    },
+    {
+      "log": "work/build24m4v/contract_tests_1795192095635588811.log",
+      "name": "contract_tests",
+      "output": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/work/build24m4v/run_suite.py\", line 13, in <module>\n    sys.argv=sys.argv[1:];runpy.run_path(sys.argv[0],run_name='__main__')\n                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<frozen runpy>\", line 287, in run_path\n  File \"<frozen runpy>\", line 98, in _run_module_code\n  File \"<frozen runpy>\", line 88, in _run_code\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/work/build24m4v/contract_tests.py\", line 55, in <module>\n    p=subprocess.run(cmd,text=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT);(D/'rdiff_fixture.log').write_text(p.stdout);assert p.returncode==0,p.stdout\n                                                                                                                                        ^^^^^^^^^^^^^^^\nAssertionError: /scratch/jjyeung/envs/p1cpu/bin/python: can't open file '/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/work/build24m4v/contract/rdiff.py': [Errno 2] No such file or directory\n\n",
+      "resolved_by": "work/build24m4v/contract_tests_1795192180992733685.log",
+      "returncode": 1
+    },
+    {
+      "name": "tree_tests.log",
+      "output": "test_r2_build9fix (unittest.loader._FailedTest.test_r2_build9fix) ... ERROR\ntest_r1_build17 (unittest.loader._FailedTest.test_r1_build17) ... ERROR\ntest_r1_build13 (unittest.loader._FailedTest.test_r1_build13) ... ERROR\ntest_r2_build3b (unittest.loader._FailedTest.test_r2_build3b) ... ERROR\ntest_r2_data_path (unittest.loader._FailedTest.test_r2_data_path) ... ERROR\n\n======================================================================\nERROR: test_r2_build9fix (unittest.loader._FailedTest.test_r2_build9fix)\n----------------------------------------------------------------------\nAttributeError: module 'tests' has no attribute 'test_r2_build9fix'\n\n======================================================================\nERROR: test_r1_build17 (unittest.loader._FailedTest.test_r1_build17)\n----------------------------------------------------------------------\nAttributeError: module 'tests' has no attribute 'test_r1_build17'\n\n======================================================================\nERROR: test_r1_build13 (unittest.loader._FailedTest.test_r1_build13)\n----------------------------------------------------------------------\nAttributeError: module 'tests' has no attribute 'test_r1_build13'\n\n======================================================================\nERROR: test_r2_build3b (unittest.loader._FailedTest.test_r2_build3b)\n----------------------------------------------------------------------\nAttributeError: module 'tests' has no attribute 'test_r2_build3b'\n\n======================================================================\nERROR: test_r2_data_path (unittest.loader._FailedTest.test_r2_data_path)\n----------------------------------------------------------------------\nAttributeError: module 'tests' has no attribute 'test_r2_data_path'\n\n----------------------------------------------------------------------\nRan 5 tests in 0.002s\n\nFAILED (errors=5)\n",
+      "resolved_by": "tree_tests4.log"
+    },
+    {
+      "name": "tree_tests2.log",
+      "output": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/work/build24m4v/run_suite.py\", line 13, in <module>\n    sys.argv=sys.argv[1:];runpy.run_path(sys.argv[0],run_name='__main__')\n                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<frozen runpy>\", line 287, in run_path\n  File \"<frozen runpy>\", line 98, in _run_module_code\n  File \"<frozen runpy>\", line 88, in _run_code\n  File \"work/build24m4v/tree_tests.py\", line 9, in <module>\n    suite=unittest.defaultTestLoader.loadTestsFromNames(names)\n          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/loader.py\", line 207, in loadTestsFromNames\n    suites = [self.loadTestsFromName(name, module) for name in names]\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/loader.py\", line 137, in loadTestsFromName\n    module = __import__(module_name)\n             ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/work/tree_r1c/tests/test_r1_build17.py\", line 9, in <module>\n    from tests.test_r2_build_n1 import write\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/work/tree_r1c/tests/test_r2_build_n1.py\", line 11, in <module>\n    from tests.test_r2_data_path import PROOFS,LANE\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/work/tree_r1c/tests/test_r2_data_path.py\", line 358, in <module>\n    from tests.r2_init_fixture import INIT\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/work/tree_r1c/tests/r2_init_fixture.py\", line 5, in <module>\n    PIN = file_pin(ROOT/'work/build6/INIT_INPUT.json')\n          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/work/tree_r1c/student_pilot/p3_provenance.py\", line 62, in file_pin\n    return {'path': str(Path(path).resolve()), 'sha256': sha256(path)}\n                                                         ^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/work/tree_r1c/student_pilot/p3_provenance.py\", line 9, in sha256\n    with Path(path).open('rb') as f:\n         ^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py\", line 1013, in open\n    return io.open(self, mode, buffering, encoding, errors, newline)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nFileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/build6/INIT_INPUT.json'\n",
+      "resolved_by": "tree_tests4.log"
+    },
+    {
+      "name": "tree_tests3.log",
+      "output": "test_status_authentication_and_whitespace (tests.test_r2_build9fix.Fixes.test_status_authentication_and_whitespace) ... ok\ntest_M02_interspan_status (tests.test_r2_build9fix.Fixes.test_M02_interspan_status) ... ok\ntest_extent_pin_and_reader (tests.test_r2_build9fix.Fixes.test_extent_pin_and_reader) ... ok\ntest_scene_gate (tests.test_r2_build9fix.Fixes.test_scene_gate) ... ok\ntest_absent_card_cell (tests.test_r1_build13.PopulationTests.test_absent_card_cell) ... ok\ntest_base_cells_refused (tests.test_r1_build13.PopulationTests.test_base_cells_refused) ... ok\ntest_binding_changed (tests.test_r1_build13.PopulationTests.test_binding_changed) ... ok\ntest_composition_refusals (tests.test_r1_build13.PopulationTests.test_composition_refusals) ... ok\ntest_composition_replaces_base (tests.test_r1_build13.PopulationTests.test_composition_replaces_base) ... ok\ntest_membership_refusals (tests.test_r1_build13.PopulationTests.test_membership_refusals) ... ok\ntest_native_composition_envelopes (tests.test_r1_build13.PopulationTests.test_native_composition_envelopes) ... ERROR\ntest_native_mixture_and_bound_producer (tests.test_r1_build13.PopulationTests.test_native_mixture_and_bound_producer) ... ok\ntest_overlap (tests.test_r1_build13.PopulationTests.test_overlap) ... ok\ntest_scene_subset (tests.test_r1_build13.PopulationTests.test_scene_subset) ... ok\ntest_slice_identity (tests.test_r1_build13.PopulationTests.test_slice_identity) ... ok\ntest_trinity_full_audit_refusal (tests.test_r1_build13.PopulationTests.test_trinity_full_audit_refusal) ... ok\ntest_type_table_and_single_facing (tests.test_r1_build13.PopulationTests.test_type_table_and_single_facing) ... ok\ntest_unassigned_type (tests.test_r1_build13.PopulationTests.test_unassigned_type) ... ok\n\n======================================================================\nERROR: test_native_composition_envelopes (tests.test_r1_build13.PopulationTests.test_native_composition_envelopes)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/work/tree_r1c/tests/test_r1_build13.py\", line 235, in test_native_composition_envelopes\n    from tests.test_r2_data_path import manifest\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/work/tree_r1c/tests/test_r2_data_path.py\", line 358, in <module>\n    from tests.r2_init_fixture import INIT\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/work/tree_r1c/tests/r2_init_fixture.py\", line 5, in <module>\n    PIN = file_pin(ROOT/'work/build6/INIT_INPUT.json')\n          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/work/tree_r1c/student_pilot/p3_provenance.py\", line 62, in file_pin\n    return {'path': str(Path(path).resolve()), 'sha256': sha256(path)}\n                                                         ^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/work/tree_r1c/student_pilot/p3_provenance.py\", line 9, in sha256\n    with Path(path).open('rb') as f:\n         ^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/work/tree_r1c/tests/test_r1_build13.py\", line 21, in opened\n    return original(p,mode.replace('x','w') if p.is_relative_to(root) else mode,*args,**kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py\", line 1013, in open\n    return io.open(self, mode, buffering, encoding, errors, newline)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nFileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/build6/INIT_INPUT.json'\n\n----------------------------------------------------------------------\nRan 18 tests in 38.526s\n\nFAILED (errors=1)\n",
+      "resolved_by": "tree_tests4.log"
+    },
+    {
+      "name": "Initial real P sample chain",
+      "output": {
+        "checked_key_set_sha256": "457bee952fa098d37ef3698b74244e53565593028981b7d9559b39f72a4deb06",
+        "complete": true,
+        "counts": {
+          "extents": {
+            "FAIL": 20,
+            "PASS": 80
+          },
+          "r1": {
+            "NOT_REACHED": 20,
+            "PASS": 80
+          },
+          "r2": {
+            "NOT_BOUND": 100
+          },
+          "reserve": {
+            "NOT_REACHED": 20,
+            "PASS": 80
+          },
+          "text": {
+            "PASS": 100
+          },
+          "wording": {
+            "NOT_BOUND": 100
+          }
+        },
+        "database_key_set_sha256": "457bee952fa098d37ef3698b74244e53565593028981b7d9559b39f72a4deb06",
+        "database_rows": 100,
+        "databases": [
+          {
+            "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24v/work/build24m4v/real_rows_1795192264733395580/rows.sqlite",
+            "sha256": "fc9c9e0d9ccd34402b4902bb9ef51af9e5c9f9c6ac4ef5b59f888b3744c76314"
+          }
+        ],
+        "extent_exempted_rows": 14,
+        "extent_required_rows": 20,
+        "extent_still_checked_rows": 86,
+        "first_ten_refusals": [
+          {
+            "check": "extents",
+            "exception": "ValueError: EXTENT_ROW_UNAUDITED",
+            "row_key": [
+              "routing",
+              0,
+              60,
+              "a0_units_vsi590k_047474"
+            ]
+          },
+          {
+            "check": "extents",
+            "exception": "ValueError: EXTENT_ROW_UNAUDITED",
+            "row_key": [
+              "routing",
+              0,
+              61,
+              "a0_units_vsi590k_166838"
+            ]
+          },
+          {
+            "check": "extents",
+            "exception": "ValueError: EXTENT_ROW_UNAUDITED",
+            "row_key": [
+              "routing",
+              0,
+              62,
+              "a0_units_vsi590k_167992"
+            ]
+          },
+          {
+            "check": "extents",
+            "exception": "ValueError: EXTENT_ROW_UNAUDITED",
+            "row_key": [
+              "routing",
+              0,
+              63,
+              "a0_units_vsi590k_157111"
+            ]
+          },
+          {
+            "check": "extents",
+            "exception": "ValueError: EXTENT_ROW_UNAUDITED",
+            "row_key": [
+              "routing",
+              0,
+              64,
+              "a0_units_vsi590k_165725"
+            ]
+          },
+          {
+            "check": "extents",
+            "exception": "ValueError: EXTENT_ROW_UNAUDITED",
+            "row_key": [
+              "routing",
+              0,
+              65,
+              "a0_units_vsi590k_168079"
+            ]
+          },
+          {
+            "check": "extents",
+            "exception": "ValueError: EXTENT_ROW_UNAUDITED",
+            "row_key": [
+              "routing",
+              0,
+              66,
+              "a0_units_vsi590k_165013"
+            ]
+          },
+          {
+            "check": "extents",
+            "exception": "ValueError: EXTENT_ROW_UNAUDITED",
+            "row_key": [
+              "routing",
+              0,
+              67,
+              "a0_units_vsi590k_160309"
+            ]
+          },
+          {
+            "check": "extents",
+            "exception": "ValueError: EXTENT_ROW_UNAUDITED",
+            "row_key": [
+              "routing",
+              0,
+              68,
+              "a0_units_vsi590k_158218"
+            ]
+          },
+          {
+            "check": "extents",
+            "exception": "ValueError: EXTENT_ROW_UNAUDITED",
+            "row_key": [
+              "routing",
+              0,
+              69,
+              "a0_units_vsi590k_161521"
+            ]
+          }
+        ],
+        "refused_rows": 20,
+        "replacement": false,
+        "rows_checked": 100,
+        "sample_size_requested": null,
+        "seed": null,
+        "staged": true,
+        "status": "FAIL",
+        "unique_rows_checked": 100
+      },
+      "resolution": "All 20 unchanged P unit variants retain the baseline refusal; the exact 80 non-boundary rows pass. REAL_DIFFERENTIAL.json compares all 100 rows."
+    },
+    {
+      "name": "Raw Rows constructor tamper control",
+      "output": "AssertionError: Tampered database accepted",
+      "resolution": "Rows.connect trusts its caller; the unchanged chain pinned() boundary rejects changed DB bytes. The final control tests that actual boundary, not the raw constructor."
+    },
+    {
+      "name": "Copy setup",
+      "output": "OSError: [Errno 18] Invalid cross-device link: w24u/work/tree_r1c/.gitignore -> private copy",
+      "resolution": "The test copies files across the workspace mounts and verifies every base seal before applying."
+    }
+  ],
+  "killed_processes": [],
+  "limitations": [
+    "The complete N database is unavailable locally. Full-chain refusal count must be measured by the next CPU job.",
+    "The offline v1 count uses source-family classification; the CPU card reads canonical provenance on every exempted row.",
+    "The source field is trusted only after existing pinned-input authentication. Bare Extents.check and Rows.connect do not authenticate arbitrary caller-created rows."
+  ],
+  "unresolved_targeted_test_failures": []
+}

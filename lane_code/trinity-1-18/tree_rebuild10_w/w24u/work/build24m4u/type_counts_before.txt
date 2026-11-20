@@ -1,0 +1,7 @@
+def type_counts(native, target):
+    script = Path(__file__).with_name('nd.py')
+    result = subprocess.run([sys.executable, '-I', '-s', '-B', str(script), 'types',
+        str(native/'selection/rows.sqlite'), str(target/'routing_types.json')],
+        text=True, stdout=-1, stderr=-2)
+    if result.returncode: raise ValueError('E96:'+str(result.returncode))
+    return json.loads(result.stdout.splitlines()[-1])

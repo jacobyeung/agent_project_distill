@@ -1,0 +1,28 @@
+# Lane lever1 (Devin Opus high, runs on trinity-3-30): run the pricing queue of the routed-reader plan
+
+B = /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30; D = /data2/jjyeung/agent_project_data/distill_design. Lane dir /scratch/jjyeung/orch_n30/lever1 (inbox/, work/, out/; no file above 5 MB on trinity-3-30). Events: B/events/lever/, kinds `_RESULT_`, `_QUESTION_` (to the orchestrator), `_BLOCKER_`; UTC stamp from `date -u +%Y%m%dT%H%MZ` in the writing command; at most 20 lines each; detail lives in files. Read your inbox at every tick. Keep B/events/lever/STATUS.md exact so a successor resumes from it alone; 30 minutes before your 6-hour timeout write B/briefs/lever2.md, start it with `bash B/tools/devin_bg.sh lever2 B/briefs/lever2.md claude-opus-5-5-high 21600`, append it to B/tools/LANES.txt, and stop acting. Stop polling when nothing of yours runs.
+
+## Read first
+1. B/tools/LANE_RULES.md (binds you).
+2. D/ROUTED_READER_LEVER_PLAN_20261120.md in full (164 lines). It is a ruling: the questions, sets and registered readings are as written there; you change no bar, and you state each result against its registered reading before interpreting it.
+3. D/GROUNDING_FUNNEL_20261120.md (closing section: tonight's captures and where they are), B/briefs/cont_ops26_d.md and /scratch/jjyeung/orch_n30/cont_ops25/STATUS.md (how reads run on Orchard: packages, the general partition, memory, the fetch check, mirrors).
+
+## Goal and why
+Project goal: a ~9B spatial VLM, end to end from RGB, whose chain of thought calls heads inside its own checkpoint and answers from what they print. The user asked whether 2D grounding is what holds the routed reader back. The plan's answer: grounding and geometry bind in series, about 17 points each on K1, and no item set crosses them; the queue prices each without training so that the next training arm is chosen by measurement.
+
+## Order of work (the plan's dispatch order; run independent items in parallel where builds allow)
+0. Selector provenance, first, because it is a legality question: which scans and rooms the deployed selector was fitted on (D/B6_GROUNDING_DESIGN_20261115.md records 44 VSTI and 18 ReVSI rooms in its fit; the T1 capture calls the selector K1-trained). Read the records and the selector's own fit receipt; report the room list against the benchmark and development room lists. Post it as a RESULT at once; if benchmark rooms are in the fit, say which reads so far used that selector.
+1. Archive the inputs that live only on node /scratch (the plan's "What might not work" section names them: K1 exports and tonight's captures on trinity-1-18, and whatever trinity-1-3 still holds if it is reachable): list them with sizes first. Under 5 GB in total, write archives to /data2 through the governed path (one stream, writes at 4 MB/s) and mirror node to node over InfiniBand; above 5 GB, post the sizes as a QUESTION before copying.
+2. Rank 3 (DEV-POSE, CPU) and rank 2 (K1-X, CPU): build with Codex Astra (`bash B/tools/codex_local.sh implement ...` in tmux on trinity-2-28; at most two builds there at once), run where the inputs are, post each RESULT with the cells, intervals and the registered reading's verdict.
+3. Rank 1 (DEV-MASK): build the depth writer on the existing observer kit (trinity-2-28 /scratch/jjyeung/orch_n30/grd_funnel1 and cont_ops24_c), one Astra review, a CPU check, then ONE job on Orchard's general partition (one H100, about half an hour) is approved in advance; nothing on advanced. Then the CPU relifts. The parity stop of the plan applies before any cell is read.
+4. Rank 6 (LEDGER, CPU, no rerun).
+5. Rank 4 (WORD): only the legality review now (one Codex Astra read-only review against sections 7 and 7.0a of /home/jjyeung/agent_project/AGENTS.md: may ReVSI's public template wording be applied to development items, with no item, answer or score read). Post its verdict as a QUESTION; the read itself waits for my ANSWER and for vehicle N's init export.
+6. Rank 5 (NOGT): the byte estimate only; the build waits for my ANSWER.
+Ranks 7 to 9 and every training arm wait for their gates and my ANSWER.
+
+## Rules
+- Development sets and K1 are held-out or training-scene diagnostics: nothing here becomes a training row; no official benchmark item is read except where the plan says existing returns are re-scored.
+- After any read: fetch, authenticate, score, then ingest into the trace corpus (the cont_ops brief gives the command) and name the read id.
+- No GPU beyond the one approved job without an ORCH ANSWER; no Trinity GPU. No deletion commands; list removal candidates. No git. Any read above 20 MB from /data* or /home and any copy onto them goes through the IO governor (/data3/jjyeung/orch_n13_20261026/io_governor/README.md), one stream for the whole account. ssh only through `bash B/tools/tssh.sh <node> 'bash -s' < script` (one start per 35 s); Orchard through B/tools/ossh.sh. Stay out of the launch lanes' folders and off the advanced partition (vehicle N needs all four cards there).
+- Launch and monitoring cadence (user, 2026-09-16): after any job submission or restart, check both liveness and outputs landing every minute; two empty one-minute checks mean debug at once; lengthen step by step to 10 minutes once outputs land, and return to 1 minute on any regression. Two failed checks on one defect go to a Codex Astra debug dispatch.
+- Every design finding goes into the record: extend D/ROUTED_READER_LEVER_PLAN_20261120.md with a results section per rank (measurement, verdict against the registered reading, files), or a sibling record named in D/INDEX.md.

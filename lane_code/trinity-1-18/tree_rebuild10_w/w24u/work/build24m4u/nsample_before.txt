@@ -1,0 +1,9 @@
+def nsample(root, native, request, target):
+    scratch = Path(root)/'ns'
+    scratch.mkdir()
+    script = Path(__file__).with_name('nd.py')
+    result = subprocess.run([sys.executable, '-I', '-s', '-B', str(script),
+        str(native/'base/rows.sqlite'), str(native/'selection/rows.sqlite'), str(request),
+        str(target/'rd0'), str(target), str(scratch)], text=True, stdout=-1, stderr=-2)
+    if result.returncode: raise ValueError('E96:'+str(result.returncode))
+    return json.loads(result.stdout.splitlines()[-1])

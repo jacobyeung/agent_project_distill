@@ -4,7 +4,7 @@ tag,out,jn=sys.argv[1:4]; s=open(out).read().split('\n')
 b64=s[s.index('B64TAR')+1].strip()
 tarsha=[l.split()[0] for l in s if l.endswith('/work/s%s.tar'%tag) and len(l.split()[0])==64][0]
 seals={m.group(2):m.group(1) for l in s for m in [re.match(r'([0-9a-f]{64})  (n|q|qd)/SHA256SUMS.txt$',l)] if m}
-qd=seals['qd'][:8]; C='c_'+qd
+qd=seals['qd'][:8]; C='c_'+qd+(sys.argv[4] if len(sys.argv)>4 else '')
 print(f'''set -e; export TZ=UTC; date -u +%TZ; X=/project/community/jjyeung/okh7/x_22c714e1; cd $X; test ! -e s{tag}.tar && test ! -e s{tag} && test ! -e {C} || {{ echo EXISTS; exit 1; }}
 squeue -u $USER -h -o "%j" | grep -q {jn[10:]} && {{ echo QUEUED; exit 1; }}
 base64 -d > s{tag}.tar <<'B64'

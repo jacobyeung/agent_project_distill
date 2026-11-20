@@ -1,0 +1,4 @@
+W=/scratch/jjyeung/orch_n30/tree_rebuild10_w; date -u +%TZ; P=$(ls $W/w24v/out/tree_rebuild_b24m4v_*.tar 2>/dev/null); test -n "$P" && test -f $P.sha256 || { echo NO_SHA; ls -t $W/w24v/out | head; exit 0; }; echo $P; cat $P.sha256; sha256sum $P | cut -c1-16; ls -l $P
+C=/home/jjyeung/agent_project_distill/agent/scratch/codex_runs; d=$(ls -d $C/*_tree_rebuild24m4v | tail -1); head -c 1500 $d/final_message.md; echo; echo ===R; cat $W/w24v/out/BUILD24M4V_REPORT.md; echo ===T; cat $W/w24v/out/TREE_T_24M4V.md; echo ===L; cat $W/w24v/out/UPLOADS_24M4V.list; echo ===P; cat $W/w24v/out/TREE_CHANGE_24M4V.patch | head -c 4200
+ssh -o ConnectTimeout=20 trinity-2-28.ib 'mkdir -p /scratch/jjyeung/n30_mirror/tree_rebuild22'
+timeout 120 bash -c "cat $P | ssh -o ConnectTimeout=20 trinity-2-28.ib 'cat > /scratch/jjyeung/n30_mirror/tree_rebuild22/$(basename $P) && sha256sum /scratch/jjyeung/n30_mirror/tree_rebuild22/$(basename $P) | cut -c1-16'"
