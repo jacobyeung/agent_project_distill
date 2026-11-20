@@ -1,0 +1,1 @@
+W=/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24k; date -u +%TZ; grep -n "tree_r1\|/out/\|w24\b\|L / \|Path(L\|'out'\|\"out\"" $W/make_rehearsal_k2.py $W/rehearsal_runner2.py $W/check_rehearsal.py $W/rehearsal_paths2.py $W/rehearsal_inputs2.py 2>/dev/null | cut -c1-220 | head -40; cat $W/REHEARSAL_K2_REPORT.md | head -20

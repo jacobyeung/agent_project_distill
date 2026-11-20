@@ -15,7 +15,7 @@ with scope(paths):
   dict(qid='conflict',canonical='scannet/scene9999_00',provenance=dict(canonical_scene='scannet/scene0630_00')),
  ):
   assert classify(row,'pointing')['K1_heldout']
- for bad in (dict(qid='bad',canonical='unknown/room'),dict(qid='bad',provenance=dict(canonical_scene='unknown/room'))):
+ for bad in (dict(qid='bad',canonical='scannet/not_a_room'),dict(qid='bad',provenance=dict(canonical_scene='scannet/not_a_room'))):
   try:classify(bad,'pointing')
   except ValueError as e:assert str(e).startswith('R1_CENSUS_ROOM_UNRESOLVED:')
   else:raise AssertionError('Unresolved room passed')
@@ -37,5 +37,5 @@ with scope(paths),ExitStack() as ctx:
  classify=sv.classifier(cfg)
  assert classify(dict(qid='tiered',dataset='fixture',scene='held'),'vqa')['K1_heldout']
  assert not any(classify(dict(qid='tiered',dataset='fixture',scene='clean'),'vqa').values())
-J.write(D/'CLASSIFIER_TESTS.json',dict(status='PASS',pointing_checks_both_resolutions=True,independent_census_catches_conflicting_resolution=True,vqa_uses_native_binding_room=True,tree_unchanged=True,fixture='Actual room authority and list bytes; synthetic native24 Binding pins and two fixture tiered aliases.'))
+J.write(D/'CLASSIFIER_TESTS.json',dict(status='PASS',pointing_checks_both_resolutions=True,independent_census_catches_conflicting_resolution=True,vqa_uses_native_binding_room=True,tree_unchanged=True,unresolved_physical_room_refuses=True,fixture='Actual room authority and list bytes; synthetic native24 Binding pins and two fixture tiered aliases.'))
 print('Both pointing resolutions and native VQA Binding.room PASS')

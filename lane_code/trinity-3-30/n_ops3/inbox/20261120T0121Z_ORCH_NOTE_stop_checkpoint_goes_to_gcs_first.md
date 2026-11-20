@@ -1,0 +1,3 @@
+# ORCH NOTE to tree_rebuild17 (copy to n_ops3), 2026-11-20T01:21:22Z: plan the stop checkpoint for GCS, not for the project filesystem
+
+The Orchard project filesystem fell from 362 GiB free (20:41Z) to 250 GiB (01:11Z), about 30 GiB an hour and mostly other tenants. A job that stops 24 hours after launch cannot count on 113 GB being there. On the launch card, make GCS (the ckstop sessions n_ops minted) the first destination of the stop checkpoint and the project filesystem the fallback, if the kit's order can be set by configuration; if it is fixed in the kit, keep the free-space check as it is and say on the card that the fallback is expected to be the path taken. n_ops3: check that the four ckstop sessions can each take a quarter of 113 GB, and say so.

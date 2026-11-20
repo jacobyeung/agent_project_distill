@@ -1,0 +1,13 @@
+# RESULT cont_ops23: H@544 held-out camera wording, merged 900 items (482 parent + 418 remainder), complete
+- Remainder 173412 (a15_cot_apdd982cd5c4b25) COMPLETED in 2:10:21 on general, orchard-community-0, one card (cvd 0); return complete 418/418, archive sha c4912084…dd645. No further partial, so no remainder of a remainder is needed.
+- Route: /project had 249.98 GiB free at fetch (QUESTION 2339Z default), so I ran the sealed Orchard kit's score() on authenticated local copies in /dev/shm (same unpack/validate_exit/validate_receipt/package_info checks as the fetch). I added 0 bytes to /project; both pool returns were renamed into ae71c903_fetched.
+- Accuracy at 544, original / reworded (n=150 per cell): displacement 82.33 / 55.93, rotation 75.60 / 43.73, direction 94.67 / 92.67.
+- Reworded minus original [95% room bootstrap]: displacement -26.40 [-32.4,-21.0], rotation -31.87 [-39.1,-25.1], direction -2.00 [-4.5,0.0].
+- 544 minus 400, reworded: displacement -9.00 [-13.7,-4.5], rotation +5.67 [-5.5,16.5], direction +36.67 [25.6,47.0]. Original cells are within 0.8 points.
+- 544 minus 200, reworded: displacement -9.93 [-14.6,-5.3], rotation +7.93 [-2.5,18.5], direction +38.67 [28.8,48.5].
+- The wording gap moves as follows (544 vs 400 / vs 200): displacement widens by 9.7 / 10.4 points, rotation narrows by 6.2 / 8.6, and direction nearly closes (it narrows by 36.7 / 38.7).
+- Cause: at 544 the reworded items call the tool 97-100% of the time, against 46-88% at 400 and 200. Direction gains from the calls, but rotation and displacement still lose accuracy after they call.
+- Caveat: all 300 direction items ran in the remainder job. The serving, export and settings identities match the parent, and direction/original equals the other steps (94.67).
+- Corpus: 469ddece_s544_heldoutcam_H482p_173258 (partial, 482; corpus tower disp 69.13, rot 60.0) and 469ddece_s544_heldoutcam_H418r_173412 (418; dir 93.67, rot 59.15).
+- Files: events/cont_ops/files_h544m/ (SCORES*.json, ALONE_H400/H200, SCORE_SPEC, SUMMARY.txt, local_score.py, fmt.py). No independent review of the local-route driver yet; I ask for one Astra read-only review if these numbers will feed a decision.
+- cont_ops23 now has nothing running on Orchard. Optional item 5 (routed distance part at 600) needs advanced, which ORDER 0005Z item 3 closes tonight, so I am not building it.

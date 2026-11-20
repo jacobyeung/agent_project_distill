@@ -1,0 +1,6 @@
+# ORCH ANSWER (to fb_pack3; copy tree_rebuild17): no idle polling; one combined-patch check, write the successor brief, then end
+Answers QUESTION 0210Z. Reason: a lane that only polls spends Devin budget for nothing (USER 11-19), and the boundary merge is hours away: discovery 173555 refused at the planner, and the launch QUESTION is now forecast about 05:00Z.
+1. One piece of work first, only if manifest v3 does not already rest on it: on trinity-2-28, apply the manifest's patches in binding order (PATCH_A2, PATCH_DONOR3, PATCH_CAMFORM2, recovery, pointing list) to one untar of tree R (24l4t c558ad33) and run every patch's fail-before/pass-after tests on the combined tree. Report conflicts, or "clean" with the combined tree's file count and hash. CPU only, no file above 200 MB, no GPU, no Orchard job. This makes the tree lane's merge mechanical.
+2. Then write B/briefs/fb_pack4.md so one command restarts the lane: the four owed items (a) to (d) of your QUESTION, the STATUS path, and the mirrors. I start fb_pack4 when the tree lane names the merge.
+3. Then end. Post one RESULT with the check's outcome and the brief's sha256. Do not poll.
+4. The 06:00Z bound on PATCH_CAMFORM2's exposure counts moves with the launch: the real bound is the start of the boundary kit build, which the tree lane will name. If 06:00Z had another reason, say so in STATUS.

@@ -1,0 +1,111 @@
+{
+  "production_consumers": {
+    "student_pilot/r1_launch22.py": {
+      "lines": "2-36",
+      "verdict": "Changed: one pinned constant and membership in exactly two permitted orders; spec equality, naming last/once and pinned naming bytes retained.",
+      "works_with_thirteen": true
+    },
+    "student_pilot/row_removals.py": {
+      "lines": "9-112",
+      "verdict": "Unchanged: globally matches explicit row keys across all list entries; counter arrays, first-match attribution, report zip and verification scale with list length. JSONL handles the added pin normally.",
+      "works_with_thirteen": true
+    },
+    "student_pilot/r1_rooms.py": {
+      "lines": "84-203",
+      "verdict": "Unchanged: validator delegates to launch22; audit/config lists must agree ignoring paths; authenticates every pin; counts only V7_K1_LIST once and orders it before N_LIST; census uses shared Removals. New list does not move those pins.",
+      "works_with_thirteen": true
+    },
+    "student_pilot/r1_coverage.py": {
+      "lines": "175-190,228-240",
+      "verdict": "Unchanged: coverage delegates to validate_removals; verify_union validates only base/union/N pin counts and relative positions, not total length. Added pointing pin is independent of the VQA union.",
+      "works_with_thirteen": true
+    },
+    "student_pilot/r1_routing.py": {
+      "lines": "18-46,77-78",
+      "verdict": "Unchanged: Filters delegates validation and uses Removals for every stream; compose passes the whole list through.",
+      "works_with_thirteen": true
+    },
+    "student_pilot/scene_division_gate.py": {
+      "lines": "5-26,33-45",
+      "verdict": "Unchanged: constructs Removals from the same global list for each VQA/routing stream; no positional or count assumptions.",
+      "works_with_thirteen": true
+    },
+    "student_pilot/carrier_c1_run.py": {
+      "lines": "474-475,543-547,568-572,650-651,688-691,748-751,791",
+      "verdict": "Unchanged: preparation/reader authenticate shared removals, assert rows clean, compare complete target-filter settings and receipt pins, and verify all streams. Regenerate receipts with the new list; stale 12-list receipts correctly refuse.",
+      "works_with_thirteen": true
+    },
+    "student_pilot/carrier_c1_data.py": {
+      "lines": "580-674",
+      "verdict": "Unchanged: both pointing and VQA build_stream consume all pins; pointing also uses TargetFilter; report size follows list length. Pose is supplied by A1, then checked by carrier preparation/reader.",
+      "works_with_thirteen": true
+    },
+    "student_pilot/ground_target_filter.py": {
+      "lines": "57-113",
+      "verdict": "Unchanged: wraps Removals; settings and reports preserve all pins; target-key filtering and shape criteria remain unchanged.",
+      "works_with_thirteen": true
+    },
+    "student_pilot/grounding_targets.py": {
+      "lines": "248-278",
+      "verdict": "Unchanged: build_index passes full list to TargetFilter and applies clip filtering without list-count assumptions.",
+      "works_with_thirteen": true
+    },
+    "student_pilot/grounding_train.py": {
+      "lines": "82-90,114-130",
+      "verdict": "Unchanged: forwards full list to build_index; ClipDataset reconstructs TargetFilter from receipt settings and checks exact settings equality.",
+      "works_with_thirteen": true
+    },
+    "student_pilot/stageb_mdg.py": {
+      "lines": "132-136,157-176",
+      "verdict": "Unchanged: forwards full list to build_index; verification compares all target-filter pins/settings, so index and row settings must be regenerated.",
+      "works_with_thirteen": true
+    },
+    "student_pilot/r2_scene_bindings.py": {
+      "lines": "66,118,163-172",
+      "verdict": "Unchanged: rebuild forwards spec.remove_files to pool preparation without count or position assumptions; caller must keep this spec consistent with intended pool inputs.",
+      "works_with_thirteen": true
+    },
+    "student_pilot/s1_pool.py": {
+      "lines": "125-164,206-214,244-255,276",
+      "verdict": "Unchanged: constructs Removals per source, filters rows, records complete list/reports, and checks selected rows against all receipt pins.",
+      "works_with_thirteen": true
+    },
+    "student_pilot/s1_pool_relocate.py": {
+      "lines": "42-43",
+      "verdict": "Unchanged: relocates every pin with a list comprehension preserving order and metadata; no fixed count.",
+      "works_with_thirteen": true
+    },
+    "student_pilot/s1_routing.py": {
+      "lines": "243,279,487",
+      "verdict": "Unchanged: filters routing candidates through Removals and records dynamic reports; no fixed count.",
+      "works_with_thirteen": true
+    },
+    "student_pilot/s1_admission.py": {
+      "lines": "162,189-196,279,322-333",
+      "verdict": "Unchanged: requires a nonempty global list; forwards it to pointing/VQA rebuilds and emits one readiness record per list.",
+      "works_with_thirteen": true
+    },
+    "student_pilot/r1_handover.py": {
+      "lines": "7-26",
+      "verdict": "Unchanged: remove_files is a handover row-variable key; N rebinds/prepares its removals, with no donor-list length requirement.",
+      "works_with_thirteen": true
+    },
+    "launch_r1/build.py": {
+      "lines": "52-53,65-88",
+      "verdict": "Unchanged: stages every removal pin, then recursively relocates/visits all input pins; no fixed count.",
+      "works_with_thirteen": true
+    },
+    "launch_s1/build.py": {
+      "lines": "101-103,115-116",
+      "verdict": "Unchanged: enumerates all pool removal pins and adds every pin to the catalog; no fixed count.",
+      "works_with_thirteen": true
+    }
+  },
+  "count": 20,
+  "further_production_changes": [],
+  "scope": "All tree occurrences of remove_files/removal_order/REMOVAL_ORDER/verify_union, plus Removals, removal reports and target-filter settings consumers.",
+  "streams": "One cfg.remove_files list shared across streams; keys, not stream labels, determine matches. Synthetic pointing keys remove no VQA/pose fixture rows. There is no implicit stream exemption if an identical key is reused.",
+  "union": "The added pointing list is not a replacement for v7_k1_union or its extra list; their schema and relative-order checks stay intact.",
+  "fixture_limits": "Naming authentication calls are mocked only for fixed production-hash order tests; wrong naming bytes refuse natively. Removals/union tests use real SHA256 pins over retained synthetic bytes, not the unavailable production list payload.",
+  "instruction_scope": "Internal requested build identifiers and baseline comparisons are retained to identify deliverables and verify the explicitly required delta; no process-history prose."
+}

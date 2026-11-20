@@ -1,0 +1,2 @@
+W=/scratch/jjyeung/orch_n30/tree_rebuild10_w; date -u +%TZ; cat $W/w24c/out/BUILD24M4C_REPORT.md; echo ====; f=$W/w24c/out/tree_rebuild_b24m4c_b7be125e.tar; sha256sum $f; mkdir -p $W/work/conf24m4c/pkg && cd $W/work/conf24m4c/pkg && tar xf $f && find . -name SHA256SUMS.txt | while read s; do echo "$s $(sha256sum $s | cut -c1-16) bad $(cd $(dirname $s) && sha256sum -c SHA256SUMS.txt 2>&1 | grep -vc ': OK$')"; done
+ls $W/w24c/out; ls $W/w24c/work | head -30; du -sh $W | cut -f1; df -BG --output=avail /scratch | tail -1

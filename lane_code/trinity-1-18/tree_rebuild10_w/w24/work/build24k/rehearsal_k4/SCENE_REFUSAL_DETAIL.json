@@ -1,0 +1,13 @@
+{
+  "stage": "canary/sc.bind -> r2_scene_bindings.rebuild",
+  "error": "Local metadata slices must contain at most 2000 rows per family",
+  "source": "camera",
+  "population": {
+    "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24/proofs/capacity/routing19/rows.sqlite",
+    "sha256": "38e7f9c58ad06e52940774fc19aada8c7bb0b0d1a4b3247c33e0ac1bced2cf63"
+  },
+  "count": 16000,
+  "reason": "The nested sc.py process runs on trinity-1-18 and does not inherit the parent in-memory fixture hostname boundary; native decoded() refuses row 2001.",
+  "production_bytes_missing": false,
+  "no_retry": true
+}

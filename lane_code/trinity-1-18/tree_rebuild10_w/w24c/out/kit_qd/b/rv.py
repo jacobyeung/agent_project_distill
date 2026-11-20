@@ -148,12 +148,16 @@ def protected_rooms(cfg):
         pin=cfg[field];raw=pinned(pin).read_bytes()
         lists[label]=dict(names=set().union(*(keys(n) for n in reader(pin))),sha256=pin['sha256'],file=name)
         payloads[name]=raw
-    def matches(row):
-        canonical,_=authority.canonical(row)
-        if not canonical:canonical=(row.get('provenance') or {}).get('canonical_scene')
-        if not canonical:raise ValueError('R1_PROTECTED_ROOM_UNRESOLVED')
-        values=keys(canonical)
-        return {label:bool(values & item['names']) for label,item in lists.items()}
+    from sv import classifier
+    classify=classifier(cfg)
+    def matches(row,stream):
+        try:flags=classify(row,stream)
+        except ValueError as error:
+            from student_pilot.s1_scene_census import SceneCoverageError
+            if not isinstance(error,SceneCoverageError) and not str(error).startswith(('R1_CENSUS_ROOM_UNRESOLVED:', 'R1_TWIN_ROOM_UNRESOLVED', 'R1_ROOM_CANONICAL_UNRESOLVED')):
+                raise
+            raise ValueError('R1_PROTECTED_ROOM_UNRESOLVED') from error
+        return dict(bench_v2=flags['benchmark'],dev_s1=flags['dev'])
     return lists,payloads,matches
 
 
@@ -193,7 +197,7 @@ def evidence(cfg, rooms, live):
                 databases.append(dict(source=key, path=str(database), sha256=sha(database), bytes=database.stat().st_size))
             for offset, row_id in enumerate(ids):
                 row, _ = reader.row(stream, offset)
-                for label,hit in room_matches(row).items():room_counts[label] += int(hit)
+                for label,hit in room_matches(row,stream).items():room_counts[label] += int(hit)
                 types[str(row.get("routing", {}).get("question_type", row.get("question_type", "not_recorded")))] += 1
                 field, value = form(row)
                 forms[(field, value)] += 1
@@ -204,7 +208,7 @@ def evidence(cfg, rooms, live):
             payloads[NAMES[stream]] = encoded(dict(stream=stream, databases=databases, admitted_rows=total,
                 question_types=dict(sorted(types.items())), answer_only=empty,
                 protected_rooms={label:dict(rows=room_counts[label],sha256=v["sha256"],file=v["file"]) for label,v in protected.items()},
-                canonical_room_reader="student_pilot.r1_rooms.Rooms.canonical and Rooms.room; native exclusion-list readers",
+                canonical_room_reader="sv.classifier: native stream room authority and exclusion-list readers",
                 reasoning_field="reasoning when present; otherwise target/suffix <think> body; missing body counts empty",
                 trace_forms=[dict(field=f, value=v, rows=n) for (f, v), n in sorted(forms.items())],
                 trace_form_basis="routing.form is canonical producer form; form is the stored trace form; answer_form selects native encoding; absent fields are not_recorded",

@@ -1,0 +1,1 @@
+W=/scratch/jjyeung/orch_n30/tree_rebuild10_w; B=$W/w24/work/build24k; date -u +%TZ; cat $W/w24c/out/BUILD24M4D_REPORT.md; echo ====; cat $B/REHEARSAL_K5_REPORT.md; echo ====; cat $B/rehearsal_k5/RERUN.json | head -c 2500; echo; cat $B/go_rehearsal_k5b.sh | head -40; sha256sum $W/w24c/out/tree_rebuild_b24m4d_35bede70.tar

@@ -1,0 +1,1 @@
+date -u +%TZ; tmux ls | grep tr17; for R in /scratch/jjyeung/orch_n30/tr17_rev24l4t /scratch/jjyeung/orch_n30/tr17_rev24l4c; do echo "== $R"; test -f $R/VERDICT.md && cat $R/VERDICT.md || tail -c 400 $R/cursor.log | tr -cd "[:print:]\n" | tail -3 | cut -c1-250; done

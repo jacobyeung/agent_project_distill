@@ -1,0 +1,29 @@
+{
+  "native_source": "source/student_pilot/r1_mix.py",
+  "source_sha256": "76e9963e443307e064ef653f0b7b9e62450ce80cfc27558c0840141e80fe9fb1",
+  "required_steps": 1000,
+  "maximum_draws_per_row": 4,
+  "quota_per_step": {
+    "pose": 64,
+    "vqa": 128,
+    "routing": 64,
+    "pointing": 32
+  },
+  "minimum_rows": {
+    "pose": 16000,
+    "vqa": 32000,
+    "routing": 16000,
+    "pointing": 8000
+  },
+  "bounded_fixture_rows": {
+    "pose": 4000,
+    "vqa": 2000,
+    "routing": 2000,
+    "pointing": 2000
+  },
+  "gate": "R1_POST_FILTER_CAPACITY_SHORTFALL",
+  "finding": "Complete bounded stream subsets cannot satisfy unchanged native full-recipe allocation.",
+  "source_lines": "r1_mix.py:10,25-26,30-40; r1_population.py:154",
+  "observed_in_rehearsal": false,
+  "evidence_kind": "source-code arithmetic, not a second run"
+}

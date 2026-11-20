@@ -1,0 +1,920 @@
+--- a/launch_r1/entry.py
++++ b/launch_r1/entry.py
+@@ -168,7 +168,49 @@
+     result['assertions']['runtime_binaries'] = bool(binaries)
+ 
+ 
+-def stage_host(cfg, root, request, job_tmp, *, stage=None):
++def verify_host_staging(entries, root):
++    """Recheck native staging output with its hash and inventory checks."""
++    from launch_r2.staging import checked
++    root = Path(root).resolve()
++    archives = set()
++    for name, item in sorted(entries.items()):
++        try:
++            target = root/name
++            if not name.startswith('u/') or '..' in Path(name).parts or root not in target.resolve().parents:
++                raise ValueError('Staging target escaped the input root')
++            if 'archive' in item or 'directory' in item:
++                source = item.get('archive', item.get('directory'))
++                key = source.get('sha256') or source['inventory_sha256']
++                if not isinstance(key, str) or len(key) != 64 or any(c not in '0123456789abcdef' for c in key):
++                    raise ValueError('Invalid archive identity')
++                extracted = root/'x'/key
++                if key not in archives:
++                    if source.get('sha256'):
++                        checked(root/'a'/key, source['sha256'])
++                    elif not source.get('inventory'):
++                        raise ValueError('Archive has no authenticated inventory')
++                    for member, expected in source.get('inventory', {}).items():
++                        if Path(member).is_absolute() or '..' in Path(member).parts:
++                            raise ValueError('Staging inventory escaped its archive')
++                        checked(extracted/member, expected)
++                    archives.add(key)
++                member = Path(item.get('member', ''))
++                if member.is_absolute() or '..' in member.parts:
++                    raise ValueError('Staging member escaped its archive')
++                origin = extracted/member
++                if item.get('directory'):
++                    if not target.is_dir() or target.resolve() != origin.resolve():
++                        raise ValueError('Staging directory differs from its archive')
++                else:
++                    checked(origin, item['sha256'])
++                    checked(target, item['sha256'])
++            else:
++                checked(target, item['sha256'])
++        except (ValueError, KeyError, TypeError, OSError) as error:
++            raise ValueError('R1_HOST_STAGING_DIFFERS:'+name+':'+str(error)) from error
++
++
++def stage_host(cfg, root, request, job_tmp, *, stage=None, result=None):
+     """Stage authenticated inputs and retain the native routing composition."""
+     # The source staging closure must be supplied and checked before any import of native preparation.
+     if not request.get('staging') or not request.get('routing_selection'):
+@@ -178,6 +220,11 @@
+     temporary_paths(staging, job_tmp)
+     validate_plan(cfg, staging['entries'])
+     (stage_inputs if stage is None else stage)(staging['entries'], root)
++    if stage is None:
++        verify_host_staging(staging['entries'], root)
++    if result is not None:
++        result['stager'] = 'native' if stage is None else 'hook'
++        result['staging_plan_sha256'] = request['staging']['sha256']
+     def localize(value):
+         if isinstance(value, dict):
+             return {k:localize(v) for k,v in value.items()}
+@@ -191,6 +238,18 @@
+     minimal = routing_request(staged_cfg, localize(request))
+     if not request.get('routing_base') or not minimal and not request.get('routing_inputs'):
+         raise ValueError('R1_ROUTING_COMPOSITION_INPUTS_MISSING')
++    if result is not None:
++        original = staged_cfg['streams']['routing']
++        substituted = localize(request['routing_base'])
++        changes = dict(routing=dict(original=original, substituted=substituted,
++            original_sha256=original['sha256'], substituted_sha256=substituted['sha256']))
++        if not minimal:
++            original = staged_cfg['r1_training'].get('routing_inputs')
++            substituted = localize(request['routing_inputs'])
++            changes['routing_inputs'] = dict(original=original, substituted=substituted,
++                original_sha256=digest(original), substituted_sha256=digest(substituted))
++        result['routing_substitution'] = changes
++        result['routing_substituted'] = any(v['original'] != v['substituted'] for v in changes.values())
+     staged_cfg['streams']['routing'] = localize(request['routing_base'])
+     if not minimal:
+         staged_cfg['r1_training']['routing_inputs'] = localize(request['routing_inputs'])
+@@ -198,19 +257,25 @@
+     return staged_cfg
+ 
+ 
+-def check_host_scene(cfg, result):
++def check_host_scene(cfg, result, *, record=False):
+     from student_pilot.scene_division_gate import check_bound
+     result['scene_division'] = check_bound(cfg)
++    if record:
++        result['scene_division_inputs'] = dict(division=cfg['scene_division'],
++            **{name:cfg['streams'][name] for name in ('vqa', 'routing')})
+     result['assertions']['scene_division'] = True
+ 
+ 
+-def check_host_selection(cfg, root, request, result):
++def check_host_selection(cfg, root, request, result, *, record=False):
+     from student_pilot.s1_routing import build
+     from student_pilot.mdg_parent import model_pin
+     point = load(pinned(cfg['streams']['pointing']))
+     regenerated = build(cfg, root/'selection', point['division'], model_pin(cfg))
+     selection = load(pinned(request['routing_selection']))
+     result['assertions']['routing_selection'] = digest(regenerated) == selection['regenerated_sha256']
++    if record:
++        result['routing_selection'] = request['routing_selection']
++        result['regenerated_sha256'] = digest(regenerated)
+     if not result['assertions']['routing_selection']:
+         raise ValueError('R1_ROUTING_SELECTION_DIFFERS')
+ 
+--- a/launch_r1/production_proof.py
++++ b/launch_r1/production_proof.py
+@@ -91,9 +91,9 @@
+         root, job_tmp, host = begin_host(cfg, root, request)
+         environment.enter_context(host_environment(job_tmp))
+         check_host_runtime(cfg, request, host)
+-        cfg = stage_host(cfg, root, request, job_tmp, stage=stage)
+-        check_host_scene(cfg, host)
+-        check_host_selection(cfg, root, request, host)
++        cfg = stage_host(cfg, root, request, job_tmp, stage=stage, result=host)
++        check_host_scene(cfg, host, record=True)
++        check_host_selection(cfg, root, request, host, record=True)
+         if cfg['r1_training'].get('direction_twins'):
+             from student_pilot.r1_direction_twins import augment
+             from student_pilot.r1_rooms import census
+@@ -104,6 +104,7 @@
+             verify_audit(cfg,cfg['r1_training']['room_audit'])
+             result['augmented_room_audit']=cfg['r1_training']['room_audit']
+             result['steps'].append('direction_twins')
++            check_host_scene(cfg, host, record=True)
+         from student_pilot.r1_persisted import verify, scope, init_policy
+         value=cfg['r1_training']
+         closure=verify(value.get('handover_receipt'),value.get('p_run',{}),
+--- a/student_pilot/r1_handover.py
++++ b/student_pilot/r1_handover.py
+@@ -318,6 +318,13 @@
+     return _donor(cfg, artifact)
+ 
+ 
++def _same_pin_bytes(recorded, verified):
++    """Compare a recorded pin with a pin whose bytes the caller already verified."""
++    return (isinstance(recorded, dict) and set(recorded) == {'path', 'sha256'}
++            and isinstance(recorded['path'], str) and bool(recorded['path'])
++            and recorded['sha256'] == verified['sha256'])
++
++
+ def _donor(cfg, artifact):
+     """Read P's config, binding.json and preparation receipt, never a progress assertion."""
+     value = cfg['r1_training']
+@@ -346,7 +353,8 @@
+     if not only and (complete.get('schema') != 'c1-checkpoint-v1' or complete.get('step') != artifact.get('step')
+             or complete.get('binding') != bound):
+         raise ValueError('P_EXPORT_CHECKPOINT_BINDING_MISMATCH')
+-    if (source.get('preparation') != pins['preparation'] or bound.get('preparation') != pins['preparation']
++    if (not _same_pin_bytes(source.get('preparation'), pins['preparation'])
++            or not _same_pin_bytes(bound.get('preparation'), pins['preparation'])
+             or bound.get('config_sha256') != identity or preparation.get('config_sha256') != identity
+             or preparation.get('schema') != 'c1-preparation-v1'):
+         raise ValueError('P_EXPORT_RUN_BINDING_MISMATCH')
+--- a/student_pilot/r1_launch22.py
++++ b/student_pilot/r1_launch22.py
+@@ -1,5 +1,6 @@
+ """Pinned launch inputs for vehicle N; no inference behavior."""
+ NAMING_REMOVE = 'd1454a4461e96fda9e0db27eb75fe0080a555d77a4d05f8e036d49530626db29'
++POINTING_K1_REMOVE = 'd21e374f39048c0e142680e0d3b26e5b2b774138747610c1fc4a00da0ec580e1'
+ REMOVAL_ORDER = (
+     '62113ff38f918528341d3c38c6cce372736f2b44ca932c3b706be29397798dc3',
+     '4701e195ffc04fe256b916a05eb0a669df6cf3f97d73c9986bfe5de3170b089c',
+@@ -27,7 +28,8 @@
+     if not isinstance(spec, dict):
+         raise ValueError('R1_NAMING_REMOVAL_BINDING_REQUIRED')
+     actual = [p['sha256'] for p in cfg.get('remove_files', [])]
+-    if (tuple(actual) != REMOVAL_ORDER or actual != spec.get('removal_order') or not actual or actual[-1] != NAMING_REMOVE
++    if (tuple(actual) not in (REMOVAL_ORDER, REMOVAL_ORDER[:-1] + (POINTING_K1_REMOVE, NAMING_REMOVE))
++            or actual != spec.get('removal_order') or not actual or actual[-1] != NAMING_REMOVE
+             or actual.count(NAMING_REMOVE) != 1):
+         raise ValueError('R1_NAMING_REMOVAL_ORDER')
+     from .p3_provenance import pinned
+--- /dev/null
++++ b/tests/test_host24l.py
+@@ -0,0 +1,204 @@
++"""Tiny retained q fixtures; production authorities and capacity work are synthetic."""
++from copy import deepcopy
++import base64
++import io
++from pathlib import Path
++import sqlite3
++import tarfile
++from types import SimpleNamespace
++import unittest
++from unittest.mock import patch
++
++from launch_r1 import entry, production_proof as proof
++from student_pilot.p3_provenance import digest, encoded, file_pin, load, pinned
++from tests import test_host24j as previous
++
++
++class Host24L(unittest.TestCase):
++    setUp = previous.HostReceipt.setUp
++    pin = previous.HostReceipt.pin
++    fixture = previous.HostReceipt.fixture
++    run_q = previous.HostReceipt.run_q
++
++    def dependencies(self, **kwargs):
++        stack = previous.HostReceipt.dependencies(self, **kwargs)
++        def audit(cfg, directory):
++            self.calls.append(('audit', previous.carrier.identity(cfg)))
++            directory.mkdir(parents=True, exist_ok=True)
++            return dict(complete=True, fixture_config_identity=previous.carrier.identity(cfg))
++        stack.enter_context(patch('student_pilot.r1_loader.production_audit', side_effect=audit))
++        return stack
++
++    def repin(self, cfg, request):
++        request['config'] = self.pin('config24l.json', cfg)
++        request['staged_pins'] = [request['config']]
++        request['staging'] = self.pin('stage24l.json', dict(entries=self.entries))
++
++    def host(self, result):
++        self.assertEqual(result['status'], 'ADMIT', result)
++        return load(pinned(result['host_receipt']))
++
++    def refused(self, result, name):
++        self.assertEqual(result['status'], 'REFUSE', result)
++        self.assertIn(name, result['refusal'])
++        self.assertNotIn('host_receipt', result)
++        self.assertFalse((self.root/'host.json').exists())
++
++    def twins(self, *, bad_scene=False, bad_base=False):
++        cfg, request = self.fixture(bad_scene=bad_base)
++        row = dict(qid='source', dataset='d1', scene='bad' if bad_base else 'clean')
++        db = sqlite3.connect(':memory:')
++        db.execute('CREATE TABLE rows(i INTEGER PRIMARY KEY,row TEXT,target TEXT)')
++        db.execute('INSERT INTO rows VALUES(?,?,?)', (0, encoded(row), '{}'))
++        source = self.pin('twin_source.db', db.serialize(), stage=True)
++        db.close()
++        receipt = dict(database=source, count=1, division=cfg['scene_division'])
++        cfg['streams']['vqa'] = self.pin('twin_source.json', receipt, stage=True)
++        spec = dict(source_database=source,
++                    binding=self.pin('twin_binding.json', {}, stage=True),
++                    rows=self.pin('twin_rows.json', {}, stage=True))
++        cfg['r1_training']['direction_twins'] = spec
++        twin = dict(qid='twin', dataset='d1', scene='bad' if bad_scene else 'clean')
++        self.repin(cfg, request)
++        stack = self.dependencies()
++        # Exercise native augment and verify_augmented on two rows. Only the
++        # production authority and room census are replaced by fixture evidence.
++        stack.enter_context(patch('student_pilot.r1_rooms.STORE', source['sha256']))
++        stack.enter_context(patch('student_pilot.r1_direction_twins.specifications', return_value=spec))
++        stack.enter_context(patch('student_pilot.r1_direction_twins.Binding',
++                                  return_value=SimpleNamespace(rows=lambda: iter([twin]))))
++        stack.enter_context(patch('student_pilot.r1_rooms.census', return_value=({}, {})))
++        return cfg, request, stack
++
++    def test_scene_receipt_certifies_native_twin_store(self):
++        cfg, request, stack = self.twins()
++        with stack, patch.object(entry, 'check_host_scene', wraps=entry.check_host_scene) as check:
++            result = proof.run(request, self.root)
++        host = self.host(result)
++        final = load(pinned(result['config']))
++        self.assertEqual(check.call_count, 2)
++        self.assertEqual(check.call_args_list[0].args[0]['streams']['vqa'], cfg['streams']['vqa'])
++        self.assertEqual(check.call_args_list[1].args[0]['streams']['vqa'], final['streams']['vqa'])
++        self.assertNotEqual(cfg['streams']['vqa'], final['streams']['vqa'])
++        self.assertEqual(host['scene_division_inputs']['vqa'], final['streams']['vqa'])
++        self.assertEqual(host['scene_division_inputs']['division'], final['scene_division'])
++        self.assertEqual(host['scene_division']['vqa']['read'], 2)
++        self.assertEqual(host['scene_division']['vqa']['admitted'], 2)
++        self.assertEqual(host['scene_division']['routing']['read'], 1)
++
++    def test_cross_division_twin_refuses_by_name(self):
++        _, request, stack = self.twins(bad_scene=True)
++        with stack:
++            result = proof.run(request, self.root)
++        self.refused(result, 'SCENE_DIVISION_REFUSED')
++        self.assertTrue((self.root/'twins/receipt.json').is_file())
++        self.assertEqual(self.calls, [])
++
++    def test_pre_twin_scene_refusal_remains(self):
++        _, request, stack = self.twins(bad_base=True)
++        with stack:
++            result = proof.run(request, self.root)
++        self.refused(result, 'SCENE_DIVISION_REFUSED')
++        self.assertFalse((self.root/'twins').exists())
++
++    def test_selection_pin_digest_and_native_stager_recorded(self):
++        _, request = self.fixture()
++        host = self.host(self.run_q(request))
++        self.assertEqual(host['routing_selection'], request['routing_selection'])
++        self.assertEqual(host['regenerated_sha256'], digest({'synthetic_routing': True}))
++        self.assertEqual(host['stager'], 'native')
++        self.assertFalse(host['routing_substituted'])
++
++    def test_substituted_routing_and_inputs_recorded_without_refusal(self):
++        cfg, request = self.fixture()
++        original = deepcopy(cfg)
++        routed = load(self.area/'bootstrap/routing.json')
++        routed['fixture_substitution'] = True
++        request['routing_base'] = self.pin('substituted.json', routed, stage=True)
++        request['routing_inputs'] = {'fixture': 'substituted'}
++        self.repin(cfg, request)
++        host = self.host(self.run_q(request))
++        self.assertTrue(host['routing_substituted'])
++        changes = host['routing_substitution']
++        self.assertEqual(changes['routing']['original_sha256'], original['streams']['routing']['sha256'])
++        self.assertEqual(changes['routing']['substituted_sha256'], request['routing_base']['sha256'])
++        self.assertEqual(changes['routing_inputs']['original_sha256'], digest(original['r1_training']['routing_inputs']))
++        self.assertEqual(changes['routing_inputs']['substituted_sha256'], digest(request['routing_inputs']))
++        final = load(self.root/'h/config.json')
++        self.assertEqual(final['streams']['routing'], request['routing_base'])
++        self.assertEqual(final['r1_training']['routing_inputs'], request['routing_inputs'])
++
++    def test_minimal_routing_records_only_routing_substitution(self):
++        _, request = self.fixture()
++        request.pop('routing_inputs')
++        with self.dependencies(), patch('student_pilot.r1_coverage.routing_request', return_value=True), \
++                patch('student_pilot.r1_coverage.validate_binding'):
++            host = self.host(proof.run(request, self.root))
++        self.assertEqual(set(host['routing_substitution']), {'routing'})
++        self.assertFalse(host['routing_substituted'])
++
++    def run_hook(self, request, corrupt=None):
++        from launch_r2.staging import stage_inputs
++        def stage(entries, root):
++            stage_inputs(entries, root)
++            if corrupt:
++                corrupt(root)
++        with self.dependencies():
++            return proof.run(request, self.root, stage=stage)
++
++    def run_native(self, request, corrupt):
++        from launch_r2.staging import stage_inputs
++        def stage(entries, root):
++            stage_inputs(entries, root)
++            corrupt(root)
++        with self.dependencies(), patch('launch_r2.staging.stage_inputs', side_effect=stage):
++            return proof.run(request, self.root)
++
++    def test_hook_stager_recorded(self):
++        _, request = self.fixture()
++        self.assertEqual(self.host(self.run_hook(request))['stager'], 'hook')
++
++    def test_native_wrong_unreferenced_byte_refuses(self):
++        cfg, request = self.fixture()
++        self.pin('unreferenced.txt', b'right byte', stage=True)
++        self.repin(cfg, request)
++        result = self.run_native(request, lambda root: (root/'u/unreferenced.txt').write_bytes(b'wrong byte'))
++        self.refused(result, 'R1_HOST_STAGING_DIFFERS:u/unreferenced.txt')
++
++    def archive_fixture(self, *, inventory_only=False):
++        cfg, request = self.fixture()
++        payload = io.BytesIO()
++        inventory = {}
++        import hashlib
++        with tarfile.open(fileobj=payload, mode='w') as archive:
++            for name, raw in [('payload/used.txt', b'used'), ('payload/unreferenced.txt', b'authenticated')]:
++                member = tarfile.TarInfo(name)
++                member.size = len(raw)
++                archive.addfile(member, io.BytesIO(raw))
++                inventory[name] = hashlib.sha256(raw).hexdigest()
++        source = dict(payload=base64.b64encode(payload.getvalue()).decode(), inventory=inventory)
++        key = digest(inventory) if inventory_only else hashlib.sha256(payload.getvalue()).hexdigest()
++        source['inventory_sha256' if inventory_only else 'sha256'] = key
++        self.entries['u/archive.txt'] = dict(archive=source, member='payload/used.txt', sha256=inventory['payload/used.txt'])
++        self.entries['u/directory'] = dict(directory=source, member='payload', sha256=digest(inventory))
++        self.repin(cfg, request)
++        return request, key
++
++    def test_hook_archive_and_directory_pass(self):
++        request, _ = self.archive_fixture()
++        self.assertEqual(self.host(self.run_hook(request))['stager'], 'hook')
++
++    def test_native_archive_inventory_catches_unreferenced_byte(self):
++        request, key = self.archive_fixture(inventory_only=True)
++        result = self.run_native(request, lambda root: (root/'x'/key/'payload/unreferenced.txt').write_bytes(b'wrong'))
++        self.refused(result, 'R1_HOST_STAGING_DIFFERS:u/archive.txt')
++
++    def test_native_archive_hash_catches_wrong_archive_byte(self):
++        request, key = self.archive_fixture()
++        result = self.run_native(request, lambda root: (root/'a'/key).write_bytes(b'wrong'))
++        self.refused(result, 'R1_HOST_STAGING_DIFFERS:u/archive.txt')
++
++    def test_native_archive_target_catches_wrong_byte(self):
++        request, _ = self.archive_fixture()
++        result = self.run_native(request, lambda root: (root/'u/archive.txt').write_bytes(b'wrong'))
++        self.refused(result, 'R1_HOST_STAGING_DIFFERS:u/archive.txt')
+--- /dev/null
++++ b/tests/test_host24l3.py
+@@ -0,0 +1,126 @@
++"""CPU staging branch fixtures; the kit archive descriptor uses synthetic hashes."""
++import base64
++from copy import deepcopy
++import hashlib
++from pathlib import Path
++import unittest
++from unittest.mock import patch
++
++from launch_r1 import entry, production_proof as proof
++from student_pilot.p3_provenance import digest, encoded, load, pinned, sha256
++from student_pilot.r1_persisted import scope
++from tests import test_host24l as previous
++
++
++class StagerBranches(unittest.TestCase):
++    setUp = previous.Host24L.setUp
++    pin = previous.Host24L.pin
++    fixture = previous.Host24L.fixture
++    dependencies = previous.Host24L.dependencies
++    run_q = previous.Host24L.run_q
++    host = previous.Host24L.host
++    refused = previous.Host24L.refused
++    repin = previous.Host24L.repin
++    archive_fixture = previous.Host24L.archive_fixture
++
++    def assert_plan_hash(self, host, request):
++        with scope(self.paths):
++            expected = sha256(pinned(request['staging']))
++        self.assertEqual(host['staging_plan_sha256'], expected)
++        self.assertEqual(expected, request['staging']['sha256'])
++
++    def kit_fixture(self):
++        cfg, request = self.fixture()
++        # Match pl.py's direct-file parts and e archive/receipt-label inventory.
++        copies = {}
++        for name, item in self.entries.items():
++            raw = base64.b64decode(item['payload'])
++            copies[name] = raw
++            self.entries[name] = dict(sha256=item['sha256'], parts=[str(self.root/name)], bytes=len(raw))
++        for name, raw in [('n.json', b'{}\n'), ('source_code.json', b'{}\n'), ('f/weights.bin', b'fixture')]:
++            copies[name] = raw
++            self.entries[name] = dict(sha256=hashlib.sha256(raw).hexdigest(),
++                                      parts=[str(self.root/name)], bytes=len(raw))
++        self.entries['e'] = dict(archive=dict(sha256='0'*64, bytes=1,
++            parts=[dict(sha256='1'*64, bytes=1)]), inventory={'artifact': '2'*64})
++        plan = dict(entries=self.entries)
++        # The outer capsule hash differs from the decoded plan digest.
++        raw = encoded(plan).encode()
++        capsule = dict(encoding='base64-json', payload=base64.b64encode(raw).decode(),
++                       sha256=hashlib.sha256(raw).hexdigest())
++        request['staging'] = self.pin('kit_stage.json', capsule)
++        expected_entries = deepcopy(self.entries)
++        calls = []
++        def stage(entries, root):
++            self.assertEqual(entries, expected_entries)
++            calls.append(root)
++            for name, payload in copies.items():
++                target = root/name
++                target.parent.mkdir(parents=True, exist_ok=True)
++                target.write_bytes(payload)
++        return cfg, request, stage, calls
++
++    def test_native_receipt_records_pinned_plan_hash(self):
++        _, request = self.fixture()
++        with patch.object(entry, 'verify_host_staging', wraps=entry.verify_host_staging) as verify:
++            host = self.host(self.run_q(request))
++        self.assertEqual(verify.call_count, 1)
++        self.assertEqual(host['stager'], 'native')
++        self.assert_plan_hash(host, request)
++
++    def test_native_archive_and_directory_pass(self):
++        request, _ = self.archive_fixture()
++        host = self.host(self.run_q(request))
++        self.assertEqual(host['stager'], 'native')
++        self.assert_plan_hash(host, request)
++
++    def test_native_input_wrong_bytes_refuse(self):
++        cfg, request = self.fixture()
++        self.pin('unreferenced.txt', b'right', stage=True)
++        self.entries['u/unreferenced.txt']['payload'] = base64.b64encode(b'wrong').decode()
++        self.repin(cfg, request)
++        self.refused(self.run_q(request), 'Staging digest differs')
++
++    def test_kit_hook_passes_stage_host_and_records_plan_hash(self):
++        cfg, request, stage, calls = self.kit_fixture()
++        with self.dependencies(), patch.object(entry, 'verify_host_staging') as verify:
++            root, job, receipt = entry.begin_host(cfg, self.root, request)
++            with entry.host_environment(job):
++                entry.stage_host(cfg, root, request, job, stage=stage, result=receipt)
++        verify.assert_not_called()
++        self.assertEqual(calls, [self.root])
++        self.assertEqual(receipt['stager'], 'hook')
++        self.assert_plan_hash(receipt, request)
++        with scope(self.paths):
++            self.assertNotEqual(receipt['staging_plan_sha256'], digest(load(pinned(request['staging']))))
++
++    def test_kit_hook_writes_host_json_with_plan_hash(self):
++        _, request, stage, calls = self.kit_fixture()
++        with self.dependencies(), patch.object(entry, 'verify_host_staging') as verify:
++            host = self.host(proof.run(request, self.root, stage=stage))
++        verify.assert_not_called()
++        self.assertEqual(calls, [self.root])
++        self.assertEqual(host['stager'], 'hook')
++        self.assert_plan_hash(host, request)
++        self.assertEqual(load(self.root/'host.json'), host)
++
++    def test_hook_unreferenced_bytes_are_not_native_reverified(self):
++        cfg, request = self.fixture()
++        self.pin('unreferenced.txt', b'right', stage=True)
++        self.repin(cfg, request)
++        from launch_r2.staging import stage_inputs
++        def stage(entries, root):
++            stage_inputs(entries, root)
++            (root/'u/unreferenced.txt').write_bytes(b'hook-owned bytes')
++        with self.dependencies():
++            host = self.host(proof.run(request, self.root, stage=stage))
++        self.assertEqual(host['stager'], 'hook')
++        self.assert_plan_hash(host, request)
++
++    def test_hook_plan_wrong_bytes_refuse_before_hook(self):
++        _, request, stage, calls = self.kit_fixture()
++        (self.area/'bootstrap/kit_stage.json').write_bytes(b'{}')
++        with self.dependencies():
++            result = proof.run(request, self.root, stage=stage)
++        self.refused(result, 'Missing or changed pinned input:')
++        self.assertEqual(calls, [])
+--- /dev/null
++++ b/tests/test_host24l4.py
+@@ -0,0 +1,152 @@
++"""Pinned pointing K1 list admission and shared removal semantics on CPU fixtures."""
++import copy
++import io
++import json
++from contextlib import redirect_stdout
++from pathlib import Path
++import tempfile
++import unittest
++from unittest.mock import patch
++
++from student_pilot import r1_launch22 as launch
++from student_pilot.p3_provenance import file_pin
++from student_pilot.row_removals import Removals
++
++
++POINTING_PIN = 'd21e374f39048c0e142680e0d3b26e5b2b774138747610c1fc4a00da0ec580e1'
++
++
++class RemovalOrder(unittest.TestCase):
++    def cfg(self, order):
++        return dict(remove_files=[dict(path='/fixture/'+str(i), sha256=h) for i, h in enumerate(order)],
++                    r1_training=dict(launch22=dict(removal_order=list(order))))
++
++    def extended(self):
++        return launch.REMOVAL_ORDER[:-1] + (POINTING_PIN, launch.NAMING_REMOVE)
++
++    def accepts(self, order):
++        cfg = self.cfg(order)
++        # The production naming bytes are not in this fixture; verify the exact pin call.
++        with patch('student_pilot.p3_provenance.pinned') as pinned:
++            self.assertIsNone(launch.validate_removals(cfg))
++            pinned.assert_called_once_with(cfg['remove_files'][-1])
++
++    def refuses(self, order, spec=None):
++        cfg = self.cfg(order)
++        if spec is not None:
++            cfg['r1_training']['launch22']['removal_order'] = list(spec)
++        with patch('student_pilot.p3_provenance.pinned') as pinned:
++            with self.assertRaisesRegex(ValueError, '^R1_NAMING_REMOVAL_ORDER$'):
++                launch.validate_removals(cfg)
++            pinned.assert_not_called()
++
++    def test_twelve_pass(self):
++        self.accepts(launch.REMOVAL_ORDER)
++
++    def test_thirteen_pass(self):
++        self.assertEqual(launch.POINTING_K1_REMOVE, POINTING_PIN)
++        self.accepts(self.extended())
++
++    def test_different_thirteenth_refuses(self):
++        self.refuses(launch.REMOVAL_ORDER[:-1] + ('f'*64, launch.NAMING_REMOVE))
++
++    def test_pointing_after_naming_refuses(self):
++        self.refuses(launch.REMOVAL_ORDER + (POINTING_PIN,))
++
++    def test_pointing_in_any_other_position_refuses(self):
++        for index in range(len(launch.REMOVAL_ORDER)-1):
++            with self.subTest(index=index):
++                order = launch.REMOVAL_ORDER[:index] + (POINTING_PIN,) + launch.REMOVAL_ORDER[index:]
++                self.refuses(order)
++
++    def test_duplicate_pointing_refuses(self):
++        self.refuses(launch.REMOVAL_ORDER[:-1] + (POINTING_PIN, POINTING_PIN, launch.NAMING_REMOVE))
++        self.refuses(launch.REMOVAL_ORDER[:-2] + (POINTING_PIN, POINTING_PIN, launch.NAMING_REMOVE))
++
++    def test_spec_mismatch_refuses(self):
++        self.refuses(self.extended(), launch.REMOVAL_ORDER)
++        self.refuses(launch.REMOVAL_ORDER, self.extended())
++
++    def test_duplicate_or_missing_naming_refuses(self):
++        self.refuses(self.extended() + (launch.NAMING_REMOVE,))
++        self.refuses(self.extended()[:-1])
++
++    def test_naming_bytes_still_authenticated(self):
++        root = Path(tempfile.mkdtemp(prefix='naming24l4_'))
++        path = root/'wrong.json'
++        path.write_text('{}')
++        for order in (launch.REMOVAL_ORDER, self.extended()):
++            cfg = self.cfg(order)
++            cfg['remove_files'][-1]['path'] = str(path)
++            with self.assertRaisesRegex(ValueError, 'Missing or changed pinned input:'):
++                launch.validate_removals(cfg)
++
++
++class RemovalConsumers(unittest.TestCase):
++    def setUp(self):
++        self.root = Path(tempfile.mkdtemp(prefix='removals24l4_'))
++
++    def jsonl(self, name, rows):
++        path = self.root/name
++        path.write_text(''.join(json.dumps(row, sort_keys=True)+'\n' for row in rows))
++        return file_pin(path)
++
++    def test_shared_lists_remove_only_matching_pointing_keys(self):
++        # Real pinned synthetic bytes fill the added list's role; no production hash is forged.
++        empty = self.jsonl('empty.jsonl', [])
++        pointing = self.jsonl('pointing_k1.jsonl', [dict(row_key='pointing-k1-630')])
++        naming = self.jsonl('other.jsonl', [dict(row_key='unrelated-naming-key')])
++        before_pins = [empty]*11 + [naming]
++        after_pins = before_pins[:-1] + [pointing, naming]
++        rows = dict(pointing=[dict(qid='pointing-qid', pointing=dict(row_key='pointing-k1-630'),
++                                   provenance=dict(canonical_scene='scannet/scene0630')),
++                              dict(qid='pointing-retained')],
++                    vqa=[dict(qid='vqa-1', target='yes', provenance=dict(canonical_scene='scannet/scene0630'))],
++                    pose=[dict(qid='pose-1', provenance=dict(canonical_scene='scannet/scene0280'))])
++        untouched = copy.deepcopy(rows)
++        before, after = Removals(before_pins), Removals(after_pins)
++        old = {name:[row for row in stream if before.keep(row)] for name, stream in rows.items()}
++        new = {name:[row for row in stream if after.keep(row)] for name, stream in rows.items()}
++        self.assertEqual(old, rows)
++        self.assertEqual(new['pointing'], rows['pointing'][1:])
++        self.assertEqual(new['vqa'], old['vqa'])
++        self.assertEqual(new['pose'], old['pose'])
++        self.assertEqual(rows, untouched)
++        self.assertEqual(after.files, after_pins)
++        with redirect_stdout(io.StringIO()):
++            report = after.report()
++        self.assertEqual(len(report), 13)
++        self.assertEqual([r['removed'] for r in report], [0]*11 + [1, 0])
++        self.assertEqual(report[11]['matched_unique_keys'], 1)
++        with self.assertRaisesRegex(ValueError, 'REMOVE-listed row remains'):
++            after.assert_clean(rows['pointing'][0])
++        for row in new['vqa'] + new['pose']:
++            after.assert_clean(row)
++
++    def test_pointing_pin_bytes_still_authenticated(self):
++        pin = self.jsonl('pointing.jsonl', [dict(row_key='pointing-k1-630')])
++        Path(pin['path']).write_text('[]\n')
++        with self.assertRaisesRegex(ValueError, 'Missing or changed pinned input:'):
++            Removals([pin])
++
++    def test_union_checks_ignore_unrelated_added_pin(self):
++        from student_pilot.r1_coverage import union_rows, verify_union
++        base_rows = [dict(row_key='base-vqa', canonical='scannet/scene0001', reason='k1_heldout_v7')]
++        extra_rows = [dict(row_key='extra-vqa', canonical='scannet/scene0002', reason='k1_heldout_v7')]
++        base = self.jsonl('base.jsonl', base_rows)
++        extra = self.jsonl('extra.jsonl', extra_rows)
++        union = self.jsonl('union.jsonl', union_rows(base_rows, extra_rows))
++        n = self.jsonl('n.jsonl', [dict(row_key='n')])
++        pointing = self.jsonl('pointing.jsonl', [dict(row_key='pointing')])
++        naming = self.jsonl('naming.jsonl', [dict(row_key='naming')])
++        empty = self.jsonl('empty.jsonl', [])
++        spec = dict(v7_k1_removal=union, v7_k1_union=dict(base=base, extra=extra, union=union))
++        twelve = [empty]*8 + [base, union, n, naming]
++        thirteen = twelve[:-1] + [pointing, naming]
++        for pins in (twelve, thirteen):
++            self.assertTrue(verify_union(spec, pins, base['sha256'], n['sha256']))
++            self.assertFalse(verify_union({}, pins, base['sha256'], n['sha256']))
++        with self.assertRaisesRegex(ValueError, '^R1_K1_UNION_ORDER$'):
++            verify_union(spec, [union, base, n, pointing, naming], base['sha256'], n['sha256'])
++        with self.assertRaisesRegex(ValueError, '^R1_K1_UNION_ORDER$'):
++            verify_union(spec, thirteen + [union], base['sha256'], n['sha256'])
+--- /dev/null
++++ b/tests/test_host24n.py
+@@ -0,0 +1,246 @@
++"""Relocated donor metadata stays authenticated; no production tensors are used."""
++from copy import deepcopy
++import importlib.util
++from pathlib import Path
++import tempfile
++import unittest
++from unittest.mock import patch
++
++from student_pilot import r1_handover as H, r1_persisted as P
++from student_pilot.p3_provenance import digest, file_pin, load, pinned, write
++from launch_r1 import p_export_receipt as E
++from tests.test_host24j import config
++from tests import test_host24l as host24l
++
++
++def donor_fixture(root):
++    def put(name, value):
++        write(root/name, value)
++        return file_pin(root/name)
++    source = config()
++    source.update(benchmark_scene_exclusions=None, routing_opener_init='keep')
++    source['streams'] = {s:put(s+'.json', dict(database=dict(path=str(root/(s+'.db')),
++        sha256=digest(s)), count=1)) for s in ('pose','vqa','routing','pointing')}
++    ident = H.export_identity(source)
++    preparation = put('preparation.json', dict(schema='c1-preparation-v1', config_sha256=ident,
++        recipe=source['recipe'], training_mode='final', camera={}, streams={s:dict(receipt=p,
++        database=load(pinned(p))['database'],count=1) for s,p in source['streams'].items()}))
++    source['preparation'] = preparation
++    run = dict(config=put('config.json',source), preparation=preparation,
++        binding=put('binding.json',dict(config_sha256=ident, preparation=preparation,
++                                      world_size=4,trainer_commit='fixture')))
++    heads = put('heads.json',dict(synthetic=True))
++    shard = put('export/shard.json',dict(synthetic_weights=True))
++    index = put('export/index.json',dict(shards=['shard.json']))
++    manifest = put('export/manifest.json',dict(index=dict(name='index.json',sha256=index['sha256']),
++        files=[dict(name='shard.json',sha256=shard['sha256'])]))
++    artifact = put('artifact.json',dict(schema='carrier-c1-artifact-v1',step=400,config_sha256=ident,
++                                      heads=heads,full_weights=manifest))
++    receipt = E.produce(run,artifact,root/'receipt.json',job_id='fixture',trainer_commit='fixture')
++    cfg = deepcopy(source)
++    cfg.update(init_artifact=dict(artifact=artifact), r1_training=dict(p_run=deepcopy(run),
++        donor_config_sha256=ident, handover_receipt=receipt, proof_mode='q',persisted_files={}))
++    return cfg, load(pinned(artifact))
++
++
++class DonorPins(unittest.TestCase):
++    def setUp(self):
++        self.root = Path(tempfile.mkdtemp(prefix='pins24n_'))
++        self.cfg, self.artifact = donor_fixture(self.root/'donor')
++
++    def localize(self):
++        run = self.cfg['r1_training']['p_run']
++        old = run['preparation']
++        target = self.root/'localized/preparation.json'
++        target.parent.mkdir()
++        target.write_bytes(Path(old['path']).read_bytes())
++        run['preparation'] = file_pin(target)
++        self.cfg['r1_training']['persisted_files'][old['sha256']] = str(target)
++        return target
++
++    def call(self, module=H):
++        with P.proof_scope():
++            return module.donor(self.cfg, self.artifact)
++
++    def rewrite_metadata(self, key, value):
++        run = self.cfg['r1_training']['p_run']
++        path = self.root/(key+'_changed.json')
++        write(path, value)
++        run[key] = file_pin(path)
++        receipt = load(pinned(self.cfg['r1_training']['handover_receipt']))
++        receipt['pins'][key] = run[key]
++        receipt_path = self.root/(key+'_receipt.json')
++        write(receipt_path,receipt)
++        self.cfg['r1_training']['handover_receipt'] = file_pin(receipt_path)
++
++    def isolated_binding(self, changed):
++        """Authenticate altered donor metadata, then isolate each equality in _donor."""
++        self.localize()
++        run = self.cfg['r1_training']['p_run']
++        source, bound = (load(pinned(run[k])) for k in ('config','binding'))
++        # Export identity omits preparation, so this changes only the tested pin.
++        for key, value in (('config', source), ('binding', bound)):
++            if key != changed:
++                value['preparation'] = deepcopy(run['preparation'])
++            write(self.root/(key+'_isolated.json'),value)
++            run[key] = file_pin(self.root/(key+'_isolated.json'))
++        self.cfg['r1_training'].pop('persisted_files')
++        return run
++
++    def base(self):
++        path = Path(__file__).resolve().parents[2]/'tree_r1_base/student_pilot/r1_handover.py'
++        if not path.is_file():
++            self.skipTest('Untouched base tree is required for the failing-before comparison')
++        spec = importlib.util.spec_from_file_location('student_pilot.handover24n_base',path)
++        module = importlib.util.module_from_spec(spec)
++        spec.loader.exec_module(module)
++        return module
++
++    def exercise_comparison(self, key):
++        run = self.isolated_binding(key)
++        # The final closure check is independent and covered unmocked below.
++        with P.proof_scope(), patch.object(P,'verify',return_value={}):
++            with self.assertRaisesRegex(ValueError,'P_EXPORT_RUN_BINDING_MISMATCH'):
++                self.base()._donor(self.cfg,self.artifact)
++            H._donor(self.cfg,self.artifact)
++            saved_run = deepcopy(run)
++            original = deepcopy(run['preparation'])
++            # Different, correctly hashed bytes must fail the binding comparison.
++            prep = load(pinned(original)); prep['different_bytes'] = True
++            write(self.root/'different.json',prep)
++            run['preparation'] = file_pin(self.root/'different.json')
++            other = 'binding' if key == 'config' else 'config'
++            metadata = load(pinned(run[other]))
++            metadata['preparation'] = deepcopy(run['preparation'])
++            write(self.root/'other_hash.json', metadata)
++            run[other] = file_pin(self.root/'other_hash.json')
++            with self.assertRaisesRegex(ValueError,'P_EXPORT_RUN_BINDING_MISMATCH'):
++                H._donor(self.cfg,self.artifact)
++            # The stated hash is unchanged, but the staged bytes have been corrupted.
++            run.clear(); run.update(saved_run)
++            Path(original['path']).write_text('{}')
++            with self.assertRaisesRegex(ValueError,'Missing or changed pinned input'):
++                H._donor(self.cfg,self.artifact)
++
++    def test_source_preparation_comparison(self):
++        self.exercise_comparison('config')
++
++    def test_binding_preparation_comparison(self):
++        self.exercise_comparison('binding')
++
++    def test_native_persisted_donor_accepts_relocation(self):
++        before = self.call()
++        self.localize()
++        self.assertEqual(before,self.call())
++        with P.proof_scope(), self.assertRaisesRegex(ValueError,'P_EXPORT_RUN_BINDING_MISMATCH'):
++            self.base().donor(self.cfg,self.artifact)
++
++    def test_native_persisted_donor_refuses_corrupt_local_bytes(self):
++        self.localize().write_text('{}')
++        with self.assertRaisesRegex(ValueError,'P_EXPORT_HANDOVER_FILE_MISMATCH:preparation'):
++            self.call()
++
++    def test_native_persisted_donor_refuses_other_hash(self):
++        path = self.localize()
++        path.write_text('{}')
++        self.cfg['r1_training']['p_run']['preparation'] = file_pin(path)
++        with self.assertRaisesRegex(ValueError,'P_EXPORT_HANDOVER_PIN_MISMATCH:preparation'):
++            self.call()
++
++    def test_schema_still_refuses(self):
++        prep = load(pinned(self.cfg['r1_training']['p_run']['preparation']))
++        prep['schema'] = 'foreign'
++        # Bind matching pins everywhere so the schema alone is false.
++        self.rewrite_metadata('preparation',prep)
++        run = self.cfg['r1_training']['p_run']
++        for key in ('config','binding'):
++            value=load(pinned(run[key]));value['preparation']=run['preparation']
++            self.rewrite_metadata(key,value)
++        with self.assertRaisesRegex(ValueError,'P_EXPORT_RUN_BINDING_MISMATCH'):
++            self.call()
++
++    def test_binding_and_preparation_identity_still_refuse(self):
++        for key in ('binding','preparation'):
++            with self.subTest(key=key):
++                self.setUp()
++                value=load(pinned(self.cfg['r1_training']['p_run'][key]))
++                value['config_sha256']='0'*64
++                self.rewrite_metadata(key,value)
++                with self.assertRaisesRegex(ValueError,'P_EXPORT_HANDOVER_RUN_BINDING_MISMATCH'):
++                    self.call()
++
++    def test_non_path_pin_fields_still_refuse(self):
++        for key in ('config','binding'):
++            for mutation in ('extra', 'missing_path', 'missing_hash', 'empty_path', 'non_dict'):
++                with self.subTest(key=key,mutation=mutation):
++                    self.setUp()
++                    run=self.isolated_binding(key)
++                    value=load(pinned(run[key]))
++                    if mutation=='extra':value['preparation']['extra']='not a pin'
++                    elif mutation=='missing_path':value['preparation'].pop('path')
++                    elif mutation=='missing_hash':value['preparation'].pop('sha256')
++                    elif mutation=='empty_path':value['preparation']['path']=''
++                    else:value['preparation']=None
++                    write(self.root/'extra.json',value);run[key]=file_pin(self.root/'extra.json')
++                    with P.proof_scope(),patch.object(P,'verify',return_value={}), \
++                            self.assertRaisesRegex(ValueError,'P_EXPORT_RUN_BINDING_MISMATCH'):
++                        H._donor(self.cfg,self.artifact)
++
++
++class LocalizedQ(unittest.TestCase):
++    setUp = host24l.Host24L.setUp
++    fixture = host24l.Host24L.fixture
++    pin = host24l.Host24L.pin
++    repin = host24l.Host24L.repin
++    host = host24l.Host24L.host
++    dependencies = host24l.Host24L.dependencies
++    def run_native_q(self, *, fresh=False):
++        from launch_r1 import production_proof as proof
++        cfg, request = self.fixture()
++        cfg['preparation'] = self.pin('q_preparation.json', dict(schema='c1-preparation-v1',
++            camera={}, streams={name:dict(receipt=pin) for name,pin in cfg['streams'].items()}), stage=True)
++        donor, artifact = donor_fixture(self.area/'donor')
++        value=donor['r1_training']
++        if fresh:
++            value.update(init_policy=P.INIT_POLICY, proof_mode='train')
++        receipt=load(pinned(value['handover_receipt']))
++        paths={}
++        for key,pin in receipt['pins'].items():
++            paths[pin['sha256']]=self.pin('donor_'+pin['sha256'],Path(pin['path']).read_bytes(),stage=True)['path']
++        handover=self.pin('donor_h.json',Path(value['handover_receipt']['path']).read_bytes(),stage=True)
++        cfg['r1_training'].update(value, handover_receipt=handover, persisted_files=paths)
++        cfg['r1_training']['p_run']={key:dict(pin,path=paths[pin['sha256']]) for key,pin in value['p_run'].items()}
++        cfg['init_artifact']=dict(artifact=dict(donor['init_artifact']['artifact'],
++            path=paths[donor['init_artifact']['artifact']['sha256']]))
++        cfg['routing_opener_init']='keep'
++        self.repin(cfg,request)
++        native_donor, native_verify, native_bind, native_admission = H.donor, P.verify, H.bind_target, P.admission
++        native_compare = H.compare_configs
++        # Capacity producers retain the config; native donor/config/mapping gates run.
++        def prepare(pin, directory, *args, **kwargs):
++            write(directory/'config.json', load(pinned(pin)))
++            return dict(config=file_pin(directory/'config.json'))
++        def populate(current, directory):
++            write(directory/'config.json', current)
++            return file_pin(directory/'config.json')
++        with self.dependencies(), patch.object(H,'donor',native_donor), \
++                patch.object(P,'verify',native_verify), patch.object(H,'bind_target',native_bind), \
++                patch.object(P,'admission',native_admission), patch.object(H,'compare_configs',native_compare), \
++                patch('student_pilot.s1_admission.admit',side_effect=prepare), \
++                patch('student_pilot.r1_population.bind_prepared',side_effect=populate):
++            result=proof.run(request,self.root)
++        self.host(result)
++        self.assertIn('persisted_handover',result['steps'])
++        self.assertIn('r1_loader.production_audit',result['steps'])
++        final=load(pinned(result['config']))
++        self.assertNotEqual(final['r1_training']['p_run']['preparation']['path'],
++            load(pinned(value['p_run']['config']))['preparation']['path'])
++
++        self.assertEqual(result['absolute_resume_step'], 0 if fresh else 400)
++        self.assertEqual(result['init_milestone'], 400)
++
++    def test_q_reaches_past_native_handover(self):
++        self.run_native_q()
++
++    def test_q_fresh_training_reaches_past_native_handover(self):
++        self.run_native_q(fresh=True)

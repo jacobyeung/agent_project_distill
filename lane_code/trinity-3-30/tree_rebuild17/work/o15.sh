@@ -1,0 +1,1 @@
+P=/project/community/jjyeung/okh7/x_ee227714; cd $P; echo BEGINSUMS; cat SHA256SUMS.txt; echo ENDSUMS; ls -l k | awk '{print $5, $9}' > /dev/stdout | head -0; echo BEGINLS; ls -l k | awk 'NR>1{print $5" "$9}'; echo ENDLS

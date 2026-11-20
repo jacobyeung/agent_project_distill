@@ -1,0 +1,14 @@
+# Codex build 24m4f of lane tree_rebuild: the delta re-review's MUST (arming authenticates the reviewed selection) and SHOULD (complete package) on 24m4e, reseal
+
+You run once, on trinity-1-18; nobody answers questions. Writable workspace `L=/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24e` only (never write in `.../w24` or `.../w24c`). New disk space under 100 MB. Keep every existing file unchanged; move superseded files to `L/attic/`. Binding prompts: `/scratch/jjyeung/orch_n30/tree_rebuild10_w/prompts/build24m4e.md` and those it names. Base: 24m4e (`L/out/BUILD24M4E_REPORT.md`, `L/out/DELIVERY_24M4E.json`; read first). The review: `/home/jjyeung/agent_project_distill/agent/scratch/codex_runs/20261120T020130Z_tree_rebuild_rev24m4d/final_message.md` (read in full). Time limit: 35 minutes.
+
+## Fix
+1. MUST: `out/arm_routing.py` must refuse unless the selection it binds is the one the independent reviewer passed: a required argument `--reviewed-sha256 <64 hex>` (the sha256 of routing_selection.json that n_review1b's verdict names) and `--review-verdict <path>` (the reviewer's verdict file, JSON or Markdown, whose text contains that sha256 and the word PASS); refuse on any mismatch, on a missing argument, or when the selection's regenerated_sha256 differs from the DB sha256 given from db_bytes.json; keep every existing check. Tests: the reviewer's fabricated-selection probe (regenerated_sha256 = "e"*64) refuses; altered row counts/digests refuse; a matching reviewed selection binds. Update `out/ARM_ROUTING_USAGE.md` with the exact command.
+2. SHOULD: the package must contain every member of the 24m4c package that 24m4d/24m4e did not intentionally replace (the review found 190 removed, e.g. out/SCENE_REBUILD_INPUTS.md, out/MISSING_STAGED_PINS.md, work/build24m4c/RESOLVER_TESTS.json); record the member diff against 24m4c in DELIVERY_24M4F.json.
+3. Nothing else: kits q, n, n_go, qd unchanged unless arm_routing is inside a kit (say so); tree C, rv.py, census, admission, legality, removals, pins, b/pc.py unchanged.
+
+## Outputs
+`L/out/tree_rebuild_b24m4f_<seal8>.tar`, `L/out/DELIVERY_24M4F.json`, `L/out/BUILD24M4F_REPORT.md` under 12 lines (line 1: tree and kit seals, stating which changed), `L/out/UPLOADS_24M4F.json`/`.list` only if a kit changed.
+
+## Rules (restating build 21's)
+No ssh, network, Orchard, GPU, Git, tmux, scheduler or other agents. Never list, search or grep on /home or /data*: read only named files there. Write only under L. No deletion. Every CPU process under `nice -n 10`, at most 8 threads, under 20 GB RAM.

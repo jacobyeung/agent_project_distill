@@ -1,0 +1,94 @@
+{
+  "count": 2000,
+  "database": {
+    "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24k/rehearsal_k5b/fixture/pose0/rows.sqlite",
+    "sha256": "6dea7354cedc10085f21876b4fa72b8a5f656d1f470a58e7e38baa1c49a8f10d"
+  },
+  "fixture_subset": {
+    "rows": 2000,
+    "selection": "first rows in native i order",
+    "source_database": {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24/proofs/capacity/pose_store0/pose.sqlite",
+      "sha256": "577f22dc079f1b0d4a90b7fbde32bc6548e9d59692ca1279f13c34a96ea2044a"
+    },
+    "source_receipt": {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24/proofs/capacity/pose0.json",
+      "sha256": "a5c1d0a6337af7ad6c5c65014c1450d9d180e209467bc877c5b3c6098f4ca024"
+    }
+  },
+  "inputs": {
+    "division": {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24/proofs/capacity/division.json",
+      "sha256": "835e69413c0b01969f945ab047089d83fc16efa528e12dfe088ed6b60ae92300"
+    }
+  },
+  "model": {
+    "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24/proofs/capacity/model.json",
+    "sha256": "6310c8e9bed3b08cabf27750b9c3a0720a4882b89c1ec6ecd7822487478c07d4"
+  },
+  "rehearsal": true,
+  "schema": "decoupled-v-preparation-v1",
+  "settings": {
+    "anchors": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32
+    ],
+    "camera": {
+      "embed_dim": 16,
+      "num_heads": 2,
+      "point_depth": {
+        "context_depth": 1,
+        "d_proj": 16,
+        "mlp_hidden": 16,
+        "num_heads": 2,
+        "num_points_per_frame": 1,
+        "vit_layers": [
+          1,
+          2,
+          3
+        ],
+        "weight": 0.05
+      },
+      "refine_iterations": 1,
+      "supervision": {
+        "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24/proofs/capacity/division.json",
+        "sha256": "d17450e9d35b354130cf8d68b6010b74dbdcb67d09bea3084aa8779f20dcfc3a"
+      },
+      "trunk_depth": 1,
+      "weight_focal": 2.0,
+      "weight_gravity": 0.05,
+      "weight_scale": 0.04
+    },
+    "temporal_grouping": "fused_pairs_all_frames"
+  }
+}

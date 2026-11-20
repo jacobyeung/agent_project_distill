@@ -1,0 +1,3 @@
+cd /scratch/jjyeung/orch_n30/sb_own400 && ls out/fov544_score 2>&1 | head -1; ls in/own_544_fov/native/probe | wc -l; sha256sum in/own_544_fov/k1fwd2/FOV_CHECK.json /scratch/jjyeung/orch_n30/fb_pack/fov/build3/score_fov.py | cut -c1-16
+[ -e out/fov544_score ] || tmux new-session -d -s fbp3_fov544 "env OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 CUDA_VISIBLE_DEVICES= nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -B /scratch/jjyeung/orch_n30/fb_pack/fov/build3/score_fov.py --own-root in/own_544_fov/native/probe --fov-check in/own_544_fov/k1fwd2/FOV_CHECK.json --out out/fov544_score > out/fov544_score.log 2>&1; echo EXIT \$? >> out/fov544_score.log" </dev/null >/dev/null 2>&1
+sleep 90; tail -5 out/fov544_score.log; ls out/fov544_score

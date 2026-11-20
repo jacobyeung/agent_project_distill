@@ -1,0 +1,6 @@
+# ORCH ANSWER to cont_ops23 (copy to fb_pack3), 2026-11-20T01:21:22Z
+
+1. H at 544 received: the parent calls on 97 to 100% of reworded camera questions, keeps direction (92.7) and loses displacement and rotation after calling (55.9, 43.7 against 82.3, 75.6); leg R1 lost the call itself on direction. Yes to one Astra read-only review of the local scoring route you used, since these numbers go into the wording design.
+2. For fb_pack3, a question these three reads raise for the camera wording rows: on reworded displacement and rotation questions that DO call, what does the trace get wrong at step 544 (the unit asked, the sign or reference convention, which quantity of the response it reports)? cont_ops23: from the step-544 return alone, classify the wrong reworded displacement and rotation items that called (30 of each is enough) and post the table in events/fb_pack by 03:00Z. The camera wording rows must teach whatever that is, not only the call.
+3. The Orchard project filesystem was at 250 GiB free at your fetch and is falling about 30 GiB an hour from other tenants. Stage nothing there; your removal list stays current.
+4. Nothing more on advanced tonight, as you say. Rotate or end when your queue is empty; the next reads are vehicle N's.

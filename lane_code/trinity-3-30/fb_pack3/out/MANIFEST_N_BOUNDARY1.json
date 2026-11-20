@@ -303,11 +303,11 @@
   "sha256": "a7b2748e3eb70b785e5c3ba769d573b1e9c09308ca5651183b81010752861a77",
   "bytes": 97338
  },
- "manifest_status": "v1 by fb_pack3 2026-11-19T23:20Z: all three first-boundary patches reviewed GO; open: donor field-of-view source (pending measurement, due about 03:15Z; ORCH RULING 2315Z), patch C exposure counts (Orchard job after the boundary tree merges; by 06:00Z), Orchard uploads (tree_rebuild15 names files)",
+ "manifest_status": "v3 by fb_pack3 2026-11-20T01:28Z: all three first-boundary patches GO; donor binds with checkpoint 544 and fov_source V2 (frozen rule, RESULT 0127Z); open: patch C exposure counts (Orchard job after the boundary tree merges; by 06:00Z), Orchard uploads (tree lane names files)",
  "base_seal_note": "Every patch is a unified diff against seal 57a1f14d (PATCH_CAMFORM2 against base+PATCH_A2, PATCH_DONOR3 against base); each applies with fuzz 0 on live seal 189df6ac. tree_rebuild15 rebases onto its newest merged tree (24l/24m, e17fc130) and reseals.",
  "binding_order": [
   "1 four distance slices + routing_slice_declaration (PATCH_A2)",
-  "2 scale donor (PATCH_DONOR3): weights 544; binds only when BARS_FOV_544 picks V1 or V2 (due about 03:15Z)",
+  "2 scale donor (PATCH_DONOR3 4253fbd1): checkpoint 544, fov_source V2",
   "3 camera wording rows (+ PATCH_CAMFORM2 only if camform2rev GO by 03:00Z AND Orchard exposure counts by 06:00Z, ANSWER 2133Z)",
   "4 recovery 760",
   "pointing K1-heldout removal list (RULING 2216Z, kit 24m2)",
@@ -340,10 +340,12 @@
     "event": "events/fb_pack/20261119T2312Z_RESULT_donor_544_*"
    },
    "fov_variant": {
-    "status": "NOT BOUND: weights 544; field-of-view source pending measurement, due about 03:15Z (ORCH RULING 2315Z)",
-    "rule": "BARS_FOV_544.json c1905484873704ae9b8af5cb653cf2cb1b911d789d181811767fa5f8707fa878 (1-18 /scratch/jjyeung/orch_n30/fb_pack/fov/); V2 if acceptable, else V1, else the donor does not bind",
-    "grids": "k1fwd2, due on 1-18 sb_own400/in/own_544_fov by 02:45Z",
-    "note": "pose-head FoV is not allowed (READER_REQUEST.md:9)"
+    "fov_source": "V2",
+    "status": "BOUND by frozen rule BARS_FOV_544.json c1905484 + AMEND1 e23ffd29",
+    "evidence": "1-18 /scratch/jjyeung/orch_n30/sb_own400/out/fov544_score/FOV_RESULT.json 865f5841 (V2-A displacement +0.0002 [-0.0009,+0.0015]; no distance harm); scorer fb_pack/fov/build3/score_fov.py c97b8f20 (Cursor GO 85e77d5b); grids k1fwd2 job 173486",
+    "v2_source": "frozen G3T raw_pose9[anchor_slots,7:9] (scale_donor V2; READER_REQUEST.md:9-13 authentication applies)",
+    "caveat": "measured under tree 168872 point_depth_head 8ea73228/decoupled_v 19346a56; boundary tree 960a4334/5f249ed8: donor invariance test in the boundary tree covers it",
+    "event": "events/fb_pack/20261120T0127Z_RESULT_donor_fov_source_V2_by_frozen_rule.md"
    }
   },
   "PATCH_CAMFORM2": {

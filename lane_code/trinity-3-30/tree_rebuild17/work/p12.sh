@@ -1,0 +1,2 @@
+W=/scratch/jjyeung/orch_n30/tree_rebuild10_w; date -u +%TZ; tmux ls | grep tr17; d=$(ls -dt /home/jjyeung/agent_project_distill/agent/scratch/codex_runs/*_tree_rebuild24m4c | head -1); test -f $d/final_message.md && cat $d/final_message.md || tail -c 600 $d/transcript.log | tr -cd "[:print:]\n" | tail -3 | cut -c1-250; ls -lt $W/w24c/out | head -6
+head -30 $W/w24/work/build24k/go_rehearsal_k.sh; ls $W/w24/work/build24k | grep -i rehears

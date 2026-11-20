@@ -1,0 +1,98 @@
+work/tree_r1/student_pilot/r1_handover.py:13:    'remove_files': 'N preparation and reader reapply pinned row removals.',
+work/tree_r1/student_pilot/scene_division_gate.py:44:            results[stream] = check_rows(rows, cfg['scene_division'], removals=Removals(cfg.get('remove_files', [])),
+work/tree_r1/launch_r1/build.py:52:    staged_records={pin['path']:pinned({k:pin[k] for k in ('path','sha256')}) for pin in cfg.get('remove_files', [])
+work/tree_r1/student_pilot/grounding_targets.py:249:                remove_files=(), ground_target_filter=False, scene_identities=None):
+work/tree_r1/student_pilot/grounding_targets.py:259:    targets = TargetFilter(remove_files, shape_filter=ground_target_filter) if remove_files or ground_target_filter else None
+work/tree_r1/student_pilot/s1_pool_relocate.py:42:    value["remove_files"] = [{**pin, **locate({key: pin[key] for key in ("path", "sha256")})}
+work/tree_r1/student_pilot/s1_pool_relocate.py:43:                             for pin in value["remove_files"]]
+work/tree_r1/student_pilot/s1_routing.py:243:    removals = Removals(cfg["remove_files"])
+work/tree_r1/student_pilot/s1_admission.py:162:            or not cfg.get("remove_files") or cfg.get("tool_mode_flag") is not None):
+work/tree_r1/student_pilot/s1_admission.py:191:                                    remove_files=cfg["remove_files"], ground_target_filter=True,
+work/tree_r1/student_pilot/s1_admission.py:196:                                       remove_files=cfg["remove_files"], source_receipt=True,
+work/tree_r1/student_pilot/s1_admission.py:325:             for row in Removals(cfg["remove_files"]).report()]
+work/tree_r1/student_pilot/carrier_c1_data.py:581:                 remove_files=(), ground_target_filter=False, source_receipt=False, scene_filter=None):
+work/tree_r1/student_pilot/carrier_c1_data.py:593:    targets = TargetFilter(remove_files, shape_filter=ground_target_filter) if stream == 'pointing' else None
+work/tree_r1/student_pilot/carrier_c1_data.py:594:    removals = targets.removals if targets is not None else Removals(remove_files)
+work/tree_r1/student_pilot/carrier_c1_data.py:615:                if targets is not None and (remove_files or ground_target_filter) and row['pointing']['kind'] == 'gt_instance_mask':
+work/tree_r1/student_pilot/carrier_c1_data.py:669:    if remove_files:
+work/tree_r1/student_pilot/carrier_c1_data.py:671:    if targets is not None and (remove_files or ground_target_filter):
+work/tree_r1/student_pilot/carrier_c1_run.py:475:    removals = Removals(cfg.get('remove_files', ()))
+work/tree_r1/student_pilot/carrier_c1_run.py:545:            expected = TargetFilter(cfg.get('remove_files', ()), shape_filter=True).settings()
+work/tree_r1/student_pilot/carrier_c1_run.py:650:    if cfg.get('remove_files'):
+work/tree_r1/student_pilot/carrier_c1_run.py:651:        result['remove_files'] = removals.files
+work/tree_r1/student_pilot/carrier_c1_run.py:689:    removals = Removals(cfg.get('remove_files', ()))
+work/tree_r1/student_pilot/carrier_c1_run.py:690:    if receipt.get('remove_files', []) != removals.files:
+work/tree_r1/launch_s1/build.py:101:    cfg["remove_files"] = [{**small_input(f"remove_{number}.jsonl", pin),
+work/tree_r1/launch_s1/build.py:103:                           for number, pin in enumerate(pool["remove_files"])]
+work/tree_r1/launch_s1/build.py:115:        for pin in [*cfg["remove_files"], cfg["dev_scene_exclusions"], cfg["benchmark_scene_exclusions"]]:
+work/tree_r1/student_pilot/stageb_mdg.py:134:                        remove_files=cfg.get('remove_files', ()),
+work/tree_r1/student_pilot/stageb_mdg.py:169:    if cfg.get('remove_files') or cfg.get('ground_target_filter'):
+work/tree_r1/student_pilot/stageb_mdg.py:170:        expected = TargetFilter(cfg.get('remove_files', ()),
+work/tree_r1/student_pilot/r2_scene_bindings.py:66:def rebuild_pool(manifest, dev, benchmark, output, *, remove_files=(), tokenizer=None, room_sets=None):
+work/tree_r1/student_pilot/r2_scene_bindings.py:118:    report = prepare(file_pin(output/'0.json'), output/'p', remove_files, tokenizer, room_sets or ROOM_SETS, opaque=True)
+work/tree_r1/student_pilot/r2_scene_bindings.py:172:                        remove_files=spec.get('remove_files', ()), tokenizer=spec.get('tokenizer'))
+work/tree_r1/student_pilot/row_removals.py:112:    print(json.dumps(filter_jsonl(args.input, args.output, args.remove_files), indent=2))
+work/tree_r1/student_pilot/r1_coverage.py:228:def verify_union(value,removals,base_hash,n_hash):
+work/tree_r1/student_pilot/ground_target_filter.py:58:    def __init__(self, remove_files=(), *, shape_filter=False):
+work/tree_r1/student_pilot/ground_target_filter.py:61:        self.removals = Removals(remove_files)
+work/tree_r1/student_pilot/grounding_train.py:89:                        remove_files=cfg.get('remove_files', ()),
+work/tree_r1/student_pilot/r1_launch22.py:4:REMOVAL_ORDER = (
+work/tree_r1/student_pilot/r1_launch22.py:21:            or any(p.get('sha256') == NAMING_REMOVE for p in cfg.get('remove_files', [])))
+work/tree_r1/student_pilot/r1_launch22.py:30:    actual = [p['sha256'] for p in cfg.get('remove_files', [])]
+work/tree_r1/student_pilot/r1_launch22.py:31:    if (tuple(actual) not in (REMOVAL_ORDER, REMOVAL_ORDER[:-1] + (POINTING_K1_REMOVE, NAMING_REMOVE))
+work/tree_r1/student_pilot/r1_launch22.py:32:            or actual != spec.get('removal_order') or not actual or actual[-1] != NAMING_REMOVE
+work/tree_r1/student_pilot/r1_launch22.py:34:        raise ValueError('R1_NAMING_REMOVAL_ORDER')
+work/tree_r1/student_pilot/r1_launch22.py:36:    pinned(cfg['remove_files'][-1])
+work/tree_r1/student_pilot/s1_pool.py:125:def prepare(manifest, output, remove_files=(), tokenizer=None, room_sets=ROOM_SETS, *, opaque=False):
+work/tree_r1/student_pilot/s1_pool.py:137:        removals = Removals(remove_files)
+work/tree_r1/student_pilot/s1_pool.py:214:                  remove_files=Removals(remove_files).files, tokenizer=tokenizer, sources=sources,
+work/tree_r1/student_pilot/s1_pool.py:244:    removals = Removals(receipt["remove_files"])
+work/tree_r1/student_pilot/s1_pool.py:276:    result = prepare(file_pin(args.manifest), args.output, load(args.remove_files), file_pin(args.tokenizer))
+work/tree_r1/student_pilot/r1_routing.py:26:        self.removals = Removals(cfg.get('remove_files', []))
+work/tree_r1/student_pilot/r1_routing.py:38:            return 'remove_files'
+work/tree_r1/student_pilot/r1_routing.py:78:                       remove_files=cfg.get('remove_files', [])), None)
+work/tree_r1/tests/test_r2_build9fix.py:104:        result=build_stream(file_pin(rows),file_pin(division),root/'with_list','vqa',remove_files=[file_pin(excluded)])
+work/tree_r1/tests/test_r2_build9fix.py:109:            benchmark_scene_exclusions=file_pin(RECORDS/SOURCES['benchmark']),remove_files=[file_pin(excluded)])
+work/tree_r1/student_pilot/r1_rooms.py:97:            or [{k:v for k,v in p.items() if k!='path'} for p in audit.get('remove_files',[])]
+work/tree_r1/student_pilot/r1_rooms.py:98:               != [{k:v for k,v in p.items() if k!='path'} for p in cfg['remove_files']]
+work/tree_r1/student_pilot/r1_rooms.py:110:    for removal in cfg['remove_files']:
+work/tree_r1/student_pilot/r1_rooms.py:128:        hashes = [p['sha256'] for p in cfg['remove_files']]
+work/tree_r1/student_pilot/r1_rooms.py:129:        from .r1_coverage import verify_union
+work/tree_r1/student_pilot/r1_rooms.py:130:        union = verify_union(value, cfg['remove_files'], V7_K1_LIST, N_LIST)
+work/tree_r1/student_pilot/r1_rooms.py:151:    removals = Removals(cfg['remove_files'])
+work/tree_r1/student_pilot/r1_rooms.py:200:                 row_sources=value['row_sources'],remove_files=cfg['remove_files'],slices=reports,
+work/tree_r1/tests/test_s1_remove_admission.py:33:        rules = Removals(cfg["remove_files"])
+work/tree_r1/tests/test_host24j.py:65:                   remove_files=[], streams={s:self.pin(s+'.json', dict(database=database, count=1, division=division), stage=True)
+work/tree_r1/tests/test_r1_build17.py:50:        cfg=deepcopy(self.cfg);cfg['remove_files']=cfg['remove_files'][:-1]
+work/tree_r1/tests/test_r1_build17.py:66:        self.assertEqual([p['sha256'] for p in old['remove_files']],[p['sha256'] for p in self.cfg['remove_files']])
+work/tree_r1/tests/test_r1_build18.py:48:        cfg['remove_files']=[p for p in cfg['remove_files'] if p['sha256']!=self.R.V7_K1_LIST]
+work/tree_r1/tests/test_r1_build18.py:49:        audit['remove_files']=cfg['remove_files']
+work/tree_r1/tests/test_r1_build18.py:56:            if not duplicate:cfg['remove_files']=[p for p in cfg['remove_files'] if p['sha256']!=pin['sha256']]
+work/tree_r1/tests/test_r1_build18.py:57:            cfg['remove_files'].append(pin);audit['remove_files']=cfg['remove_files']
+work/tree_r1/tests/test_r1_build18.py:65:        cfg['remove_files']=[bad if p['sha256']==pin['sha256'] else p for p in cfg['remove_files']]
+work/tree_r1/tests/test_r1_build18.py:66:        audit['remove_files']=cfg['remove_files'];audit['store']['k1_removal']=bad
+work/tree_r1/tests/test_host24l4.py:21:        return dict(remove_files=[dict(path='/fixture/'+str(i), sha256=h) for i, h in enumerate(order)],
+work/tree_r1/tests/test_host24l4.py:22:                    r1_training=dict(launch22=dict(removal_order=list(order))))
+work/tree_r1/tests/test_host24l4.py:25:        return launch.REMOVAL_ORDER[:-1] + (POINTING_PIN, launch.NAMING_REMOVE)
+work/tree_r1/tests/test_host24l4.py:32:            pinned.assert_called_once_with(cfg['remove_files'][-1])
+work/tree_r1/tests/test_host24l4.py:37:            cfg['r1_training']['launch22']['removal_order'] = list(spec)
+work/tree_r1/tests/test_host24l4.py:39:            with self.assertRaisesRegex(ValueError, '^R1_NAMING_REMOVAL_ORDER$'):
+work/tree_r1/tests/test_host24l4.py:44:        self.accepts(launch.REMOVAL_ORDER)
+work/tree_r1/tests/test_host24l4.py:51:        self.refuses(launch.REMOVAL_ORDER[:-1] + ('f'*64, launch.NAMING_REMOVE))
+work/tree_r1/tests/test_host24l4.py:54:        self.refuses(launch.REMOVAL_ORDER + (POINTING_PIN,))
+work/tree_r1/tests/test_host24l4.py:57:        for index in range(len(launch.REMOVAL_ORDER)-1):
+work/tree_r1/tests/test_host24l4.py:59:                order = launch.REMOVAL_ORDER[:index] + (POINTING_PIN,) + launch.REMOVAL_ORDER[index:]
+work/tree_r1/tests/test_host24l4.py:63:        self.refuses(launch.REMOVAL_ORDER[:-1] + (POINTING_PIN, POINTING_PIN, launch.NAMING_REMOVE))
+work/tree_r1/tests/test_host24l4.py:64:        self.refuses(launch.REMOVAL_ORDER[:-2] + (POINTING_PIN, POINTING_PIN, launch.NAMING_REMOVE))
+work/tree_r1/tests/test_host24l4.py:67:        self.refuses(self.extended(), launch.REMOVAL_ORDER)
+work/tree_r1/tests/test_host24l4.py:68:        self.refuses(launch.REMOVAL_ORDER, self.extended())
+work/tree_r1/tests/test_host24l4.py:78:        for order in (launch.REMOVAL_ORDER, self.extended()):
+work/tree_r1/tests/test_host24l4.py:80:            cfg['remove_files'][-1]['path'] = str(path)
+work/tree_r1/tests/test_host24l4.py:133:        from student_pilot.r1_coverage import union_rows, verify_union
+work/tree_r1/tests/test_host24l4.py:147:            self.assertTrue(verify_union(spec, pins, base['sha256'], n['sha256']))
+work/tree_r1/tests/test_host24l4.py:148:            self.assertFalse(verify_union({}, pins, base['sha256'], n['sha256']))
+work/tree_r1/tests/test_host24l4.py:150:            verify_union(spec, [union, base, n, pointing, naming], base['sha256'], n['sha256'])
+work/tree_r1/tests/test_host24l4.py:152:            verify_union(spec, thirteen + [union], base['sha256'], n['sha256'])
+work/tree_r1/tests/test_s1_routing.py:170:                        remove_files=[file_pin(self.root / "remove.jsonl")], recipe={},
+work/tree_r1/tests/test_s1_routing.py:407:                self.cfg["remove_files"])
+work/tree_r1/tests/test_r1_build16.py:53:        cfg['remove_files']=cfg['remove_files'][:-1]
