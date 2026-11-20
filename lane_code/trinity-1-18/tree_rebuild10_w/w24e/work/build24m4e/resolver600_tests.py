@@ -87,7 +87,7 @@ class Resolver24(unittest.TestCase):
             self.assertEqual(result['config']['r1_training']['routing_slices'],'deferred_first_boundary')
             self.assertEqual(result['config']['remove_files'],J.load(f['template']/'k/n.json')['remove_files'])
     def test_02_real_200_refuses_by_name(self):
-        witness=J.load(D/'WITNESS200.json');h=deepcopy(self.f['receipt']);h.update(schema=witness['schema'],step=witness['step'])
+        witness=J.load('/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24/WITNESS200.json');h=deepcopy(self.f['receipt']);h.update(schema=witness['schema'],step=witness['step'])
         with self.assertRaisesRegex(ValueError,'^E56:200$'):J.receipt600(h,self.f['run'])
     def test_03_receipt_mutations(self):
         for field,value,error in (('step',400,'E56'),('step',200,'E56'),('step',600.0,'E56'),('schema','p-export-only-v1','E58'),('job_id','','E58'),('trainer_commit','','E58')):
@@ -123,7 +123,7 @@ class Resolver24(unittest.TestCase):
             spec=deepcopy(f['spec']);spec[key]='0'*64
             with self.assertRaisesRegex(ValueError,error):J.identities(spec,f['run'],f['receipt']['pins'],f['values'],f['metadata'])
     def test_07_old_resolver_refuses_600(self):
-        s=importlib.util.spec_from_file_location('old24',L/'attic/build24/joblib23.py');old=importlib.util.module_from_spec(s);s.loader.exec_module(old)
+        s=importlib.util.spec_from_file_location('old24','/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/attic/build24/joblib23.py');old=importlib.util.module_from_spec(s);s.loader.exec_module(old)
         with self.assertRaisesRegex(ValueError,'^E20$'):old.resolve(O/'filled_A',self.f['pool'],self.f['listing'],O/'old.json')
     def test_08_control_and_export_mutations(self):
         for plan,key,value,error in (('A','step',400,'E20'),('A','ok',0,'E20'),('B','step',200,'E71'),('B','verdict','FAIL','E71'),('B','run','other','E71'),('B','files',{},'E72')):
@@ -233,5 +233,5 @@ class Resolver24(unittest.TestCase):
 
 if __name__=='__main__':
     result=unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.loadTestsFromTestCase(Resolver24))
-    write(D/'RESOLVER_TESTS.json',dict(tests=result.testsRun,failures=len(result.failures),errors=len(result.errors),successful=result.wasSuccessful()))
+    write(O/'RESOLVER_TESTS.json',dict(tests=result.testsRun,failures=len(result.failures),errors=len(result.errors),successful=result.wasSuccessful()))
     raise SystemExit(not result.wasSuccessful())

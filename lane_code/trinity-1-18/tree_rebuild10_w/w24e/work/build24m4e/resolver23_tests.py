@@ -28,7 +28,7 @@ class ResolverMinimal(unittest.TestCase):
         self.assertEqual(result['request']['routing_base']['sha256'],'ca0616dbc67cf9a257774b43a9d5b134957b3f3ce0451e6bf5378f3d7d0c1984')
         self.assertNotIn('routing_inputs',result['request'])
         for name in ('pose','vqa','pointing'):self.assertEqual(result['config']['streams'][name],template['streams'][name])
-        spec=importlib.util.spec_from_file_location('old23',L/'work/build22/joblib.py')
+        spec=importlib.util.spec_from_file_location('old23','/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/joblib.py')
         old=importlib.util.module_from_spec(spec);spec.loader.exec_module(old)
         with R.external_boundary(self.f,module=old):before=old.resolve(R.K,self.f['pool'],self.f['listing'],D/'resolved_before.json')
         self.assertNotEqual(before['config']['streams']['vqa'],template['streams']['vqa'])

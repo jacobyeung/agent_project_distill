@@ -1,0 +1,1 @@
+C=/scratch/jjyeung/orch_n30/fb_pack/combo/pkg; ls $C/out $C/work | head -20; find $C/work -maxdepth 2 -type d | head; head -c 600 $C/out/TREE24L4T_SEAL.json 2>/dev/null; echo; cat /scratch/jjyeung/orch_n30/tree_rebuild15_w24l/out/BUILD24L4T_REPORT.md | head -30 | cut -c1-300

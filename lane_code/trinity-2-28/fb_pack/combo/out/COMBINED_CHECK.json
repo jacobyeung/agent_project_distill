@@ -1,0 +1,49 @@
+{
+ "schema": "fb-pack-combined-patch-check-v1",
+ "order": "PATCH_A2 -> PATCH_DONOR3 -> PATCH_CAMFORM2_ON_A2 (patch -p1 --fuzz=0), on tree R 24l4t",
+ "base": {
+  "tar": "/scratch/jjyeung/orch_n30/tree_rebuild15_w24l/out/tree_rebuild_b24l4t_c558ad33.tar",
+  "tar_sha256": "38c4e9eefe2c8d2b03396ff63903c69a6666d347c233080cd05bcd20de41855f",
+  "tree": "work/tree_r1",
+  "seal_reproduced": "c558ad33286680e17c45ec54c825a9f236e80fd789f4ce6b0189273cd63fc16c",
+  "files": 946
+ },
+ "patches": {
+  "PATCH_A2": {
+   "path": "/scratch/jjyeung/orch_n30/fb_pack/patchA2/out/PATCH_A2.patch",
+   "sha256": "3ecd924f91594dc018b46bfcdc631b867e3164c67eb0b9e9dd58706ccd8eacbd",
+   "apply": "clean, fuzz 0, no offsets"
+  },
+  "PATCH_DONOR3": {
+   "path": "/scratch/jjyeung/orch_n30/fb_pack/donor3/out/PATCH_DONOR3.patch",
+   "sha256": "4253fbd109895d893d4249be2978e889fdb84801759a6fb56dd357ffdce4eb1f",
+   "apply": "clean, fuzz 0, no offsets"
+  },
+  "PATCH_CAMFORM2_ON_A2": {
+   "path": "/scratch/jjyeung/orch_n30/fb_pack/camform2/out/PATCH_CAMFORM2_ON_A2.patch",
+   "sha256": "7e7ae484d15ea0209eaca09faef483794e309c8f1141a8b059be1cb971a91dff",
+   "apply": "clean, fuzz 0, no offsets"
+  }
+ },
+ "combined": {
+  "path": "/scratch/jjyeung/orch_n30/fb_pack/combo/X",
+  "files": 955,
+  "tree_sha256": "93f1d925dc6639d95271dda217a90f8b41950c5c769276aeaf6181477ff5f62e",
+  "method": "student_pilot.source_seal.inventory + student_pilot.p3_provenance.digest (reproduces c558ad33 on the untouched tree)"
+ },
+ "tests_before_on_R_plus_test_files": {
+  "test_r1_patch_a2": "1 failed, 2 passed in 0.08s",
+  "test_r1_subset": "10 failed, 1 passed in 1.04s",
+  "test_scale_donor": "1 error in 1.07s",
+  "test_r1_camera_trace_form": "1 error in 0.10s",
+  "test_r1_camera_trace_form2": "1 error in 1.04s"
+ },
+ "tests_after_on_combined": "1 failed, 115 passed in 8.85s",
+ "after_failure": "tests/test_host24l4t.py::PointingResolution::test_random_rows_never_admit_a_baseline_refusal: needs the sibling comparison tree tree_r1_24l4r (absent in the package); fails identically on untouched R (R_host.log: 1 failed, 75 passed)",
+ "env": "TMPDIR and LANE_TEST_OUTPUT set to combo/tmp, combo/lto_*; PYTHONPATH=tree; p1cpu env; nice 10, 8 threads",
+ "not_tree_changes": {
+  "recovery": "760 admitted rows ride in the routing slices (route/out), no tree file",
+  "pointing_K1_list": "REMOVE_POINTING_K1_HELDOUT.jsonl d21e374f binds by config under 24l4t protected_rooms role, no tree file"
+ },
+ "pointing_list_sha256": "d21e374f39048c0e142680e0d3b26e5b2b774138747610c1fc4a00da0ec580e1"
+}

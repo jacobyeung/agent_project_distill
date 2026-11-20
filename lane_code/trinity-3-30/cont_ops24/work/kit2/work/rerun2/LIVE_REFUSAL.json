@@ -1,0 +1,16 @@
+{
+  "argv": [
+    "python",
+    "-B",
+    "kit/rerun2/run.py",
+    "--package",
+    "/nonexistent",
+    "--settings",
+    "/nonexistent",
+    "--out",
+    "work/rerun2/refused"
+  ],
+  "returncode": 1,
+  "stderr": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/grd_funnel1/kit/rerun2/run.py\", line 150, in <module>\n    if __name__=='__main__':main()\n                            ^^^^^^\n  File \"/scratch/jjyeung/orch_n30/grd_funnel1/kit/rerun2/run.py\", line 107, in main\n    tolerance=policy_gate(a.policy,a.package)\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/grd_funnel1/kit/rerun2/run.py\", line 48, in policy_gate\n    raise ValueError('BLOCKED: no record-backed numeric parity tolerance and reviewed reader pins')\nValueError: BLOCKED: no record-backed numeric parity tolerance and reviewed reader pins\n",
+  "output_created": false
+}

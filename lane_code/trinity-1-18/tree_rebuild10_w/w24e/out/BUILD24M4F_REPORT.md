@@ -1,0 +1,10 @@
+Tree 0c7614c8eff74201db275489af9c3fa11f3b418693a0239b793e6322685298de; n 240f8c17ffd5a2e800bdc4684ff404d528b87aaf012e7f49f1ff25f3ac6ddd27; n_go c992c930ac90adeba32496c7508c9e6c89ab5353bc46cfed7182b73c286b1d3e; q 510d248b6097689a414afc4b944a8b4fbc612d5f3ac935271dc01f1775646bcf; qd e7f3239497a8c7a8eb8431433b322e1a526e2f26114f416e129e7e179da4b438; tree and all four kits unchanged; package and external arming helper changed.
+Arming requires both reviewed hashes and a RESULT containing both hashes and PASS; regenerated_sha256 must equal the authenticated DB metadata hash (out/arm_routing.py).
+Armed q/n/n_go seals and n_go k/c.json decoded-payload/file hashes print on success and enter UPLOADS_ROUTING_ARMED.json; exact command: out/ARM_ROUTING_USAGE.md.
+The matching fixture binds; fabricated regenerated hash, altered row count/digest, mismatched reviewed hashes and missing arguments refuse (work/build24m4f/REVIEW_AUTH_TESTS.json; ARM_TESTS.json).
+Real CLI output, three armed decoded scans, native mode-q planner closure and missing-DB refusal pass (work/build24m4f/ARM_COVERAGE.json; ARM_TESTS.json; ARM_MISSING_DB_TEST.json).
+The package retains every 24m4c member: 195 omitted members restored to package membership, including 190 restored to disk (work/build24m4f/RESTORED_MEMBERS.json; DELIVERY_24M4F.json member_diff_against_24m4c).
+arm_routing.py is outside every kit; tree C, rv.py, census, admission, legality, removals, pins and b/pc.py retain their bytes and modes (work/build24m4f/INVARIANTS.json).
+All 7179 original files retain their bytes/modes in place or attic; package member hashes and disk growth are verified in DELIVERY_24M4F.json.
+No UPLOADS_24M4F files are needed because no source kit changed. Arming tests use synthetic reviews; production admission, training and remote DB bytes were not checked (work/build24m4f/VALIDATION.json).
+GO stays false except in the unchanged out/kit_n_go template; no upload or launch ran. Build/member identifiers document the required delivery provenance.

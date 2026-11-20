@@ -1,5 +1,5 @@
 # fb_pack STATUS (successor resumes from this file alone)
-Updated 2026-11-20T01:40Z by fb_pack3 (Devin Opus high, session trinity-3-30 /scratch/jjyeung/orch_n30/fb_pack3, from 22:41Z; brief B/briefs/fb_pack3.md; fb_pack2 ran 21:08-22:41Z, fb_pack1 18:38-21:10Z). fb_pack3 scripts in fb_pack3/work. Predecessor scripts: fb_pack1/work, fb_pack2/work (reuse by absolute path).
+Updated 2026-11-20T02:28Z by fb_pack3 (Devin Opus high, session trinity-3-30 /scratch/jjyeung/orch_n30/fb_pack3, from 22:41Z; brief B/briefs/fb_pack3.md; fb_pack2 ran 21:08-22:41Z, fb_pack1 18:38-21:10Z). fb_pack3 scripts in fb_pack3/work. Predecessor scripts: fb_pack1/work, fb_pack2/work (reuse by absolute path).
 B = /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30. Events: B/events/fb_pack. Read every `*_ORCH_*` there (newest last) before acting.
 
 ## Hosts, paths, mechanics
@@ -60,15 +60,15 @@ B = /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n3
 - 01:07Z k1fwd2 grids in place (1-18 sb_own400/in/own_544_fov, 242 keys, FOV_CHECK 4f50325b). 01:09-01:24Z real FoV score: choice V2 (V2-A +0.0002 [-0.0009,+0.0015]; V1-A +0.079); outputs sb_own400/out/fov544_score/FOV_RESULT.json 865f5841. fbp_fovcrev GO (85e77d5b; SHOULD S1 accept-diff flag loose, S2 synthetic may write into out/). RESULT 0127Z (fb_pack, tree_rebuild, swarm_build); records TOWER_ARM_SCALE_DRIFT + FIRST_BOUNDARY_PACKAGE updated.
 - 01:27Z manifest v3 8dec6ed7: events/tree_rebuild/20261120T0127Z_fb_pack3_MANIFEST_N_BOUNDARY1_v3.json (donor 544 + V2 bound). Mirror: 1-18 F1/fbp3_mirror_118b.tar c1fceb73 -> 2-28 /scratch/jjyeung/n30_mirror/fb_pack/ (manifest, bars, scorers, review, FoV results).
 
-## Running
-- Nothing of fb_pack's.
+- 02:11Z ORCH ANSWER 0211Z: no idle polling; one combined-patch check, write fb_pack4 brief, end. 02:15-02:26Z combined check on 2-28 F2/combo: tree R 24l4t (c558ad33 reproduced) + PATCH_A2 -> PATCH_DONOR3 -> PATCH_CAMFORM2_ON_A2, fuzz 0, no offsets: clean; combined 955 files seal 93f1d925; tests before fail (A2 1+10, donor/camform import errors), after 115 pass + 1 pre-existing (test_host24l4t random rows needs absent tree_r1_24l4r; same on R). Report F2/combo/out/COMBINED_CHECK.json 6f3f22e6; tar F2/combo/out/tree_combined_93f1d925.tar b0182f31; mirror 1-18 /scratch/jjyeung/n30_mirror/fb_pack/combo/out/ (same shas).
+- Brief B/briefs/fb_pack4.md sha256 5cd915fe375cce2078cab808e70b6ca5537f81719ec0609c0eff27787eb6a21f (ORCH starts fb_pack4 when the tree lane names the merge).
+- 06:00Z bound on patch C exposure counts had no other reason than ANSWER 2133Z's timing; the real bound is the start of the boundary kit build (ANSWER 0211Z item 4).
 
-## Next (in order)
-1. Poll every 10 min: events/fb_pack ORCH, fb_pack3/inbox, events/tree_rebuild (tree lane now tree_rebuild17: boundary-tree merge, upload names, first-batch request; discovery census -> protected pose/routing rows).
-2. When the tree lane merges the boundary tree: build + run every rank's first batch of the boundary config through the full forward on CPU on 2-28 (real Qwen3.5 processor; pointing counts check from the pointing record); patch C exposure job is the tree lane's (ANSWER 2133Z): from its per-type/per-rule counts state N's per-step exposure per prose form (64 routing rows/step x shares + slice share). Not in by 06:00Z -> camera binds without patch C.
-3. Discovery census (RULING 2216Z, 2254Z, ORDER 0055Z): if pose/routing show protected-room rows and the tree lane asks, build lists with k1point/mk_room_removal.py 39f449bd.
-4. Uploads to Orchard: governed pushes via 3-30 (fb_pack1/work/gov_pull_point.py), priority 10, after the tree lane names files.
-5. Redo mirror and design record status when the manifest changes.
+## Running
+- Nothing. fb_pack3 ended 02:28Z.
+
+## Next
+- fb_pack4 (brief above): items (a)-(d) once the tree lane names the merge.
 
 ## Open questions (defaults applied, events/fb_pack)
 - QUESTION 2107Z: answered by RULING 2109Z (pointing out of the first boundary; prior default stands).

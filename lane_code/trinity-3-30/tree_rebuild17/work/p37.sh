@@ -1,0 +1,2 @@
+W=/scratch/jjyeung/orch_n30/tree_rebuild10_w; date -u +%TZ; tmux ls | grep tr17
+for l in tree_rebuild_cb24m4e tree_rebuild24m4f; do d=$(ls -dt /home/jjyeung/agent_project_distill/agent/scratch/codex_runs/*_$l | head -1); echo "== $l"; test -f $d/final_message.md && head -c 2500 $d/final_message.md || tail -c 400 $d/transcript.log | tr -cd "[:print:]\n" | tail -2 | cut -c1-200; done; test -f $W/work/cb24m4e/REPORT.md && cat $W/work/cb24m4e/REPORT.md

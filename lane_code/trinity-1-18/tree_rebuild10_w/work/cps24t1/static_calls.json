@@ -1,0 +1,1427 @@
+{
+  "pc.py": {
+    "sha256": "4adfa8ab8eee48ea318e1f9dae225f892c8dcfbd486554d8453e0a8ef0dbd6d4",
+    "lines": 420,
+    "functions": [
+      {
+        "name": "read",
+        "line": 23,
+        "calls": [
+          "Path",
+          "Path(p).read_text",
+          "base64.b64decode",
+          "json.loads"
+        ]
+      },
+      {
+        "name": "sha",
+        "line": 28,
+        "calls": [
+          "Path",
+          "Path(p).open",
+          "f.read",
+          "h.hexdigest",
+          "h.update",
+          "hashlib.sha256",
+          "iter"
+        ]
+      },
+      {
+        "name": "put",
+        "line": 36,
+        "calls": [
+          "Path",
+          "json.dumps",
+          "os.replace",
+          "p.parent.mkdir",
+          "p.with_name",
+          "tmp.write_text"
+        ]
+      },
+      {
+        "name": "beneath",
+        "line": 44,
+        "calls": []
+      },
+      {
+        "name": "main",
+        "line": 382,
+        "calls": [
+          "Copier",
+          "argparse.ArgumentParser",
+          "c.pass_once",
+          "c.small",
+          "p.add_argument",
+          "p.parse_args",
+          "range",
+          "signal.signal",
+          "stop.__setitem__",
+          "time.monotonic",
+          "time.sleep"
+        ]
+      },
+      {
+        "name": "__init__",
+        "line": 49,
+        "calls": [
+          "Path",
+          "Path(kit).resolve",
+          "Path(root).resolve",
+          "Path(spec['n_root']).absolute",
+          "Path(spec['n_root']).is_absolute",
+          "Path(target).absolute",
+          "ValueError",
+          "read",
+          "self.claims.mkdir",
+          "self.job.replace",
+          "self.job.replace('_', '').isalnum",
+          "self.live.mkdir",
+          "self.paths",
+          "self.spool.mkdir",
+          "str"
+        ]
+      },
+      {
+        "name": "paths",
+        "line": 76,
+        "calls": [
+          "ValueError",
+          "any",
+          "beneath",
+          "p.is_symlink",
+          "p.resolve",
+          "path.absolute",
+          "path.resolve",
+          "self.spool.is_symlink",
+          "self.spool.resolve"
+        ]
+      },
+      {
+        "name": "small",
+        "line": 99,
+        "calls": [
+          "(self.spool / 'small.lock').open",
+          "fcntl.flock",
+          "self._small",
+          "self.paths"
+        ]
+      },
+      {
+        "name": "_small",
+        "line": 105,
+        "calls": [
+          "(json.dumps(markers, sort_keys=True) + '\\n').encode",
+          "(json.dumps(record, sort_keys=True) + '\\n').encode",
+          "(self.live / 'copy.json').write_bytes",
+          "(self.root / 'h/o').glob",
+          "(self.root / n).is_file",
+          "ValueError",
+          "candidates.extend",
+          "dest.with_name",
+          "dict",
+          "enumerate",
+          "f.read",
+          "f.seek",
+          "hashlib.sha256",
+          "hashlib.sha256(raw).hexdigest",
+          "int",
+          "json.dumps",
+          "len",
+          "markers.append",
+          "max",
+          "os.replace",
+          "p.is_file",
+          "p.is_symlink",
+          "p.open",
+          "p.read_bytes",
+          "p.relative_to",
+          "p.stat",
+          "pending.append",
+          "rows.append",
+          "self.root.glob",
+          "self.train.glob",
+          "sha",
+          "sorted",
+          "str",
+          "time.time",
+          "tmp.write_bytes"
+        ]
+      },
+      {
+        "name": "archive",
+        "line": 160,
+        "calls": [
+          "(self.train / 'persist' / (identity + s)).exists",
+          "Path",
+          "ValueError",
+          "any",
+          "archive.is_file",
+          "dict",
+          "directory.rglob",
+          "p.exists",
+          "p.is_file",
+          "p.is_symlink",
+          "p.relative_to",
+          "p.stat",
+          "put",
+          "read",
+          "ready.exists",
+          "sha",
+          "shutil.disk_usage",
+          "sorted",
+          "str",
+          "sum",
+          "t.add",
+          "tarfile.open",
+          "target.is_file",
+          "target.stat"
+        ]
+      },
+      {
+        "name": "claim",
+        "line": 199,
+        "calls": [
+          "(self.claims / 'lock').open",
+          "ValueError",
+          "dict",
+          "fcntl.flock",
+          "hashlib.sha256",
+          "hashlib.sha256(key.encode()).hexdigest",
+          "key.encode",
+          "p.exists",
+          "put",
+          "read"
+        ]
+      },
+      {
+        "name": "session_bytes",
+        "line": 214,
+        "calls": [
+          "ValueError",
+          "bool",
+          "isinstance",
+          "json.loads",
+          "os.close",
+          "os.fdopen",
+          "os.fstat",
+          "os.getuid",
+          "os.open",
+          "os.stat",
+          "stat.S_IMODE",
+          "stat.S_ISLNK",
+          "stat.S_ISREG",
+          "stream.fileno",
+          "stream.read",
+          "urlsplit",
+          "values.items"
+        ]
+      },
+      {
+        "name": "send",
+        "line": 268,
+        "calls": [
+          "Path",
+          "ValueError",
+          "archive.open",
+          "archive.stat",
+          "dict",
+          "done.exists",
+          "f.read",
+          "h.hexdigest",
+          "h.update",
+          "hashlib.sha256",
+          "json.loads",
+          "len",
+          "min",
+          "open",
+          "os.chmod",
+          "os.fchmod",
+          "os.fdopen",
+          "os.open",
+          "private.mkdir",
+          "put",
+          "range",
+          "read",
+          "receipts.read_text",
+          "receipts.read_text().splitlines",
+          "self.archive",
+          "self.claim",
+          "self.session_bytes",
+          "sha",
+          "str",
+          "stream.fileno",
+          "stream.write",
+          "subprocess.run",
+          "v.get"
+        ]
+      },
+      {
+        "name": "exports",
+        "line": 318,
+        "calls": [
+          "dict",
+          "int",
+          "marker.parent.name[1:].isdigit",
+          "put",
+          "self.send",
+          "self.train.glob",
+          "sorted",
+          "str",
+          "type"
+        ]
+      },
+      {
+        "name": "stop_checkpoint",
+        "line": 330,
+        "calls": [
+          "(self.live / ('gcs_' + directory.name + '.done')).exists",
+          "ValueError",
+          "destination.mkdir",
+          "dict",
+          "directory.rglob",
+          "done.exists",
+          "list",
+          "max",
+          "os.replace",
+          "p.is_file",
+          "p.is_symlink",
+          "p.relative_to",
+          "p.stat",
+          "put",
+          "read",
+          "read(p).get",
+          "self.paths",
+          "self.send",
+          "self.train.glob",
+          "sha",
+          "shutil.disk_usage",
+          "sorted",
+          "str",
+          "sum",
+          "t.add",
+          "tarfile.open",
+          "target.stat",
+          "target.with_name"
+        ]
+      },
+      {
+        "name": "pass_once",
+        "line": 368,
+        "calls": [
+          "(self.spool / 'lock').open",
+          "action",
+          "dict",
+          "fcntl.flock",
+          "put",
+          "self.paths",
+          "self.small",
+          "type"
+        ]
+      }
+    ]
+  },
+  "ep.py": {
+    "sha256": "b08207c1647206745084d980a1be31d0b4d5a57d2ed3d71878c96aaf683ab7d7",
+    "lines": 92,
+    "functions": [
+      {
+        "name": "publish",
+        "line": 14,
+        "calls": [
+          "(json.dumps(clean(json.loads(raw)), sort_keys=True) + '\\n').encode",
+          "(json.dumps(record, sort_keys=True) + '\\n').encode",
+          "Path",
+          "Path(kit).resolve",
+          "Path(root).resolve",
+          "ValueError",
+          "any",
+          "clean",
+          "dict",
+          "errors.append",
+          "f.read",
+          "f.seek",
+          "f.write",
+          "fcntl.flock",
+          "hashlib.sha256",
+          "hashlib.sha256(v).hexdigest",
+          "int",
+          "isinstance",
+          "job.isascii",
+          "job.isdigit",
+          "json.dumps",
+          "json.loads",
+          "len",
+          "load",
+          "load(kit / 'BUILD.json').get",
+          "map",
+          "max",
+          "os.fdopen",
+          "os.open",
+          "os.replace",
+          "p.exists",
+          "p.is_symlink",
+          "p.open",
+          "p.stat",
+          "payload.items",
+          "payload.values",
+          "publish_artifacts",
+          "raw.decode",
+          "record.update",
+          "screen",
+          "screen(raw.decode('utf-8', errors='replace'), policy, white).encode",
+          "selected.exists",
+          "stat.S_ISREG",
+          "str",
+          "sum",
+          "target.is_absolute",
+          "target.mkdir",
+          "target.resolve",
+          "value.items"
+        ]
+      },
+      {
+        "name": "publish_artifacts",
+        "line": 70,
+        "calls": [
+          "ValueError",
+          "all",
+          "base.is_dir",
+          "f.write",
+          "hashlib.sha256",
+          "hashlib.sha256(raw).hexdigest",
+          "json.loads",
+          "os.fdopen",
+          "os.open",
+          "os.replace",
+          "p.is_file",
+          "p.is_symlink",
+          "p.read_bytes",
+          "p.stat",
+          "print",
+          "sum"
+        ]
+      },
+      {
+        "name": "clean",
+        "line": 31,
+        "calls": [
+          "clean",
+          "isinstance",
+          "screen",
+          "str",
+          "value.items"
+        ]
+      }
+    ]
+  },
+  "z.py": {
+    "sha256": "f999c5d51673e6999c2658e93dabd8f720315c4598b16f5bbdfbd24b8f2dea58",
+    "lines": 654,
+    "functions": [
+      {
+        "name": "sha",
+        "line": 5,
+        "calls": [
+          "Path",
+          "Path(path).open",
+          "f.read",
+          "h.hexdigest",
+          "h.update",
+          "hashlib.sha256",
+          "iter"
+        ]
+      },
+      {
+        "name": "load",
+        "line": 11,
+        "calls": [
+          "Path",
+          "Path(path).read_text",
+          "ValueError",
+          "base64.b64decode",
+          "hashlib.sha256",
+          "hashlib.sha256(raw).hexdigest",
+          "isinstance",
+          "json.loads",
+          "str",
+          "v.get"
+        ]
+      },
+      {
+        "name": "write",
+        "line": 20,
+        "calls": [
+          "Path",
+          "dict",
+          "json.dumps",
+          "path.parent.mkdir",
+          "path.write_text",
+          "sha",
+          "str"
+        ]
+      },
+      {
+        "name": "checked",
+        "line": 25,
+        "calls": [
+          "Path",
+          "ValueError",
+          "path.is_file",
+          "path.stat",
+          "sha",
+          "str"
+        ]
+      },
+      {
+        "name": "inside",
+        "line": 31,
+        "calls": [
+          "(Path(root) / p).resolve",
+          "Path",
+          "Path(root).resolve",
+          "ValueError",
+          "out.is_relative_to",
+          "p.is_absolute"
+        ]
+      },
+      {
+        "name": "pool_file",
+        "line": 38,
+        "calls": [
+          "Path",
+          "Path(path).resolve",
+          "Path(pool).resolve",
+          "ValueError",
+          "p.is_relative_to",
+          "str"
+        ]
+      },
+      {
+        "name": "seal",
+        "line": 43,
+        "calls": [
+          "(kit / 'SHA256SUMS.txt').read_text",
+          "(kit / 'SHA256SUMS.txt').read_text().splitlines",
+          "Path",
+          "ValueError",
+          "kit.rglob",
+          "line.split",
+          "p.is_file",
+          "p.relative_to",
+          "sha",
+          "str"
+        ]
+      },
+      {
+        "name": "selected400",
+        "line": 50,
+        "calls": [
+          "PurePosixPath",
+          "ValueError",
+          "int",
+          "name.removeprefix",
+          "name.startswith",
+          "part.startswith",
+          "re.fullmatch"
+        ]
+      },
+      {
+        "name": "small_archive",
+        "line": 61,
+        "calls": [
+          "PurePosixPath",
+          "ValueError",
+          "dict",
+          "expected.add",
+          "hashlib.sha256",
+          "hashlib.sha256(raw).hexdigest",
+          "isinstance",
+          "item.get",
+          "item['path'].endswith",
+          "json.load",
+          "json.loads",
+          "len",
+          "m.isfile",
+          "name.endswith",
+          "seen.add",
+          "selected400",
+          "set",
+          "t.extractfile",
+          "t.extractfile(m).read",
+          "t.getmember",
+          "t.getmembers",
+          "take",
+          "tarfile.open",
+          "value.get",
+          "value.values",
+          "value['files'].items",
+          "visit"
+        ]
+      },
+      {
+        "name": "metadata_at",
+        "line": 111,
+        "calls": [
+          "ValueError",
+          "values.get",
+          "values.get(h, {}).get"
+        ]
+      },
+      {
+        "name": "metadata_closure",
+        "line": 116,
+        "calls": [
+          "isinstance",
+          "metadata_at",
+          "path.endswith",
+          "seen.add",
+          "set",
+          "value.get",
+          "value.items",
+          "visit"
+        ]
+      },
+      {
+        "name": "export_identity",
+        "line": 133,
+        "calls": [
+          "hashlib.sha256",
+          "hashlib.sha256(json.dumps(value, sort_keys=True, separators=(',', ':'), allow_nan=False).encode()).hexdigest",
+          "json.dumps",
+          "json.dumps(value, sort_keys=True, separators=(',', ':'), allow_nan=False).encode",
+          "value.get",
+          "value.items",
+          "value.pop",
+          "value['readout'].items"
+        ]
+      },
+      {
+        "name": "identities",
+        "line": 139,
+        "calls": [
+          "ValueError",
+          "any",
+          "artifact.get",
+          "bound.get",
+          "dict",
+          "export_identity",
+          "metadata_at",
+          "metadata_closure",
+          "prep.get",
+          "runtime.get",
+          "runtime['streams'].items",
+          "set",
+          "spec.get",
+          "spec['p_run'].items"
+        ]
+      },
+      {
+        "name": "bound400",
+        "line": 159,
+        "calls": [
+          "ValueError",
+          "archive.extractfile",
+          "archive.extractfile('MANIFEST.json').read",
+          "cfg.get",
+          "cfg.get('r1_training', {}).get",
+          "checked",
+          "hashlib.sha256",
+          "hashlib.sha256(raw).hexdigest",
+          "load",
+          "spec.get",
+          "tarfile.open"
+        ]
+      },
+      {
+        "name": "listing400",
+        "line": 177,
+        "calls": [
+          "Path",
+          "ValueError",
+          "dict",
+          "load",
+          "load(path).get",
+          "parts.append",
+          "path.is_file",
+          "path.stat",
+          "pool_file",
+          "range",
+          "spec.get",
+          "str"
+        ]
+      },
+      {
+        "name": "resolve",
+        "line": 188,
+        "calls": [
+          "(milestone / 'e.json').stat",
+          "(milestone / 's.tar').stat",
+          "(root / 'o/gcs_6ed2c7aa_m400.done').read_text",
+          "(root / 'o/gcs_6ed2c7aa_m400.done').read_text().split",
+          "Path",
+          "Path(output).resolve",
+          "Path(pool).resolve",
+          "ValueError",
+          "any",
+          "bound400",
+          "cfg.get",
+          "cfg.get('r1_training', {}).get",
+          "cfg.update",
+          "cfg['r1_training'].get",
+          "cfg['r1_training'].update",
+          "cfg['streams']['routing'].get",
+          "checked",
+          "combined.hexdigest",
+          "combined.update",
+          "dict",
+          "done.get",
+          "entry.get",
+          "f.read",
+          "h.hexdigest",
+          "h.update",
+          "hashlib.sha256",
+          "identities",
+          "int",
+          "iter",
+          "len",
+          "listing400",
+          "listing_value.get",
+          "load",
+          "load(kit / 'k/p.json').get",
+          "metadata_at",
+          "metadata_closure",
+          "model['files'].items",
+          "name.endswith",
+          "output.is_relative_to",
+          "path.is_file",
+          "path.open",
+          "path.stat",
+          "paths.get",
+          "paths.items",
+          "paths.update",
+          "pins.values",
+          "pool_file",
+          "pool_file(pool, Path(pool) / 'm' / h).stat",
+          "range",
+          "receipt.get",
+          "receipt['pins'].get",
+          "request.update",
+          "request['staged_pins'].append",
+          "resolve600",
+          "result['external_metadata'].append",
+          "run.items",
+          "runtime['streams']['routing'].get",
+          "seal",
+          "set",
+          "sha",
+          "small_archive",
+          "spec.get",
+          "str",
+          "verified.append",
+          "write"
+        ]
+      },
+      {
+        "name": "exact_path",
+        "line": 280,
+        "calls": [
+          "Path",
+          "ValueError",
+          "p.is_absolute",
+          "p.resolve",
+          "str"
+        ]
+      },
+      {
+        "name": "receipt600",
+        "line": 285,
+        "calls": [
+          "Path",
+          "ValueError",
+          "cp.parent.name.startswith",
+          "exact_path",
+          "isinstance",
+          "pin.get",
+          "re.fullmatch",
+          "receipt.get",
+          "receipt.get('pins', {}).items",
+          "receipt['pins'].get",
+          "run.items",
+          "set",
+          "str",
+          "type"
+        ]
+      },
+      {
+        "name": "checkpoint600",
+        "line": 302,
+        "calls": [
+          "Path",
+          "PurePosixPath",
+          "PurePosixPath(name).is_absolute",
+          "ValueError",
+          "any",
+          "artifact.get",
+          "bound.get",
+          "complete.get",
+          "exact_path",
+          "expected.add",
+          "files.items",
+          "metadata_at",
+          "n.startswith",
+          "p.is_absolute",
+          "pin.get",
+          "pins.get",
+          "prep['streams'].items",
+          "receipt600",
+          "set",
+          "str",
+          "type",
+          "value.get"
+        ]
+      },
+      {
+        "name": "local_metadata",
+        "line": 336,
+        "calls": [
+          "ValueError",
+          "candidates.append",
+          "candidates.pop",
+          "checked",
+          "collect",
+          "dict",
+          "exact_path",
+          "isinstance",
+          "listing.get",
+          "load",
+          "p.name.startswith",
+          "p.stat",
+          "receipt['pins'].values",
+          "seen.add",
+          "set",
+          "str",
+          "v.values"
+        ]
+      },
+      {
+        "name": "resolve600",
+        "line": 362,
+        "calls": [
+          "ValueError",
+          "archive.stat",
+          "bound",
+          "cfg.update",
+          "cfg['r1_training'].update",
+          "checked",
+          "checkpoint600",
+          "combined.hexdigest",
+          "combined.update",
+          "control.get",
+          "control.get('files', {}).get",
+          "dict",
+          "exact_path",
+          "external.append",
+          "f.read",
+          "h.get",
+          "hashlib.sha256",
+          "hp.stat",
+          "identities",
+          "item.get",
+          "iter",
+          "label.startswith",
+          "len",
+          "load",
+          "local_metadata",
+          "lv.get",
+          "metadata_at",
+          "metadata_closure",
+          "model['files'].items",
+          "name.endswith",
+          "output.is_relative_to",
+          "p.open",
+          "paths.items",
+          "paths.update",
+          "pin.get",
+          "pins.items",
+          "pins.values",
+          "pool_file",
+          "receipt600",
+          "request.update",
+          "request['staged_pins'].append",
+          "seal",
+          "sha",
+          "small_archive",
+          "spec.get",
+          "str",
+          "verified.append",
+          "write"
+        ]
+      },
+      {
+        "name": "copy_resolved_payload",
+        "line": 449,
+        "calls": [
+          "(root / 'e.json').write_bytes",
+          "(root / 'source_code.json').write_bytes",
+          "(u / entry['sha256']).open",
+          "(u / h).exists",
+          "(u / h).write_bytes",
+          "Joined",
+          "Path",
+          "PurePosixPath",
+          "ValueError",
+          "base64.b64decode",
+          "checked",
+          "checked(receipt['path'], receipt['sha256'], receipt['bytes']).read_bytes",
+          "exact_path",
+          "export.mkdir",
+          "export.rglob",
+          "hashlib.sha256",
+          "hashlib.sha256(raw).hexdigest",
+          "inside",
+          "item.get",
+          "label.startswith",
+          "len",
+          "load",
+          "load(resolved['receipt']['path'])['pins'].values",
+          "load_raw",
+          "member.isdir",
+          "member.isfile",
+          "member.islnk",
+          "member.issym",
+          "name_guard",
+          "names.items",
+          "names.update",
+          "native.mkdir",
+          "os.link",
+          "p.is_file",
+          "path.open",
+          "path.parent.mkdir",
+          "receipt['pins'].items",
+          "resolved.get",
+          "resolved['small_files'].items",
+          "resolved['small_files'].values",
+          "root.mkdir",
+          "safe",
+          "seal",
+          "selected400",
+          "sha",
+          "shutil.copyfile",
+          "shutil.copyfileobj",
+          "source.open",
+          "source.read_bytes",
+          "spec.get",
+          "stream.digest.hexdigest",
+          "stream.read",
+          "t.extractfile",
+          "t.extractfile(item['member']).read",
+          "tarfile.open",
+          "target.exists",
+          "u.mkdir"
+        ]
+      },
+      {
+        "name": "stage_payload",
+        "line": 518,
+        "calls": [
+          "ValueError",
+          "item.get",
+          "resolved['small_files'].values",
+          "selected400"
+        ]
+      },
+      {
+        "name": "load_raw",
+        "line": 524,
+        "calls": [
+          "Path",
+          "Path(path).read_text",
+          "json.loads"
+        ]
+      },
+      {
+        "name": "screen",
+        "line": 526,
+        "calls": [
+          "any",
+          "digest",
+          "hashes['substr'].items",
+          "hashlib.sha256",
+          "hashlib.sha256(text.encode()).hexdigest",
+          "int",
+          "len",
+          "match.group",
+          "range",
+          "re.findall",
+          "re.sub",
+          "text.encode",
+          "token.lower"
+        ]
+      },
+      {
+        "name": "name_guard",
+        "line": 540,
+        "calls": [
+          "Path",
+          "ValueError",
+          "isinstance",
+          "load",
+          "screen"
+        ]
+      },
+      {
+        "name": "scan_staging_map",
+        "line": 547,
+        "calls": [
+          "enumerate",
+          "isinstance",
+          "len",
+          "parts[-1].isdigit",
+          "safe",
+          "scan_staging_map",
+          "str",
+          "value.items"
+        ]
+      },
+      {
+        "name": "stage_inputs",
+        "line": 558,
+        "calls": [
+          "Path",
+          "importlib.util.module_from_spec",
+          "importlib.util.spec_from_file_location",
+          "load",
+          "module.Stage",
+          "module.Stage(host, node).run",
+          "module_spec.loader.exec_module",
+          "name_guard",
+          "original_destination",
+          "original_metadata",
+          "safe",
+          "scan_staging_map"
+        ]
+      },
+      {
+        "name": "bootstrap",
+        "line": 576,
+        "calls": [
+          "(boot_node / 'j.sh').write_bytes",
+          "Path",
+          "Path(boot_kit).resolve",
+          "Path(boot_node).resolve",
+          "ValueError",
+          "base64.b64decode",
+          "boot_hx.mkdir",
+          "boot_node.mkdir",
+          "boot_safe",
+          "boot_spec.get",
+          "boot_spec['p_files'].items",
+          "boot_target.parent.mkdir",
+          "checked",
+          "dict",
+          "hashlib.sha256",
+          "hashlib.sha256(boot_code).hexdigest",
+          "inside",
+          "launch_shell",
+          "load",
+          "load_raw",
+          "name_guard",
+          "seal",
+          "set",
+          "shutil.copyfile",
+          "str",
+          "write"
+        ]
+      },
+      {
+        "name": "launch_shell",
+        "line": 605,
+        "calls": [
+          "subprocess.run"
+        ]
+      },
+      {
+        "name": "snapshot",
+        "line": 610,
+        "calls": [
+          "Path",
+          "ValueError",
+          "archive.extractfile",
+          "checked",
+          "found.add",
+          "inside",
+          "member.isdir",
+          "member.isfile",
+          "member.name.partition",
+          "name_guard",
+          "root.mkdir",
+          "safe",
+          "set",
+          "shutil.copyfileobj",
+          "tarfile.open",
+          "target.open",
+          "target.parent.mkdir"
+        ]
+      },
+      {
+        "name": "room_report",
+        "line": 628,
+        "calls": [
+          "Rooms",
+          "ValueError",
+          "Withheld",
+          "__import__",
+          "cell['examples'].append",
+          "cells.setdefault",
+          "cfg['streams'].items",
+          "consume",
+          "database.as_uri",
+          "db.execute",
+          "dict",
+          "json.loads",
+          "len",
+          "pinned",
+          "read",
+          "receipt.get",
+          "rooms.status",
+          "row.get",
+          "sqlite3.connect",
+          "withheld.touches",
+          "write"
+        ]
+      },
+      {
+        "name": "visit",
+        "line": 121,
+        "calls": [
+          "isinstance",
+          "metadata_at",
+          "path.endswith",
+          "seen.add",
+          "value.get",
+          "value.items",
+          "visit"
+        ]
+      },
+      {
+        "name": "bound",
+        "line": 371,
+        "calls": [
+          "ValueError",
+          "checked",
+          "exact_path",
+          "pin.get",
+          "str"
+        ]
+      },
+      {
+        "name": "__init__",
+        "line": 436,
+        "calls": [
+          "hashlib.sha256",
+          "iter"
+        ]
+      },
+      {
+        "name": "read",
+        "line": 437,
+        "calls": [
+          "Path",
+          "Path(next(self.parts)['path']).open",
+          "bytearray",
+          "bytes",
+          "len",
+          "next",
+          "out.extend",
+          "self.digest.update",
+          "self.stream.close",
+          "self.stream.read"
+        ]
+      },
+      {
+        "name": "replace",
+        "line": 528,
+        "calls": [
+          "any",
+          "digest",
+          "hashes['substr'].items",
+          "hashlib.sha256",
+          "hashlib.sha256(text.encode()).hexdigest",
+          "int",
+          "len",
+          "match.group",
+          "range",
+          "re.findall",
+          "text.encode",
+          "token.lower"
+        ]
+      },
+      {
+        "name": "check",
+        "line": 542,
+        "calls": [
+          "ValueError",
+          "isinstance",
+          "screen"
+        ]
+      },
+      {
+        "name": "destination",
+        "line": 565,
+        "calls": [
+          "original_destination",
+          "safe"
+        ]
+      },
+      {
+        "name": "metadata",
+        "line": 566,
+        "calls": [
+          "original_metadata",
+          "safe",
+          "scan_staging_map"
+        ]
+      },
+      {
+        "name": "consume",
+        "line": 636,
+        "calls": [
+          "ValueError",
+          "cell['examples'].append",
+          "cells.setdefault",
+          "consume",
+          "database.as_uri",
+          "db.execute",
+          "dict",
+          "json.loads",
+          "len",
+          "pinned",
+          "read",
+          "receipt.get",
+          "rooms.status",
+          "row.get",
+          "sqlite3.connect",
+          "withheld.touches"
+        ]
+      },
+      {
+        "name": "visit",
+        "line": 81,
+        "calls": [
+          "isinstance",
+          "name.endswith",
+          "selected400",
+          "take",
+          "value.get",
+          "value.values",
+          "value['files'].items",
+          "visit"
+        ]
+      },
+      {
+        "name": "take",
+        "line": 92,
+        "calls": [
+          "PurePosixPath",
+          "ValueError",
+          "dict",
+          "hashlib.sha256",
+          "hashlib.sha256(raw).hexdigest",
+          "item.get",
+          "item['path'].endswith",
+          "json.loads",
+          "len",
+          "m.isfile",
+          "seen.add",
+          "t.extractfile",
+          "t.extractfile(m).read",
+          "t.getmember",
+          "visit"
+        ]
+      },
+      {
+        "name": "collect",
+        "line": 353,
+        "calls": [
+          "candidates.append",
+          "collect",
+          "isinstance",
+          "v.values"
+        ]
+      }
+    ]
+  },
+  "sr.py": {
+    "sha256": "3f690c58d1da3653f72a49e3396c2c9bdf51b6f6b4ba9b639abcc392d9915a9c",
+    "lines": 65,
+    "functions": [
+      {
+        "name": "children",
+        "line": 9,
+        "calls": [
+          "Path",
+          "Path('/proc', str(pid), 'task', str(pid), 'children').read_text",
+          "Path('/proc', str(pid), 'task', str(pid), 'children').read_text().split",
+          "int",
+          "str"
+        ]
+      },
+      {
+        "name": "descendants",
+        "line": 16,
+        "calls": [
+          "children",
+          "pending.append",
+          "pending.pop",
+          "result.append"
+        ]
+      },
+      {
+        "name": "alive",
+        "line": 25,
+        "calls": [
+          "Path",
+          "Path('/proc', str(pid), 'stat').read_text",
+          "Path('/proc', str(pid), 'stat').read_text().rsplit",
+          "Path('/proc', str(pid), 'stat').read_text().rsplit(')', 1)[1].split",
+          "str"
+        ]
+      },
+      {
+        "name": "forward",
+        "line": 32,
+        "calls": [
+          "Path",
+          "Path('/proc', str(child), 'cmdline').read_bytes",
+          "Path('/proc', str(child), 'cmdline').read_bytes().split",
+          "Path('/proc', str(child), 'environ').read_bytes",
+          "Path('/proc', str(child), 'environ').read_bytes().split",
+          "Path('/proc', str(child), 'status').read_text",
+          "any",
+          "descendants",
+          "int",
+          "line.split",
+          "line.startswith",
+          "newly.append",
+          "next",
+          "os.kill",
+          "status.splitlines",
+          "str",
+          "v.endswith",
+          "v.startswith"
+        ]
+      },
+      {
+        "name": "main",
+        "line": 52,
+        "calls": [
+          "alive",
+          "forward",
+          "int",
+          "len",
+          "print",
+          "sent.update",
+          "set",
+          "time.monotonic",
+          "time.sleep"
+        ]
+      }
+    ]
+  },
+  "o.py": {
+    "sha256": "c78e969dd37fef3684275a64b4bc0638c139fcfec003c93abf16d89321cb90cd",
+    "lines": 13,
+    "functions": []
+  },
+  "gc.py": {
+    "sha256": "8d9fcaa12efd038debd78853ab6eae0fbccb0f15c843fe4b7241d28c1cc60949",
+    "lines": 113,
+    "functions": [
+      {
+        "name": "part_names",
+        "line": 17,
+        "calls": [
+          "range"
+        ]
+      },
+      {
+        "name": "upload",
+        "line": 19,
+        "calls": [
+          "IOError",
+          "base64.b64encode",
+          "base64.b64encode(md5.digest()).decode",
+          "conn.endheaders",
+          "conn.getresponse",
+          "conn.putheader",
+          "conn.putrequest",
+          "conn.send",
+          "hashlib.md5",
+          "hashlib.sha256",
+          "http.client.HTTPSConnection",
+          "int",
+          "json.loads",
+          "len",
+          "md5.digest",
+          "md5.update",
+          "meta.get",
+          "min",
+          "open",
+          "range",
+          "reply.read",
+          "round",
+          "sha.hexdigest",
+          "sha.update",
+          "str",
+          "stream.read",
+          "stream.seek",
+          "sys.stderr.write",
+          "time.sleep",
+          "time.time",
+          "type",
+          "urllib.parse.urlsplit"
+        ]
+      },
+      {
+        "name": "done",
+        "line": 57,
+        "calls": [
+          "json.loads",
+          "line.strip",
+          "open",
+          "os.path.exists"
+        ]
+      },
+      {
+        "name": "main",
+        "line": 65,
+        "calls": [
+          "'\\n'.join",
+          "ProcessPoolExecutor",
+          "ThreadPoolExecutor",
+          "done",
+          "enumerate",
+          "future.result",
+          "int",
+          "json.dumps",
+          "json.load",
+          "len",
+          "max",
+          "min",
+          "open",
+          "os.path.abspath",
+          "os.path.getsize",
+          "part_names",
+          "pool.submit",
+          "print",
+          "round",
+          "stream.write",
+          "sum",
+          "sys.exit",
+          "sys.stderr.write",
+          "time.time"
+        ]
+      }
+    ]
+  }
+}

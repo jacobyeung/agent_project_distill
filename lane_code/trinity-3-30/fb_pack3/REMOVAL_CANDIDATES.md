@@ -11,3 +11,5 @@
 - B/events/k1fwd2/ (one 1.6 KB file): folder created by mistake; the same answer is in events/k1fwd and events/fb_pack.
 - trinity-1-18 /scratch/jjyeung/orch_n30/sb_own400/out/real400_score (first scorer attempt, refused before any score; frozen bars copy and empty cache dirs only).
 - trinity-2-28 /tmp/fbp3_mirror_228.tar (348 KB; mirrored to 1-18 n30_mirror/fb_pack).
+- trinity-2-28 /scratch/jjyeung/orch_n30/fb_pack/combo/{pkg,R,Rt,tmp,lto_before,lto_after} (combined-patch check scratch; keep combo/X, combo/out and the logs until the tree lane merges).
+- trinity-1-18 /scratch/jjyeung/orch_n30/fb_pack/fov/{build,build2}/tests full_* run dirs (synthetic scorer runs; keep score_fov.py, REPORT.md and the results JSON).

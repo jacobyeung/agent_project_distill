@@ -1,0 +1,661 @@
+{
+  "schema": "cov24c1-coverage-v1",
+  "created_utc": "2026-11-20T02:58:16.341714+00:00",
+  "scope": "ORCH ruling 0239Z; 22 runtime files; read-only static audit",
+  "kits": {
+    "qd": {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24e/out/kit_qd",
+      "manifest_sha256": "e7f3239497a8c7a8eb8431433b322e1a526e2f26114f416e129e7e179da4b438",
+      "tree_archives": [
+        {
+          "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24e/out/kit_qd/k/t_e047002134f979bd.tar",
+          "sha256": "ecf3de4ade6f9a81f678a14a522767b4c4f8184b9d2862cb29a4b6d2244b8a08",
+          "bytes": 2806128
+        }
+      ]
+    },
+    "q": {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24e/work/build24/kits/q",
+      "manifest_sha256": "510d248b6097689a414afc4b944a8b4fbc612d5f3ac935271dc01f1775646bcf",
+      "tree_archives": [
+        {
+          "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24e/work/build24/kits/q/k/t_e047002134f979bd.tar",
+          "sha256": "ecf3de4ade6f9a81f678a14a522767b4c4f8184b9d2862cb29a4b6d2244b8a08",
+          "bytes": 2806128
+        }
+      ]
+    },
+    "n": {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24e/work/build24/kits/n",
+      "manifest_sha256": "240f8c17ffd5a2e800bdc4684ff404d528b87aaf012e7f49f1ff25f3ac6ddd27",
+      "tree_archives": [
+        {
+          "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24e/work/build24/kits/n/k/t_e047002134f979bd.tar",
+          "sha256": "ecf3de4ade6f9a81f678a14a522767b4c4f8184b9d2862cb29a4b6d2244b8a08",
+          "bytes": 2806128
+        }
+      ]
+    },
+    "n_go": {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24e/out/kit_n_go",
+      "manifest_sha256": "c992c930ac90adeba32496c7508c9e6c89ab5353bc46cfed7182b73c286b1d3e",
+      "tree_archives": [
+        {
+          "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24e/out/kit_n_go/k/t_e047002134f979bd.tar",
+          "sha256": "ecf3de4ade6f9a81f678a14a522767b4c4f8184b9d2862cb29a4b6d2244b8a08",
+          "bytes": 2806128
+        }
+      ]
+    }
+  },
+  "tree_root": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24c/work/tree_r1",
+  "tree_seal": "0c7614c8eff74201db275489af9c3fa11f3b418693a0239b793e6322685298de",
+  "ground_counts": {
+    "ii": 12,
+    "i": 5,
+    "iii": 5
+  },
+  "files": [
+    {
+      "file": "launch_r1/entry.py",
+      "sha256": {
+        "tree": "57b01dca58f1ca61c4fb36c732f725e4656fd397a0433904ac5883a97a2f7b80",
+        "qd": "57b01dca58f1ca61c4fb36c732f725e4656fd397a0433904ac5883a97a2f7b80",
+        "q": "57b01dca58f1ca61c4fb36c732f725e4656fd397a0433904ac5883a97a2f7b80",
+        "n": "57b01dca58f1ca61c4fb36c732f725e4656fd397a0433904ac5883a97a2f7b80",
+        "n_go": "57b01dca58f1ca61c4fb36c732f725e4656fd397a0433904ac5883a97a2f7b80"
+      },
+      "qd_equals_n_go": true,
+      "q_equals_n_go": true,
+      "n_equals_n_go": true,
+      "proposed_ground": "ii",
+      "status": "STATIC_ORDER_ESTABLISHED",
+      "no_ground_i_or_ii": false,
+      "first_launch_execution": "N/b/a.py:33 imports entry before plan_payload; pl.py:277-278 first calls entry.temporary_paths during planning. The host checks then run through production_proof.py:91-96 (begin_host, check_host_runtime, stage_host, check_host_scene, check_host_selection).",
+      "relative_to_preparation": "before",
+      "discovery_path": "QD/J:414 calls a.py r; QD/b/a.py:55-62 calls entry.begin_host/check_host_runtime/stage_host/check_host_scene. QD/J:422 then calls a.py q; production_proof.py:89-96 calls the same host helpers and check_host_selection.",
+      "launch_path": "N/J:414 calls a.py q, with preparation inside production_proof.run. Later N/J:434 calls t.py:8, e.sh:7, u.py:20 and entry.admit; entry.admit is AFTER preparation, unlike its host helpers.",
+      "named_refusal": "Yes before preparation: entry.py:40 R1_HOST_PATH_OUTSIDE_JOB_TMP from planning; :160 R1_DISK_PLAN_DIFFERS, :165 R1_BINARY_MISSING:<name>, :217 R1_HOST_STAGING_AND_SELECTION_INPUTS_MISSING, :280 R1_ROUTING_SELECTION_DIFFERS. a.py:20-24 or production_proof.py:181-185 preserves the refusal; a.py:78 exits nonzero for a refused proof.",
+      "discovery_173567_witness": "Published r.log (physical Q_ROOT/dr/q.log): the line {\"ok\": true} from QD/b/a.py:71 after mode-r regeneration. Retain routing_selection.json with p_regeneration.selected_rows_equal=true and both selected-row hashes; QD/J:417 copies it only after the mode-r return code is zero. Published q.log (physical Q_ROOT/q.log): the line {\"ok\": true} from QD/b/a.py:71, after production_proof.run and cs.publish return. Also retain q0.json status ADMIT and the job/kit manifest binding. This is a downstream execution witness, not a per-function trace.",
+      "ground_reason": "The final tree host checks precede production_proof.py:142 native admission. Ground ii applies to this first host execution, not to the later entry.admit training gate.",
+      "minimal_targeted_test": null,
+      "limitations": null
+    },
+    {
+      "file": "launch_r1/production_proof.py",
+      "sha256": {
+        "tree": "5f617300cfb88e5914ca4b516e5682fa861d9ccde9cc38712705b5c8bd341d95",
+        "qd": "5f617300cfb88e5914ca4b516e5682fa861d9ccde9cc38712705b5c8bd341d95",
+        "q": "5f617300cfb88e5914ca4b516e5682fa861d9ccde9cc38712705b5c8bd341d95",
+        "n": "5f617300cfb88e5914ca4b516e5682fa861d9ccde9cc38712705b5c8bd341d95",
+        "n_go": "5f617300cfb88e5914ca4b516e5682fa861d9ccde9cc38712705b5c8bd341d95"
+      },
+      "qd_equals_n_go": true,
+      "q_equals_n_go": true,
+      "n_equals_n_go": true,
+      "proposed_ground": "ii",
+      "status": "STATIC_ORDER_ESTABLISHED",
+      "no_ground_i_or_ii": false,
+      "first_launch_execution": "N/b/pl.py:182 calls i.refresh; i.py:14-15 first imports production_proof.verify_staging and calls it. N/b/a.py:53-54 subsequently calls run.",
+      "relative_to_preparation": "before",
+      "discovery_path": "Mode r already calls verify_staging through QD/b/pl.py:191 and i.py:14-15. QD/b/a.py:45-46 calls run in q mode; _run executes preparation, handover, audit and requested forward.",
+      "launch_path": "N/J:414; a.py:49 plans inputs, a.py:54 runs the proof, production_proof.py:142-143 enters native preparation. u.py:17-19 calls verify_staging again after review.",
+      "named_refusal": "Yes: production_proof.py:13 R1_PROOF_STAGED_PINS_REQUIRED; :76 R1_PROOF_COUNTING_ADMISSION_REQUIRED; :88 R1_PROOF_FRAME_HOST_REQUIRED. _run catches named errors at :181-185 and returns REFUSE.",
+      "discovery_173567_witness": "Published q.log (physical Q_ROOT/q.log): the line {\"ok\": true} from QD/b/a.py:71, after production_proof.run and cs.publish return. Also retain q0.json status ADMIT and the job/kit manifest binding. This is a downstream execution witness, not a per-function trace.",
+      "ground_reason": "verify_staging and the proof preflight run before native admission; failures retain explicit names.",
+      "minimal_targeted_test": null,
+      "limitations": null
+    },
+    {
+      "file": "student_pilot/r1_handover.py",
+      "sha256": {
+        "tree": "c82d9bc390be047c752f8925b44f0bc5d2ba325405986860ddea077e732465ed",
+        "qd": "c82d9bc390be047c752f8925b44f0bc5d2ba325405986860ddea077e732465ed",
+        "q": "c82d9bc390be047c752f8925b44f0bc5d2ba325405986860ddea077e732465ed",
+        "n": "c82d9bc390be047c752f8925b44f0bc5d2ba325405986860ddea077e732465ed",
+        "n_go": "c82d9bc390be047c752f8925b44f0bc5d2ba325405986860ddea077e732465ed"
+      },
+      "qd_equals_n_go": true,
+      "q_equals_n_go": true,
+      "n_equals_n_go": true,
+      "proposed_ground": "ii",
+      "status": "STATIC_ORDER_ESTABLISHED",
+      "no_ground_i_or_ii": false,
+      "first_launch_execution": "Before native admission: production_proof.py:73 and r1_coverage.py:65-66 can call pin_values; r1_persisted.verify at production_proof.py:110 calls export_identity at r1_persisted.py:111-113. The donor/target comparison first runs in p_opener_witness.produce:43, called at production_proof.py:130.",
+      "relative_to_preparation": "before",
+      "discovery_path": "QD/b/a.py q :46 invokes production_proof; its opener (:130) calls donor and compare_configs (p_opener_witness.py:42-43), then bind_target (:132) repeats donor/compare_configs (r1_handover.py:39-40).",
+      "launch_path": "N/J:414; N/b/a.py:54; production_proof.py:130; p_opener_witness.py:42-43; r1_handover.py:149-186. production_proof.py:132 repeats the comparison via bind_target:39-40. Only then does :142 invoke s1_admission.admit. s1_admission.py:224 and production_proof.py:158-160 repeat handover work after preparation starts.",
+      "named_refusal": "Yes: r1_handover.py:153 P_EXPORT_ROUTING_OPENER_KEEP_REQUIRED:routing_opener_init; :158 P_EXPORT_LR_SCHEDULE_MISMATCH:<key>; :171/:175/:186 P_EXPORT_CONFIG_DIFFERENCE:<key>. production_proof.py:181-185 records the exact exception before returning REFUSE.",
+      "discovery_173567_witness": "Published q.log (physical Q_ROOT/q.log): the line {\"ok\": true} from QD/b/a.py:71, after production_proof.run and cs.publish return. Also retain q0.json status ADMIT and the job/kit manifest binding. This is a downstream execution witness, not a per-function trace.",
+      "ground_reason": "The actual donor/target comparison, not merely an import or the later entry.admit call, precedes native preparation. See the dedicated call-chain paragraph.",
+      "minimal_targeted_test": null,
+      "limitations": null
+    },
+    {
+      "file": "student_pilot/r1_launch22.py",
+      "sha256": {
+        "tree": "802c77ea4a8ff0ae8d4355bfb81084694679649c6a6960261bdefe64af671772",
+        "qd": "802c77ea4a8ff0ae8d4355bfb81084694679649c6a6960261bdefe64af671772",
+        "q": "802c77ea4a8ff0ae8d4355bfb81084694679649c6a6960261bdefe64af671772",
+        "n": "802c77ea4a8ff0ae8d4355bfb81084694679649c6a6960261bdefe64af671772",
+        "n_go": "802c77ea4a8ff0ae8d4355bfb81084694679649c6a6960261bdefe64af671772"
+      },
+      "qd_equals_n_go": true,
+      "q_equals_n_go": true,
+      "n_equals_n_go": true,
+      "proposed_ground": "ii",
+      "status": "STATIC_ORDER_ESTABLISHED",
+      "no_ground_i_or_ii": false,
+      "first_launch_execution": "Planning may first load NAMING_REMOVE/naming_rows via pl.py:182, i.py:25, s1_pool.py:137 and row_removals.py:31-32. The guaranteed launch removal-order check is production_proof.py:82 calling r1_coverage.validate_binding:176-177.",
+      "relative_to_preparation": "before",
+      "discovery_path": "QD mode-r planning refreshes removals when needed (pl.py:191, i.py:25); q mode executes production_proof.py:82 and r1_coverage.py:176-177. Native routing and readers also apply removal checks.",
+      "launch_path": "The configured routing_slices=deferred_first_boundary takes production_proof.py:81-82 before :142. r1_launch22.validate_removals:23-36 checks the 13 configured removal pins; naming_rows:38-45 authenticates the 109 naming rows.",
+      "named_refusal": "Yes: r1_launch22.py:29 R1_NAMING_REMOVAL_BINDING_REQUIRED, :34 R1_NAMING_REMOVAL_ORDER, :44 R1_NAMING_REMOVAL_CONTENT. Preparation cannot start after that check raises.",
+      "discovery_173567_witness": "Published q.log (physical Q_ROOT/q.log): the line {\"ok\": true} from QD/b/a.py:71, after production_proof.run and cs.publish return. Also retain q0.json status ADMIT and the job/kit manifest binding. This is a downstream execution witness, not a per-function trace.",
+      "ground_reason": "The pinned launch configuration requires the removal-order validation before the native admission call; the optional refresh can run the file even sooner.",
+      "minimal_targeted_test": null,
+      "limitations": null
+    },
+    {
+      "file": "b/a.py",
+      "sha256": {
+        "tree": null,
+        "qd": "e91a1ef719eace3d716b004c1319be5bba89bd7a0c8b194b118c93770626da27",
+        "q": "88bf4bd2c343a165aa88d2b6abc150293160f5260fc9852978e5646de7dc1043",
+        "n": "b7696451e1a62b7b28b40d93cf9983b8f5d7df23bc4a079a85c09f9bdff3bffe",
+        "n_go": "b7696451e1a62b7b28b40d93cf9983b8f5d7df23bc4a079a85c09f9bdff3bffe"
+      },
+      "qd_equals_n_go": false,
+      "q_equals_n_go": false,
+      "n_equals_n_go": true,
+      "proposed_ground": "ii",
+      "status": "STATIC_ORDER_ESTABLISHED",
+      "no_ground_i_or_ii": false,
+      "first_launch_execution": "N/J:414 executes a.py in q mode before its own call to production_proof.run at :54.",
+      "relative_to_preparation": "before",
+      "discovery_path": "QD/J:414 runs a.py r; :422 runs a.py q. QD bytes differ from N/N_GO.",
+      "launch_path": "N/J:414; a.py:26 validates job ID, :28 checks source hash, :32 verifies kit, :49 plans inputs, :54 calls proof with native preparation inside.",
+      "named_refusal": "Yes: a.py:26 R1_ROUTING_JOB_ID_REQUIRED, :28 E05, :48 R1_STAGING_PLAN_REQUIRED. :20-24 writes screened REFUSE to p/r0.json for uncaught failures; :78 returns nonzero for a refused proof.",
+      "discovery_173567_witness": "Published r.log (physical Q_ROOT/dr/q.log): the line {\"ok\": true} from QD/b/a.py:71 after mode-r regeneration. Retain routing_selection.json with p_regeneration.selected_rows_equal=true and both selected-row hashes; QD/J:417 copies it only after the mode-r return code is zero. Published q.log (physical Q_ROOT/q.log): the line {\"ok\": true} from QD/b/a.py:71, after production_proof.run and cs.publish return. Also retain q0.json status ADMIT and the job/kit manifest binding. This is a downstream execution witness, not a per-function trace.",
+      "ground_reason": "Byte mismatch rules out i. Final launch a.py performs named checks before calling preparation; ii applies.",
+      "minimal_targeted_test": null,
+      "limitations": null
+    },
+    {
+      "file": "b/cs.py",
+      "sha256": {
+        "tree": null,
+        "qd": "a4a809d22128dbe7b1322110b6ecc8f7003bccf63652f82c4c2b2c03ce289491",
+        "q": "a4a809d22128dbe7b1322110b6ecc8f7003bccf63652f82c4c2b2c03ce289491",
+        "n": "a4a809d22128dbe7b1322110b6ecc8f7003bccf63652f82c4c2b2c03ce289491",
+        "n_go": "a4a809d22128dbe7b1322110b6ecc8f7003bccf63652f82c4c2b2c03ce289491"
+      },
+      "qd_equals_n_go": true,
+      "q_equals_n_go": true,
+      "n_equals_n_go": true,
+      "proposed_ground": "ii",
+      "status": "STATIC_ORDER_ESTABLISHED",
+      "no_ground_i_or_ii": false,
+      "first_launch_execution": "N/b/pl.py:218 imports cs; :240 calls sources(effective), before pl returns and before a.py:54.",
+      "relative_to_preparation": "before",
+      "discovery_path": "QD/b/pl.py:227/:249 calls cs.sources before q preparation. QD/b/a.py:50-52 calls cs.publish after ADMIT. h.py:31-32 and rv.py:266-267 call verify after preparation.",
+      "launch_path": "N/b/pl.py:218/:240 runs source census checks before proof; N/b/a.py:56-58 publishes final prepared census after proof. h.py and rv.py verify its receipt.",
+      "named_refusal": "Yes before preparation: cs.py:33 R1_CENSUS_POSE_SOURCE_NOT_ROWS and :45 R1_CENSUS_SOURCE_POPULATION_MISSING:<stream>; pins authenticate at :47. Later :119 refuses named protected-row findings; discovery instead records WOULD_REFUSE.",
+      "discovery_173567_witness": "Published q.log (physical Q_ROOT/q.log): the line {\"ok\": true} from QD/b/a.py:71, after production_proof.run and cs.publish return. Also retain q0.json status ADMIT and the job/kit manifest binding. This is a downstream execution witness, not a per-function trace. c4.json/c5.json must contain all four streams; those are artifacts, not stdout lines.",
+      "ground_reason": "The configured r2_all_stream_exclusions=true forces sources() during planning; it can refuse by name before native preparation. The later census remains a separate execution stage.",
+      "minimal_targeted_test": null,
+      "limitations": null
+    },
+    {
+      "file": "b/ep.py",
+      "sha256": {
+        "tree": null,
+        "qd": "b08207c1647206745084d980a1be31d0b4d5a57d2ed3d71878c96aaf683ab7d7",
+        "q": "b08207c1647206745084d980a1be31d0b4d5a57d2ed3d71878c96aaf683ab7d7",
+        "n": "b08207c1647206745084d980a1be31d0b4d5a57d2ed3d71878c96aaf683ab7d7",
+        "n_go": "b08207c1647206745084d980a1be31d0b4d5a57d2ed3d71878c96aaf683ab7d7"
+      },
+      "qd_equals_n_go": true,
+      "q_equals_n_go": true,
+      "n_equals_n_go": true,
+      "proposed_ground": "i",
+      "status": "PENDING_DISCOVERY_EVIDENCE",
+      "no_ground_i_or_ii": false,
+      "first_launch_execution": "N/J:6 runs ep.py on staging-shell exit; N/b/pc.sh:30 runs it on outer tk_live_finish. It is not launched periodically by pc.sh.",
+      "relative_to_preparation": "exit-dependent",
+      "discovery_path": "QD/job.sh:26 sources ep.sh; ep.sh:19 starts ep.py --loop. QD/J:418 explicitly publishes after successful r mode, QD/J:6 publishes at exit, and ep.sh:13 publishes at outer exit.",
+      "launch_path": "Normal launch invokes ep.py after the main work at shell/outer exit; an early staging failure can invoke it before preparation. Both exit invocations use || true.",
+      "named_refusal": "Named validation exists (ep.py:16 R1_EVIDENCE_JOB_INVALID, :18-20 R1_EVIDENCE_TARGET_INVALID, :57 R1_EVIDENCE_TOO_LARGE), but exit callers ignore failure; no pre-preparation refusal gate.",
+      "discovery_173567_witness": "In the 173567 outer log, look for receipt.json sha256=<64 hex> and materialization.json sha256=<64 hex> emitted by ep.py:82 after QD/J:418. Match them to published artifacts and r1.json file hashes. Neither line appears in supplied 173555.log. A shutdown-specific claim additionally requires the tk_live_finish targeted-test record.",
+      "ground_reason": "The same ep.py bytes run in discovery; i is pending the new job evidence. The lane copier-shutdown test may additionally exercise these bytes, but it is not counted as another selected ground.",
+      "minimal_targeted_test": null,
+      "limitations": "The artifact-hash lines prove publish_artifacts ran, not that every exit branch completed; retain final r1.json for exit status."
+    },
+    {
+      "file": "b/h.py",
+      "sha256": {
+        "tree": null,
+        "qd": "8d3aeb79ebb223a7cd5cc8b48cfb279d7128dbc0b406e92269b406f041bf533d",
+        "q": "8d3aeb79ebb223a7cd5cc8b48cfb279d7128dbc0b406e92269b406f041bf533d",
+        "n": "2aee9dd8e875f80b24305cb1be075b52af0ee983efc67c8b2005dbe17dae790e",
+        "n_go": "2aee9dd8e875f80b24305cb1be075b52af0ee983efc67c8b2005dbe17dae790e"
+      },
+      "qd_equals_n_go": false,
+      "q_equals_n_go": false,
+      "n_equals_n_go": true,
+      "proposed_ground": "iii",
+      "status": "NEEDS_TARGETED_TEST",
+      "no_ground_i_or_ii": true,
+      "first_launch_execution": "N/J:425, only after a.py q and d.py complete successfully.",
+      "relative_to_preparation": "after",
+      "discovery_path": "QD/J:427 executes QD/h.py after proof and rooms; QD bytes differ at h.py:11 (proof_mode=q/no init_policy versus launch fresh-export init policy).",
+      "launch_path": "N/J:424 gates on proof/census return codes; :425 executes h.py. h.py:9-27 validates proof and host, :31-32 verifies census, :40-43 binds preparation and writes v.json.",
+      "named_refusal": "Yes, but after preparation: E81/E85 and R1_HOST_RECEIPT_MISSING/INVALID/NOT_PASS, R1_HOST_IDENTITY_DIFFERS, R1_HOST_ASSERTIONS_INCOMPLETE, R1_HOST_LOADER_AUDIT_INCOMPLETE.",
+      "discovery_173567_witness": "QD h.py has no success print; a correctly bound live/WAITING_REVIEW.json downstream proves QD h.py returned successfully. That is not a line and cannot cover different N bytes.",
+      "ground_reason": "NONE under i/ii: bytes differ and its first execution is after preparation.",
+      "minimal_targeted_test": "Run unmodified final N_GO/b/h.py against a tiny authenticated prepared-config/host/census fixture. Require a valid fresh-export init_policy to emit v.json with unchanged identity and bound host/preparation. In separate fixture directories, use q/no-init-policy to require E85 and one bad host pin to require R1_HOST_RECEIPT_INVALID. Record the final executable SHA256; no training is needed.",
+      "limitations": null
+    },
+    {
+      "file": "b/i.py",
+      "sha256": {
+        "tree": null,
+        "qd": "bb6bf2cccaf62a9955bac00b5fee8c1dfccadb485ac55b05cc0fcbb56c4c04b6",
+        "q": "bb6bf2cccaf62a9955bac00b5fee8c1dfccadb485ac55b05cc0fcbb56c4c04b6",
+        "n": "bb6bf2cccaf62a9955bac00b5fee8c1dfccadb485ac55b05cc0fcbb56c4c04b6",
+        "n_go": "bb6bf2cccaf62a9955bac00b5fee8c1dfccadb485ac55b05cc0fcbb56c4c04b6"
+      },
+      "qd_equals_n_go": true,
+      "q_equals_n_go": true,
+      "n_equals_n_go": true,
+      "proposed_ground": "ii",
+      "status": "STATIC_ORDER_ESTABLISHED",
+      "no_ground_i_or_ii": false,
+      "first_launch_execution": "N/b/pl.py:35 imports refresh and :182 calls it before a.py:54.",
+      "relative_to_preparation": "before",
+      "discovery_path": "QD/b/pl.py:191 calls refresh in both modes; rb.py:24 and rg.py:39 call it during r reconstruction/comparison.",
+      "launch_path": "N/J:414; a.py:49; pl.py:182; i.py:15 verifies staging and :20 either returns the matching selection or :25 reproduces it. This pool refresh precedes native preparation.",
+      "named_refusal": "Yes: verify_staging at i.py:15 can raise R1_PROOF_STAGED_PINS_REQUIRED; i.py:28 raises E86:<key> for an unauthorized selection difference.",
+      "discovery_173567_witness": "Published r.log (physical Q_ROOT/dr/q.log): the line {\"ok\": true} from QD/b/a.py:71 after mode-r regeneration. Retain routing_selection.json with p_regeneration.selected_rows_equal=true and both selected-row hashes; QD/J:417 copies it only after the mode-r return code is zero. Published q.log (physical Q_ROOT/q.log): the line {\"ok\": true} from QD/b/a.py:71, after production_proof.run and cs.publish return. Also retain q0.json status ADMIT and the job/kit manifest binding. This is a downstream execution witness, not a per-function trace.",
+      "ground_reason": "Final refresh executes synchronously during planning before native admission and fails explicitly.",
+      "minimal_targeted_test": null,
+      "limitations": null
+    },
+    {
+      "file": "b/o.py",
+      "sha256": {
+        "tree": null,
+        "qd": "02cda3220815f82a083fd3e31366ffc03f9cad84f6ecf7598374388fc97f367b",
+        "q": "0c0c49ce456f65a35ba2710acbbe213e54395d523e975a8a8315be703ae815bb",
+        "n": "c78e969dd37fef3684275a64b4bc0638c139fcfec003c93abf16d89321cb90cd",
+        "n_go": "c78e969dd37fef3684275a64b4bc0638c139fcfec003c93abf16d89321cb90cd"
+      },
+      "qd_equals_n_go": false,
+      "q_equals_n_go": false,
+      "n_equals_n_go": true,
+      "proposed_ground": "iii",
+      "status": "NEEDS_TARGETED_TEST",
+      "no_ground_i_or_ii": true,
+      "first_launch_execution": "N/J:438 reaches o.py after the proof/census/host/review/train block, on ordinary completion paths.",
+      "relative_to_preparation": "after-or-skipped",
+      "discovery_path": "QD/J:434 calls discovery o.py after h/rv as reached. It is not the EXIT trap and is skipped by an earlier explicit exit or shell failure. QD bytes omit h.log/t.log and add discovery fields.",
+      "launch_path": "N/J:438 packages q.log, rooms evidence, h.log, t.log and proof/host/forward JSON into o.tar and writes RESULT.json. The actual EXIT trap is N/J:6 ep.py, plus pc.sh tk_live_finish.",
+      "named_refusal": "No dedicated pre-preparation refusal. o.py:6 calls name_guard, which may raise E48, and I/O may fail, but this runs after preparation; surrounding set +e also means o.py failure is not independently made rc.",
+      "discovery_173567_witness": "No success line is printed. Published o.tar and RESULT.json are evidence of the QD variant only.",
+      "ground_reason": "NONE under i/ii: bytes differ, and packaging runs after preparation.",
+      "minimal_targeted_test": "Execute final N_GO/b/o.py with a small local fixture containing q.log, rooms.log/json, h.log, t.log and proof JSON; isolate destinations/config fixtures without changing executable bytes. Verify both new log members, exact RESULT fields and supplied return codes in the resulting tar/JSON. Record the executable hash and output member hashes.",
+      "limitations": null
+    },
+    {
+      "file": "b/pc.py",
+      "sha256": {
+        "tree": null,
+        "qd": null,
+        "q": null,
+        "n": "4adfa8ab8eee48ea318e1f9dae225f892c8dcfbd486554d8453e0a8ef0dbd6d4",
+        "n_go": "4adfa8ab8eee48ea318e1f9dae225f892c8dcfbd486554d8453e0a8ef0dbd6d4"
+      },
+      "qd_equals_n_go": false,
+      "q_equals_n_go": false,
+      "n_equals_n_go": true,
+      "proposed_ground": "iii",
+      "status": "NEEDS_TARGETED_TEST",
+      "no_ground_i_or_ii": true,
+      "first_launch_execution": "N/job.sh:28 sources pc.sh; pc.sh:36 and :38 start pc.py --loop and --loop-small before x.py starts. Child scheduling is asynchronous.",
+      "relative_to_preparation": "spawn-before-but-not-a-gate",
+      "discovery_path": "Absent from qd and q; discovery has ep.py periodic evidence publication instead.",
+      "launch_path": "pc.sh starts both background workers, then tk_live_finish:17-23 stops/waits them; :25 calls pc.py --final or :28 calls --small before ep.py:30.",
+      "named_refusal": "pc.py:54/:58/:69/:87-97 has named checks, but a background failure does not block work. Final calls have || true; pass_once:378-379 also records action errors as pending retry. Thus no ii.",
+      "discovery_173567_witness": "None: discovery does not contain this executable.",
+      "ground_reason": "NONE under i/ii. The required ground is the final-byte tk_live_finish targeted test.",
+      "minimal_targeted_test": "Use the lane tk_live_finish fixture with the exact N_GO pc.sh/pc.py/ep.py/z.py hashes. Start tiny copier workers, exercise normal completion and TERM/USR1 drain, and assert both workers exit before final publication. Verify --final when work finishes and --small when it does not, preserved work status, bounded termination and published evidence. Use only disposable local output and no network/training. A receipt must identify executable hashes and observed outcomes, not just a shell syntax check.",
+      "limitations": null
+    },
+    {
+      "file": "b/pl.py",
+      "sha256": {
+        "tree": null,
+        "qd": "c631dbc9f65ceecebb71e408abf430f193dc10ece29538a5e4e65586ce5e13d1",
+        "q": "7ea897ea4d9902860a54972af50704e06c11b13e70c54a9df0dfcefe854375fc",
+        "n": "7ea897ea4d9902860a54972af50704e06c11b13e70c54a9df0dfcefe854375fc",
+        "n_go": "7ea897ea4d9902860a54972af50704e06c11b13e70c54a9df0dfcefe854375fc"
+      },
+      "qd_equals_n_go": false,
+      "q_equals_n_go": true,
+      "n_equals_n_go": true,
+      "proposed_ground": "ii",
+      "status": "STATIC_ORDER_ESTABLISHED",
+      "no_ground_i_or_ii": false,
+      "first_launch_execution": "N/b/a.py:45 imports plan_payload; :49 calls it before production_proof.run at :54.",
+      "relative_to_preparation": "before",
+      "discovery_path": "QD/b/a.py:41 calls pl in r and q. QD/pl.py:17-26 can use the freshly generated local routing_selection.json; N/pl.py lacks that branch.",
+      "launch_path": "N/pl.py:43 calls selection_pin before creating the plan. :74 resolves pins; :182 refreshes; :231 rebuilds scene evidence; :240 binds census sources; stage closure :281 is called from entry.stage_host:222 before native preparation.",
+      "named_refusal": "Yes: pl.py:20 R1_ROUTING_SELECTION_PIN_MISSING, :22/:28 R1_ROUTING_SELECTION_PIN_INVALID, :39 R1_HOST_JOB_TMP_NOT_FRESH, :42 E32, :283 R1_STAGING_PLAN_DIFFERS. a.py:20-24 preserves the refusal.",
+      "discovery_173567_witness": "Published r.log (physical Q_ROOT/dr/q.log): the line {\"ok\": true} from QD/b/a.py:71 after mode-r regeneration. Retain routing_selection.json with p_regeneration.selected_rows_equal=true and both selected-row hashes; QD/J:417 copies it only after the mode-r return code is zero. Published q.log (physical Q_ROOT/q.log): the line {\"ok\": true} from QD/b/a.py:71, after production_proof.run and cs.publish return. Also retain q0.json status ADMIT and the job/kit manifest binding. This is a downstream execution witness, not a per-function trace. QD success cannot satisfy byte identity for N/pl.py.",
+      "ground_reason": "Byte mismatch rules out i, but planning and its named refusal checks precede native preparation. The supplied N h.json still contains the required_parameter placeholder, which this code refuses at :20.",
+      "minimal_targeted_test": null,
+      "limitations": null
+    },
+    {
+      "file": "b/px.py",
+      "sha256": {
+        "tree": null,
+        "qd": "880c2cd84c31e226a8f2c24c74f96f424ef68455e6205920b56b9ea07e811ddb",
+        "q": "880c2cd84c31e226a8f2c24c74f96f424ef68455e6205920b56b9ea07e811ddb",
+        "n": "880c2cd84c31e226a8f2c24c74f96f424ef68455e6205920b56b9ea07e811ddb",
+        "n_go": "880c2cd84c31e226a8f2c24c74f96f424ef68455e6205920b56b9ea07e811ddb"
+      },
+      "qd_equals_n_go": true,
+      "q_equals_n_go": true,
+      "n_equals_n_go": true,
+      "proposed_ground": "ii",
+      "status": "STATIC_ORDER_ESTABLISHED",
+      "no_ground_i_or_ii": false,
+      "first_launch_execution": "N/b/pl.py:73-74 imports and calls resolver; resolver:46 calls inventory.",
+      "relative_to_preparation": "before",
+      "discovery_path": "QD/b/pl.py:82-83 calls resolver in r and q planning; closure resolution calls its returned function for required pins.",
+      "launch_path": "N/b/a.py:49; pl.py:74 and closure :102 run px before production_proof.run.",
+      "named_refusal": "Yes: px.py:14/:21/:29 R1_STAGED_PIN_INVALID, :42 R1_STAGED_PIN_LOCATION_INVALID, :57 R1_STAGED_PIN_MISSING:<hash>:<field>, :63 R1_STAGED_PIN_NOT_PRESENT:<hash>:<field>.",
+      "discovery_173567_witness": "Published r.log (physical Q_ROOT/dr/q.log): the line {\"ok\": true} from QD/b/a.py:71 after mode-r regeneration. Retain routing_selection.json with p_regeneration.selected_rows_equal=true and both selected-row hashes; QD/J:417 copies it only after the mode-r return code is zero. Published q.log (physical Q_ROOT/q.log): the line {\"ok\": true} from QD/b/a.py:71, after production_proof.run and cs.publish return. Also retain q0.json status ADMIT and the job/kit manifest binding. This is a downstream execution witness, not a per-function trace.",
+      "ground_reason": "Synchronous authenticated-pin resolution refuses by name before native preparation.",
+      "minimal_targeted_test": null,
+      "limitations": null
+    },
+    {
+      "file": "b/rb.py",
+      "sha256": {
+        "tree": null,
+        "qd": "45014d837999731d67e2f4ee9efa12edf3b7f9047dab0d6564ca6262e6929040",
+        "q": "45014d837999731d67e2f4ee9efa12edf3b7f9047dab0d6564ca6262e6929040",
+        "n": "45014d837999731d67e2f4ee9efa12edf3b7f9047dab0d6564ca6262e6929040",
+        "n_go": "45014d837999731d67e2f4ee9efa12edf3b7f9047dab0d6564ca6262e6929040"
+      },
+      "qd_equals_n_go": true,
+      "q_equals_n_go": true,
+      "n_equals_n_go": true,
+      "proposed_ground": "i",
+      "status": "PENDING_DISCOVERY_EVIDENCE",
+      "no_ground_i_or_ii": false,
+      "first_launch_execution": "Not executed in the normal q-mode launch. In an explicitly selected r run, pl.py:303-304 calls reconstruct inside the staging closure.",
+      "relative_to_preparation": "not-on-normal-launch-path",
+      "discovery_path": "QD/J:414 runs a.py r; QD/pl.py:96-100 sets the reconstruction output because configured routing_base has sha256 ca0616db...; entry.stage_host:222 calls the closure; QD/pl.py:312-313 calls rb.reconstruct.",
+      "launch_path": "N default mode q makes pl.py:87 false, so rb is skipped. N alternative Q_MODE=r can call it through a.py:67, entry.stage_host:222 and pl.py:303-304 before any native q preparation.",
+      "named_refusal": "Named errors in r mode: rb.py:14 P_TRAINED_ROUTING_PIN_DIFFERS, :18 P_TRAINED_ROUTING_DATABASE_DIFFERS, :30 P_TRAINED_ROUTING_RECONSTRUCTION_DIFFERS:<expected>. No normal-launch first call, so ii is not selected.",
+      "discovery_173567_witness": "Published r.log (physical Q_ROOT/dr/q.log): the line {\"ok\": true} from QD/b/a.py:71 after mode-r regeneration. Retain routing_selection.json with p_regeneration.selected_rows_equal=true and both selected-row hashes; QD/J:417 copies it only after the mode-r return code is zero. The configured ca0616db... routing base and pl.py conditional establish that this r pass must reconstruct rather than merely import rb.",
+      "ground_reason": "QD and N/N_GO bytes match; discovery r mode executes reconstruction for the configured base. Ground i remains pending a successful r witness.",
+      "minimal_targeted_test": null,
+      "limitations": null
+    },
+    {
+      "file": "b/rd.py",
+      "sha256": {
+        "tree": null,
+        "qd": "b080eb7b4611e96528a6134ab2e5e8daf77be8d9698415b2e5aa5b5323a39c94",
+        "q": "b080eb7b4611e96528a6134ab2e5e8daf77be8d9698415b2e5aa5b5323a39c94",
+        "n": "b080eb7b4611e96528a6134ab2e5e8daf77be8d9698415b2e5aa5b5323a39c94",
+        "n_go": "b080eb7b4611e96528a6134ab2e5e8daf77be8d9698415b2e5aa5b5323a39c94"
+      },
+      "qd_equals_n_go": true,
+      "q_equals_n_go": true,
+      "n_equals_n_go": true,
+      "proposed_ground": "iii",
+      "status": "NEEDS_TARGETED_TEST",
+      "no_ground_i_or_ii": true,
+      "first_launch_execution": "Not executed by default launch mode q. N/J:417 calls it only in the alternative Q_MODE=r branch after the mode-r a.py process returns.",
+      "relative_to_preparation": "not-on-normal-launch-path",
+      "discovery_path": "QD/J:410-435 has no rd.py call: it copies the selection at :417 and uses ep.py at :418. Merely shipping identical rd.py in qd is not execution.",
+      "launch_path": "N/J:416-420 publishes routing evidence via rd.py only for explicit mode r; default launch continues to d.py at :422.",
+      "named_refusal": "rd.py:14 R1_ROUTING_JOB_ID_REQUIRED, :17/:19/:21 R1_ROUTING_DESTINATION_INVALID, :55 R1_ROUTING_SELECTION_MISSING; these are not reached on the normal launch path.",
+      "discovery_173567_witness": "None: no rd.py call occurs in the discovery shell or its callees.",
+      "ground_reason": "NONE under i/ii: identical bytes are present but neither discovery nor normal launch executes them.",
+      "minimal_targeted_test": "Call final rd.py.publish with final kit policy and tiny local q.log, p/r0.json and p/routing_selection.json fixture files. Verify r1.json and published hashes/status. With returncode=0 and no selection, require R1_ROUTING_SELECTION_MISSING; with an invalid job ID require R1_ROUTING_JOB_ID_REQUIRED. Record the executable SHA256 and keep destinations isolated.",
+      "limitations": null
+    },
+    {
+      "file": "b/rg.py",
+      "sha256": {
+        "tree": null,
+        "qd": "de981bb6f73da4fcc1746244d758ff3aad4aa03fe840157ca205c708b7261eb4",
+        "q": "de981bb6f73da4fcc1746244d758ff3aad4aa03fe840157ca205c708b7261eb4",
+        "n": "de981bb6f73da4fcc1746244d758ff3aad4aa03fe840157ca205c708b7261eb4",
+        "n_go": "de981bb6f73da4fcc1746244d758ff3aad4aa03fe840157ca205c708b7261eb4"
+      },
+      "qd_equals_n_go": true,
+      "q_equals_n_go": true,
+      "n_equals_n_go": true,
+      "proposed_ground": "i",
+      "status": "PENDING_DISCOVERY_EVIDENCE",
+      "no_ground_i_or_ii": false,
+      "first_launch_execution": "Not executed in default q-mode launch. a.py:69-70 invokes regenerate only in its mode-r branch.",
+      "relative_to_preparation": "not-on-normal-launch-path",
+      "discovery_path": "QD/J:414; QD/b/a.py:63-64 runs rg.regenerate after stage_host and check_host_scene. rg.py:16 builds N selection, :39-49 reproduces and compares P selected rows, :53 writes routing_selection.json.",
+      "launch_path": "N a.py q goes to production_proof at :54 and never :69-70. Alternative mode r runs regenerate before any native q preparation.",
+      "named_refusal": "Named errors in r mode: rg.py:32 P_TRAINED_ROUTING_PIN_DIFFERS, :34 P_TRAINED_ROUTING_DATABASE_DIFFERS, :45 P_TRAINED_SELECTED_ROW_BYTES_OR_ORDER_DIFFER:<row>.",
+      "discovery_173567_witness": "Published r.log (physical Q_ROOT/dr/q.log): the line {\"ok\": true} from QD/b/a.py:71 after mode-r regeneration. Retain routing_selection.json with p_regeneration.selected_rows_equal=true and both selected-row hashes; QD/J:417 copies it only after the mode-r return code is zero.",
+      "ground_reason": "The matching QD bytes execute in mode r; the final success line and selection/comparison artifact establish execution. Ground i is pending this evidence.",
+      "minimal_targeted_test": null,
+      "limitations": null
+    },
+    {
+      "file": "b/rv.py",
+      "sha256": {
+        "tree": null,
+        "qd": "e5b5f33c4d70d63889b5b238b2568460f5b2a45c046f3ab0c235ab0fdf8b7773",
+        "q": "60ae4e1e39830ddc4c563d1889e6ee7b496ee8349c6b20615cc2d99bef17ab31",
+        "n": "60ae4e1e39830ddc4c563d1889e6ee7b496ee8349c6b20615cc2d99bef17ab31",
+        "n_go": "60ae4e1e39830ddc4c563d1889e6ee7b496ee8349c6b20615cc2d99bef17ab31"
+      },
+      "qd_equals_n_go": false,
+      "q_equals_n_go": true,
+      "n_equals_n_go": true,
+      "proposed_ground": "ii",
+      "status": "STATIC_ORDER_ESTABLISHED",
+      "no_ground_i_or_ii": false,
+      "first_launch_execution": "N/J:404 executes rv.py --live under set -e, before a.py at :414.",
+      "relative_to_preparation": "before-for-live-only",
+      "discovery_path": "QD/J:404 runs --live; QD/J:430 runs review evidence after h.py. QD/rv.py:277-279 writes WAITING_REVIEW.json and returns immediately; it does not wait or accept a review.",
+      "launch_path": "N/J:404 first runs main:323-325 and location:52-64. N/J:429 later executes run:239, writes WAITING_REVIEW at :277, polls at :279-308, and admits review at :306 before N/J:434 can train.",
+      "named_refusal": "Yes for the first invocation: rv.py:55/:60/:62 R1_REVIEW_FILE_UNUSABLE; seal can raise E13. N/J:404 command substitution fails under set -e. Later review failures publish REVIEW_REFUSED.json and print named R1_REVIEW_* codes at :309-313.",
+      "discovery_173567_witness": "No success log line is printed for WAITING_REVIEW; it is an artifact. The --live pathname stdout is captured by the shell. Check live/WAITING_REVIEW.json for the new job identity. QD cannot prove N review polling because its bytes differ.",
+      "ground_reason": "Literal file-level ground ii: the final --live path executes and refuses by name before preparation. This does NOT establish dynamic coverage of the later review wait/acceptance branch.",
+      "minimal_targeted_test": null,
+      "limitations": "If the ruling requires the changed wait branch itself rather than the first execution of the file, add a final-byte bounded review test for missing/invalid/PASS receipts, identity binding and timeout. No such branch test is claimed here."
+    },
+    {
+      "file": "b/sc.py",
+      "sha256": {
+        "tree": null,
+        "qd": "44b6561f2fe1ed780c8fd98a7bff306902b150d80575348c7bfa4d85416d8f9f",
+        "q": "44b6561f2fe1ed780c8fd98a7bff306902b150d80575348c7bfa4d85416d8f9f",
+        "n": "44b6561f2fe1ed780c8fd98a7bff306902b150d80575348c7bfa4d85416d8f9f",
+        "n_go": "44b6561f2fe1ed780c8fd98a7bff306902b150d80575348c7bfa4d85416d8f9f"
+      },
+      "qd_equals_n_go": true,
+      "q_equals_n_go": true,
+      "n_equals_n_go": true,
+      "proposed_ground": "ii",
+      "status": "STATIC_ORDER_ESTABLISHED",
+      "no_ground_i_or_ii": false,
+      "first_launch_execution": "N/b/pl.py:219 imports bind and :231 calls it during planning.",
+      "relative_to_preparation": "before",
+      "discovery_path": "QD/pl.py:240 calls sc.bind in q mode (r mode skips the all-stream scene block); sc.py:43 executes the native child rebuild/verify at :57-59.",
+      "launch_path": "N/b/pl.py:216-240 is active because r2_all_stream_exclusions=true and mode=q; it must return before a.py:54 enters the proof.",
+      "named_refusal": "Yes: sc.py:18 R1_SCENE_SOURCE_COUNT_DIFFERS, :25 R1_SCENE_SOURCE_POPULATION_MISSING:<name>, :37 R1_BINARY_MISSING:bwrap. Child rebuild errors propagate via subprocess.run(check=True) and appear in q.log.",
+      "discovery_173567_witness": "q.log line scene rebuild seconds=<number> (sc.py:44) proves the child was attempted, even on failure; require the later {\"ok\": true} and authenticated s0.json/s1.json to establish successful rebuild.",
+      "ground_reason": "The configured scene-binding stage executes synchronously and has named refusal checks before native preparation.",
+      "minimal_targeted_test": null,
+      "limitations": null
+    },
+    {
+      "file": "b/sv.py",
+      "sha256": {
+        "tree": null,
+        "qd": "d19658c76284b0029c8c6b3e39da07962959fda26c95fc7f408da8ca300a5b2c",
+        "q": "d19658c76284b0029c8c6b3e39da07962959fda26c95fc7f408da8ca300a5b2c",
+        "n": "d19658c76284b0029c8c6b3e39da07962959fda26c95fc7f408da8ca300a5b2c",
+        "n_go": "d19658c76284b0029c8c6b3e39da07962959fda26c95fc7f408da8ca300a5b2c"
+      },
+      "qd_equals_n_go": true,
+      "q_equals_n_go": true,
+      "n_equals_n_go": true,
+      "proposed_ground": "i",
+      "status": "PENDING_DISCOVERY_EVIDENCE",
+      "no_ground_i_or_ii": false,
+      "first_launch_execution": "N/b/a.py:58 calls cs.publish only after production_proof returns ADMIT; cs.py:98 imports classifier and :101 creates it.",
+      "relative_to_preparation": "after",
+      "discovery_path": "QD/b/a.py:52 calls cs.publish; cs.py:98/:101 uses sv.classifier and :72 imports STATUSES. rv.py also consumes scene classification later. sv.publish itself is not the active census entrypoint.",
+      "launch_path": "After proof completion, cs.publish:154 calls emit:101 and evaluate:79 for every admitted row. h.py verifies the census and rv.py uses it for review.",
+      "named_refusal": "Yes, after preparation: sv.py:52/:57 R1_CENSUS_ROOM_UNRESOLVED:<stream>; cs.py:79-91 records classifier refusals and :119 raises them for a launch kit. This cannot supply ii.",
+      "discovery_173567_witness": "Published q.log (physical Q_ROOT/q.log): the line {\"ok\": true} from QD/b/a.py:71, after production_proof.run and cs.publish return. Also retain q0.json status ADMIT and the job/kit manifest binding. This is a downstream execution witness, not a per-function trace. Retain live/c4.json with all four stream records and protected-row counts; it is an artifact proving classifier use by cs, not a line emitted by sv.",
+      "ground_reason": "QD and N/N_GO have identical sv.py; discovery q census calls its actual classifier. Ground i is pending successful q/census evidence.",
+      "minimal_targeted_test": null,
+      "limitations": null
+    },
+    {
+      "file": "b/z.py",
+      "sha256": {
+        "tree": null,
+        "qd": "f999c5d51673e6999c2658e93dabd8f720315c4598b16f5bbdfbd24b8f2dea58",
+        "q": "f999c5d51673e6999c2658e93dabd8f720315c4598b16f5bbdfbd24b8f2dea58",
+        "n": "f999c5d51673e6999c2658e93dabd8f720315c4598b16f5bbdfbd24b8f2dea58",
+        "n_go": "f999c5d51673e6999c2658e93dabd8f720315c4598b16f5bbdfbd24b8f2dea58"
+      },
+      "qd_equals_n_go": true,
+      "q_equals_n_go": true,
+      "n_equals_n_go": true,
+      "proposed_ground": "ii",
+      "status": "STATIC_ORDER_ESTABLISHED",
+      "no_ground_i_or_ii": false,
+      "first_launch_execution": "N/job.sh:27 executes v.py:4-5, importing z.seal and printing the kit manifest hash, before pc.sh or x.py.",
+      "relative_to_preparation": "before",
+      "discovery_path": "QD/job.sh:25 executes v.py and z.seal. QD/job.sh:27 executes x.py:4-5, which calls z.bootstrap:576-603 and launch_shell:605-608. z also handles staging, screening, room_report and evidence helpers.",
+      "launch_path": "N/job.sh:27 then :29 runs v.py/x.py. z.bootstrap verifies/decodes k/j.json and starts its staging shell. All of this precedes native preparation. ep.py also uses z.load/screen at copier shutdown.",
+      "named_refusal": "Yes: z.py:47 E13 for seal mismatch; :28 E10 for a pin mismatch; :543 E48 for naming; :600 E38 for decoded staging-shell mismatch. v.py runs under job.sh set -e.",
+      "discovery_173567_witness": "The first outer-log line should be e7f3239497a8c7a8eb8431433b322e1a526e2f26114f416e129e7e179da4b438 (v.py:5). A later stage full on ... line proves bootstrap launched decoded J. Supplied 173555.log:1 instead prints 44aeea13..., so it is not this kit binding.",
+      "ground_reason": "Final z.seal executes synchronously before preparation and refuses by code. The lane tk_live_finish test can also exercise z.load/screen through ep.py, but this row selects ii only.",
+      "minimal_targeted_test": null,
+      "limitations": null
+    },
+    {
+      "file": "b/ep.sh",
+      "sha256": {
+        "tree": null,
+        "qd": "24d3fa88e3dd2cc177b938b450031433917ba8e5d50e1f8c9d1cd83f1c43dbaf",
+        "q": "24d3fa88e3dd2cc177b938b450031433917ba8e5d50e1f8c9d1cd83f1c43dbaf",
+        "n": "24d3fa88e3dd2cc177b938b450031433917ba8e5d50e1f8c9d1cd83f1c43dbaf",
+        "n_go": "24d3fa88e3dd2cc177b938b450031433917ba8e5d50e1f8c9d1cd83f1c43dbaf"
+      },
+      "qd_equals_n_go": true,
+      "q_equals_n_go": true,
+      "n_equals_n_go": true,
+      "proposed_ground": "i",
+      "status": "PENDING_DISCOVERY_EVIDENCE",
+      "no_ground_i_or_ii": false,
+      "first_launch_execution": "Not sourced by N/N_GO job.sh; those source pc.sh at :28.",
+      "relative_to_preparation": "not-on-normal-launch-path",
+      "discovery_path": "QD/job.sh:26 sources ep.sh before x.py. ep.sh:16-18 installs traps, :19 starts ep.py --loop; at exit tk_evidence_finish:13 invokes ep.py after optional worker termination.",
+      "launch_path": "The file is present with identical bytes but unused in the normal launch. pc.sh owns launch shutdown.",
+      "named_refusal": "No named synchronous preparation gate in ep.sh. ep.py failures in its final call are ignored with || true.",
+      "discovery_173567_witness": "A 173567 outer-log stage full on ... line after its kit hash proves QD/job.sh advanced past source ep.sh:26 to x.py:27. This establishes source-time script execution only. No unique ep.sh success/exit line exists; final r1.json plus the traced exit path is needed for shutdown evidence.",
+      "ground_reason": "The QD job executes the same shell bytes by sourcing them; i is pending the new job log binding. Do not count ep.sh as the launch copier trap.",
+      "minimal_targeted_test": null,
+      "limitations": "This file-level source-execution ground does not claim that TERM/USR1 trap branches were tested."
+    },
+    {
+      "file": "b/pc.sh",
+      "sha256": {
+        "tree": null,
+        "qd": null,
+        "q": null,
+        "n": "e4ede6baaa213ba7b8fc814753c2dfc76a900e298125fb48948cc2eab7cbe036",
+        "n_go": "e4ede6baaa213ba7b8fc814753c2dfc76a900e298125fb48948cc2eab7cbe036"
+      },
+      "qd_equals_n_go": false,
+      "q_equals_n_go": false,
+      "n_equals_n_go": true,
+      "proposed_ground": "iii",
+      "status": "NEEDS_TARGETED_TEST",
+      "no_ground_i_or_ii": true,
+      "first_launch_execution": "N/job.sh:28 sources pc.sh before x.py:29; this installs tk_live_finish traps and starts asynchronous copier children.",
+      "relative_to_preparation": "source-before-shutdown-after",
+      "discovery_path": "Absent from qd/q. QD/job.sh sources ep.sh instead.",
+      "launch_path": "pc.sh:33-35 installs EXIT/TERM/USR1 traps; :36/:38 starts copier workers. At exit tk_live_finish:9 drains signalled work, :17-23 stops copier groups, :25/:28 publishes final/small, :30 runs ep.py, :31 exits with work status.",
+      "named_refusal": "No named fail-closed pre-preparation check; background children are not awaited before work begins, and shutdown copy/publication failures use || true. Sourcing alone cannot satisfy ii for this shutdown path.",
+      "discovery_173567_witness": "None: discovery does not contain or source this shell.",
+      "ground_reason": "NONE under i/ii. The lane targeted test must invoke tk_live_finish using the exact final bytes.",
+      "minimal_targeted_test": "Use the same final-byte tk_live_finish test specified for pc.py. Verify ordering (work drain, both copier groups stopped and reaped, final/small publication, ep.py), preserved nonzero work status, successful-work status, and timeout fallback. Require recorded hashes for pc.sh, pc.py, ep.py and z.py plus explicit path outcomes; do not substitute ep.sh or merely import Python modules.",
+      "limitations": null
+    }
+  ],
+  "required_targeted_tests": [
+    "b/h.py",
+    "b/o.py",
+    "b/pc.py",
+    "b/rd.py",
+    "b/pc.sh"
+  ],
+  "handover_call_chain": [
+    "N/job.sh:29 calls b/x.py:5; z.bootstrap:599-603 writes decoded k/j.json and launch_shell:606 runs it.",
+    "N/J:397 stages inputs; :404 executes rv.py --live; :414 invokes a.py q.",
+    "N/b/a.py:49 calls plan_payload; :54 calls production_proof.run; production_proof.py:197 enters _run.",
+    "production_proof.py:130 calls p_opener_witness.produce; p_opener_witness.py:42 authenticates the donor and :43 calls r1_handover.compare_configs (:149-186). This is the first explicit donor/target configuration comparison on the proof path.",
+    "production_proof.py:132 calls r1_handover.bind_target; bind_target:39-40 repeats donor authentication and compare_configs.",
+    "Only afterward, production_proof.py:142-143 calls s1_admission.admit(..., prepare_only=True). Its prepare phase starts at s1_admission.py:245/:184; carrier_c1_run.prepare is called at :225.",
+    "Handover work repeats inside that phase at s1_admission.py:223-224, after stream rebuilds, and after preparation at production_proof.py:158-160. Those later calls do not change the earlier check order.",
+    "A compare_configs failure is named (P_EXPORT_CONFIG_DIFFERENCE:<key>, P_EXPORT_LR_SCHEDULE_MISMATCH:<key>, or P_EXPORT_ROUTING_OPENER_KEEP_REQUIRED:routing_opener_init), caught into RESULT.refusal at production_proof.py:181-185, returned by a.py with nonzero status at :78, and prevents the native preparation call. entry.admit is later at u.py:20 and is not the basis for this claim."
+  ],
+  "notes": [
+    "This audit only reads supplied files and writes under cov24c1. It does not execute kit code, launch jobs, query job state, run targeted tests, or verify remote publication. 173567 is the requested future witness source; its logs were not supplied or fetched.",
+    "Ground ii is the ruling\u2019s literal file-first-execution criterion, established from source order and named fail-closed checks. It is not full branch coverage. Ground i remains pending an actual same-kit execution witness. Ground iii remains pending the final-byte test receipt; the task says the lane runs the copier test but supplies no result.",
+    "Preparation start means entry into the native admission/preparation workflow at production_proof.py:142, conservatively earlier than s1_admission.prepare_phase or carrier_c1_run.prepare. Earlier staging, pool refresh, scene rebuild, and direction-twin augmentation are real work; this report does not claim they are cost-free.",
+    "All 22 target-file hashes match between N and N_GO. QD differs from N_GO for a.py, h.py, o.py, pl.py and rv.py; pc.py and pc.sh are absent. All four tree files match the working tree and the archive members in all four kits. The shared archive SHA256 is ecf3de4ade6f9a81f678a14a522767b4c4f8184b9d2862cb29a4b6d2244b8a08; its configured tree seal is 0c7614c8eff74201db275489af9c3fa11f3b418693a0239b793e6322685298de.",
+    "173555.log:1 binds manifest 44aeea13..., not QD e7f32394.... Lines 89-91 show stage full done and overlays; :92 says work exit 1; :93 says dbb none. Its .steps:66-68 likewise ends at staging/overlays. It contains no r/q success, scene rebuild, census, or review witness. Do not promote it into final-kit coverage.",
+    "Successful a.py output is redirected: mode r goes to dr/q.log and is published by ep.py as r.log; mode q goes to q.log. The outer job log alone cannot prove preparation. WAITING_REVIEW.json, c4.json, host.json and r1.json are artifacts, not log lines. No success line should be invented for a silent function.",
+    "The supplied N and N_GO k/h.json still hold routing_selection={required_parameter:R1_ROUTING_SELECTION_PIN_MISSING}. N/pl.py:18-20 refuses this before preparation. Later call chains are conditional on valid authenticated resolved inputs and this gate passing; this coverage audit does not authorize or assert launch readiness.",
+    "N/job.sh sources pc.sh and starts the copier before staging. o.py is an explicit end-of-shell call, not an EXIT trap; ep.py is the inner-shell EXIT handler, and pc.sh owns the outer shutdown trap. Normal mode q does not execute rb.py, rg.py or rd.py. Discovery executes rb.py/rg.py in mode r but never calls rd.py.",
+    "QD/rv.py returns immediately after WAITING_REVIEW.json (:279). N/rv.py instead polls and may accept/refuse review. Its selected ii ground covers --live before preparation, not the changed wait loop. A branch-level standard would require a separate bounded final-byte wait/accept/refuse test.",
+    "hc_out.json/hc.py enumerate the requested 18 kit runtime differences and four non-test tree differences against run4. LOOP_HASHES.json has only 18 of these 22 rows: it omits h.py, o.py, rd.py and ep.sh. Its 18 present launch hashes all equal the final bytes; the audit uses the complete 22-file ruling, not the narrower loop closure. The recompute script was read, not run."
+  ],
+  "input_checks": "INPUT_CHECKS.json",
+  "loop_comparison": "LOOP_COMPARISON.json",
+  "test_execution": "NOT_RUN",
+  "discovery_173567_observed": false,
+  "copier_test": {
+    "status": "LANE_TEST_DESCRIBED_BUT_NO_RESULT_SUPPLIED",
+    "required_executables": [
+      "b/pc.sh",
+      "b/pc.py",
+      "b/ep.py",
+      "b/z.py"
+    ],
+    "entrypoint": "tk_live_finish",
+    "selected_ground_iii_for": [
+      "b/pc.sh",
+      "b/pc.py"
+    ],
+    "supplementary_execution_for": [
+      "b/ep.py",
+      "b/z.py"
+    ]
+  }
+}

@@ -1,5 +1,5 @@
-# n_ops1 batched Orchard check (read-only). Placeholders: 0 (job id or 0), - (cached metrics path or -)
-export TZ=UTC; J=0; MP='-'; X=/project/community/jjyeung/okh7/x_22c714e1
+# n_ops1 batched Orchard check (read-only). Placeholders: 173567 (job id or 0), - (cached metrics path or -)
+export TZ=UTC; J=173567; MP='-'; X=/project/community/jjyeung/okh7/x_22c714e1
 echo "@@NOW $(date -u +%FT%TZ)"
 echo "@@SQ"; squeue -u $USER -h -o "%i|%j|%P|%T|%M|%l|%L|%R|%N|%S"
 echo "@@NEWEST $(ls $X/j/ 2>/dev/null | grep -E '^[0-9]+\.out$' | sort -n | tail -1)"
@@ -20,7 +20,7 @@ if [[ $J != 0 ]]; then
  if squeue -j $J -h -o %T 2>/dev/null | grep -q RUNNING; then
   echo "@@NODE"
   timeout 150 srun --overlap --jobid $J -n1 -N1 timeout 120 nice -n 19 bash -s <<'INNER' 2>&1 | cut -c1-600
-J=0; MP='-'
+J=173567; MP='-'
 Q=/tmp/q_22c714e1_$J; [[ -d $Q ]] || Q=${SLURM_TMPDIR:-/tmp}/q_22c714e1_$J
 echo "@@Q $Q $(test -d $Q && echo present || echo absent)"
 echo "@@TMPDF $(df -BG --output=avail /tmp | tail -1 | tr -d ' G')"
@@ -68,5 +68,10 @@ INNER
  fi
 fi
 echo "@@EXTRA"
-true
+X=/project/community/jjyeung/okh7/x_22c714e1
+echo "--sha"; sha256sum $X/qd/b/resolve.py $X/n/b/resolve.py $X/n/b/l.py $X/qd/b/l.py | cut -c1-100
+echo "--qos"; scontrol show partition advanced 2>/dev/null | grep -E "QoS|MaxNodes|TRES" | head -5; sacctmgr -n -P show qos format=Name,MaxTRESPerUser,MaxJobsPU,GrpTRES 2>/dev/null | head -12
+echo "--assoc"; sacctmgr -n -P show assoc user=$USER format=Partition,QOS,MaxTRES,GrpTRES 2>/dev/null | head -8
+echo "--lpy"; head -c 1500 $X/n/b/l.py
+echo "--q567"; ls -la $X/o/173567/ | tail -n +4; wc -c $X/o/173567/q.log
 echo "@@END"

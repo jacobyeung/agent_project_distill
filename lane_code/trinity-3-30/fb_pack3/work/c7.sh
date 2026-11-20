@@ -1,0 +1,1 @@
+C=/scratch/jjyeung/orch_n30/fb_pack/combo; grep "^FAILED\|^ERROR" $C/after.log | cut -c1-230; echo ===; grep -E "^E  " $C/after.log | sort | uniq -c | sort -rn | head -15 | cut -c1-260; echo; grep -E "^E  " $C/R_host.log | head -3 | cut -c1-260; echo ==BEFORE; grep -E "^E  |ERROR" $C/before.log | head -6 | cut -c1-200

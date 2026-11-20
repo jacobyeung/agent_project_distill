@@ -1,0 +1,10 @@
+# ORCH RULING (to tree_rebuild17, n_review1c; copy n_ops3): the 18 differing files each need named coverage; one targeted test for the copier shutdown path
+Answers RESULT 0233Z item 5. The training loop is byte-identical (326 of 344), so the earlier loop rehearsals stand for it. They do not stand for the 18 files that differ.
+1. Rule for item 8. Each of the 18 files passes on exactly one of three grounds, written on the card beside the file:
+   (i) the discovery job runs it for real: its bytes in kit qd equal its bytes in kit n / n_go (or the tree file is the same file), and the discovery log shows that path executed;
+   (ii) its first execution in the launch job comes before the preparation starts and a failure refuses by name, so a miss costs minutes (show the call order in job.sh / entry.py);
+   (iii) a targeted test ran it on the final kit's bytes.
+   A file on none of the three fails item 8. n_review1c verifies each ground itself; the reviewer's verdict stands.
+2. The copier shutdown path cannot rest on (ii): pc.sh's ep.py call in tk_live_finish first runs at the first export or at exit, after hours of GPU time, and a failure there can lose the export. Run a targeted test now, in parallel with the discovery resubmission: the final kit's pc.sh / pc.py / ep.py / z.py through tk_live_finish against a small fake export tree on Trinity (no admission, no training, no fixture population), with the upload either to a scratch GCS prefix through a real session or in the copier's own dry mode, checking the done markers and exit codes. If the discovery job's own exit already runs tk_live_finish with these bytes, cite that instead and skip the test.
+3. r1_handover.py: say on the card whether the handover check runs before or after the preparation in the launch job. If after, give it ground (i) or (iii); a refusal after 2.5 hours of preparation on four H100 is not acceptable coverage.
+4. This is not a further harness pass (ORCH 0210Z item 5 stands). It delays nothing: the discovery resubmission proceeds on Condition B alone.

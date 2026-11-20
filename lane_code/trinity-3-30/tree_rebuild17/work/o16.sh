@@ -1,0 +1,1 @@
+X=/project/community/jjyeung/okh7/x_22c714e1; date -u +%TZ; echo BEGINU; ls -l $X/u | awk 'NR>1{print $5" "$9}'; echo ENDU; echo BEGINLOG; cat $X/j/a15_cot_ap24d9b8e2_173555.log; echo ENDLOG; echo BEGINSTEPS; cat $X/o/173555/q.steps; echo ENDSTEPS

@@ -1,0 +1,10 @@
+# Short re-check (read-only, once) of KIT build 24m4f of lane tree_rebuild: your MUST and SHOULD on 24m4d
+
+You review; you do not fix. Run once, read-only, on trinity-1-18; nobody answers questions. Report only verified problems with file:line and evidence. Final message is the verdict.
+
+- Your review of 24m4d: `/home/jjyeung/agent_project_distill/agent/scratch/codex_runs/20261120T020130Z_tree_rebuild_rev24m4d/final_message.md` (MUST: arm_routing.py does not authenticate the reviewed selection; SHOULD: 190 package members omitted).
+- Since then: 24m4e (`/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24e/out/BUILD24M4E_REPORT.md`, package `tree_rebuild_b24m4e_737062d4.tar`: catalog eac5f9f0 bound as staged pin in k/p.json of all four kits) and 24m4f (`w24e/out/BUILD24M4F_REPORT.md`, `DELIVERY_24M4F.json`, package `w24e/out/tree_rebuild_b24m4f_26fb868d.tar`, `w24e/out/arm_routing.py`, `w24e/out/ARM_ROUTING_USAGE.md`; prompt `/scratch/jjyeung/orch_n30/tree_rebuild10_w/prompts/build24m4f.md`). Kits: `w24e/out/kit_n_go`, `w24e/out/kit_qd`, `w24e/work/build24/kits/{q,n}`.
+
+Verify: (1) arm_routing refuses without --reviewed-selection-sha256, --reviewed-regenerated-sha256 and a --review-verdict file containing both hashes and PASS, and on any mismatch, including your fabricated-selection probe ("e"*64) and altered counts/digests; it refuses when the selection's regenerated_sha256 differs from the DB sha256; a matching selection binds the selection and the DB pin and prints armed seals and the armed kit_n_go k/c.json payload sha256; (2) the 24m4f package holds every 24m4c member not intentionally replaced; (3) 24m4e's change is only the catalog pin in k/p.json plus dependent seals (diff 24m4d -> 24m4e kits); (4) the four kit seals are unchanged by 24m4f; (5) what you did not check.
+
+Rules: Read-only. No ssh, network, GPU, Git, tmux, scheduler or another agent. Never list, search or grep on /home or /data* (read only the named files there). nice -n 10, at most 8 threads, under 20 GB RAM. First line `GO`, `GO AFTER FIXES` or `NO-GO`; at most 15 lines.

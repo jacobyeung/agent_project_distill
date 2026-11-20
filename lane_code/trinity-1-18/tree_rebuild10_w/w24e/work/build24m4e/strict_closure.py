@@ -21,8 +21,10 @@ records=[]
 expected='Missing or changed pinned input: /tmp/f/payload/a67a3f6f489031d4163b75dbae45d665a05fecf4dcbe6f2f33b0dee6567de7b5'
 for ix,name in enumerate(('q','n','n_go','qd')):
  for j,mode in enumerate(('r','q')):
-  r=run(name,mode,500+ix*2+j);assert r['refusal']==expected,r['refusal']
-  assert 'pl.py", line 182' in r['traceback']
+  number=500+ix*2+j;rp=F/(name+'_'+mode+'_'+str(number))/'result.json'
+  r=J.load(rp) if rp.is_file() else run(name,mode,number)
+  r.update(kit=name,round=number);assert r['refusal']==expected,r['refusal']
+  assert 'refreshed=refresh(refresh_request' in r['traceback']
   assert any(c['sha256']==cat and c['size']==74599 and not c['boundary'] for c in r['calls'])
   r['final_kit_seal']=J.seal(kit(name));records.append(r)
 # Catalog and both catalog maps contain only inventory-authenticated pins.

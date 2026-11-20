@@ -1,0 +1,4 @@
+C=/scratch/jjyeung/orch_n30/fb_pack/combo; PY=/scratch/jjyeung/envs/p1cpu/bin/python; mkdir -p $C/tmp $C/lto_before $C/lto_after
+T="tests/test_r1_patch_a2.py tests/test_r1_subset.py tests/test_scale_donor.py tests/test_r1_camera_trace_form.py tests/test_r1_camera_trace_form2.py"
+for t in $T; do (cd $C/Rt && TMPDIR=$C/tmp LANE_TEST_OUTPUT=$C/lto_before OMP_NUM_THREADS=8 PYTHONPATH=. timeout 600 nice -n 10 $PY -B -m pytest -q -p no:cacheprovider $t > $C/before_$(basename $t .py).log 2>&1; echo "BEFORE $t rc=$? $(tail -1 $C/before_$(basename $t .py).log)"); done
+(cd $C/X && TMPDIR=$C/tmp LANE_TEST_OUTPUT=$C/lto_after OMP_NUM_THREADS=8 PYTHONPATH=. timeout 900 nice -n 10 $PY -B -m pytest -q -p no:cacheprovider $T tests/test_host24l4t.py tests/test_host24l4s.py > $C/after2.log 2>&1; echo "AFTER rc=$?"; grep "^FAILED\|^ERROR" $C/after2.log | cut -c1-200; tail -1 $C/after2.log)

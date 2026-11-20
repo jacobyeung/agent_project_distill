@@ -21,7 +21,7 @@ def replace(p,raw,mode=None):
    # Keep retained bytes and detach any hardlinked delivery input.
    old2=old.with_name(old.name+"."+str(__import__("time").time_ns()));p.rename(old2)
  p.write_bytes(raw.encode() if isinstance(raw,str) else raw)
- if mode is not None:p.chmod(mode)
+ p.chmod(0o644 if mode is None else mode)
 
 def capsule(v):
  raw=v if isinstance(v,bytes) else (json.dumps(v,sort_keys=True,indent=2)+"\n").encode()

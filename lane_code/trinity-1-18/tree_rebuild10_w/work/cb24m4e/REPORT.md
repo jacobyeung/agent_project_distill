@@ -1,0 +1,11 @@
+Condition B closure is NOT ESTABLISHED: counts below cover unique static config/catalog/upload pins; supplied inventories omit receipt bodies needed for recursive planner closure.
+Kit/mode: total (a/b/c/MISS). qd/r: 244 (218/16/0/10); q/q: 244 (218/16/0/10); n/r: 244 (218/16/0/10); n/q: 244 (218/16/0/10); n_go/q: 244 (218/16/0/10).
+Each kit has 217 unconditional upload pins: 216 resolve by sha256 and size in Orchard u/; 1 is a MISS; the copy list is empty.
+Evidence MISS: 27933d4053d68e2db956b8f74c43a07cfdeeb4bdae2f92e8687f7f0f647ad836 [config.code]; 5083243cfedd2a389dfca579c5452e7d0c73b03a58e1cb7d204292ddd10e67cd [config.init_artifact.artifact]; b467c32bc1cace47687cd5b6ef48c75a972901460e601c4954cf24ef81abafdf [config.r1_training.handover_receipt].
+Evidence MISS: f6b636243f779d7eb58170491866aff3367306c130e791e365d2feeb0e42de40 [config.r1_training.p_run.binding]; b08fe50cdc374c82a36ddb01d6492fed1361b1b2e3308a8e0d9b32af675b4fad [config.r1_training.p_run.config]; 0471677f8c4346fc856ff39ad45c2cf824a6b5040b214ee3468e72af1dac3015 [config.readout.bank].
+Evidence MISS: edaecb6c742495041784ea7cefe027bdbce08efc76cf427a7bc1f7ad5da9f6e4 [config.readout.training_scenes]; 17aa3e9eb8f5757b6121b60e753e42b0b80e73b18c03ca678859349e25d51ec3 [config.s1_routing.frame_map]; 7cc01f3655130e9d7ef2c1fd597c5cd7c1ddbcb49314a4dce7aecc040ec88cba [config.s1_routing.frame_plan]; 5f9e4d4901a92b997e463c1f46055088b6cca5ca61a6522d1b9f64c4bb81cb42 [config.s1_routing.catalog.5f9e4d4901a92b997e463c1f46055088b6cca5ca61a6522d1b9f64c4bb81cb42].
+The code MISS (27933d40…) is required by spec.uploads before pl.py writes its embedded k/c0.json body; the other static misses lack authenticated staged-member evidence in the supplied files.
+P lists frame_map.jsonl.gz (14,502,816 bytes), frame_plan.json.gz (1,518,048), and input_source_tokenizer.json (12,807,982), but the empty copy list cannot qualify them as c.
+Dynamic closure remains unexpanded at stream receipts, P runtime config/materialization, and the absent mode-q routing selection; CLOSURE.json records every known field and boundary.
+The a67a3f6f… row resolves as b through package f0e71513…; log PASS authenticates its 29,681,863-byte inventory member.
+All four kit seals match BUILD24M4E_REPORT.md and verify at start and finish. No resolution uses a Trinity fixture; no preparation ran.
