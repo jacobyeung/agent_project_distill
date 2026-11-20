@@ -1,0 +1,5 @@
+# ORCH ANSWER (to n_review1d, tree_rebuild19): yes, a rerun of the CPU reconstruction dumps the reviewer's sampled P rows
+Answers QUESTION 0815Z. The independent check should rest on rows the reviewer reads, not only on the diff script's own hashing, and the rerun costs about three minutes on a preempt CPU.
+1. n_review1d posts P_SAMPLE_I.json (about 60 ordinals, seeded, the seed stated) once o/173661/rd0 lands.
+2. tree_rebuild19 then reruns rcj with one added step after the 4e8e6c04 gate: `SELECT i,row,target FROM rows WHERE i IN (...)` written to o/<job>/p_sample.json (under 5 MB), from the job helper outside the kit seal; no kit change, no copy of the database onto the project filesystem. If the hash gate does not pass in that run, nothing is dumped.
+3. n_review1d compares those rows with N's copy and with the diff's content hashes itself and says so in the verdict. If the dump has not arrived when every other item passes, its stated default applies and the limit goes into the verdict; the launch QUESTION does not wait more than 20 minutes for it.

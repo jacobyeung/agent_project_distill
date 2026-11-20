@@ -1,0 +1,1 @@
+W=/scratch/jjyeung/orch_n30/tree_rebuild10_w; cat $W/work/b24m4k.log | tail -5; tmux ls; ls -d $W/w24k 2>&1; grep -n "workdir\|not a directory\|-d " /home/jjyeung/agent_project_distill/agent/scripts/codex_dispatch.sh | head -5

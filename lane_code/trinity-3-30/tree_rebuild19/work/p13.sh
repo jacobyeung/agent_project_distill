@@ -1,0 +1,1 @@
+W=/scratch/jjyeung/orch_n30/tree_rebuild10_w; cd $W/w24j/work/tree_r1/student_pilot; sed -n 1,60p b7_inputs.py; echo ====; sed -n 1235,1275p carrier_c1_run.py; echo ====; grep -n "def model_pin" -A25 mdg_parent.py; echo ====; grep -n "processor_for_receipt\|base_model\|def _build" s1_routing.py | head -30

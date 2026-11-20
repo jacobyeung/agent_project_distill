@@ -45,3 +45,9 @@
 - ORDER 0604Z done: K1 inputs 684 files 2.62 GB 1-18 -> 2-28 anchor_kill1/k1_inputs, 10 sha match; RESULT events/anchor/20261120T0621Z_*.
 - Codex round 4 DONE (STAGES_T2); round 5 RUNNING (tmux c24_r5 on 2-28; BRIEF_R5.md: camera convention / frame binding vs GT NPZ).
 - 64-frame arm 173646 RUNNING orchard-community-1, 33/160 at 06:40Z, ETA ~07:40Z. After it: fetch (g5/orchard_dense/o_fetch.sh), gpull (work/gpull.sh ... dense.gz), score_ceiling --dense-capture (REPORT3 command) on 2-28; then T1: CPU check (g3/orchard_t1/o_cpu.sh, general) + hand submit (o_sub_hand.sh with __T__=a52c1dcfae7bb).
+## 08:01Z (exact)
+- Dense arm DONE: 173646 COMPLETED 64 min; RESULT 0731Z (-2.0 [-7.2,+3.0]; primary -2.9). Files events/cont_ops/files_dense/. Capture 2-28 cap/dense.gz (sha 665b2ebb…), GCS gen 1795159385742121. Stream record renamed .done.
+- ORCH NOTE 0735Z: no more dense arms; camera check (round 6) is the priority; BLOCKER if the reader's cameras are wrong on a class of captures. ORCH ORDER 0729Z (to n_ops5, copy): /project free space falling ~100 MB/s from other causes; ours adds ~38 MB installed in 7 package dirs, returns < 1 MB.
+- Round 5 DONE (no axis/inversion convention repairs alignment; frame_indices match; report copied to files_t2/CAMERA_CONVENTIONS_REPORT5.md). Round 6 RUNNING (tmux c24_r6 on 2-28; NPZ self-consistency + S2 split), not finished at 08:00Z.
+- T1: CPU 173659 passed; GPU job 173662 RUNNING orchard-community-1 since ~07:37Z; 59/160 records at 07:59Z; ETA ~08:30Z. Monitors c24_monT1, c24_monPT1.
+- Successor brief written: B/briefs/cont_ops25_d.md (fetch/pull/score steps for T1; camera BLOCKER criteria).

@@ -1,0 +1,1 @@
+X=/project/community/jjyeung/okh7/x_22c714e1; ls -la $X/u/4e8e6c04* $X/u/.4e8e* 2>&1 | head; ls -la $X/u | sort -k5 -n | tail -4 | cut -c25-; grep -o '"4e8e6c04[0-9a-f]*"' $X/qd/k/*.json $X/n/k/*.json 2>/dev/null | head -5; grep -l "4e8e6c04" $X/qd/k/* $X/n/k/* 2>/dev/null

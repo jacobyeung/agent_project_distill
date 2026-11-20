@@ -1,0 +1,1 @@
+export TZ=UTC; date -u +%TZ; timeout 60 srun --overlap --jobid 173661 -n1 --cpus-per-task=1 --mem=1G nice -n 19 bash -c 'ps -u $USER -o pid,etime,pcpu,rss,args --sort=start_time | cut -c1-260 | tail -25; N=/tmp/q_22c714e1_173661; ls -la $N/dr/p/q 2>/dev/null | head -20; ls -la $N/dr/p/q/base $N/dr/p/q/selection 2>/dev/null'
