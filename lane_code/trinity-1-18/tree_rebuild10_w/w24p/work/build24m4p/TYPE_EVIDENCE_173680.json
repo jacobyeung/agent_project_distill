@@ -1,0 +1,184 @@
+{
+  "examples": {
+    "FAIL": {
+      "database_sha256": null,
+      "rows_by_type": {
+        "absolute_distance": 10945,
+        "camera_displacement": 14020,
+        "camera_movement_direction": 12260,
+        "camera_rotation": 5158,
+        "units": 718
+      },
+      "rows_per_step": 64,
+      "schema": "rt-v1",
+      "status": "FAIL",
+      "total_rows": 43101,
+      "types": [
+        {
+          "P_quota": 18.25,
+          "absolute_percent_off": 14.071662832092699,
+          "expected_rows_per_step": 20.818078466856917,
+          "percent_off": 14.071662832092699,
+          "rows": 14020,
+          "status": "FAIL",
+          "type": "camera_displacement"
+        },
+        {
+          "P_quota": 15.88,
+          "absolute_percent_off": 14.639055578961424,
+          "expected_rows_per_step": 18.204682025939075,
+          "percent_off": 14.639055578961424,
+          "rows": 12260,
+          "status": "FAIL",
+          "type": "camera_movement_direction"
+        },
+        {
+          "P_quota": 12.53,
+          "absolute_percent_off": 38.87443389386272,
+          "expected_rows_per_step": 7.659033433099,
+          "percent_off": -38.87443389386272,
+          "rows": 5158,
+          "status": "FAIL",
+          "type": "camera_rotation"
+        },
+        {
+          "P_quota": 16.34,
+          "absolute_percent_off": 0.5381938986668188,
+          "expected_rows_per_step": 16.25205911695784,
+          "percent_off": -0.5381938986668188,
+          "rows": 10945,
+          "status": "PASS",
+          "type": "absolute_distance"
+        },
+        {
+          "P_quota": 1.0,
+          "absolute_percent_off": 6.614695714716601,
+          "expected_rows_per_step": 1.066146957147166,
+          "percent_off": 6.614695714716601,
+          "rows": 718,
+          "status": "PASS",
+          "type": "units"
+        }
+      ],
+      "units_rows_per_step": 1.066146957147166,
+      "units_type": "units",
+      "unknown_types": {}
+    },
+    "PASS": {
+      "database_sha256": null,
+      "rows_by_type": {
+        "absolute_distance": 10945,
+        "camera_displacement": 12400,
+        "camera_movement_direction": 10800,
+        "camera_rotation": 8238,
+        "units": 718
+      },
+      "rows_per_step": 64,
+      "schema": "rt-v1",
+      "status": "PASS",
+      "total_rows": 43101,
+      "types": [
+        {
+          "P_quota": 18.25,
+          "absolute_percent_off": 0.8907716917225064,
+          "expected_rows_per_step": 18.412565833739357,
+          "percent_off": 0.8907716917225064,
+          "rows": 12400,
+          "status": "PASS",
+          "type": "camera_displacement"
+        },
+        {
+          "P_quota": 15.88,
+          "absolute_percent_off": 0.9870962685793786,
+          "expected_rows_per_step": 16.036750887450406,
+          "percent_off": 0.9870962685793786,
+          "rows": 10800,
+          "status": "PASS",
+          "type": "camera_movement_direction"
+        },
+        {
+          "P_quota": 12.53,
+          "absolute_percent_off": 2.3744836017140702,
+          "expected_rows_per_step": 12.232477204705226,
+          "percent_off": -2.3744836017140702,
+          "rows": 8238,
+          "status": "PASS",
+          "type": "camera_rotation"
+        },
+        {
+          "P_quota": 16.34,
+          "absolute_percent_off": 0.5381938986668188,
+          "expected_rows_per_step": 16.25205911695784,
+          "percent_off": -0.5381938986668188,
+          "rows": 10945,
+          "status": "PASS",
+          "type": "absolute_distance"
+        },
+        {
+          "P_quota": 1.0,
+          "absolute_percent_off": 6.614695714716601,
+          "expected_rows_per_step": 1.066146957147166,
+          "percent_off": 6.614695714716601,
+          "rows": 718,
+          "status": "PASS",
+          "type": "units"
+        }
+      ],
+      "units_rows_per_step": 1.066146957147166,
+      "units_type": "units",
+      "unknown_types": {}
+    }
+  },
+  "no_config_delta": true,
+  "reason": "Source counts do not split the 31438 camera rows; either a passing or failing split is consistent with the evidence.",
+  "status": "UNDETERMINED",
+  "total": 43101,
+  "values": [
+    {
+      "max_rate": 20.818078466856917,
+      "max_rows": 14020,
+      "min_rate": 14.900814366256004,
+      "min_rows": 10035,
+      "quota": 18.25,
+      "rows": null,
+      "status": "UNMEASURED",
+      "type": "camera_displacement"
+    },
+    {
+      "max_rate": 18.204682025939075,
+      "max_rows": 12260,
+      "min_rate": 12.28741792533816,
+      "min_rows": 8275,
+      "quota": 15.88,
+      "rows": null,
+      "status": "UNMEASURED",
+      "type": "camera_movement_direction"
+    },
+    {
+      "max_rate": 13.576297533699915,
+      "max_rows": 9143,
+      "min_rate": 7.659033433099,
+      "min_rows": 5158,
+      "quota": 12.53,
+      "rows": null,
+      "status": "UNMEASURED",
+      "type": "camera_rotation"
+    },
+    {
+      "percent_off": -0.5381938986668188,
+      "quota": 16.34,
+      "rate": 16.25205911695784,
+      "rows": 10945,
+      "status": "PASS",
+      "type": "absolute_distance"
+    },
+    {
+      "percent_off": 6.614695714716601,
+      "quota": 1.0,
+      "rate": 1.066146957147166,
+      "rows": 718,
+      "status": "PASS",
+      "type": "units"
+    }
+  ]
+}

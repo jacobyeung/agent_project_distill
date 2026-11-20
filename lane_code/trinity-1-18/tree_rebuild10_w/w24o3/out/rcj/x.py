@@ -514,7 +514,7 @@ def nsample(root, native, request, target):
 
 
 
-def log_tails(root, target):
+def log_tails(root, target, budget=3 << 16):
     files, errors = {}, []
     for name in ('pc_n.log', 'pc_p.log', 'rd.log'):
         source = Path(root)/name
@@ -528,12 +528,18 @@ def log_tails(root, target):
                 for block in iter(lambda: stream.read(1 << 20), b''):
                     full.update(block); size += len(block)
                     tail = (tail + block)[-(64 << 10):]
+            available = min(len(tail), max(0, budget))
+            limited = available < len(tail)
+            tail = tail[-available:] if available else b''
+            budget -= len(tail)
             output = Path(target)/(name+'.tail')
             with output.open('xb') as stream:
                 stream.write(tail)
             files[output.name] = dict(source=name, size=len(tail),
                 sha256=hashlib.sha256(tail).hexdigest(),
                 full_size=size, full_sha256=full.hexdigest())
+            if limited:
+                files[output.name]['budget_limited'] = True
         except Exception as error:
             errors.append(dict(file=name+'.tail', error=type(error).__name__))
     return files, errors
@@ -632,9 +638,14 @@ def publish(kit, root, job, rc):
         finally: timing['proc_seconds'] = time.monotonic()-start
     elif mode=='r': timing['proc_status'] = 'UNAVAILABLE'
     if mode=='r':
-        tails, tail_errors = log_tails(root, target)
-        files.update(tails)
-        timing['log_tail_errors'] = tail_errors
+        try:
+            used = sum((target/name).stat().st_size for name in
+                       ('n_sample.json', 'nd.json', 'na.json.gz') if (target/name).is_file())
+            tails, tail_errors = log_tails(root, target, max(0, LIMIT-1-used))
+            files.update(tails)
+            timing['log_tail_errors'] = tail_errors
+        except Exception as error:
+            timing['log_tail_errors'] = [dict(error=type(error).__name__)]
     for key, filename in (('staging_seconds','staging.json'), ('mode_r_seconds' if mode=='r' else 'build_seconds','build.json')):
         try:
             p = root/filename

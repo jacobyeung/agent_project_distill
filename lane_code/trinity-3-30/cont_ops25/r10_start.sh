@@ -1,0 +1,16 @@
+G=/scratch/jjyeung/orch_n30/cont_ops24_c/gbuild
+cat > $G/BRIEF_R10.md <<'BRIEFEOF'
+# Round 10 (cont_ops25): does the tower flag its own bad ARKit cameras? (CPU only, existing files)
+
+Workspace /scratch/jjyeung/orch_n30/cont_ops24_c/gbuild on trinity-2-28. Read REPORT6-REPORT9 and orchard_tower2x_c/REPORT_K3D.md first. Write only new files in gbuild and /scratch/jjyeung/orch_n30/cont_ops24_c/cap/score_conf (create it). Python /scratch/jjyeung/envs/p1cpu/bin/python. No ssh, Git, GPU, network, deletion or submission; at most 8 cores and 20 GB RAM.
+
+1. From the payload code (tree/student_pilot/tower_read.py FrozenG3TTower, b/e2e_reader/real.py, geometry.py, _tower_native.py, g3t_vendor) list every per-frame or per-capture quantity the served tower computes besides the cameras: pose/camera confidence, depth confidence, world-point confidence, scale, gravity, token norms, anything. Say which of them the served path keeps and which reach the existing captures (cap/t1.gz, cap/t2.gz, cap/dense.gz) or the K3d return (orchard_tower2x_c/returned/5.json).
+2. For every such quantity that exists in those files, per capture (38 distance GT captures; class pass/moderate/gross from CAMERA_SPLIT / REPORT9) compute per-capture summaries (mean, min, spread over frames; for depth confidence, the mean over valid pixels per frame then over frames) and the rank AUC for gross vs pass and failing vs passing, overall and within ARKit. Also the instability signal already measured: K3d A' vs T1 relative-rotation difference (10 captures) and, where the captures allow, any self-consistency the served path could compute cheaply at read time (e.g. disagreement between the tower's relative poses and the checkpoint's own pose head, or depth-reprojection consistency between consecutive anchors). Name each candidate flag's AUC with counts.
+3. If a quantity separates gross from pass with AUC >= 0.9, state a read-time rule (threshold, which captures it flags among the 38, how many routed-distance and camera items would fall back to the direct answer) without fitting on more than these captures; say it is descriptive with n = 38.
+Deliverable: REPORT10.md (at most 80 lines) and cap/score_conf/CONF_R10.{json,md}. Final message: the quantities found and their AUCs.
+BRIEFEOF
+mkdir -p /scratch/jjyeung/orch_n30/cont_ops24_c/cap/score_conf
+sed -e 's/BRIEF_R9/BRIEF_R10/g; s/c25_r9/c25_r10/g; s/R9_DONE/R10_DONE/' /scratch/jjyeung/orch_n30/cont_ops25_c/r9_run.sh > /scratch/jjyeung/orch_n30/cont_ops25_c/r10_run.sh
+grep dispatch /scratch/jjyeung/orch_n30/cont_ops25_c/r10_run.sh | head -1
+tmux new-session -d -s c25_r10 "bash /scratch/jjyeung/orch_n30/cont_ops25_c/r10_run.sh > /scratch/jjyeung/orch_n30/cont_ops25_c/r10_run.log 2>&1"
+sleep 2; tmux ls | grep c25

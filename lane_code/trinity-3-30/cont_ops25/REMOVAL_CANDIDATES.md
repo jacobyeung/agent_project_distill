@@ -2,3 +2,7 @@
 - trinity-3-30 /dev/shm/c25 (~1.5 MB: round 6 files, t1ret copy)
 - trinity-3-30 /scratch/jjyeung/orch_n30/corpus/stage2/reads/need.json and reads.sha: stray copies I created by mistake at 09:12Z (my lane copies are in /dev/shm/c25/cam); remove when convenient
 - Orchard /project/community/jjyeung/ac794e028b16f (44.7 MB; K3c placement; its 8.tgz is hard-linked by the K3d token, so remove both dirs together after the coverage job is fetched): includes my diagnostic files d.py, d2.py, c.log, c2.log, 6.txt, 6b.txt, 6c.txt, 6d.txt
+- trinity-3-30 /dev/shm/c25 (about 50 MB, mostly k3/place.tar 44.7 MB, a copy of the Orchard placement; all results are mirrored)
+- trinity-2-28 /scratch/jjyeung/orch_n30/cont_ops25_c/arkit_lowres (88 MB of lowres_wide PNGs, re-derivable from /data3 with work/SELECTION.json)
+- Orchard /project/community/jjyeung/ae63d9b7124fc (0.3 MB + hard link to ac794e028b16f/8.tgz); remove together with ac794e028b16f
+- Orchard /project candidates from cont_ops24: a1abb3a204ff8, a5d6f41359166, a883c5c365aee (unused package dirs)

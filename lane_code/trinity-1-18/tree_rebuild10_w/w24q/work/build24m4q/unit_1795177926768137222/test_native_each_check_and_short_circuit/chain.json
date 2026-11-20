@@ -1,0 +1,102 @@
+{
+  "checks": {
+    "extents": {
+      "FAIL": 1,
+      "NOT_REACHED": 2,
+      "PASS": 4
+    },
+    "r1": {
+      "FAIL": 1,
+      "NOT_REACHED": 3,
+      "PASS": 3
+    },
+    "r2": {
+      "FAIL": 1,
+      "NOT_REACHED": 5,
+      "PASS": 1
+    },
+    "reserve": {
+      "FAIL": 1,
+      "NOT_REACHED": 4,
+      "PASS": 2
+    },
+    "text": {
+      "FAIL": 1,
+      "NOT_REACHED": 1,
+      "PASS": 5
+    },
+    "wording": {
+      "FAIL": 1,
+      "PASS": 6
+    }
+  },
+  "config_sha256": "1209d4f686e0c4c76abfbe43e2da518b7671cea7bae60940bef8aa89db6ae88a",
+  "count": 7,
+  "extent_receipt": {
+    "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24q/work/build24m4q/unit_1795177926768137222/test_native_each_check_and_short_circuit/ext.json",
+    "sha256": "bd4ad98161943a20849a9a5d0fada2bb906b969dabcec1ed74cff9fb4260eb23"
+  },
+  "first_ten_refusals": [
+    {
+      "check": "wording",
+      "exception": "ValueError:R1_HELD_OUT_WORDING:Held fixture 0",
+      "key": [
+        "routing",
+        13,
+        "wording"
+      ]
+    },
+    {
+      "check": "text",
+      "exception": "ValueError:rows_lane_rule_only_text:routing:runtime_box_status",
+      "key": [
+        "routing",
+        16,
+        "text"
+      ]
+    },
+    {
+      "check": "extents",
+      "exception": "ValueError:EXTENT_ROW_UNAUDITED",
+      "key": [
+        "routing",
+        19,
+        "extents"
+      ]
+    },
+    {
+      "check": "r1",
+      "exception": "ValueError:OWN_VALUED_ROW_REFUSED",
+      "key": [
+        "routing",
+        22,
+        "r1"
+      ]
+    },
+    {
+      "check": "reserve",
+      "exception": "ValueError:r0_room_refused:routing:d1/scene0183_00,scannet/scene0183_00",
+      "key": [
+        "routing",
+        25,
+        "reserve"
+      ]
+    },
+    {
+      "check": "r2",
+      "exception": "ValueError:Row missing or changed in sealed membership",
+      "key": [
+        "routing",
+        28,
+        "r2"
+      ]
+    }
+  ],
+  "rows": {
+    "FAIL": 6,
+    "PASS": 1
+  },
+  "scope": "all stored routing rows before preparation filtering",
+  "short_circuit": true,
+  "status": "FAIL"
+}

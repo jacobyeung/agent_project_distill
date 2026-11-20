@@ -1,0 +1,1 @@
+W=/scratch/jjyeung/orch_n30/tree_rebuild10_w; date -u +%TZ; tmux ls 2>/dev/null | grep -E 'tr20'; ls $W/w24p/out/*.sha256; wc -c $W/w24p/out/TASKA_FIELDS_24M4P.md $W/w24p/out/ROUTING_TYPES_24M4P.md; head -c 7000 $W/w24p/out/TASKA_FIELDS_24M4P.md; echo ====; head -c 3000 $W/w24p/out/ROUTING_TYPES_24M4P.md

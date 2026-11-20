@@ -1,0 +1,1 @@
+date -u +%TZ; tmux ls 2>/dev/null | grep -E 'tr20' | cut -c1-20; C=/home/jjyeung/agent_project_distill/agent/scratch/codex_runs; d=$(ls -d $C/*_tree_rebuild24m4q2 | tail -1); ls $d | tr '\n' ' '; ls /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24q2/out | grep -E '24M4Q|CHAIN' | tr '\n' ' '

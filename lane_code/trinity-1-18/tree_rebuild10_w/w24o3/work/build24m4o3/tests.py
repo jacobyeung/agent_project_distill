@@ -57,6 +57,8 @@ class Tests(unittest.TestCase):
         def ns(*args):
             for n in ('n_sample.json','nd.json','na.json.gz'):(target/n).write_bytes(b'{}\n')
             return dict(status='PASS',files=['n_sample.json','nd.json','na.json.gz'],bytes=9)
+        if mode=='b' and logs:
+            for name in ('pc_n.log','pc_p.log','rd.log'):(root/name).write_bytes(b'private')
         if tail_error:(root/'pc_n.log').symlink_to(root/'mode.json')
         with patch.object(module,'attach',return_value=Z),patch.object(ep,'artifact_entries',return_value=[]),\
                 patch.object(module,'rdiff',side_effect=rd),patch.object(module,'launch',side_effect=check),\
@@ -134,13 +136,19 @@ class Tests(unittest.TestCase):
         self.assertLess(len(json.dumps(reason).encode()),25000)
 
     def test_shared_budget(self):
-        self.assertEqual(nd.LIMIT,5_000_000-(4<<16))
+        self.assertEqual(nd.LIMIT,5_000_000)
         root=F/'budget';target=root/'out';target.mkdir(parents=True)
         for name in ('pc_n.log','pc_p.log','rd.log'):(root/name).write_bytes(b'x'*65537)
         files,errors=x.log_tails(root,target);self.assertEqual(errors,[])
-        detail='ValueError:E95:n:1:'+chr(0xfffd)*4096
-        metadata=len(json.dumps(dict(files=files,reason=detail,log_tail_errors=[])).encode())
-        self.assertLess((nd.LIMIT-1)+sum(v['size'] for v in files.values())+metadata,5_000_000)
+        self.assertLess(100000+sum(v['size'] for v in files.values()),5_000_000)
+        tight=root/'tight';tight.mkdir()
+        files,errors=x.log_tails(root,tight,100)
+        self.assertEqual(errors,[])
+        self.assertEqual(sum(v['size'] for v in files.values()),100)
+        self.assertEqual(set(files),{'pc_n.log.tail','pc_p.log.tail','rd.log.tail'})
+        self.assertTrue(all(v['budget_limited'] for v in files.values()))
+        self.assertLess(4_999_899+sum(v['size'] for v in files.values()),5_000_000)
+        self.assertEqual((L/'out/rcj/nd.py').read_bytes(),(L/'attic/build24m4o3/out/rcj/nd.py').read_bytes())
 
     def test_only_expected_functions_change(self):
         def funcs(path):return {n.name:ast.dump(n) for n in ast.parse(path.read_bytes()).body if isinstance(n,(ast.FunctionDef,ast.ClassDef))}

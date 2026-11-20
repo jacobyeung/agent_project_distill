@@ -1,0 +1,8 @@
+# Delta re-check (read-only, once) of KIT build 24m4o3 of lane tree_rebuild: rcj publishes processor-check child log tails (your rev24m4o finding)
+
+You review; you do not fix. Run once, read-only, on trinity-1-18; nobody answers questions. Report only verified problems with file:line and evidence. Final message is the verdict.
+
+- Build: `/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24o3/` (prompt `/scratch/jjyeung/orch_n30/tree_rebuild10_w/prompts/build24m4o3.md`; out/BUILD24M4O3_REPORT.md, out/UPLOADS_24M4O3.json/.list, out/rcj/). Base: 24m4o `/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24o2/` (your review codex_runs/20261120T113233Z_tree_rebuild_rev24m4o: GO AFTER FIXES, one finding: pc_n.log/pc_p.log never published).
+- Verify: (1) the finding is fixed: the outer publisher writes bounded tails of pc_n.log, pc_p.log, rd.log on success and refusal, sizes/sha256 in timings.json, and a nonzero N child's exit code and last exception line reach proc_check.json's reason; (2) nothing else changes: C'' and kits q, n, n_go, qd aaa03e58 unchanged, nd.py byte-identical, build/refusal/publisher/sample statuses unchanged, mode b byte-identical, total publication under 5 MB; (3) UPLOADS_24M4O3 lists every changed file vs Orchard (qd 7d358ff5, rcj x.py 9b68e516, rcj.sh b23393f2, pc.py 1fc1c7a8, ps.py 6945292e, P_SAMPLE_I fff742bb) and nothing GO=true; (4) what you did not check.
+
+Rules: Read-only. No ssh, network, GPU, Git, tmux, scheduler or another agent. Never list, search or grep on /home or /data* (read only the named files there). nice -n 10, at most 8 threads, under 20 GB RAM. First line `GO`, `GO AFTER FIXES` or `NO-GO`; at most 10 lines.

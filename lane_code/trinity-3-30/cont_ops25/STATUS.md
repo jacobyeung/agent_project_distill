@@ -36,3 +36,18 @@
 ## 11:17Z
 - Diagnostics 173686/173697: cause = 2.py images() E10: recipe-decoded raw RGB hash on Orchard (its OpenCV) != hash computed on 2-28 (memory was not the cause). Ledger work/ORCHARD_LEDGER.jsonl.
 - K3d RUNNING (tmux c25_k3d on 2-28; gbuild/BRIEF_K3D.md -> new kit gbuild/orchard_tower2x_c): record instead of E10, mem 200G, error logs in the token dir, new token reusing ac794e028b16f/8.tgz by hard link (< 1 MB new bytes).
+## 11:41Z
+- K3d kit built (Astra; gbuild/orchard_tower2x_c). Placed token ae63d9b7124fc (306,813 B; 8.tgz hard link). CPU check 173699 PASSED (3:52). GPU job 173701 submitted to general, PENDING (Resources) at 11:39Z. Monitor tmux c25_mon on 3-30 (work/mon.sh -> work/mon_173701.log, 60 s, exits on terminal state). After: o_fetch.sh (lane copy /dev/shm/c25/k3d), copy return to 2-28 kit returned/, score.py per REPORT_K3D.md.
+- Astra review of S2 table RUNNING (tmux c25_rev1 on 2-28, review preset; receipt codex_runs/*_c25_rev1).
+## 11:56Z
+- Coverage job 173701 COMPLETED; scored (gbuild/orchard_tower2x_c/returned/scored/TOWER2X_B.*): void by decode control (4/10), B repairs 0/5 gross. Astra S2 review SOUND WITH LIMITS. RESULT events/cont_ops/*_RESULT_coverage_job_63_frames_*; files_cam/TOWER2X_B.md, files_t1/REVIEW_S2_ASTRA.md. Record D/TOWER_CAMERA_FAILURES_20261120.md updated + INDEX.
+- Mirror 1-18 /scratch/jjyeung/n30_mirror/cont_ops25/gbuild_cam_k3_20261120T1200Z.tar sha 2aacf5d4fa84446e…
+- Nothing of mine runs on Orchard, GPUs or Codex. Open: T3 (vehicle N export reads) when the orchestrator orders. Monitor c25_mon exited.
+## 12:17Z
+- ORCH NOTE 1156Z done: RESULT events/cont_ops/*_RESULT_ARKit_tower_failure_costs_no_measurable_points_in_existing_reads.md (files_cam/PRICE_ARKIT_BY_DATASET.txt, PRICE_ARKIT.json, price_arkit.py, REPORT10.md). Round 10 (Astra) done: gbuild/REPORT10.md, cap/score_conf/CONF_R10.*. Records updated (GROUNDING_FUNNEL S2 mechanisms; TOWER_CAMERA_FAILURES cost section).
+- Nothing of mine runs (Orchard, GPU, Codex). Open: T3 on order. Rotation due ~14:00Z (successor cont_ops26).
+## 12:35Z FINAL (exact)
+- ORCH ORDER 1221Z done: camera thread closed. Closing section with the five results in D/GROUNDING_FUNNEL_20261120.md; TOWER_CAMERA_FAILURES_20261120.md has the cost section.
+- Captures and scores off 2-28: t1.gz fe9f10b8… (GCS …/a52c1dcfae7bb0002a65ec/0.gz gen 1795163192077423; 1-18 n30_mirror/cont_ops25/gbuild_t1_r67_20261120T0905Z.tar sha d5e8773e…); t2.gz 2406c812… (GCS …/ab704caf7807e0002a639c/0.gz; 1-18 n30_mirror/cont_ops24/gbuild_cap_20261120T0625Z.tar); dense.gz 665b2ebb… (GCS gen 1795159385742121). Rounds 8-9, K2-K3d kits, coverage return and scores: 1-18 n30_mirror/cont_ops25/gbuild_cam_k3_20261120T1200Z.tar sha 2aacf5d4…; round 10, score_tower2x_b, recipe outputs, run scripts: c25_final_20261120T1230Z.tar sha 59ca9a61…. Corpus refusal of the T1 return noted in corpus/LEFTOVER.md item 9.
+- Removal candidates: /scratch/jjyeung/orch_n30/cont_ops25/REMOVAL_CANDIDATES.md. rm_guard queued two stray command lines of mine in /home/jjyeung/agent_project/agent/PENDING_USER_COMMANDS.md (not needed; the user may drop them).
+- Nothing of mine runs. Successor brief B/briefs/cont_ops26_d.md (T3 export reads); the orchestrator starts cont_ops26 when N launches. This lane has ended.

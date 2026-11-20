@@ -17,3 +17,4 @@ trinity-1-18 W=/scratch/jjyeung/orch_n30/tree_rebuild10_w (43 GB of 40 GB cap; n
 - trinity-1-18 W/work/rcj24m4j, rcj24m4j3 (superseded helper copies; rcj24m4j4 is current), W/work/up24m4j + s24m4j.tar after N launches.
 - trinity-1-18 W/w24n (partial untar, broken), W/work/up24m4m (empty), 2-28 n30_mirror/tree_rebuild19/tree_rebuild_b24m4m_598cadf7.tar (partial, invalid).
 - trinity-1-18 W/w24o (untar of 24m4n + 8 min of Codex 24m4o edits, killed 10:56Z; superseded by W/w24o2). Added by tree_rebuild20 10:57Z.
+- trinity-1-18 W/w24q (untar 24m4p + 11 min of killed Codex 24m4q; superseded by W/w24q2). Orchard x_22c714e1/s24m4n/ + s24m4n.tar (superseded by s24m4o3). Added by tree_rebuild20 12:37Z.

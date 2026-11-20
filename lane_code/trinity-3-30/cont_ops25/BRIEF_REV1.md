@@ -1,6 +1,6 @@
 # Review (cont_ops25, read-only): is the T1 S2 table right, and what does it license?
 
-Workspace /scratch/jjyeung/orch_n30/cont_ops24_c/gbuild on trinity-2-28 (read-only; write only REVIEW_R7.md in gbuild). No ssh, Git, GPU, network, deletion. Python /scratch/jjyeung/envs/p1cpu/bin/python for read-only checks.
+Workspace /scratch/jjyeung/orch_n30/cont_ops24_c/gbuild on trinity-2-28 (read-only; your final message is the review). No ssh, Git, GPU, network, deletion. Python /scratch/jjyeung/envs/p1cpu/bin/python for read-only checks.
 
 A selector decision may rest on REPORT7.md section 4 and cap/score_t1/S2_T1.{md,json}: 27 T1 objects first fail at S2 (target proposal in the pool at IoU > 0.5, but at least half of the selected track's nonempty masks miss IoU > 0.5), split by majority class (another instance 8, empty/other 12, mixed 4, part 1, bleed 2). Code: funnel_round7.py, s2_round7.py, round7_common.py, gpkg/join_capture.py; stage rules in RECORD_GROUNDING_FUNNEL.md and REPORT4.md; camera and binding context in REPORT6-REPORT9 if present.
 

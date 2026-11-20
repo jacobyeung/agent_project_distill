@@ -1,0 +1,180 @@
+W=/scratch/jjyeung/orch_n30/tree_rebuild10_w; date -u +%TZ; tmux ls 2>/dev/null | grep -q tr20_b24m4o3 && { echo STILL_BUILDING; exit 0; }; P=$(ls $W/w24o3/out/tree_rebuild_b24m4o3_*.tar); test -f $P.sha256 || { echo NO_SHA; exit 0; }; echo $P; cat $P.sha256; sha256sum $P | cut -c1-16; free -g | sed -n 2p
+base64 -d > $W/prompts/review24m4o3.md <<'B64'
+IyBEZWx0YSByZS1jaGVjayAocmVhZC1vbmx5LCBvbmNlKSBvZiBLSVQgYnVpbGQgMjRtNG8zIG9m
+IGxhbmUgdHJlZV9yZWJ1aWxkOiByY2ogcHVibGlzaGVzIHByb2Nlc3Nvci1jaGVjayBjaGlsZCBs
+b2cgdGFpbHMgKHlvdXIgcmV2MjRtNG8gZmluZGluZykKCllvdSByZXZpZXc7IHlvdSBkbyBub3Qg
+Zml4LiBSdW4gb25jZSwgcmVhZC1vbmx5LCBvbiB0cmluaXR5LTEtMTg7IG5vYm9keSBhbnN3ZXJz
+IHF1ZXN0aW9ucy4gUmVwb3J0IG9ubHkgdmVyaWZpZWQgcHJvYmxlbXMgd2l0aCBmaWxlOmxpbmUg
+YW5kIGV2aWRlbmNlLiBGaW5hbCBtZXNzYWdlIGlzIHRoZSB2ZXJkaWN0LgoKLSBCdWlsZDogYC9z
+Y3JhdGNoL2pqeWV1bmcvb3JjaF9uMzAvdHJlZV9yZWJ1aWxkMTBfdy93MjRvMy9gIChwcm9tcHQg
+YC9zY3JhdGNoL2pqeWV1bmcvb3JjaF9uMzAvdHJlZV9yZWJ1aWxkMTBfdy9wcm9tcHRzL2J1aWxk
+MjRtNG8zLm1kYDsgb3V0L0JVSUxEMjRNNE8zX1JFUE9SVC5tZCwgb3V0L1VQTE9BRFNfMjRNNE8z
+Lmpzb24vLmxpc3QsIG91dC9yY2ovKS4gQmFzZTogMjRtNG8gYC9zY3JhdGNoL2pqeWV1bmcvb3Jj
+aF9uMzAvdHJlZV9yZWJ1aWxkMTBfdy93MjRvMi9gICh5b3VyIHJldmlldyBjb2RleF9ydW5zLzIw
+MjYxMTIwVDExMzIzM1pfdHJlZV9yZWJ1aWxkX3JldjI0bTRvOiBHTyBBRlRFUiBGSVhFUywgb25l
+IGZpbmRpbmc6IHBjX24ubG9nL3BjX3AubG9nIG5ldmVyIHB1Ymxpc2hlZCkuCi0gVmVyaWZ5OiAo
+MSkgdGhlIGZpbmRpbmcgaXMgZml4ZWQ6IHRoZSBvdXRlciBwdWJsaXNoZXIgd3JpdGVzIGJvdW5k
+ZWQgdGFpbHMgb2YgcGNfbi5sb2csIHBjX3AubG9nLCByZC5sb2cgb24gc3VjY2VzcyBhbmQgcmVm
+dXNhbCwgc2l6ZXMvc2hhMjU2IGluIHRpbWluZ3MuanNvbiwgYW5kIGEgbm9uemVybyBOIGNoaWxk
+J3MgZXhpdCBjb2RlIGFuZCBsYXN0IGV4Y2VwdGlvbiBsaW5lIHJlYWNoIHByb2NfY2hlY2suanNv
+bidzIHJlYXNvbjsgKDIpIG5vdGhpbmcgZWxzZSBjaGFuZ2VzOiBDJycgYW5kIGtpdHMgcSwgbiwg
+bl9nbywgcWQgYWFhMDNlNTggdW5jaGFuZ2VkLCBuZC5weSBieXRlLWlkZW50aWNhbCwgYnVpbGQv
+cmVmdXNhbC9wdWJsaXNoZXIvc2FtcGxlIHN0YXR1c2VzIHVuY2hhbmdlZCwgbW9kZSBiIGJ5dGUt
+aWRlbnRpY2FsLCB0b3RhbCBwdWJsaWNhdGlvbiB1bmRlciA1IE1COyAoMykgVVBMT0FEU18yNE00
+TzMgbGlzdHMgZXZlcnkgY2hhbmdlZCBmaWxlIHZzIE9yY2hhcmQgKHFkIDdkMzU4ZmY1LCByY2og
+eC5weSA5YjY4ZTUxNiwgcmNqLnNoIGIyMzM5M2YyLCBwYy5weSAxZmMxYzdhOCwgcHMucHkgNjk0
+NTI5MmUsIFBfU0FNUExFX0kgZmZmNzQyYmIpIGFuZCBub3RoaW5nIEdPPXRydWU7ICg0KSB3aGF0
+IHlvdSBkaWQgbm90IGNoZWNrLgoKUnVsZXM6IFJlYWQtb25seS4gTm8gc3NoLCBuZXR3b3JrLCBH
+UFUsIEdpdCwgdG11eCwgc2NoZWR1bGVyIG9yIGFub3RoZXIgYWdlbnQuIE5ldmVyIGxpc3QsIHNl
+YXJjaCBvciBncmVwIG9uIC9ob21lIG9yIC9kYXRhKiAocmVhZCBvbmx5IHRoZSBuYW1lZCBmaWxl
+cyB0aGVyZSkuIG5pY2UgLW4gMTAsIGF0IG1vc3QgOCB0aHJlYWRzLCB1bmRlciAyMCBHQiBSQU0u
+IEZpcnN0IGxpbmUgYEdPYCwgYEdPIEFGVEVSIEZJWEVTYCBvciBgTk8tR09gOyBhdCBtb3N0IDEw
+IGxpbmVzLgo=
+B64
+base64 -d > $W/prompts/build24m4p.md <<'B64'
+IyBDb2RleCBidWlsZCAyNG00cCBvZiBsYW5lIHRyZWVfcmVidWlsZDoga2l0IGZpeCBvZiBOJ3Mg
+cG9vbCBzY2VuZSBjZW5zdXMgdW5kZXIgdGhlIG1lcmdlZCBkZXZlbG9wbWVudCBsaXN0LCB0aGUg
+cmVzdGF0ZWQgdGFzayBBIGNoZWNrcyBvdmVyIHRoZSB3aG9sZSByb3V0aW5nIGRhdGFiYXNlLCBh
+bmQgdGhlIHJvdXRpbmcgcGVyLXR5cGUgdGFibGUgKFJVTElORyAxMTM1WikKCllvdSBydW4gb25j
+ZSwgb24gdHJpbml0eS0xLTE4OyBub2JvZHkgYW5zd2VycyBxdWVzdGlvbnMuIFdyaXRhYmxlOiBg
+Sj0vc2NyYXRjaC9qanlldW5nL29yY2hfbjMwL3RyZWVfcmVidWlsZDEwX3cvdzI0cC9gIG9ubHkg
+KHN0ZXAgMCwgYWxyZWFkeSBkb25lIGJ5IHRoZSBsYW5lOiB1bnRhciBvZiBgL3NjcmF0Y2gvamp5
+ZXVuZy9vcmNoX24zMC90cmVlX3JlYnVpbGQxMF93L3cyNG8zL291dC90cmVlX3JlYnVpbGRfYjI0
+bTRvM18qLnRhcmAsIGNoZWNrIGl0cyAuc2hhMjU2OyB1bmRlciAyNSBHQikuIFB5dGhvbjogYC9z
+Y3JhdGNoL2pqeWV1bmcvZW52cy9wMWNwdS9iaW4vcHl0aG9uIC1JIC1zIC1CYC4gVGltZSBsaW1p
+dDogMTAwIG1pbnV0ZXMuIENvbmZpcm0gZmlyc3Q6IHRyZWUgQycnIGRlMjAyZjU4IChKL3dvcmsv
+dHJlZV9yMWMpOyBraXRzIHEgZGU1MzMxMGIsIG4gM2NmMzhiMGIsIG5fZ28gMWJiMTkxYjksIHFk
+IGFhYTAzZTU4LiBSZWFkIG91dC9ESUFHXzE3MzY4MC5tZCwgb3V0L1JPVVRFU18yNE00Ty5tZCwg
+b3V0L0JVSUxEMjRNNE9fUkVQT1JULm1kLCBvdXQvQlVJTEQyNE00TzNfUkVQT1JULm1kLCBvdXQv
+UkNKX1VTQUdFLm1kLCBhbmQgdGhlc2UgbmFtZWQgZmlsZXM6IGAvZGF0YTIvamp5ZXVuZy9hZ2Vu
+dF9wcm9qZWN0X2RhdGEvZGlzdGlsbGF0aW9uX29yY2hlc3RyYXRvcl8yMDI2MDkxOC9vcmNoX24z
+MC9ldmVudHMvdHJlZV9yZWJ1aWxkLzIwMjYxMTIwVDA1NTNaX09SQ0hfQU5TV0VSX3JvdXRpbmdf
+YmFzZV9hY2NlcHRlZF9pZl9leHBlY3RlZF9wZXJfdHlwZV9yYXRlc193aXRoaW5fMTBwY3Rfb2Zf
+UF9xdW90YXMubWRgIGFuZCBgL3NjcmF0Y2gvamp5ZXVuZy9vcmNoX24zMC90cmVlX3JlYnVpbGQx
+MF93L3dvcmsvZDE3MzY4MC8xNzM2ODAvYCAoQ1BVIGpvYiAxNzM2ODAgZXZpZGVuY2UpLgoKIyMg
+VGhlIHJ1bGluZyB5b3UgaW1wbGVtZW50IChPUkNIIDExMzVaLCByZXBsYWNlcyB0YXNrIEEgb2Yg
+UlVMSU5HIDA0MThaIGl0ZW0gMykKTiB0cmFpbnMgUCdzIHJvdXRpbmcgcm93cyBleGNlcHQgdGhv
+c2UgaW4gdGhlIHdpdGhoZWxkIHJvb21zIGFuZCBvbiB0aGUgcGlubmVkIGxpc3RzLiAoaSkgT3Zl
+ciBBTEwgcm93cyBvZiBOJ3Mgcm91dGluZyBEQjogZXZlcnkgcm93IGhhcyBhIFAgcm93IHdpdGgg
+dGhlIHNhbWUga2V5IHdob3NlIHRyYWluaW5nIGNvbnRlbnQgaXMgaWRlbnRpY2FsOiBldmVyeSBm
+aWVsZCB0aGUgbG9hZGVyIHJlYWRzIHRvIGJ1aWxkIGEgdHJhaW5pbmcgZXhhbXBsZSAoaW5wdXQs
+IGxhYmVscywgbG9zcyB3ZWlnaHRzLCBzYW1wbGluZykuIFRoZSBvbmx5IGRpZmZlcmVuY2VzIGFs
+bG93ZWQgYXJlIGZvdXIgbWV0YWRhdGEgY2xhc3Nlczogb3JkaW5hbCBpOyB0aGUgbmluZSBjb3Bp
+ZWQgdG9wLWxldmVsIGZpZWxkcyAoL3NvdXJjZV9xaWQsIC9jYW5kaWRhdGVfaWQsIC9xdWVzdGlv
+biwgL3F1ZXN0aW9uX3R5cGUsIC9hbnN3ZXIsIC9ndF9hbnN3ZXIsIC9ncm91bmRfcmVjb3JkLCAv
+cHJvdmVuYW5jZSwgL3Rvb2xfb3V0cHV0X3NwYW5zOyBjYXJyaWVyX2MxX3JvdXRpbmcucHk6ODEy
+KTsgdGhlIGZvdXIgbG9jYWxpemVkIHByb3ZlbmFuY2UgcGF0aHMgKHMxX3NvdXJjZS5zb3VyY2Uu
+cGF0aCwgZnJhbWVfYmluZGluZy5hdXRob3JpdHkue21hcCxwbGFuLGZwc19hdXRob3JpdHl9LnBh
+dGgpOyBzMV9zb3VyY2UuZnJhbWVfYmluZGluZy5mcHNfc291cmNlLiBJZiBhbnkgb2YgdGhlc2Ug
+cmVhY2hlcyBzYW1wbGluZyBvciBzdHJlYW0gYWxsb2NhdGlvbiwgaXQgaXMgY29udGVudCBhbmQg
+ZmFpbHMuIChpaSkgRXZlcnkgUCByb3cgYWJzZW50IGZyb20gTiBpcyBvbiBvbmUgb2YgTidzIHBp
+bm5lZCByZW1vdmFsIGxpc3RzIG9yIGluIGEgc2NlbmUgb2YgdGhlIG1lcmdlZCBkZXZlbG9wbWVu
+dCBsaXN0IGExODY5YWUyLCBuYW1lZCBwZXIgcm93LiAoaWlpKSBVX0ZhaXRoZnVsIHJvd3MgcHJl
+c2VudCBleGNlcHQgdGhvc2UgYSBsaXN0IG9yIHRoZSBzY2VuZSBydWxlIHJlbW92ZXMgKHN0YXRl
+IHRoZSBjb3VudCBrZXB0KS4gVGhlIGNlbnN1cyBpcyBmaXhlZCBpbiB0aGUga2l0IGFuZCBtdXN0
+IG5vdCBiZSByZWxheGVkIGZvciBhbnkgb3RoZXIgc3RyZWFtLgoKIyMgRG8KMS4gQ2Vuc3VzOiBt
+YWtlIE4ncyBwb29sIHNjZW5lIGNlbnN1cyB1c2UgdGhlIHNhbWUgbWVyZ2VkIGRldmVsb3BtZW50
+IHBvcHVsYXRpb24gYTE4NjlhZTIgdGhlIGZpbHRlciBhcHBsaWVzIChST1VURVNfMjRNNE8ubWQg
+IkNlbnN1cyBjb25zaXN0ZW5jeSI6IGtpdCBwbC5weToxODEvOjIyMiBzY2hlZHVsZSB0aGUgbWVy
+Z2VkIHNjZW5lIHJlYnVpbGQgLyBwb29sIGNlbnN1cyBpbiBtb2RlIHIgYW5kIHEgd2l0aCBleGlz
+dGluZyB0cmVlIGZ1bmN0aW9uczsgc3RhZ2UgUCBmaXJzdCBpZiB0aGUgY2Vuc3VzIG5lZWRzIFAn
+cyByZWJ1aWx0IERCKS4gS2VlcCBgczFfc2NlbmVfY2Vuc3VzLmNvbXBhcmVgIGFuZCBldmVyeSBl
+eHBlY3RhdGlvbiBvZiBldmVyeSBvdGhlciBzdHJlYW0gYnl0ZS1pZGVudGljYWw7IGRvIG5vdCBz
+ZXQgZXhwZWN0ZWQgPSBvYnNlcnZlZC4gU2hvdyB3aXRoIGZpeHR1cmVzIHRoYXQgcG9vbC8qL2Rl
+dl9tYXRjaGVzIGlzIG5vdyBjb21wdXRlZCB1bmRlciBhMTg2OWFlMiBhbmQgZXZlcnkgb3RoZXIg
+Y2Vuc3VzIGVudHJ5IGlzIHVuY2hhbmdlZC4gSWYgb25seSBhIHRyZWUgY2hhbmdlIGNhbiBkbyBp
+dCwgU1RPUCBhbmQgd3JpdGUgb3V0L1RSRUVfQ0hBTkdFX05FRURFRF8yNE00UC5tZC4KMi4gQ3Jp
+dGVyaW9uIChpKSBmaWVsZCBsaXN0OiBmcm9tIHRoZSBDJycgY29kZSwgbmFtZSBldmVyeSByZWFk
+ZXIgdGhhdCB0dXJucyBhIHJvdXRpbmcgcm93IGludG8gYSB0cmFpbmluZyBleGFtcGxlIG9yIGEg
+c2FtcGxpbmcvc3RyZWFtIGRlY2lzaW9uIChmaWxlOmxpbmUpLCBhbmQgbGlzdCBldmVyeSByb3cg
+ZmllbGQgZWFjaCByZWFkcy4gU2hvdyB0aGF0IG5vIG90aGVyIGZpZWxkIHJlYWNoZXMgaW5wdXQs
+IGxhYmVscywgbG9zcyB3ZWlnaHRzLCBzYW1wbGluZyBvciBhbGxvY2F0aW9uLCBhbmQgd2hldGhl
+ciBvcmRpbmFsIGkgb3IgYW55IG9mIHRoZSBvdGhlciB0aHJlZSBjbGFzc2VzIGRvZXMgKGUuZy4g
+c2FtcGxlciBpbmRpY2VzKS4gV3JpdGUgb3V0L1RBU0tBX0ZJRUxEU18yNE00UC5tZCBhbmQgYSBt
+YWNoaW5lLXJlYWRhYmxlIG91dC9yY2ovZi5qc29uIChjb250ZW50IGZpZWxkIHBhdGhzOyBhbGxv
+d2VkIG1ldGFkYXRhIGNsYXNzZXMpLgozLiBDUFUtam9iIGNoZWNrcyBvdmVyIHRoZSB3aG9sZSBE
+QiAoZXh0ZW5kIHJjaiBuZC5weSwga2VlcCBpdHMgb3V0cHV0cycgbmFtZXMpOiBmb3IgZXZlcnkg
+bWF0Y2hlZCBrZXkgY29tcGFyZSB0aGUgZi5qc29uIGNvbnRlbnQgZmllbGRzIGV4YWN0bHkgKHJh
+dyBKU09OIHRleHQgb2YgZWFjaCBmaWVsZCBhbmQgU1FMIHRhcmdldCksIGNsYXNzaWZ5IGV2ZXJ5
+IG90aGVyIGRpZmZlcmluZyBwYXRoIGludG8gdGhlIGZvdXIgY2xhc3NlczsgcHVibGlzaCBuZC5q
+c29uIHdpdGggcGVyLWNsYXNzIGNvdW50cyBvdmVyIHRoZSBwb3B1bGF0aW9uLCBhbnkgdW5jbGFz
+c2lmaWVkIHBhdGggd2l0aCBjb3VudCBhbmQgMyBleGFtcGxlcywgYW5kIHN0YXR1cyBQQVNTL0ZB
+SUw7IG5hLmpzb24uZ3ogYXR0cmlidXRlcyBldmVyeSBhYnNlbnQgUCByb3cgdG8gYSByZW1vdmFs
+IGxpc3Qgc2hhMjU2IG9yIHRvIHRoZSBhMTg2OWFlMiBzY2VuZSAoYnkgbm9ybWFsaXplZCBzY2Vu
+ZSBpZCkgb3IgYHVuYXR0cmlidXRlZGAsIHdpdGggY291bnRzIGJ5IHNvdXJjZSB4IGF0dHJpYnV0
+aW9uIGFuZCB0aGUgVV9GYWl0aGZ1bCBrZXB0IGNvdW50OyByZDAgc3RheXMgYXMgaXQgaXMgKGl0
+IGhhc2hlcyBpLCBzbyBpdCBpcyBpbmZvcm1hdGlvbmFsIG5vdykuIFN0YXR1cyBpbiB0aW1pbmdz
+Lmpzb247IGJ1aWxkL3JlZnVzYWwgc3RhdHVzIHVuY2hhbmdlZDsgdG90YWwgcHVibGljYXRpb24g
+dW5kZXIgNSBNQi4KNC4gUGVyLXR5cGUgdGFibGUgKEFOU1dFUiAwNTUzWik6IHRoZSBDUFUgam9i
+IHB1Ymxpc2hlcyByb3V0aW5nX3R5cGVzLmpzb24gZnJvbSBOJ3MgZmluYWwgcm91dGluZyBEQjog
+cm93cyBieSB0eXBlLCBleHBlY3RlZCByb3dzIHBlciBzdGVwID0gNjQgeCBjb3VudC90b3RhbCBm
+b3IgZWFjaCB0eXBlIGFnYWluc3QgUCdzIHF1b3RhcyAxOC4yNS8xNS44OC8xMi41My8xNi4zNC8x
+LjAwIChzdGF0ZSB0aGUgdHlwZSBuYW1lcyBhbmQgd2hpY2ggaXMgdW5pdHMpLCBwZXJjZW50IG9m
+ZiwgdW5pdHMgcm93cyBwZXIgc3RlcCwgYW5kIFBBU1MgKGV2ZXJ5IHR5cGUgd2l0aGluIDEwJSwg
+dW5pdHMgPj0gMC45MCkgb3IgRkFJTC4gRG8gbm90IGJ1aWxkIHRoZSBjb25maWcgZGVsdGE7IGlm
+IGl0IHdvdWxkIEZBSUwgb24gdGhlIGNvdW50cyBpbXBsaWVkIGJ5IDE3MzY4MCAoNDMsMTAxIHJv
+d3M7IGJ5IHNvdXJjZSBpbiBESUFHKSwgc2F5IHNvIGluIHRoZSByZXBvcnQgd2l0aCB0aGUgbnVt
+YmVycy4KNS4gVGVzdHM6IGZpeHR1cmVzIGZvciAxLTQ7IGtpdCwgc2NhbiwgbmFtaW5nLCByZXNv
+bHZlciwgZ3VhcmQsIGFybWluZyBzdWl0ZXM7IHJjaiBzdWl0ZXM7IHFkIHN0aWxsIHN0b3BzIGJl
+Zm9yZSB0cmFpbmluZzsgbW9kZSBiIGJ5dGUtaWRlbnRpY2FsLgo2LiBPdXRwdXRzOiByZXNlYWwg
+dGhlIGtpdHMgd2hvc2UgYnl0ZXMgY2hhbmdlOyBvdXQvVVBMT0FEU18yNE00UC5qc29uLy5saXN0
+IChkZWx0YSB2cyBPcmNoYXJkOiBxIGRlNTMzMTBiLCBuIDNjZjM4YjBiLCBxZCA3ZDM1OGZmNSwg
+cmNqIHgucHkgOWI2OGU1MTYsIHJjai5zaCBiMjMzOTNmMiwgcGMucHkgMWZjMWM3YTgsIHBzLnB5
+IDY5NDUyOTJlLCBQX1NBTVBMRV9JIGZmZjc0MmJiOyBpLmUuIGluY2x1ZGluZyAyNG00by8yNG00
+bzMgZmlsZXM7IHRoZSBsYW5lIG1heSBvdmVybGF5IDI0bTRvMyBmaXJzdCBhbmQgd2lsbCBzYXkg
+c28pLCBwYWNrYWdlIG91dC90cmVlX3JlYnVpbGRfYjI0bTRwXzxzZWFsOD4udGFyICsgLnNoYTI1
+NiAod3JpdGUgdGhlIC5zaGEyNTYgbGFzdCksIG91dC9CVUlMRDI0TTRQX1JFUE9SVC5tZCB1bmRl
+ciAxMiBsaW5lcyAobGluZSAxOiBzZWFscywgb3IgU1RPUCB3aXRoIHRoZSByZWFzb24pLgoKIyMg
+UnVsZXMgZm9yIHRoZSBidWlsZCAocmVzdGF0aW5nIGJ1aWxkIDE1J3MpCk5vIHNzaCwgbmV0d29y
+aywgT3JjaGFyZCwgR1BVLCBHaXQsIHRtdXgsIHNjaGVkdWxlciBvciBvdGhlciBhZ2VudHMuIE5l
+dmVyIGxpc3QsIHNlYXJjaCBvciBncmVwIG9uIC9ob21lIG9yIC9kYXRhKjogcmVhZCBvbmx5IG5h
+bWVkIGZpbGVzIHRoZXJlLiBXcml0ZSBvbmx5IHVuZGVyIEouIE5vIGRlbGV0aW9uIChzdXBlcnNl
+ZGVkIGZpbGVzIGludG8gSi9hdHRpYy8pLiBFdmVyeSBDUFUgcHJvY2VzcyB1bmRlciBgbmljZSAt
+biAxMGAsIGF0IG1vc3QgOCB0aHJlYWRzLCB1bmRlciAxNiBHQiBSQU0uIERvIG5vdCBjaGFuZ2Ug
+dGhlIHRyZWUgKEMnJyBzdGF5cyBkZTIwMmY1OCkuIE5vIHByb2plY3QsIGJlbmNobWFyaywgZGF0
+YXNldCwgbW9kZWwgb3IgbWV0aG9kIHdvcmQgaW4gYW55IG5ldyBPcmNoYXJkLXZpc2libGUgbmFt
+ZSwgcGF0aCwgYXJndW1lbnQgb3IgbG9nLiBSZXBvcnQgZmFpbHVyZXMgd2l0aCB0aGVpciBvdXRw
+dXQ7IG5ldmVyIGNsYWltIGEgY2hlY2sgeW91IGRpZCBub3QgcnVuLgo=
+B64
+sha256sum $W/prompts/review24m4o3.md $W/prompts/build24m4p.md | cut -c1-8
+tmux new-session -d -s tr20_rev24m4o3 "cd /home/jjyeung/agent_project_distill && nice -n 10 agent/scripts/codex_dispatch.sh review $W/w24o3 $W/prompts/review24m4o3.md --model gpt-6-astra --effort high --label tree_rebuild_rev24m4o3 --skip-git-check > $W/work/rev24m4o3.log 2>&1"
+mkdir $W/w24p && nice -n 10 tar xf $P -C $W/w24p && ls $W/w24p | tr '\n' ' ' || exit 1
+tmux new-session -d -s tr20_b24m4p "cd /home/jjyeung/agent_project_distill && nice -n 10 agent/scripts/codex_dispatch.sh implement $W/w24p $W/prompts/build24m4p.md --model gpt-6-astra --effort high --label tree_rebuild24m4p --skip-git-check > $W/work/b24m4p.log 2>&1"; sleep 8; tmux ls | grep tr20
+timeout 120 bash -c "cat $P | ssh -o ConnectTimeout=20 trinity-2-28.ib 'cat > /scratch/jjyeung/n30_mirror/tree_rebuild20/$(basename $P) && sha256sum /scratch/jjyeung/n30_mirror/tree_rebuild20/$(basename $P) | cut -c1-16'"
+W=/scratch/jjyeung/orch_n30/tree_rebuild10_w; S=$W/work/up24m4o3; date -u +%TZ; test ! -e $S && mkdir -p $S || { echo "S EXISTS"; exit 1; }
+nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B - <<'PY'
+import json,os,hashlib,shutil
+W='/scratch/jjyeung/orch_n30/tree_rebuild10_w'; S=W+'/work/up24m4o3'
+def entries(j):
+    d=json.load(open(j)); out={}
+    def walk(x):
+        if isinstance(x,dict):
+            if 'local_path' in x and ('name' in x or 'opaque_name' in x): out[x.get('name') or x.get('opaque_name')]=x
+            else:
+                for v in x.values(): walk(v)
+        elif isinstance(x,list):
+            for v in x: walk(v)
+    walk(d); return out
+final={}
+for tag in ('24M4O3',):
+    e=entries(W+'/w24o3/out/UPLOADS_%s.json'%tag)
+    names=[l.strip() for l in open(W+'/w24o3/out/UPLOADS_%s.list'%tag) if l.strip()]
+    miss=[n for n in names if n not in e]
+    print(tag,'list',len(names),'json',len(e),'missing',miss[:3])
+    assert not miss, tag
+    for n in names: final[n]=dict(e[n],tag=tag)
+tot=0; sums=[]
+for n,x in sorted(final.items()):
+    assert not n.startswith('/') and '..' not in n.split('/'), n
+    p=x['local_path']; h=hashlib.sha256(open(p,'rb').read()).hexdigest(); assert h==x['sha256'],(n,p)
+    dst=os.path.join(S,n); os.makedirs(os.path.dirname(dst),exist_ok=True)
+    shutil.copyfile(p,dst); assert hashlib.sha256(open(dst,"rb").read()).hexdigest()==h
+    tot+=os.path.getsize(p); sums.append('%s  %s'%(h,n))
+open(W+'/work/up24m4o3.sha','w').write('\n'.join(sums)+'\n')
+from collections import Counter
+print('final',len(final),'bytes',tot,'tops',sorted({n.split('/')[0] for n in final}),'bytag',Counter(x['tag'] for x in final.values()))
+PY
+cd $S && tar chf - $(ls) | wc -c; wc -l < $W/work/up24m4o3.sha; sha256sum $W/work/up24m4o3.sha | cut -c1-16
+grep -E "  (n|q|qd)/(SHA256SUMS.txt|k/a.json)$" $W/work/up24m4o3.sha
+cd $W/work && tar cf $W/work/s24m4o3.tar -C $S $(cd $S && ls) && ls -l $W/work/s24m4o3.tar && sha256sum $W/work/s24m4o3.tar
+echo B64TAR; base64 -w0 $W/work/s24m4o3.tar; echo
