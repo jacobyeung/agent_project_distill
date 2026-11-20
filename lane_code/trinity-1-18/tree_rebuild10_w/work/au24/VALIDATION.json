@@ -1,0 +1,41 @@
+{
+  "native_cli": {
+    "command": "nice -n 10 env OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B au24/orchard/au.py d au24/dry3 au24/dry3/o C",
+    "output": "dry3/o/AUDIT_TREE_C.json",
+    "rows": 8,
+    "passed": 0,
+    "transformed": 0,
+    "deferred": 8,
+    "by_step": {
+      "direct_transform": 2,
+      "frames.resolve": 4,
+      "routing.direct_row": 2
+    },
+    "peak_rss_kib": 226836,
+    "sealed_tree": "0c7614c8eff74201db275489af9c3fa11f3b418693a0239b793e6322685298de"
+  },
+  "other_checks": [
+    "SHA256 and member-size staging",
+    "bad digest refused",
+    "missing-runtime failure writes both output files",
+    "success-only transformed counter oracle",
+    "fatal JSON parse retains completed row counters",
+    "shell syntax",
+    "Python AST syntax"
+  ],
+  "not_exercised": [
+    "Orchard filesystem, scheduler and mirror availability",
+    "actual runtime archive extraction and NumPy overlay",
+    "real 10458 ROUTE_direct rows and full frame_map/frame_plan",
+    "full legacy database scan",
+    "P tree imports and audit",
+    "Slurm preemption signal delivery"
+  ],
+  "limits": {
+    "no_submission": true,
+    "no_network": true,
+    "no_gpu": true,
+    "threads": 8,
+    "address_space_gib": 15
+  }
+}

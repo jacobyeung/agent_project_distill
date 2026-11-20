@@ -1,0 +1,54 @@
+{
+  "basis": "unmeasured planning range, one GPU; includes CPU waits while allocated",
+  "counts": {
+    "prefills": 310,
+    "point_detector_forwards": 2031,
+    "restricted_detector_forwards": 9536,
+    "text_noise_detector_forwards": 640,
+    "sam_image_encodings": 9856,
+    "physical_captures": 60,
+    "g3t_fresh_upper": 130
+  },
+  "assumptions": {
+    "prefill_seconds": [
+      6,
+      18
+    ],
+    "sam_image_seconds": [
+      0.05,
+      0.15
+    ],
+    "sam_grounding_seconds": [
+      0.08,
+      0.25
+    ],
+    "g3t_seconds": [
+      4,
+      12
+    ],
+    "cpu_lift_link_capture_minutes": [
+      15,
+      40
+    ],
+    "model_loading_minutes": [
+      5,
+      15
+    ]
+  },
+  "worker_gpu_minutes_range": [
+    84.156,
+    249.5025
+  ],
+  "worker_gpu_minutes_midpoint": 166.82925,
+  "allocated_gpu_minutes_max": 300,
+  "worker_deadline_minutes_from_job_start": 215,
+  "staging_reduces_worker_budget": true,
+  "worst_case_exceeds_deadline": true,
+  "capture_bytes_max": 1900000000,
+  "capture_mean_bytes_per_record_budget": 6129032.258064516,
+  "notes": [
+    "The live T1 job loaded no models, so it supplies no throughput calibration.",
+    "G3T upper estimate: 60 first-capture computations plus up to 60 verification replays plus ten fresh text repeats; recomputation can increase if memo verification disables caching.",
+    "No CPU-only admission of live runtime or capture size is possible."
+  ]
+}

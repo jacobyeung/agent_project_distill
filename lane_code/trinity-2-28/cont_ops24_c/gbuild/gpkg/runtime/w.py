@@ -10,6 +10,31 @@ from .c import Capture, Writer
 from .p import evaluate
 
 
+
+def assert_reader_root(root):
+    import sys
+    root = Path(root).resolve()
+    for key, module in tuple(sys.modules.items()):
+        if key == 'e2e_reader' or key.startswith('e2e_reader.'):
+            source = getattr(module, '__file__', None)
+            if not source or not Path(source).resolve().is_relative_to(root):
+                raise ImportError('Foreign e2e_reader module: '+key+' '+str(source))
+
+
+def bind_reader_root(root=None):
+    # h1eval inserts its reduced reader at sys.path[0] on its first import.
+    import h1eval
+    import importlib
+    import sys
+    root = Path(root or Path(__file__).resolve().parents[1]/'b').resolve()
+    if not (root/'e2e_reader').is_dir():
+        raise ImportError('Full reader root is missing: '+str(root))
+    assert_reader_root(root)
+    sys.path.insert(0, str(root))
+    importlib.invalidate_caches()
+    return root
+
+
 def sha(path):
     with Path(path).open('rb') as f:
         return hashlib.file_digest(f, 'sha256').hexdigest()
@@ -48,6 +73,7 @@ def replay(gen, bound, reference):
     from e2e_reader.generate import EntryCounter
     from e2e_reader import stage1, grounding
     from h1eval.h10.parity_adapter import MaxCalls, PER_READ_CALL_CAP
+    assert_reader_root(Path(__file__).resolve().parents[1]/'b')
     frames = bound['frames']
     if (frames['anchor_indices'] != reference['source_indices'] or
         len(frames['native_frames']) != reference['mapping']['dense_count']):
@@ -115,6 +141,7 @@ def run(config, stop_at, *, clock=time.time):
             from .q import admit
             admit(config['points'])
         if stopped(): raise InterruptedError('stopped before loading')
+        reader_root = bind_reader_root()
         from h1eval.h10.parity_adapter import settings_for, artifact_spec, prepare_runtime, make_capped_real
         settings = settings_for(config['settings'], 'devs1_routed')
         if (settings['stage1_select_rule'] != 'candidates_argmax' or settings['perception_memo'] != 'verify'
@@ -123,6 +150,7 @@ def run(config, stop_at, *, clock=time.time):
         prepare_runtime(settings)
         from e2e_reader import parity
         from h1eval.items import digest
+        assert_reader_root(reader_root)
         captures = parity._captures(settings.get('frames_json', parity.FRAMES))
         dense = parity._captures(settings.get('dense_manifest', parity.DENSE))
         for ref in refs:

@@ -1,0 +1,26 @@
+test_geometry_guards_and_anchor_deltas (__main__.Producers.test_geometry_guards_and_anchor_deltas) ... ok
+test_production32_bytes_and_every64_producer (__main__.Producers.test_production32_bytes_and_every64_producer) ... ERROR
+test_same_aggregator_extra_head_batches_preserve_anchors (__main__.Producers.test_same_aggregator_extra_head_batches_preserve_anchors)
+Execute the full unchanged/extended run with deterministic tensor heads. ... ok
+
+======================================================================
+ERROR: test_production32_bytes_and_every64_producer (__main__.Producers.test_production32_bytes_and_every64_producer)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/cont_ops24_c/gbuild/gpkg/dense_checks.py", line 76, in test_production32_bytes_and_every64_producer
+    servers=ReadServers(geo,session)
+            ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/orch_n30/cont_ops24_c/gbuild/work/payload/b/e2e_reader/servers.py", line 15, in __init__
+    self.own, self.pose9, self.up, self.depth_queries = camera_geometry(geometry)
+                                                        ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/orch_n30/cont_ops24_c/gbuild/work/payload/b/e2e_reader/geometry.py", line 115, in camera_geometry
+    return OwnGeometry(pose, up, depth), pose, up, queries
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/orch_n30/cont_ops24_c/gbuild/work/payload/tree/student_pilot/carrier_c1_routing.py", line 225, in __init__
+    raise RenderError('own pose readout must be finite [32, 9]')
+student_pilot.carrier_c1_routing.RenderError: own pose readout must be finite [32, 9]
+
+----------------------------------------------------------------------
+Ran 3 tests in 7.546s
+
+FAILED (errors=1)

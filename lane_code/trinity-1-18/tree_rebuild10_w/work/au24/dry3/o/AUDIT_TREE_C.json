@@ -1,0 +1,226 @@
+{
+  "deferred": 8,
+  "examples": {
+    "KeyError: ('d1', 'b', 0)": [
+      {
+        "qid": "au_2",
+        "reason": "KeyError: ('d1', 'b', 0)",
+        "step": "frames.resolve"
+      }
+    ],
+    "ValueError: LEGACY_DIRECT_SOURCE_EMPTY_THINK_REFUSED": [
+      {
+        "qid": "au_0",
+        "reason": "ValueError: LEGACY_DIRECT_SOURCE_EMPTY_THINK_REFUSED",
+        "step": "routing.direct_row"
+      },
+      {
+        "qid": "au_5",
+        "reason": "ValueError: LEGACY_DIRECT_SOURCE_EMPTY_THINK_REFUSED",
+        "step": "routing.direct_row"
+      }
+    ],
+    "ValueError: Routing frame rate is missing, invalid or inconsistent with its native scene": [
+      {
+        "qid": "au_3",
+        "reason": "ValueError: Routing frame rate is missing, invalid or inconsistent with its native scene",
+        "step": "frames.resolve"
+      }
+    ],
+    "ValueError: Routing requires 32 exact, ordered frame indices": [
+      {
+        "qid": "au_7",
+        "reason": "ValueError: Routing requires 32 exact, ordered frame indices",
+        "step": "frames.resolve"
+      }
+    ],
+    "ValueError: S1-RD1 cannot identify one unchanged answer option": [
+      {
+        "qid": "au_1",
+        "reason": "ValueError: S1-RD1 cannot identify one unchanged answer option",
+        "step": "direct_transform"
+      }
+    ],
+    "ValueError: S1-RD1 refuses reasoning or text other than the answer-option restatement": [
+      {
+        "qid": "au_4",
+        "reason": "ValueError: S1-RD1 refuses reasoning or text other than the answer-option restatement",
+        "step": "direct_transform"
+      }
+    ],
+    "ValueError: Source frame count conflicts with its bound authority": [
+      {
+        "qid": "au_6",
+        "reason": "ValueError: Source frame count conflicts with its bound authority",
+        "step": "frames.resolve"
+      }
+    ]
+  },
+  "failure_exceeds_one_percent": true,
+  "inputs": {
+    "fixture": true
+  },
+  "legacy_rows": 5,
+  "passed": 0,
+  "peak_rss_kib": 227016,
+  "reasons": {
+    "KeyError: ('d1', 'b', 0)": 1,
+    "ValueError: LEGACY_DIRECT_SOURCE_EMPTY_THINK_REFUSED": 2,
+    "ValueError: Routing frame rate is missing, invalid or inconsistent with its native scene": 1,
+    "ValueError: Routing requires 32 exact, ordered frame indices": 1,
+    "ValueError: S1-RD1 cannot identify one unchanged answer option": 1,
+    "ValueError: S1-RD1 refuses reasoning or text other than the answer-option restatement": 1,
+    "ValueError: Source frame count conflicts with its bound authority": 1
+  },
+  "rows": 8,
+  "runtime": {
+    "numpy": "2.2.6",
+    "python": "3.12.13",
+    "torch": "2.11.0+cpu"
+  },
+  "seal": "0c7614c8eff74201db275489af9c3fa11f3b418693a0239b793e6322685298de",
+  "sources": {
+    "ROUTE_direct": {
+      "audit_status": "COMPLETE",
+      "declared_rows": 8,
+      "kind": "rows",
+      "status": "DEFERRED"
+    },
+    "SCENE_room": {
+      "audit_status": "NOT_ROWS",
+      "declared_rows": 384,
+      "kind": "packed",
+      "status": "ELIGIBLE"
+    },
+    "T0_room": {
+      "audit_status": "NOT_ROWS",
+      "declared_rows": 85,
+      "kind": "packed",
+      "status": "ELIGIBLE"
+    },
+    "T1H1_room": {
+      "audit_status": "NOT_ROWS",
+      "declared_rows": 203,
+      "kind": "packed",
+      "status": "ELIGIBLE"
+    }
+  },
+  "status": "COMPLETE",
+  "steps": {
+    "direct_transform": {
+      "attempted": 8,
+      "deferred": 2,
+      "passed": 6,
+      "reasons": {
+        "ValueError: S1-RD1 cannot identify one unchanged answer option": 1,
+        "ValueError: S1-RD1 refuses reasoning or text other than the answer-option restatement": 1
+      }
+    },
+    "frames.resolve": {
+      "attempted": 6,
+      "deferred": 4,
+      "passed": 2,
+      "reasons": {
+        "KeyError: ('d1', 'b', 0)": 1,
+        "ValueError: Routing frame rate is missing, invalid or inconsistent with its native scene": 1,
+        "ValueError: Routing requires 32 exact, ordered frame indices": 1,
+        "ValueError: Source frame count conflicts with its bound authority": 1
+      }
+    },
+    "routing.direct_row": {
+      "attempted": 2,
+      "deferred": 2,
+      "passed": 0,
+      "reasons": {
+        "ValueError: LEGACY_DIRECT_SOURCE_EMPTY_THINK_REFUSED": 2
+      }
+    }
+  },
+  "top_reasons": [
+    {
+      "count": 2,
+      "examples": [
+        {
+          "qid": "au_0",
+          "reason": "ValueError: LEGACY_DIRECT_SOURCE_EMPTY_THINK_REFUSED",
+          "step": "routing.direct_row"
+        },
+        {
+          "qid": "au_5",
+          "reason": "ValueError: LEGACY_DIRECT_SOURCE_EMPTY_THINK_REFUSED",
+          "step": "routing.direct_row"
+        }
+      ],
+      "reason": "ValueError: LEGACY_DIRECT_SOURCE_EMPTY_THINK_REFUSED"
+    },
+    {
+      "count": 1,
+      "examples": [
+        {
+          "qid": "au_2",
+          "reason": "KeyError: ('d1', 'b', 0)",
+          "step": "frames.resolve"
+        }
+      ],
+      "reason": "KeyError: ('d1', 'b', 0)"
+    },
+    {
+      "count": 1,
+      "examples": [
+        {
+          "qid": "au_3",
+          "reason": "ValueError: Routing frame rate is missing, invalid or inconsistent with its native scene",
+          "step": "frames.resolve"
+        }
+      ],
+      "reason": "ValueError: Routing frame rate is missing, invalid or inconsistent with its native scene"
+    },
+    {
+      "count": 1,
+      "examples": [
+        {
+          "qid": "au_7",
+          "reason": "ValueError: Routing requires 32 exact, ordered frame indices",
+          "step": "frames.resolve"
+        }
+      ],
+      "reason": "ValueError: Routing requires 32 exact, ordered frame indices"
+    },
+    {
+      "count": 1,
+      "examples": [
+        {
+          "qid": "au_1",
+          "reason": "ValueError: S1-RD1 cannot identify one unchanged answer option",
+          "step": "direct_transform"
+        }
+      ],
+      "reason": "ValueError: S1-RD1 cannot identify one unchanged answer option"
+    },
+    {
+      "count": 1,
+      "examples": [
+        {
+          "qid": "au_4",
+          "reason": "ValueError: S1-RD1 refuses reasoning or text other than the answer-option restatement",
+          "step": "direct_transform"
+        }
+      ],
+      "reason": "ValueError: S1-RD1 refuses reasoning or text other than the answer-option restatement"
+    },
+    {
+      "count": 1,
+      "examples": [
+        {
+          "qid": "au_6",
+          "reason": "ValueError: Source frame count conflicts with its bound authority",
+          "step": "frames.resolve"
+        }
+      ],
+      "reason": "ValueError: Source frame count conflicts with its bound authority"
+    }
+  ],
+  "transform_changed_before_later_checks": 5,
+  "transformed": 0,
+  "tree": "C"
+}

@@ -1,0 +1,843 @@
+[
+  {
+    "assertions": [
+      {
+        "assertion": "runtime has at most four threads",
+        "pass_": true
+      },
+      {
+        "assertion": "successful h.py execution",
+        "observed": null,
+        "pass_": true
+      },
+      {
+        "assertion": "identity unchanged",
+        "pass_": true
+      },
+      {
+        "assertion": "host pin authenticates",
+        "pass_": true
+      },
+      {
+        "assertion": "host and census bound",
+        "pass_": true
+      },
+      {
+        "assertion": "preparation pin authenticates",
+        "pass_": true
+      },
+      {
+        "assertion": "preparation carries host binding",
+        "pass_": true
+      },
+      {
+        "assertion": "published host matches bound receipt",
+        "pass_": true
+      }
+    ],
+    "case": "h_valid",
+    "command_exit_code": 0,
+    "elapsed_seconds": 2.7634315439499915,
+    "fixture": {
+      "census": {
+        "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/work/rt24h/tt/cases/h_valid/root/c5.json",
+        "sha256": "bb283286cfc06962be63ddafaaa44f26ec97b7f99e75f62d7257caec56e887c1"
+      },
+      "config": {
+        "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/work/rt24h/tt/cases/h_valid/root/p/cfg.json",
+        "sha256": "3322d140a47f3ea68d30dc0ddb52413c4e8ca735d14174909ecda731903ab5f4"
+      },
+      "config_identity": "2f464b1217f38f8c960c2601c90dc06e600a7e6ade37c54d113a81edd9636eeb",
+      "host": {
+        "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/work/rt24h/tt/cases/h_valid/root/p/q/host.json",
+        "sha256": "8a93ec57bfe6ab217215fffe8e4fd2569d0a00ec828a1f0bc534790cc01ebe1d"
+      }
+    },
+    "refusal": null,
+    "target_exit_code": 0,
+    "target_files": [
+      "b/h.py"
+    ],
+    "verdict": "PASS"
+  },
+  {
+    "assertions": [
+      {
+        "assertion": "runtime has at most four threads",
+        "pass_": true
+      },
+      {
+        "assertion": "named refusal",
+        "expected": "E85",
+        "observed": "E85",
+        "pass_": true
+      },
+      {
+        "assertion": "no prepared output on refusal",
+        "pass_": true
+      }
+    ],
+    "case": "h_no_policy",
+    "command_exit_code": 0,
+    "elapsed_seconds": 2.7374654258601367,
+    "fixture": {
+      "census": {
+        "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/work/rt24h/tt/cases/h_no_policy/root/c5.json",
+        "sha256": "b08a3fca1d83a9ed6e3f42756727daebb08dcfc6f42bf1a959d9674de693e2e5"
+      },
+      "config": {
+        "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/work/rt24h/tt/cases/h_no_policy/root/p/cfg.json",
+        "sha256": "e134af93365b13c143ed6f9fe49cb39aa50e904bf84ed59dc8ea1d503006a573"
+      },
+      "config_identity": "2d0e8099e164d7d1dc1729fd1333e46f488098b0bec343ba11cd9ec5c49b3c16",
+      "host": {
+        "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/work/rt24h/tt/cases/h_no_policy/root/p/q/host.json",
+        "sha256": "e3c23c279ccc45ba2fbe099174d44a0b7bebc2dc1cb2e4d128284ba882d87e4f"
+      }
+    },
+    "refusal": "E85",
+    "target_exit_code": 1,
+    "target_files": [
+      "b/h.py"
+    ],
+    "verdict": "PASS"
+  },
+  {
+    "assertions": [
+      {
+        "assertion": "runtime has at most four threads",
+        "pass_": true
+      },
+      {
+        "assertion": "named refusal",
+        "expected": "R1_HOST_RECEIPT_INVALID",
+        "observed": "R1_HOST_RECEIPT_INVALID",
+        "pass_": true
+      },
+      {
+        "assertion": "no prepared output on refusal",
+        "pass_": true
+      }
+    ],
+    "case": "h_bad_host",
+    "command_exit_code": 0,
+    "elapsed_seconds": 2.9589209449477494,
+    "fixture": {
+      "census": {
+        "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/work/rt24h/tt/cases/h_bad_host/root/c5.json",
+        "sha256": "815c4e98eed28204b8a50774b1bbecc09bcd00db76164788d36f21ac671abe5b"
+      },
+      "config": {
+        "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/work/rt24h/tt/cases/h_bad_host/root/p/cfg.json",
+        "sha256": "e0abf53d85a29d92b73a31033c986e12e985931103f053a320e38dd6ff35685f"
+      },
+      "config_identity": "986f8fa788c865cbae35944a9100d2c4425f1ab87faaf37f81778601a4b6c0ae",
+      "host": {
+        "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/work/rt24h/tt/cases/h_bad_host/root/p/q/host.json",
+        "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+      }
+    },
+    "refusal": "R1_HOST_RECEIPT_INVALID",
+    "target_exit_code": 1,
+    "target_files": [
+      "b/h.py"
+    ],
+    "verdict": "PASS"
+  },
+  {
+    "assertions": [
+      {
+        "assertion": "return status and refusal",
+        "expected": null,
+        "observed": null,
+        "pass_": true
+      },
+      {
+        "assertion": "r1 status records producer returncode",
+        "pass_": true
+      },
+      {
+        "assertion": "manifest file set",
+        "pass_": true
+      },
+      {
+        "assertion": "published hash and byte count: q.log",
+        "pass_": true
+      },
+      {
+        "assertion": "published hash and byte count: r0.json",
+        "pass_": true
+      },
+      {
+        "assertion": "published hash and byte count: routing_selection.json",
+        "pass_": true
+      }
+    ],
+    "case": "rd_success",
+    "command_exit_code": 0,
+    "elapsed_seconds": 0.22299600997939706,
+    "published": {
+      "q.log": {
+        "bytes": 21,
+        "sha256": "0dd2475ecc61ec4fa4c4a24a8f47f9ec2d805a8715d8915f04bc20b2f7834c37"
+      },
+      "r0.json": {
+        "bytes": 24,
+        "sha256": "169963cc8a04e15b261d538e4e719ef6ecaf725f672286c1b8d22a86a41bb6dd"
+      },
+      "routing_selection.json": {
+        "bytes": 72,
+        "sha256": "90e3349bd04f9366f16971890e3256d25a063e7bcfba5a116dd52e363feb6936"
+      }
+    },
+    "receipt_schema_note": "Final rd.py r1.json records returncode and byte counts; this test independently verifies published SHA256 values.",
+    "refusal": null,
+    "target_exit_code": 0,
+    "target_files": [
+      "b/rd.py"
+    ],
+    "verdict": "PASS"
+  },
+  {
+    "assertions": [
+      {
+        "assertion": "return status and refusal",
+        "expected": "R1_ROUTING_SELECTION_MISSING",
+        "observed": "R1_ROUTING_SELECTION_MISSING",
+        "pass_": true
+      },
+      {
+        "assertion": "r1 status records producer returncode",
+        "pass_": true
+      },
+      {
+        "assertion": "manifest file set",
+        "pass_": true
+      },
+      {
+        "assertion": "published hash and byte count: q.log",
+        "pass_": true
+      },
+      {
+        "assertion": "published hash and byte count: r0.json",
+        "pass_": true
+      }
+    ],
+    "case": "rd_missing",
+    "command_exit_code": 0,
+    "elapsed_seconds": 0.20713558001443744,
+    "published": {
+      "q.log": {
+        "bytes": 21,
+        "sha256": "0dd2475ecc61ec4fa4c4a24a8f47f9ec2d805a8715d8915f04bc20b2f7834c37"
+      },
+      "r0.json": {
+        "bytes": 24,
+        "sha256": "169963cc8a04e15b261d538e4e719ef6ecaf725f672286c1b8d22a86a41bb6dd"
+      }
+    },
+    "receipt_schema_note": "Final rd.py r1.json records returncode and byte counts; this test independently verifies published SHA256 values.",
+    "refusal": "R1_ROUTING_SELECTION_MISSING",
+    "target_exit_code": 1,
+    "target_files": [
+      "b/rd.py"
+    ],
+    "verdict": "PASS"
+  },
+  {
+    "assertions": [
+      {
+        "assertion": "return status and refusal",
+        "expected": "R1_ROUTING_JOB_ID_REQUIRED",
+        "observed": "R1_ROUTING_JOB_ID_REQUIRED",
+        "pass_": true
+      },
+      {
+        "assertion": "invalid job publishes nothing",
+        "pass_": true
+      }
+    ],
+    "case": "rd_bad_job",
+    "command_exit_code": 0,
+    "elapsed_seconds": 0.2095927051268518,
+    "refusal": "R1_ROUTING_JOB_ID_REQUIRED",
+    "target_exit_code": 1,
+    "target_files": [
+      "b/rd.py"
+    ],
+    "verdict": "PASS"
+  },
+  {
+    "assertions": [
+      {
+        "assertion": "runtime has at most four threads",
+        "pass_": true
+      },
+      {
+        "assertion": "final kit seal",
+        "pass_": true
+      },
+      {
+        "assertion": "WAITING_REVIEW reached",
+        "pass_": true
+      },
+      {
+        "assertion": "waiting identity matches config",
+        "pass_": true
+      },
+      {
+        "assertion": "named review refusal",
+        "expected": "R1_REVIEW_TIMEOUT",
+        "observed": "R1_REVIEW_TIMEOUT",
+        "pass_": true
+      },
+      {
+        "assertion": "no acceptance",
+        "pass_": true
+      },
+      {
+        "assertion": "config unchanged on refusal",
+        "pass_": true
+      },
+      {
+        "assertion": "timeout follows a poll and sleep",
+        "pass_": true
+      }
+    ],
+    "case": "rv_absent",
+    "command_exit_code": 0,
+    "elapsed_seconds": 2.835326384752989,
+    "evidence_stub_called": true,
+    "fixture": {
+      "census": {
+        "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/work/rt24h/tt/cases/rv_absent/root/c5.json",
+        "sha256": "13a8a3272789e2ec54f2b81a3988cac85438b260ef94a523dbd714eb37b8e742"
+      },
+      "config": {
+        "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/work/rt24h/tt/cases/rv_absent/root/p/cfg.json",
+        "sha256": "3a80b112c6c30284ec707bac789ec0813384666bf01bb866144317245911b2b1"
+      },
+      "config_identity": "32bd694c34bdbdcfb870c6074c5c88d75ef58d185e0f20e67fe9f5b9201ce2ae",
+      "host": {
+        "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/work/rt24h/tt/cases/rv_absent/root/p/q/host.json",
+        "sha256": "204e89dfcbecc37162a562f7b025f05b3c981105238e9e527e4a1094e655f40c"
+      }
+    },
+    "limitations": [
+      "Only rv.evidence is stubbed; the wait and receipt branches execute unchanged final source."
+    ],
+    "refusal": "R1_REVIEW_TIMEOUT",
+    "target_exit_code": 1,
+    "target_files": [
+      "b/rv.py"
+    ],
+    "verdict": "PASS",
+    "wait": {
+      "fake_clock_advance_seconds": 7201,
+      "interval_seconds": 0.01,
+      "sealed_bound_seconds": 7200,
+      "sleeps": [
+        0.01
+      ]
+    }
+  },
+  {
+    "assertions": [
+      {
+        "assertion": "runtime has at most four threads",
+        "pass_": true
+      },
+      {
+        "assertion": "final kit seal",
+        "pass_": true
+      },
+      {
+        "assertion": "WAITING_REVIEW reached",
+        "pass_": true
+      },
+      {
+        "assertion": "waiting identity matches config",
+        "pass_": true
+      },
+      {
+        "assertion": "accepted exit zero",
+        "pass_": true
+      },
+      {
+        "assertion": "acceptance binds identity and receipt",
+        "pass_": true
+      },
+      {
+        "assertion": "identity unchanged after acceptance",
+        "pass_": true
+      },
+      {
+        "assertion": "review pinned locally",
+        "pass_": true
+      },
+      {
+        "assertion": "preparation binds review",
+        "pass_": true
+      },
+      {
+        "assertion": "no refusal",
+        "pass_": true
+      }
+    ],
+    "case": "rv_pass",
+    "command_exit_code": 0,
+    "elapsed_seconds": 2.9985535428859293,
+    "evidence_stub_called": true,
+    "fixture": {
+      "census": {
+        "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/work/rt24h/tt/cases/rv_pass/root/c5.json",
+        "sha256": "9be5bde986ee19c14c5c73c47c852b0cc11c4c277e487690c102d8be4336d3e9"
+      },
+      "config": {
+        "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/work/rt24h/tt/cases/rv_pass/root/p/cfg.json",
+        "sha256": "1c5beff9840827c872c2c966a054d30e4d14fcb86d2609729544eddab0542fb7"
+      },
+      "config_identity": "a0f23aecb663296a333b5347254abe860030e5c015c3a53655d0cd2dd61ef691",
+      "host": {
+        "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/work/rt24h/tt/cases/rv_pass/root/p/q/host.json",
+        "sha256": "11fe04802482e64ff90f619c7cc77938f5d6009d3037210d5ef3920452d31ff0"
+      }
+    },
+    "limitations": [
+      "Only rv.evidence is stubbed; the wait and receipt branches execute unchanged final source."
+    ],
+    "target_exit_code": 0,
+    "target_files": [
+      "b/rv.py"
+    ],
+    "verdict": "PASS",
+    "wait": {
+      "fake_clock_advance_seconds": 7201,
+      "interval_seconds": 0.01,
+      "sealed_bound_seconds": 7200,
+      "sleeps": []
+    }
+  },
+  {
+    "assertions": [
+      {
+        "assertion": "runtime has at most four threads",
+        "pass_": true
+      },
+      {
+        "assertion": "final kit seal",
+        "pass_": true
+      },
+      {
+        "assertion": "WAITING_REVIEW reached",
+        "pass_": true
+      },
+      {
+        "assertion": "waiting identity matches config",
+        "pass_": true
+      },
+      {
+        "assertion": "named review refusal",
+        "expected": "R1_REVIEW_IDENTITY_DIFFERS",
+        "observed": "R1_REVIEW_IDENTITY_DIFFERS",
+        "pass_": true
+      },
+      {
+        "assertion": "no acceptance",
+        "pass_": true
+      },
+      {
+        "assertion": "config unchanged on refusal",
+        "pass_": true
+      }
+    ],
+    "case": "rv_identity",
+    "command_exit_code": 0,
+    "elapsed_seconds": 2.7330030421726406,
+    "evidence_stub_called": true,
+    "fixture": {
+      "census": {
+        "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/work/rt24h/tt/cases/rv_identity/root/c5.json",
+        "sha256": "f8a6658e5759dd77ff7040d641dc8ddd007ed80533df3ce07b47b907b6c983a1"
+      },
+      "config": {
+        "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/work/rt24h/tt/cases/rv_identity/root/p/cfg.json",
+        "sha256": "c3d45af3fed7eb9bb542fd7cb7ec1214da2bc5c1ebdd01a9ce2e6e2a65a17093"
+      },
+      "config_identity": "57c0296f81d4e0cf447235253a4e319c427a06ecd5562c67566743956e24b4f4",
+      "host": {
+        "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/work/rt24h/tt/cases/rv_identity/root/p/q/host.json",
+        "sha256": "c570f09bb76ba4f77771441d277a669bb1118fa59dcf5ac92bb27460f3514072"
+      }
+    },
+    "limitations": [
+      "Only rv.evidence is stubbed; the wait and receipt branches execute unchanged final source."
+    ],
+    "refusal": "R1_REVIEW_IDENTITY_DIFFERS",
+    "target_exit_code": 1,
+    "target_files": [
+      "b/rv.py"
+    ],
+    "verdict": "PASS",
+    "wait": {
+      "fake_clock_advance_seconds": 7201,
+      "interval_seconds": 0.01,
+      "sealed_bound_seconds": 7200,
+      "sleeps": []
+    }
+  },
+  {
+    "assertions": [
+      {
+        "assertion": "runtime has at most four threads",
+        "pass_": true
+      },
+      {
+        "assertion": "final kit seal",
+        "pass_": true
+      },
+      {
+        "assertion": "WAITING_REVIEW reached",
+        "pass_": true
+      },
+      {
+        "assertion": "waiting identity matches config",
+        "pass_": true
+      },
+      {
+        "assertion": "named review refusal",
+        "expected": "R1_REVIEW_FILE_UNUSABLE",
+        "observed": "R1_REVIEW_FILE_UNUSABLE",
+        "pass_": true
+      },
+      {
+        "assertion": "no acceptance",
+        "pass_": true
+      },
+      {
+        "assertion": "config unchanged on refusal",
+        "pass_": true
+      }
+    ],
+    "case": "rv_malformed",
+    "command_exit_code": 0,
+    "elapsed_seconds": 3.155650825239718,
+    "evidence_stub_called": true,
+    "fixture": {
+      "census": {
+        "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/work/rt24h/tt/cases/rv_malformed/root/c5.json",
+        "sha256": "a62d3d64dad2f62364aefbd8d2a37b881cdaf4490a296892dc239640c67a9469"
+      },
+      "config": {
+        "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/work/rt24h/tt/cases/rv_malformed/root/p/cfg.json",
+        "sha256": "994f26d590fb610525b4aaa2073e5445844163f2ca4ae7b0ae4615d56cc0a183"
+      },
+      "config_identity": "6bf1c52af63dbf52e9237b38bf6e5736ceca5b201c2f8b1e6c8d019c75625185",
+      "host": {
+        "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/work/rt24h/tt/cases/rv_malformed/root/p/q/host.json",
+        "sha256": "9ac309a04a7567c735c56ec2bc3b042626447257e711eb9db0605cad0ab01274"
+      }
+    },
+    "limitations": [
+      "Only rv.evidence is stubbed; the wait and receipt branches execute unchanged final source."
+    ],
+    "refusal": "R1_REVIEW_FILE_UNUSABLE",
+    "target_exit_code": 1,
+    "target_files": [
+      "b/rv.py"
+    ],
+    "verdict": "PASS",
+    "wait": {
+      "fake_clock_advance_seconds": 7201,
+      "interval_seconds": 0.01,
+      "sealed_bound_seconds": 7200,
+      "sleeps": []
+    }
+  },
+  {
+    "assertions": [
+      {
+        "assertion": "runtime has at most four threads",
+        "pass_": true
+      },
+      {
+        "assertion": "final kit seal",
+        "pass_": true
+      },
+      {
+        "assertion": "WAITING_REVIEW reached",
+        "pass_": true
+      },
+      {
+        "assertion": "waiting identity matches config",
+        "pass_": true
+      },
+      {
+        "assertion": "named review refusal",
+        "expected": "R1_REVIEW_NOT_PASS",
+        "observed": "R1_REVIEW_NOT_PASS",
+        "pass_": true
+      },
+      {
+        "assertion": "no acceptance",
+        "pass_": true
+      },
+      {
+        "assertion": "config unchanged on refusal",
+        "pass_": true
+      }
+    ],
+    "case": "rv_notpass",
+    "command_exit_code": 0,
+    "elapsed_seconds": 3.3384033399634063,
+    "evidence_stub_called": true,
+    "fixture": {
+      "census": {
+        "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/work/rt24h/tt/cases/rv_notpass/root/c5.json",
+        "sha256": "ecc13a251d30c77d418a56c5bc18b4b0a526fc4e60732acc081a9ef06d3e7d5a"
+      },
+      "config": {
+        "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/work/rt24h/tt/cases/rv_notpass/root/p/cfg.json",
+        "sha256": "d9e0580bc13adfaf03f6084986d4fb49c0b19612b7e82fd04d29415cb2f269c2"
+      },
+      "config_identity": "883c9bbe0f1005ad7a5d1be2d0ac42a2a7706b6d9ff172fdafa2e82514aa8f63",
+      "host": {
+        "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/work/rt24h/tt/cases/rv_notpass/root/p/q/host.json",
+        "sha256": "f4c41d98794a9956009d8d14e4243455bab89344d0d52c8d6cb9b72afcd4410a"
+      }
+    },
+    "limitations": [
+      "Only rv.evidence is stubbed; the wait and receipt branches execute unchanged final source."
+    ],
+    "refusal": "R1_REVIEW_NOT_PASS",
+    "target_exit_code": 1,
+    "target_files": [
+      "b/rv.py"
+    ],
+    "verdict": "PASS",
+    "wait": {
+      "fake_clock_advance_seconds": 7201,
+      "interval_seconds": 0.01,
+      "sealed_bound_seconds": 7200,
+      "sleeps": []
+    }
+  },
+  {
+    "assertions": [
+      {
+        "assertion": "runtime has at most four threads",
+        "pass_": true
+      },
+      {
+        "assertion": "final kit seal",
+        "pass_": true
+      },
+      {
+        "assertion": "WAITING_REVIEW reached",
+        "pass_": true
+      },
+      {
+        "assertion": "waiting identity matches config",
+        "pass_": true
+      },
+      {
+        "assertion": "named review refusal",
+        "expected": "R1_REVIEW_FILE_UNUSABLE",
+        "observed": "R1_REVIEW_FILE_UNUSABLE",
+        "pass_": true
+      },
+      {
+        "assertion": "no acceptance",
+        "pass_": true
+      },
+      {
+        "assertion": "config unchanged on refusal",
+        "pass_": true
+      }
+    ],
+    "case": "rv_mode",
+    "command_exit_code": 0,
+    "elapsed_seconds": 2.992085149977356,
+    "evidence_stub_called": true,
+    "fixture": {
+      "census": {
+        "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/work/rt24h/tt/cases/rv_mode/root/c5.json",
+        "sha256": "38329b62d157f2d76129613910cbf3db63715f5f97ba03cbf4c43ecadcd55339"
+      },
+      "config": {
+        "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/work/rt24h/tt/cases/rv_mode/root/p/cfg.json",
+        "sha256": "3520c365714f03166dc0c27ff750dc1cab3c6097b0d3eee8061ac28c5f780f13"
+      },
+      "config_identity": "690099348108998cff342e9e5a6d09555c1f2cc2c3b9b324ed8b2bc63ec9d0d6",
+      "host": {
+        "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/work/rt24h/tt/cases/rv_mode/root/p/q/host.json",
+        "sha256": "62c80bf7a485c3ddfab2b782c44623f8b6573dfe23b9407673a0d114d1526098"
+      }
+    },
+    "limitations": [
+      "Only rv.evidence is stubbed; the wait and receipt branches execute unchanged final source."
+    ],
+    "refusal": "R1_REVIEW_FILE_UNUSABLE",
+    "target_exit_code": 1,
+    "target_files": [
+      "b/rv.py"
+    ],
+    "verdict": "PASS",
+    "wait": {
+      "fake_clock_advance_seconds": 7201,
+      "interval_seconds": 0.01,
+      "sealed_bound_seconds": 7200,
+      "sleeps": []
+    }
+  },
+  {
+    "assertions": [
+      {
+        "assertion": "failure marker produced",
+        "observed": {
+          "object": "q9/22c714e1/469ddece_m100.tar",
+          "returncode": 1,
+          "status": "upload pending retry"
+        },
+        "pass_": true
+      },
+      {
+        "assertion": "transport reached with usable sessions",
+        "pass_": true
+      },
+      {
+        "assertion": "no false done marker",
+        "pass_": true
+      },
+      {
+        "assertion": "session directory and file modes valid",
+        "pass_": true
+      },
+      {
+        "assertion": "private synthetic session copied after validation",
+        "pass_": true
+      },
+      {
+        "assertion": "copier records failure without failing worker",
+        "pass_": true
+      },
+      {
+        "assertion": "completed within native publication bound",
+        "elapsed_seconds": 0.35112969810143113,
+        "pass_": true
+      },
+      {
+        "assertion": "writer attempted a socket in denied sandbox",
+        "pass_": true
+      },
+      {
+        "assertion": "transport refusal observed",
+        "pass_": true
+      },
+      {
+        "assertion": "native writer executed",
+        "pass_": true
+      }
+    ],
+    "case": "pc_export",
+    "command_exit_code": 0,
+    "elapsed_seconds": 0.35112969810143113,
+    "marker": {
+      "object": "q9/22c714e1/469ddece_m100.tar",
+      "returncode": 1,
+      "status": "upload pending retry"
+    },
+    "target_files": [
+      "b/pc.py",
+      "b/gc.py"
+    ],
+    "verdict": "PASS"
+  },
+  {
+    "assertions": [
+      {
+        "assertion": "failure marker produced",
+        "observed": {
+          "object": "q9/22c714e1/469ddece_m100.tar",
+          "returncode": 1,
+          "status": "upload pending retry"
+        },
+        "pass_": true
+      },
+      {
+        "assertion": "transport reached with usable sessions",
+        "pass_": true
+      },
+      {
+        "assertion": "no false done marker",
+        "pass_": true
+      },
+      {
+        "assertion": "session directory and file modes valid",
+        "pass_": true
+      },
+      {
+        "assertion": "private synthetic session copied after validation",
+        "pass_": true
+      },
+      {
+        "assertion": "work status preserved",
+        "pass_": true
+      },
+      {
+        "assertion": "completed within native publication bound",
+        "elapsed_seconds": 1.8324632900767028,
+        "pass_": true
+      },
+      {
+        "assertion": "writer attempted a socket in denied sandbox",
+        "pass_": true
+      },
+      {
+        "assertion": "transport refusal observed",
+        "pass_": true
+      },
+      {
+        "assertion": "native writer executed",
+        "pass_": true
+      },
+      {
+        "assertion": "tk_live_finish invoked with work status",
+        "pass_": true
+      },
+      {
+        "assertion": "final publication preceded evidence",
+        "pass_": true
+      },
+      {
+        "assertion": "final branch reached",
+        "pass_": true
+      },
+      {
+        "assertion": "both copier waits precede final",
+        "pass_": true
+      },
+      {
+        "assertion": "published work status preserved",
+        "pass_": true
+      }
+    ],
+    "case": "pc_finish",
+    "command_exit_code": 7,
+    "elapsed_seconds": 1.8324632900767028,
+    "marker": {
+      "object": "q9/22c714e1/469ddece_m100.tar",
+      "returncode": 1,
+      "status": "upload pending retry"
+    },
+    "target_files": [
+      "b/pc.py",
+      "b/gc.py",
+      "b/pc.sh",
+      "b/sr.py",
+      "b/ep.py",
+      "b/z.py"
+    ],
+    "verdict": "PASS"
+  }
+]

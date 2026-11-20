@@ -27,6 +27,8 @@ def sealed_write(path, value):
 
 
 def prepare(config):
+    from g.w import bind_reader_root
+    bind_reader_root(Path(config['package'])/'b')
     from orchard_h10.common import canonical
     from e2e_reader.perception_memo import settings as memo_settings
     if config.get('optional'): raise ValueError('unexpected optional input')

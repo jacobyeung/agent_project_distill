@@ -1,0 +1,79 @@
+{
+  "N_rows": 1,
+  "N_rows_listed": 0,
+  "N_rows_without_P": 0,
+  "N_schema": [
+    {
+      "name": "i",
+      "type": "INTEGER"
+    },
+    {
+      "name": "row",
+      "type": "TEXT"
+    },
+    {
+      "name": "target",
+      "type": "TEXT"
+    }
+  ],
+  "P_rows": 1,
+  "P_rows_absent_from_N": 0,
+  "P_schema": [
+    {
+      "name": "i",
+      "type": "INTEGER"
+    },
+    {
+      "name": "row",
+      "type": "TEXT"
+    },
+    {
+      "name": "target",
+      "type": "TEXT"
+    }
+  ],
+  "U_Faithful": {
+    "N": 1,
+    "N_listed": 0,
+    "P": 1,
+    "absent_listed": 0,
+    "listed": 0
+  },
+  "absent_and_listed": 0,
+  "absent_and_unlisted": 0,
+  "content_columns": [
+    "i",
+    "row",
+    "target"
+  ],
+  "content_encoding": "typed length-prefixed SQLite values; raw UTF-8 TEXT; includes i",
+  "inputs": {
+    "N": {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/work/sel24/tests/05/1.sqlite",
+      "sha256": "103074da8116b87ac593cb3875fdc289b941f904dbc014113bc98383b82b96b2"
+    },
+    "P": {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/work/sel24/tests/05/0.sqlite",
+      "sha256": "30d78ca895e752652959bc05e60cad476cf669c6578a84f501ca2f2c95b79e1e"
+    }
+  },
+  "key_columns": [
+    "dataset",
+    "scene",
+    "qid",
+    "s1_source.name"
+  ],
+  "matched_identical": 0,
+  "mismatched": 1,
+  "rdiff_sha256": "570c6beb407b2ef53869920823d348841837399fab33cfa5bed84ed3fd0ed2cf",
+  "removal_files": [],
+  "schema": "rdiff-v1",
+  "script_sha256": "bc2db7747322d4c3eda8372ce4c9a3e74d457baa609f2798c465bf4054e75d92",
+  "status": "FAIL",
+  "tree": {
+    "key_function": "student_pilot.row_removals.row_keys",
+    "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24e/work/tree_r1",
+    "reader": "student_pilot.row_removals.Removals",
+    "row_removals_sha256": "440810bd0377f8f72b24040e1f2bbe4a7686feb86c29ba537f5e31ac1f64c800"
+  }
+}

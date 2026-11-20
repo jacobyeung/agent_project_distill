@@ -1,0 +1,1 @@
+timeout 90 srun --jobid=__J__ --overlap -n1 --mem=1G --cpus-per-task=1 bash -c 'R=$(ls -d /tmp/a__J__* | head -1); cat $R/sj/b01ec87a6f29b/r/metadata/4.json | tr -d "\n "; echo; tail -c 300 $R/sj/b01ec87a6f29b/r/logs/3.log | tr "\n" " " | tail -c 300; echo; nvidia-smi --query-gpu=utilization.gpu,memory.used --format=csv,noheader' 2>&1 | tail -5

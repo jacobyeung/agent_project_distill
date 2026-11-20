@@ -1,0 +1,14 @@
+N uses tree C `0c7614c8eff74201db275489af9c3fa11f3b418693a0239b793e6322685298de`.
+The kit seals are q `d54120b45a68f4011074c928b522fcc1d45cc74ddf54c942f4a481f4c3bc980d`, n `fec34c9d48a1e71fd66f65aff11dfa7637ee479f83fd53c5fddd00eb3a2bd994`, n_go `60d24119d5844d9b89376e340a5d2f0ef86ec9edd31247dd5af0bb60b936d19c` and qd `62d8a7f54be1c5783c41d7904ae8362ed35566d15d3a1c28068f63098002d79d`.
+
+| Card row | Kit behavior | Evidence and remaining measurement |
+|---|---|---|
+| Routing | N prepares the nine sources eligible in P's selection under tree C, with all 13 N removal entries. ROUTE_direct, SCENE_room, T0_room and T1H1_room remain deferred; SCENE_room_sppK remains unauthorized; U_Faithful remains eligible. Every build checks all 14 source statuses against P. | P's 47,898 rows describe P's database. N's final row count is unmeasured and must come from N's materialization receipt. Matching source statuses does not establish identical rows, order or count. |
+| Reconstruction | The kit runs P's sealed tree in an isolated child and checks the reconstructed database against the complete `4e8e6c04e697d8f12ecd9d705e197e94f73f4a9dc508b7a9e9b4f36487336f84` hash. P's selection is relocated without preparation. | Both P implementation guards pass offline. Full production reconstruction remains untested because the production inputs are absent. |
+| Configuration identity | Both routing-input capsules bind a new manifest and preparation seed, plus P's tree pin. The final identity therefore changes. | `work/build24m4h/INVARIANTS.json` records both capsule identities and hashes. The runtime review must bind the prepared identity. |
+
+The manifest sets the four deferred sources' `status` to `deferred`; tree C's existing `Pool.deferred` treats every non-final source as deferred. It keeps every source entry and exclusion membership, so the census can still read complete source populations. P's augmented manifest includes U_Faithful, and P's room-set authorization keeps SCENE_room_sppK deferred. The seed retains P's producer identity and is explicitly marked as requiring native preparation; the kit never relabels it as a C receipt.
+
+The native policy check matches all 14 statuses. Full preparation cannot run with this fixture: the authenticated room-release list is absent, and row bodies and other production inputs remain unavailable. The removal lists, initialization, opener rows, step-544 lineage, census semantics, admission checks and checkpoint publication order remain unchanged.
+
+The ordinary delta contains 41 local files (1081351 bytes) and one P-tree copy (9963520 bytes) against the supplied 24m4e state. GO is false except in the unuploaded `out/kit_n_go` template. Arming produces GO=false copies and requires the independently reviewed selection, published native receipt and database metadata described in `ARM_ROUTING_USAGE.md`.

@@ -70,8 +70,10 @@ for key in sorted(set(r['key'] for r in rows)):
     S1 = [r for r in R if r['ci'] < r['nk'] / 2.0]; S2 = [r for r in R if r['ci'] >= r['nk'] / 2.0]; out['presence_first_half_kinds'] = acc(S1); out['presence_second_half_kinds'] = acc(S2)
     for ds in ('arkitscenes', 'scannet', 'scannetpp'):
         S = [r for r in R if r['ds'] == ds]; out['presence_' + ds] = acc(S)
+        S = [r for r in R if r['ds'] == ds and r['band'] in ('>=5%', '1-5%')]; out['presence_>=1%_' + ds] = (acc(S), len(S)); out['point_>=1%_' + ds] = (ptin(S), sum(1 for r in S if r['said']))
+        S = [r for r in R if r['ds'] == ds and r['band'] == 'absent']; out['presence_absent_' + ds] = (acc(S), len(S))
     res['%s|f%d|s%d' % key] = out
     print('%s f%d s%d' % key, json.dumps(out))
 os.makedirs(K + '/scores', exist_ok=True)
-tag = os.path.basename(sys.argv[1]).replace('.jsonl', '')
+tag = os.environ.get('C1_TAG') or os.path.basename(sys.argv[1]).replace('.jsonl', '')
 json.dump(res, open(K + '/scores/C1_%s.json' % tag, 'w'), indent=1)

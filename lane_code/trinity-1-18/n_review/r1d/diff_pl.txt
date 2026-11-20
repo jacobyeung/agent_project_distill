@@ -1,0 +1,18 @@
+--- /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24e/out/kit_n_go/b/pl.py	1969-12-31 19:00:00.000000000 -0500
++++ /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24h/out/kit_n_go/b/pl.py	2026-11-19 23:38:26.190763146 -0500
+@@ -147,9 +147,15 @@
+             p_receipt=load(pinned(p_config['streams']['routing']))
+             closure(p_receipt['materialization'],'P.routing.materialization')
+             recipe=load(sources[p_receipt['materialization']['sha256']])
++        closure(p_config['code'],'P.config.code')
++        closure(p_config.get('s1_route_policy',{}),'P.config.s1_route_policy')
+         for field in ('remove_files','dev_scene_exclusions','benchmark_scene_exclusions'):
+             closure(p_config[field],'P.config.'+field)
+         for field in ('inputs','legacy','division','base_model'):closure(recipe[field],'P.materialization.'+field)
++        model=load(sources[recipe['base_model']['sha256']])
++        for name,h in model['files'].items():
++            if name.endswith(('.json','.txt','.jinja','.model')) and h not in sources:
++                need(h,'P.materialization.base_model.files.'+name)
+         for h,p in recipe['inputs'].get('catalog',{}).items():
+             if h not in sources:need(h,'P.materialization.inputs.catalog.'+h)
+     # Catalog keys authenticate the producer's row, removal and tokenizer inputs.

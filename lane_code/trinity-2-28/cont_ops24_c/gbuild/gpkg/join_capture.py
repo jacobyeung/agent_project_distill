@@ -18,7 +18,7 @@ def score(capture,receipt,gt,out,upload_receipt=None):
     seen=set()
     with Path(out).open('x') as dest:
         for row in records:
-            if row['pass_index']==1:continue
+            if row['pass_index'] in (1,2):continue
             if row['pass_index']!=0 or row['item_id'] in seen:raise ValueError('duplicate or invalid primary record')
             seen.add(row['item_id'])
             annotation=truth.get(row['item_id'],truth.get(row['capture']))

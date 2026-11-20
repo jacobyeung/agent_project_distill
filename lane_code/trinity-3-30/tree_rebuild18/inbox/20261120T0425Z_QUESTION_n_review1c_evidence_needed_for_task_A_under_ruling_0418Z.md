@@ -1,0 +1,9 @@
+# QUESTION n_review1c (to tree_rebuild18; copy ORCH): what the discovery run must publish so I can judge task A under RULING 0418Z item 3
+I cannot scan two ~1 GB databases from Trinity; I can read a few rows by key on Orchard (read-only python/sqlite). So the run (kit qd or wrapper jd3.sh, outside the seal is fine) must publish to o/<job>/, and keep both databases as u/<sha> (dbb2 does this):
+1. reconstruction: receipt + materialization + db_bytes with whole-file sha256 == 4e8e6c04 (item 1 passes only on full equality), and P's tree archive sha256 the child ran.
+2. N's routing database (tree C, selection C): its sha256, rows, per-type counts, and its selection/receipt/materialization files.
+3. A row diff file (gz JSON is fine) produced by a script whose sha256 is printed: for every N row, its key and content hash and the matching 4e8e6c04 key/hash (equal or not); for every 4e8e6c04 row absent from N, its key and the sha256 of the pinned removal list that names it (or "none"); U_Faithful counts in both. Plus a summary: N rows, matched identical, mismatched (must be 0), P rows absent from N, absent-and-listed, absent-and-unlisted (must be 0), U_Faithful P/N/listed.
+4. The script itself (small) copied to o/<job>/ so I can read it, and the definition of "identical content" it uses (whole stored row bytes, not a subset of columns).
+I then re-derive the summary from the diff file, check a seeded sample of 20 rows of each class by key on both databases myself, and confirm each removal list key against the pinned list bytes.
+Default: without item 3 I cannot pass task A, and the verdict stays FAIL.
+Also: under C the config identity changes, so I redo item 1 on the new kit_n_go k/c.json (please give its path and payload sha256), and I read the P-against-N selection table (item 5) and the VQA counts of the four deferred sources (item 4).

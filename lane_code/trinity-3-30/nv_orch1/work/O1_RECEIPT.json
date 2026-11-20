@@ -1,0 +1,63 @@
+{
+ "utc": "2026-11-20T05:12:13Z",
+ "order": "O1 (GROUNDING_LABEL_CONSUMER_SPEC_20261120 R1)",
+ "sender": "nv_orch1 Orchard runner gate(): a train job is refused whole unless every task carries meta.scenes_h (sha256 of canonical capture and room) and no hash is in excl/DENY.sha256, nor in excl/DENY_K1.sha256 when any task sets meta.deny_k1; each list is pinned by its .pin file",
+ "builder": "kit/build_v7.py: excl.reasons(capture) must be empty (capture name and room), ARKit capture needs a visit_id (fail closed: no room key -> refused), and neither the capture nor its room may be a K1 capture or K1 room",
+ "excl_kit": {
+  "tar": "nvkey2 v6_forms_v2.tar 2fd540d4",
+  "excl_py": "ee35e2252ef382dee6efb298996133f02746f0fead3030bff5c39f814aea4f1e",
+  "pins": {
+   "bench_v2": "3119aa4a9594e4507372b99243afc8210fe217393466ac4e5ae78485e7c83970",
+   "dev_s1": "969cdb56ce508eff79390d67099c889b92bd360e93dc42ba07f3683ec216a986",
+   "r0": "bdb5d40244cdaf5060fd0a549acc2844a41039ecf78a23ef021a77eab188a4e3",
+   "withheld80": "634820b44927b1a50c18db9b90246b4b99f8954b0d7f5f2893e547f1c92879ed",
+   "k1_teacher": "4d4736cf64e496a184d36d74d710e76d1673429e28790613794867ac077048a9",
+   "arkit_visits": "657020f2d1119220b5068176ffc7298a8585076468407b60d8f5e3e6223442ca",
+   "k1_split": "8443ff157119f82421cecdf8cd9c8eedb1f42337c46f241427524a749ab5fd59"
+  }
+ },
+ "key_granularity": {
+  "bench_v2": "capture names (every capture of each room) and rooms",
+  "dev_s1": "capture names, aliases and rooms",
+  "r0": "rooms",
+  "withheld80": "capture aliases and rooms",
+  "k1_heldout": "captures and rooms",
+  "v1_calibration": "captures (label jobs only)",
+  "room key": "ScanNet sceneXXXX over every _NN scan; ARKit venue from arkit_3dod_metadata visit_id (visit NA keeps the video; a video absent from the metadata is refused); ScanNet++ scene id"
+ },
+ "room_rule": {
+  "scannet": "sceneNNNN (all _NN scans)",
+  "arkitscenes": "venue<visit_id> from arkit_3dod_metadata.csv (pinned 657020f2); NA or missing -> refused",
+  "scannetpp": "scene id"
+ },
+ "sizes": {
+  "names": {
+   "bench_v2": 1212,
+   "dev_s1": 224,
+   "r0": 0,
+   "withheld80": 320,
+   "k1_heldout": 58
+  },
+  "rooms": {
+   "bench_v2": 511,
+   "dev_s1": 100,
+   "r0": 372,
+   "withheld80": 80,
+   "k1_heldout": 55
+  },
+  "v1_calibration": 0,
+  "k1_caps": 300,
+  "k1_rooms": 276
+ },
+ "v7_effect": "of 3,451 d3 clips: 131 not 32 frames, 191 excl.py, 0 without visit, 326 K1 capture or room -> 2,803 eligible in 1,207 visits",
+ "deny": {
+  "DENY.sha256 (every train job: six lists names+rooms + V1 calibration captures)": [
+   2791,
+   "6a4b0438c417616b47fe2b04739fe899278109e1b0562620f20567932f7801fd"
+  ],
+  "DENY_K1.sha256 (jobs whose tasks set meta.deny_k1, i.e. V7: every K1 capture and K1 room, covering the PE-K1 reserve)": [
+   489,
+   "09c78c128cbe7d7dc7705fba8fe27a74575a1c0ab219034887ffa0228477627f"
+  ]
+ }
+}

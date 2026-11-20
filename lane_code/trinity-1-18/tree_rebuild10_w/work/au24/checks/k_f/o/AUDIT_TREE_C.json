@@ -1,0 +1,93 @@
+{
+  "deferred": 1,
+  "error": "JSONDecodeError: Expecting value: line 1 column 1 (char 0)",
+  "examples": {
+    "ValueError: LEGACY_DIRECT_SOURCE_EMPTY_THINK_REFUSED": [
+      {
+        "qid": "au_0",
+        "reason": "ValueError: LEGACY_DIRECT_SOURCE_EMPTY_THINK_REFUSED",
+        "step": "routing.direct_row"
+      }
+    ]
+  },
+  "inputs": {
+    "fixture": true
+  },
+  "legacy_rows": 5,
+  "passed": 0,
+  "reasons": {
+    "ValueError: LEGACY_DIRECT_SOURCE_EMPTY_THINK_REFUSED": 1
+  },
+  "rows": 2,
+  "runtime": {
+    "numpy": "2.2.6",
+    "python": "3.12.13",
+    "torch": "2.11.0+cpu"
+  },
+  "seal": "0c7614c8eff74201db275489af9c3fa11f3b418693a0239b793e6322685298de",
+  "sources": {
+    "ROUTE_direct": {
+      "audit_status": "RUNNING",
+      "declared_rows": 10458,
+      "kind": "rows",
+      "status": "DEFERRED"
+    },
+    "SCENE_room": {
+      "audit_status": "NOT_ROWS",
+      "declared_rows": 384,
+      "kind": "packed",
+      "status": "ELIGIBLE"
+    },
+    "T0_room": {
+      "audit_status": "NOT_ROWS",
+      "declared_rows": 85,
+      "kind": "packed",
+      "status": "ELIGIBLE"
+    },
+    "T1H1_room": {
+      "audit_status": "NOT_ROWS",
+      "declared_rows": 203,
+      "kind": "packed",
+      "status": "ELIGIBLE"
+    }
+  },
+  "status": "ERROR",
+  "steps": {
+    "direct_transform": {
+      "attempted": 1,
+      "deferred": 0,
+      "passed": 1,
+      "reasons": {}
+    },
+    "frames.resolve": {
+      "attempted": 1,
+      "deferred": 0,
+      "passed": 1,
+      "reasons": {}
+    },
+    "routing.direct_row": {
+      "attempted": 1,
+      "deferred": 1,
+      "passed": 0,
+      "reasons": {
+        "ValueError: LEGACY_DIRECT_SOURCE_EMPTY_THINK_REFUSED": 1
+      }
+    }
+  },
+  "top_reasons": [
+    {
+      "count": 1,
+      "examples": [
+        {
+          "qid": "au_0",
+          "reason": "ValueError: LEGACY_DIRECT_SOURCE_EMPTY_THINK_REFUSED",
+          "step": "routing.direct_row"
+        }
+      ],
+      "reason": "ValueError: LEGACY_DIRECT_SOURCE_EMPTY_THINK_REFUSED"
+    }
+  ],
+  "transform_changed_before_later_checks": 1,
+  "transformed": 0,
+  "tree": "C"
+}

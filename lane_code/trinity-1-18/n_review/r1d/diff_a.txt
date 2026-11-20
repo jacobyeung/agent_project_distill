@@ -1,0 +1,15 @@
+--- /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24e/out/kit_n_go/b/a.py	1969-12-31 19:00:00.000000000 -0500
++++ /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24h/out/kit_n_go/b/a.py	2026-11-19 23:29:30.284639102 -0500
+@@ -32,6 +32,12 @@
+ verify(kit)
+ from launch_r1 import entry as host_entry
+ from student_pilot.p3_provenance import write as host_write
++original_selection = host_entry.check_host_selection
++def guarded_selection(cfg, directory, request, result, *, record=False):
++ from rb import routing_status
++ routing_status(cfg)
++ return original_selection(cfg, directory, request, result, record=record)
++host_entry.check_host_selection = guarded_selection
+ original_host = host_entry.frame_host
+ def recorded_host(cfg, directory, request, *, job_tmp_token=None):
+  result = original_host(cfg, directory, request, job_tmp_token=job_tmp_token)

@@ -140,6 +140,10 @@ class PackageTests(unittest.TestCase):
             definitions(self.payload/'b/e2e_reader/real.py',{'real_perception'},real.__dict__)
             sys.modules[real.__name__]=real;reader.real=real
             g=types.ModuleType('g');g.__path__=[str(self.payload/'g')];sys.modules['g']=g
+            # This rehearsal uses module doubles; real import provenance is
+            # exercised separately against the extracted delivery.
+            gw=module('g.w',self.payload/'g/w.py');gw.bind_reader_root=lambda root:root
+            sys.modules['g.w']=gw
             op=module('dispatch',self.package/'a/6.py')
             root=temp();settings=root/'0.json'
             original=dict(arm='own_depth',stage1_select_rule='null_argmax',save_own_depth=False,

@@ -1,0 +1,245 @@
+{
+  "capture": "scannet/scene0515_00",
+  "path": "/scratch/jjyeung/orch_n30/cont_ops24_c/gbuild/out2/synthetic/GT.npz",
+  "raster_shape": [
+    32,
+    240,
+    320
+  ],
+  "orientation": {
+    "status": "identity",
+    "transform": "identity",
+    "reason": null
+  },
+  "alignment": {
+    "performed": true,
+    "fit_scale": false,
+    "translation_rms_m": 0.0,
+    "translation_residual_m": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "rotation_rms_deg": 0.0,
+    "rotation_max_deg": 0.0,
+    "rotation_residual_deg": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "center_rank": 0,
+    "accepted": false,
+    "reader_world_to_gt_world": [
+      [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        1.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        1.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "rotation_check": "every anchor <=5 degrees",
+    "reason": "degenerate centers or alignment residual exceeds ruling"
+  },
+  "instances": [
+    {
+      "instance_id": 1,
+      "label": "object",
+      "visible_pixels": [
+        2000,
+        2000,
+        2000,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "stored_lengths": [
+        1,
+        1,
+        1
+      ],
+      "full_obb": {
+        "center": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "axes": [
+          [
+            1.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            1.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "full_lengths": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      "half_extent_obb": {
+        "center": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "axes": [
+          [
+            1.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            1.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "full_lengths": [
+          2.0,
+          2.0,
+          2.0
+        ]
+      },
+      "extent_rule": "both full and half readings"
+    }
+  ],
+  "bindings": [
+    {
+      "key": "vsi590k_042574:object",
+      "status": "bound",
+      "instance_id": 1,
+      "candidates": [
+        1
+      ],
+      "reason": null,
+      "rule": "stage1.name_key: strip and lowercase; no fuzzy matching"
+    },
+    {
+      "key": "vsi590k_042574:unbound",
+      "status": "U",
+      "instance_id": null,
+      "candidates": [],
+      "reason": "missing label",
+      "rule": "stage1.name_key: strip and lowercase; no fuzzy matching"
+    }
+  ],
+  "valid_frames": 32,
+  "prediction_grid_rule": "routed_features.resize(prediction, (240,320)); GT unchanged"
+}

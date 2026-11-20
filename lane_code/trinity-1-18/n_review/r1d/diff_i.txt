@@ -1,0 +1,48 @@
+--- /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24e/out/kit_n_go/b/i.py	1969-12-31 19:00:00.000000000 -0500
++++ /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24h/out/kit_n_go/b/i.py	2026-11-19 23:25:56.689988069 -0500
+@@ -7,7 +7,7 @@
+     if isinstance(value,list):return [normalized(v) for v in value]
+     return value
+ 
+-def refresh(request,root):
++def _refresh(request,root):
+     from student_pilot.p3_provenance import load,pinned,file_pin,write
+     from student_pilot.s1_pool import implementation,prepare
+     from student_pilot.s1_pool_relocate import relocate
+@@ -16,8 +16,11 @@
+     cfg=load(pinned(request['config']))
+     spec=cfg.get('s1_routing')
+     if not spec:return request
++    from rb import routing_status
+     original=load(pinned(spec['selection']))
+-    if original['implementation']==implementation() and normalized(original['remove_files'])==normalized(cfg['remove_files']):return request
++    if original['implementation']==implementation() and normalized(original['remove_files'])==normalized(cfg['remove_files']):
++        routing_status(cfg)
++        return request
+     root=Path(root);root.mkdir(parents=True,exist_ok=True)
+     moved=relocate(spec['selection'],spec.get('catalog',{}),root/'p')
+     before=load(pinned(moved['relocated']))
+@@ -27,8 +30,23 @@
+         if key=='implementation' or changed:continue
+         if normalized(before.get(key))!=normalized(after.get(key)):raise ValueError('E86:'+key)
+     spec['selection']=file_pin(root/'s/receipt.json')
++    routing_status(cfg)
+     write(root/'c.json',cfg)
+     pin=file_pin(root/'c.json');result=dict(request,config=pin)
+     result['staged_pins']=[*request['staged_pins'],pin,spec['selection']]
+     write(root/'r.json',dict(status='PASS',source=original['implementation'],current=after['implementation'],same_selection=not changed,removals_regenerated=changed,config=pin))
+     return result
++
++
++def refresh(request,root):
++    from z import write
++    root=Path(root)
++    try:
++        result=_refresh(request,root)
++    except BaseException as error:
++        if not (root/'r.json').exists():
++            write(root/'r.json',dict(status='REFUSE',refusal=str(error)))
++        raise
++    if not (root/'r.json').exists():
++        write(root/'r.json',dict(status='PASS',prepared=False,config=result['config']))
++    return result

@@ -1,0 +1,66 @@
+{
+  "assertions": [
+    {
+      "assertion": "runtime has at most four threads",
+      "pass_": true
+    },
+    {
+      "assertion": "final kit seal",
+      "pass_": true
+    },
+    {
+      "assertion": "WAITING_REVIEW reached",
+      "pass_": true
+    },
+    {
+      "assertion": "waiting identity matches config",
+      "pass_": true
+    },
+    {
+      "assertion": "named review refusal",
+      "expected": "R1_REVIEW_IDENTITY_DIFFERS",
+      "observed": "R1_REVIEW_IDENTITY_DIFFERS",
+      "pass_": true
+    },
+    {
+      "assertion": "no acceptance",
+      "pass_": true
+    },
+    {
+      "assertion": "config unchanged on refusal",
+      "pass_": true
+    }
+  ],
+  "case": "rv_identity",
+  "evidence_stub_called": true,
+  "fixture": {
+    "census": {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/work/rt24h/tt/cases/rv_identity/root/c5.json",
+      "sha256": "f8a6658e5759dd77ff7040d641dc8ddd007ed80533df3ce07b47b907b6c983a1"
+    },
+    "config": {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/work/rt24h/tt/cases/rv_identity/root/p/cfg.json",
+      "sha256": "c3d45af3fed7eb9bb542fd7cb7ec1214da2bc5c1ebdd01a9ce2e6e2a65a17093"
+    },
+    "config_identity": "57c0296f81d4e0cf447235253a4e319c427a06ecd5562c67566743956e24b4f4",
+    "host": {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/work/rt24h/tt/cases/rv_identity/root/p/q/host.json",
+      "sha256": "c570f09bb76ba4f77771441d277a669bb1118fa59dcf5ac92bb27460f3514072"
+    }
+  },
+  "limitations": [
+    "Only rv.evidence is stubbed; the wait and receipt branches execute unchanged final source."
+  ],
+  "refusal": "R1_REVIEW_IDENTITY_DIFFERS",
+  "target_exit_code": 1,
+  "target_files": [
+    "b/rv.py"
+  ],
+  "verdict": "PASS",
+  "wait": {
+    "fake_clock_advance_seconds": 7201,
+    "interval_seconds": 0.01,
+    "sealed_bound_seconds": 7200,
+    "sleeps": []
+  }
+}

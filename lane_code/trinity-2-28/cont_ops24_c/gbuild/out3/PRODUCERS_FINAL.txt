@@ -1,0 +1,17 @@
+test_geometry_guards_and_anchor_deltas (__main__.Producers.test_geometry_guards_and_anchor_deltas) ... ok
+test_production32_bytes_and_every64_producer (__main__.Producers.test_production32_bytes_and_every64_producer) ... FAIL
+test_same_aggregator_extra_head_batches_preserve_anchors (__main__.Producers.test_same_aggregator_extra_head_batches_preserve_anchors)
+Execute the full unchanged/extended run with deterministic tensor heads. ... ok
+
+======================================================================
+FAIL: test_production32_bytes_and_every64_producer (__main__.Producers.test_production32_bytes_and_every64_producer)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/cont_ops24_c/gbuild/gpkg/dense_checks.py", line 79, in test_production32_bytes_and_every64_producer
+    self.assertIn(',63,64 (best ',text)
+AssertionError: ',63,64 (best ' not found in 'lamp: box unavailable'
+
+----------------------------------------------------------------------
+Ran 3 tests in 8.065s
+
+FAILED (failures=1)

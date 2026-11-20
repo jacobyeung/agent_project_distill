@@ -73,7 +73,13 @@ def extract(raw, dest):
         p = dest/m.name; p.parent.mkdir(parents=True, exist_ok=True); p.write_bytes(data)
 
 
-def build(destination=ROOT/'out', overlay=True):
+def build(destination=ROOT/'out', overlay=True, points=None, dense=False):
+    if dense and (points or not overlay):raise ValueError('dense arm requires its own overlay package')
+    if points and not overlay: raise ValueError('--points requires overlay')
+    if points:
+        api_pin = ROOT/'gpkg/point_runtime/PROMPT_API.json'
+        if not api_pin.is_file() or json.loads(api_pin.read_text()).get('reviewed') is not True:
+            raise ValueError('Point package blocked: SAM Prompt API source has not been reviewed within authorized read roots')
     parent = ROOT/'parent'; source = ROOT/'gpkg'
     names = ['0.json','0.tgz','3.py','BATCH.sh','CONFIG.json','INPUTS.example.json',
              'PACKAGE.json','SUBMIT.cmd','a/1.json','a/5.py','a/6.py','a/export.json']
@@ -93,6 +99,33 @@ def build(destination=ROOT/'out', overlay=True):
         for path in sorted((source/'runtime').glob('*.py')): pf['g/'+path.name] = path.read_bytes()
         pf['g/0.json'] = (kit/'items544.json').read_bytes()
         pf['g/1.json'] = (kit/'ITEM_PINS.json').read_bytes()
+        if points:
+            raw = Path(points).read_bytes()
+            value = json.loads(raw)
+            import sys
+            sys.path.insert(0,str(ROOT))
+            from gpkg.runtime.q import validate
+            validate(value['points'])
+            if len(value['points']) != 150: raise ValueError('points require 150 items')
+            pf['g/2.json'] = raw
+            pf['g/3.json'] = jd(dict(points_sha256=sha(raw)))
+            pf['g/4.json'] = api_pin.read_bytes()
+            for path in sorted((source/'point_runtime').glob('*.py')):
+                pf['g/'+path.name] = path.read_bytes()
+            c = pf['g/c.py'].decode()
+            c = once(c, "        s=o['selector']; n=len(o['candidates'])", '''        s=o['selector']; n=len(o['candidates'])
+        if s.get('skipped') == 'point prompts':
+            if s['invoked'] or s['slots'] is not None or n not in (0,1) or s['choice'] != (0 if n else -1):
+                raise ValueError('invalid point selector skip')
+            expected={} if not n else o['candidates'][0]['masks']
+            if o['selected_masks'] != expected: raise ValueError('point selection differs')
+            for mask in expected.values(): unrle(mask)
+            continue''')
+            pf['g/c.py'] = c.encode()
+
+        if dense:
+            from dense_build import overlay as dense_overlay
+            dense_overlay(pf,source,once,jd)
         job = pf['orchard_h10/job.py'].decode()
         job = once(job, '\ndef main(root):', '\n'+(source/'upload.py').read_text()+'\n\ndef main(root):')
         insertion = '''        try:
@@ -107,8 +140,26 @@ def build(destination=ROOT/'out', overlay=True):
         pf['orchard_h10/job.py'] = job.encode()
         entry = pf['orchard_h10/entry.py'].decode()
         entry = once(entry, "else:raise ValueError('Invalid dispatch')", "elif action==3:\n    from g.w import run\n    result=run(cfg['config'],cfg['stop_at'])\n    raise SystemExit(1 if result and result['failure'] else 0)\nelse:raise ValueError('Invalid dispatch')")
+        if points: entry = once(entry, 'from g.w import run', 'from g.pw import run')
+        if dense: entry = once(entry, 'from g.w import run', 'from g.dw import run')
         pf['orchard_h10/entry.py'] = entry.encode()
         nf['a/6.py'] = (source/'dispatch.py').read_bytes()
+        if dense:
+            from dense_build import operator as dense_operator
+            nf['a/6.py']=dense_operator(nf['a/6.py'],once)
+        if points:
+            operator = nf['a/6.py'].decode()
+            operator = once(operator, "    cfg = prepare(config)[0]; root = control(cfg)", '''    cfg = prepare(config)[0]; root = control(cfg)
+    from h1eval.h10.parity_adapter import settings_for, prepare_runtime
+    from g.geometric import admit
+    from g.points import load
+    from g.w import load_rows
+    runtime_settings = settings_for(cfg['settings'], 'devs1_routed')
+    prepare_runtime(runtime_settings)
+    admit(runtime_settings['sam3']['source_root'])
+    here = Path(config['package'])/'g'
+    load(here/'2.json', json.loads((here/'3.json').read_text())['points_sha256'], load_rows())''')
+            nf['a/6.py'] = operator.encode()
         nf['a/9.py'] = (source/'cpu_receipt.py').read_bytes()
         nf['a/7.py'] = (source/'fetch_auth.py').read_bytes()
         guard = """import sys
@@ -156,9 +207,26 @@ if len(sys.argv)>1 and sys.argv[1] in ('check','submit'):
 
 
 def main():
-    p = argparse.ArgumentParser(); p.add_argument('--out',type=Path,default=ROOT/'out'); p.add_argument('--no-overlay',action='store_true')
-    a = p.parse_args(); r = build(a.out,overlay=not a.no_overlay)
-    if not a.no_overlay and a.out.resolve() == (ROOT/'out').resolve():
+    p = argparse.ArgumentParser(); p.add_argument('--out',type=Path); p.add_argument('--no-overlay',action='store_true')
+    p.add_argument('--points',type=Path,nargs='?',const=Path('/scratch/jjyeung/orch_n30/nvkey1/work/c0/POINTS_gpt-6.2-astra.json'))
+    p.add_argument('--dense',action='store_true')
+    p.add_argument('--legacy-t1',action='store_true')
+    a = p.parse_args()
+    if a.legacy_t1:
+        if a.points or a.dense or a.no_overlay:raise ValueError('legacy rebuild is separate')
+        import sys
+        sys.path.insert(0,str(ROOT))
+        from dense_build import rebuild_legacy
+        print(json.dumps(rebuild_legacy(a.out or ROOT/'out3/legacy_t1',ROOT)));return
+    a.out = a.out or ROOT/('out3/dense' if a.dense else 'out_points' if a.points else 'out')
+    r = build(a.out,overlay=not a.no_overlay,points=a.points,dense=a.dense)
+    if a.dense:
+        from scripts import render
+        render(a.out,ROOT/'orchard_dense',cpu_partition='general')
+    elif a.points:
+        from scripts import render
+        render(a.out,ROOT/'orchard_points',cpu_partition='general')
+    elif not a.no_overlay and a.out.resolve() == (ROOT/'out').resolve():
         from scripts import render
         render()
     print(json.dumps({k:r[k] for k in ('token','delivery_bytes','delivery_sha256','plan_sha256','walltime')}))

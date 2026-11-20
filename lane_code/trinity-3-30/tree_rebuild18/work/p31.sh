@@ -1,0 +1,3 @@
+W=/scratch/jjyeung/orch_n30/tree_rebuild10_w; date -u +%TZ; df -h /scratch | tail -1
+for k in out/kit_n_go out/kit_qd; do echo "== $k"; diff <(sort -k2 $W/w24e/$k/SHA256SUMS.txt) <(sort -k2 $W/w24h/$k/SHA256SUMS.txt) | grep "^[<>]" | awk '{print $1, substr($2,1,8), $3}'; done
+timeout 120 bash -c "cat $W/w24h/out/tree_rebuild_b24m4h_0eed8bc7.tar | ssh -o ConnectTimeout=20 trinity-2-28.ib 'mkdir -p /scratch/jjyeung/n30_mirror/tree_rebuild18 && cat > /scratch/jjyeung/n30_mirror/tree_rebuild18/tree_rebuild_b24m4h_0eed8bc7.tar && sha256sum /scratch/jjyeung/n30_mirror/tree_rebuild18/tree_rebuild_b24m4h_0eed8bc7.tar'"

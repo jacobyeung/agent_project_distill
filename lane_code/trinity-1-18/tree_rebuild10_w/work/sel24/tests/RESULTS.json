@@ -1,0 +1,85 @@
+{
+  "status": "PASS",
+  "schema_source": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24e/work/tree_r1/student_pilot/s1_routing.py",
+  "schema_sha256": "122353169d335771b97cb08ff31f0b1f12d904e2b42b1afb75c5fc31be35f3e3",
+  "create_sql": [
+    "CREATE TABLE candidates (k INTEGER PRIMARY KEY, qid TEXT NOT NULL, question_type TEXT NOT NULL, origin TEXT NOT NULL, source TEXT NOT NULL, row TEXT NOT NULL)",
+    "CREATE INDEX candidate_qids ON candidates(qid,origin)",
+    "CREATE INDEX candidate_order ON candidates((origin='legacy'),k)",
+    "CREATE TABLE pool_qids (qid TEXT PRIMARY KEY)",
+    "CREATE TABLE membership (i INTEGER PRIMARY KEY,k INTEGER UNIQUE NOT NULL)",
+    "CREATE VIEW rows AS SELECT m.i,c.row,'{}' AS target FROM membership m JOIN candidates c ON c.k=m.k"
+  ],
+  "tests": [
+    {
+      "name": "00",
+      "status": "PASS",
+      "returncode": 0
+    },
+    {
+      "name": "01",
+      "status": "PASS",
+      "returncode": 0
+    },
+    {
+      "name": "02",
+      "status": "PASS",
+      "returncode": 1
+    },
+    {
+      "name": "03",
+      "status": "PASS",
+      "returncode": 1
+    },
+    {
+      "name": "04",
+      "status": "PASS",
+      "returncode": 1
+    },
+    {
+      "name": "05",
+      "status": "PASS",
+      "returncode": 1
+    },
+    {
+      "name": "06",
+      "status": "PASS",
+      "returncode": 1
+    },
+    {
+      "name": "07",
+      "status": "PASS",
+      "returncode": 1
+    },
+    {
+      "name": "08",
+      "status": "PASS",
+      "returncode": 1
+    },
+    {
+      "name": "09",
+      "status": "PASS",
+      "returncode": 0
+    },
+    {
+      "name": "10",
+      "status": "PASS",
+      "returncode": 0
+    },
+    {
+      "name": "11",
+      "status": "PASS",
+      "returncode": 2
+    },
+    {
+      "name": "12",
+      "status": "PASS",
+      "returncode": 2
+    },
+    {
+      "name": "13",
+      "status": "PASS",
+      "returncode": 1
+    }
+  ]
+}

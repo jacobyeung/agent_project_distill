@@ -1,0 +1,59 @@
+--- /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24e/out/kit_n_go/b/ep.py	1969-12-31 19:00:00.000000000 -0500
++++ /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24h/out/kit_n_go/b/ep.py	2026-11-19 23:31:41.644424271 -0500
+@@ -67,19 +67,45 @@
+     return record
+ 
+ 
++def artifact_entries(root):
++    root=Path(root)
++    result=[]
++    for prefix,label in (('p','a'),('dr/p','b')):
++        for part,code in (('selection','0'),('base','1'),('pr','2')):
++            for filename,suffix in (('materialization.json','m'),('receipt.json','r')):
++                result.append((label+code+suffix+'.json',root/prefix/'q'/part/filename))
++        result.append((label+'3r.json',root/prefix/'i/pool/r.json'))
++        for part,code in (('base_refresh','4'),('pr_refresh','5')):
++            result.append((label+code+'r.json',root/prefix/'q'/part/'r.json'))
++    primary=root/'dr/p/q/selection'
++    if not primary.is_dir():primary=root/'p/q/selection'
++    for filename in ('materialization.json','receipt.json'):
++        result.append((filename,primary/filename))
++    refresh=root/'dr/p/i/pool/r.json'
++    if not refresh.is_file():refresh=root/'p/i/pool/r.json'
++    result.append(('refresh.json',refresh))
++    return result
++
++
+ def publish_artifacts(target, root):
+-    base=root/'dr/p/q/selection'
+-    if not base.is_dir():base=root/'p/q/selection'
+-    paths=[base/name for name in ('receipt.json','materialization.json')]
+-    if not all(p.is_file() and not p.is_symlink() for p in paths):return
+-    if sum(p.stat().st_size for p in paths)>5_000_000:
+-        raise ValueError('R1_ROUTING_ARTIFACTS_TOO_LARGE')
+-    for p in paths:
+-        raw=p.read_bytes();json.loads(raw)
+-        fd=os.open(target/(p.name+'.part'),os.O_WRONLY|os.O_CREAT|os.O_TRUNC|os.O_NOFOLLOW,0o600)
++    total=0;records={}
++    for name,p in artifact_entries(root):
++        if not p.exists():continue
++        if p.is_symlink() or not stat.S_ISREG(p.stat().st_mode):
++            raise ValueError('R1_ROUTING_ARTIFACT_UNUSABLE')
++        size=p.stat().st_size
++        if size>2_000_000 or total+size>10_000_000:
++            raise ValueError('R1_ROUTING_ARTIFACTS_TOO_LARGE')
++        raw=p.read_bytes();json.loads(raw);total+=len(raw)
++        fd=os.open(target/(name+'.part'),os.O_WRONLY|os.O_CREAT|os.O_TRUNC|os.O_NOFOLLOW,0o600)
+         with os.fdopen(fd,'wb') as f:f.write(raw)
+-        os.replace(target/(p.name+'.part'),target/p.name)
+-        print(p.name+' sha256='+hashlib.sha256(raw).hexdigest(),flush=True)
++        os.replace(target/(name+'.part'),target/name)
++        records[name]=dict(source=str(p.relative_to(root)),sha256=hashlib.sha256(raw).hexdigest(),bytes=len(raw))
++    raw=(json.dumps(records,sort_keys=True)+'\n').encode()
++    fd=os.open(target/'a6.json.part',os.O_WRONLY|os.O_CREAT|os.O_TRUNC|os.O_NOFOLLOW,0o600)
++    with os.fdopen(fd,'wb') as f:f.write(raw)
++    os.replace(target/'a6.json.part',target/'a6.json')
++    return records
+ 
+ 
+ if __name__=='__main__':

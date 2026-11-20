@@ -65,21 +65,10 @@ def join(row, gt):
 
 
 def main():
-    p=argparse.ArgumentParser();p.add_argument('--capture',required=True);p.add_argument('--gt',required=True)
-    p.add_argument('--receipt',required=True);p.add_argument('--out',required=True);a=p.parse_args()
-    import hashlib
-    receipt=json.loads(Path(a.receipt).read_text())
-    if receipt.get('trusted') is not True or receipt.get('items')!=150:
-        raise ValueError('missing all-item parity receipt')
-    if hash_file(Path(a.capture))!=receipt['capture_sha256']:
-        raise ValueError('capture receipt mismatch')
-    ground_truth=json.loads(Path(a.gt).read_text())
-    with gzip.open(a.capture,'rt') as f,open(a.out,'x') as out:
-        for row in map(json.loads,f):
-            if row['objects']:
-                data=join(row,ground_truth[row['capture']])
-            else:
-                data=[dict(key=row['item_id'],stage='U',reason='no recorded object call')]
-            for value in data:out.write(json.dumps(value)+'\n')
+    # Both entry points use the authenticated, trailer-less capture reader.
+    sys.path.insert(0,str(Path(__file__).resolve().parents[3]))
+    from gpkg.join_capture import main as current_main
+    current_main()
+
 
 if __name__=='__main__':main()

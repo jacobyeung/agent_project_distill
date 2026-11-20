@@ -7,14 +7,14 @@ Jobs: K/queue/<prio>_<job>.jsonl, one task per line:
 Results: K/out/<job>.jsonl, one line per finished task (id, model, served, text, usage, dollars, ...). Finished ids are skipped on restart.
 Control files in K/ctl: RATE (requests per minute, 5-minute mean, default 4), INFLIGHT (default 8), BPS (upload bytes/s, default 1.5e6),
 BUDGET (dollars at list price over all jobs this runner ever ran, default 600), STOP. Every call is logged in K/meter/CALLS.jsonl.
-Stops before the next call: K/ctl/STOP, B/events/nvkey/STOP, an ALLOC.md line 'STOP nvkey1', any BLOCK line or Think3D r3243-r3245 line in
+Stops before the next call: K/ctl/STOP, B/events/nvkey/STOP, an ALLOC.md line 'STOP nvkey1' or 'STOP nvkey2', any line whose second token is BLOCK, or a Think3D r3243-r3245 line in
 ALLOC.md written after the runner started, the budget reached, or a WAF 429 (then it appends BLOCK to ALLOC.md and exits).
 A 429 without WAF header or a 503 backs off and halves RATE and INFLIGHT. A reply whose served model differs from the request is a fault.
 Keys come from the environment (NV_INFERENCE_API_KEY, _KEY2.._KEY4) or the export lines of ~/.bashrc; they are never printed or written.
-Tags (nvkey2): every task of a job with work left carries meta.tag in train | dev-analysis | eval and meta.scenes (canonical names). A train job
-whose scenes hit kit/excl.py (six hashed exclusion lists) is refused whole; dev-analysis results go to K/analysis_only/out/<job>.jsonl; eval jobs
+Tags (nvkey2): every task of a job with work left carries meta.tag in train | calibration | dev-analysis | eval and meta.scenes (canonical names). A train
+(label) job whose scenes hit kit/excl.py is refused whole; a calibration job may use V1's calibration captures but nothing else excl.py refuses; dev-analysis results go to K/analysis_only/out/<job>.jsonl; eval jobs
 run only while K/ctl/EVAL_OK exists. BUDGET_PROXY (proxy-reported dollars, the working figure) stops the runner like BUDGET (list dollars)."""
-import base64, glob, io, json, os, re, sys, threading, time, traceback, urllib.request, urllib.error
+import base64, glob, hashlib, io, json, os, re, sys, threading, time, traceback, urllib.request, urllib.error
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import excl
 from concurrent.futures import ThreadPoolExecutor
@@ -70,8 +70,8 @@ def encode_image(path, max_side=640, mark=None, quality=90):
         W, H = im.size; x, y = mark[0] / 1000.0 * W, mark[1] / 1000.0 * H; d = ImageDraw.Draw(im); r = max(6, round(0.018 * max(W, H)))
         for rr, col in ((r + 2, (0, 0, 0)), (r, (255, 0, 0)), (r - 2, (0, 0, 0))):
             d.ellipse([x - rr, y - rr, x + rr, y + rr], outline=col, width=2)
-    b = io.BytesIO(); im.save(b, 'JPEG', quality=quality)
-    return 'data:image/jpeg;base64,' + base64.b64encode(b.getvalue()).decode(), im.size
+    b = io.BytesIO(); im.save(b, 'JPEG', quality=quality); raw = b.getvalue()
+    return 'data:image/jpeg;base64,' + base64.b64encode(raw).decode(), im.size, hashlib.sha256(raw).hexdigest(), (w, h)
 
 class Runner:
     def __init__(self):
@@ -114,9 +114,10 @@ class Runner:
             if os.path.exists(os.path.join(EV, 'STOP')): self.stop_reason = 'events STOP'
             lines = open(ALLOC).read().splitlines()
             for l in lines:
-                if 'STOP nvkey1' in l and 'stops me' not in l: self.stop_reason = 'ALLOC STOP nvkey1'
+                if re.search(r'STOP nvkey[12]\b', l) and 'stops me' not in l: self.stop_reason = 'ALLOC STOP nvkey'
             for l in lines[self.alloc_seen:]:
-                if ' BLOCK' in l and 'nvkey1' not in l: self.stop_reason = 'ALLOC BLOCK: ' + l[:120]
+                tok = l.split()
+                if len(tok) > 1 and tok[1].upper().startswith('BLOCK') and not tok[1].upper().startswith('BLOCK-RULING'): self.stop_reason = 'ALLOC BLOCK: ' + l[:120]
                 if re.search(r'r324[345]|think3d', l, re.I) and re.search(r'HOLD|START|LAUNCH|GATE', l): self.stop_reason = 'ALLOC Think3D: ' + l[:120]
         except OSError: pass
         if self.spent >= rint('BUDGET', 600.0): self.stop_reason = 'budget %.2f reached' % self.spent
@@ -157,22 +158,24 @@ class Runner:
             return -1, {}, repr(e).encode()[:2000], time.time() - t, len(data)
 
     def build(self, task):
-        content = []; sizes = []
+        content = []; sizes = []; images = []
         for c in task['content']:
             if 'text' in c: content.append({'type': 'text', 'text': c['text']})
             else:
-                url, sz = encode_image(c['image'], c.get('max_side', 640), c.get('mark'))
+                url, sz, js, src = encode_image(c['image'], c.get('max_side', 640), c.get('mark'))
                 content.append({'type': 'image_url', 'image_url': {'url': url, 'detail': 'high'}}); sizes.append(sz)
+                images.append({'src': os.path.basename(c['image']), 'src_wh': list(src), 'wh': list(sz), 'jpeg_sha256': js, 'mark': c.get('mark'),
+                               'transform': 'LANCZOS resize to max_side %d, JPEG q90, no crop, no rotation' % c.get('max_side', 640)})
         body = {'model': task['model'], 'messages': [{'role': 'user', 'content': content}], 'max_tokens': task.get('max_tokens', 16384)}
         if task.get('effort'): body['reasoning_effort'] = task['effort']
         body.update(task.get('extra') or {})
-        return body, sizes
+        return body, sizes, images
 
     def run_task(self, job, task, outf, olock):
         if task['model'] in self.bad_models:
             with open(os.path.join(K, 'faults', job + '.gaveup.jsonl'), 'a') as f: f.write(json.dumps({'id': task['id'], 'utc': utc(), 'why': 'model faulted'}) + '\n')
             return
-        try: body, sizes = self.build(task)
+        try: body, sizes, images = self.build(task)
         except Exception as e:
             self.log('BUILD FAIL %s %s %r' % (job, task['id'], e)); return
         nbytes = len(json.dumps(body))
@@ -236,7 +239,7 @@ class Runner:
             msg = ((resp.get('choices') or [{}])[0]).get('message') or {}
             out = {'id': task['id'], 'job': job, 'model': task['model'], 'served': served, 'utc': utc(), 'text': msg.get('content'),
                    'finish': rec['finish'], 'usage': {'prompt': ptok, 'completion': ctok, 'reasoning': rtok}, 'dollars': dollars,
-                   'header_cost': hcost, 'secs': rec['secs'], 'sizes': sizes, 'meta': task.get('meta', {})}
+                   'header_cost': hcost, 'secs': rec['secs'], 'sizes': sizes, 'images': images, 'meta': task.get('meta', {})}
             with olock:
                 outf.write(json.dumps(out) + '\n'); outf.flush()
             return
@@ -268,13 +271,13 @@ class Runner:
         open(os.path.join(K, 'meter', 'METER.json'), 'w').write(json.dumps(m) + '\n')
 
     def gate(self, job, tasks, tags):
-        if len(tags) != 1 or not tags <= {'train', 'dev-analysis', 'eval'}: return 'tags %r: one of train, dev-analysis, eval per job' % sorted(map(str, tags))
+        if len(tags) != 1 or not tags <= {'train', 'calibration', 'dev-analysis', 'eval'}: return 'tags %r: one of train, calibration, dev-analysis, eval per job' % sorted(map(str, tags))
         tag = next(iter(tags))
         if tag == 'eval' and not os.path.exists(os.path.join(K, 'ctl', 'EVAL_OK')): return 'eval job without ctl/EVAL_OK'
         scenes = [s for t in tasks for s in ((t.get('meta') or {}).get('scenes') or [])]
-        if tag == 'train':
-            if not all((t.get('meta') or {}).get('scenes') for t in tasks): return 'train task without meta.scenes'
-            try: excl.assert_train(sorted(set(scenes)))
+        if tag in ('train', 'calibration'):
+            if not all((t.get('meta') or {}).get('scenes') for t in tasks): return '%s task without meta.scenes' % tag
+            try: excl.assert_train(sorted(set(scenes)), label=(tag == 'train'))
             except Exception as e: return 'exclusion assert: %s' % str(e)[:300]
         return None
 

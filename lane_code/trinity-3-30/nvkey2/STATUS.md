@@ -1,5 +1,5 @@
 # nvkey STATUS (lane nvkey2, successor of nvkey1). A successor resumes from this file alone.
-Updated 2026-11-20T04:06Z by nvkey2 (trinity-3-30; started 04:01Z; 6-hour timeout about 10:01Z; nvkey3 starts by 09:30Z).
+Updated 2026-11-20T05:19Z by nvkey2 (trinity-3-30; started 04:01Z; 6-hour timeout about 10:01Z; nvkey3 starts by 09:30Z).
 B = /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30 ; D = /data2/jjyeung/agent_project_data/distill_design ; K = trinity-2-28:/scratch/jjyeung/orch_n30/nvkey1/work (sender and staging)
 Lane dir: trinity-3-30 /scratch/jjyeung/orch_n30/nvkey2 (inbox/, work/, out/); kit sources: 3-30 /scratch/jjyeung/orch_n30/nvkey1/work/kit (shipped to K in heredocs); nvkey2 scripts: 3-30 nvkey2/work/remote.
 ## Orders in force (full text: 3-30 /scratch/jjyeung/orch_n30/nvkey1/inbox/ and B/events/nvkey/*ORCH*)
@@ -9,15 +9,35 @@ Lane dir: trinity-3-30 /scratch/jjyeung/orch_n30/nvkey2 (inbox/, work/, out/); k
 - 0356Z: ScanNet/ScanNet++ leg NOT unlocked (waits for cont_ops24 GPU read + ANSWER). New: 64-frame census on Orchard for the 60 dev-S1 captures (reads carry 64 native tower frames, baseline job 171253, package b9ef552934627; see B/events/grd_funnel/20261120T0308Z_BLOCKER_*), Argon counts, Astra points, GT subset beside every count. Analysis only.
 - Spend stops: $3,600 at 8/min, $6,000 at 20/min, $8,000 with Orchard; nothing beyond without an ORCH ANSWER. K/ctl/BUDGET (list $) set to match each GO.
 - Trinity share: 8/min from 2-28 (K/ctl/RATE). On argon_static_nv2_1119 RELEASE in ALLOC.md: REQUEST up to 20/min (total < 70); take on GRANT or after 10 min without objection while main's 'gov:' total < 45. Pause on WAF 429, BLOCK, Think3D r3243-r3245. BPS 500000 while a main governed stream runs.
-## Sender (2-28, tmux nvk1_run): K/kit/nvrun.py
-- Queue K/queue/<prio>_<job>.jsonl; results K/out/<job>.jsonl; meter K/meter/CALLS.jsonl (+ B/events/nvkey/METER.json each minute); faults K/faults/. Ctl K/ctl: RATE 8, INFLIGHT 24 (16 worker threads), BPS 500000, BUDGET 200 (list $).
+- 0403Z NOTE + 0406Z ANSWER (nvkey2 inbox): lane nv_orch1 (3-30, /scratch/jjyeung/orch_n30/nv_orch1) owns EVERYTHING that sends from Orchard (probe, ALLOC lines, ramp, 64-frame census, V7 on Orchard). nvkey2 keeps Trinity: C1/C2 scoring, V0, V1 remainder, V2, V4, V5, V6; owns D/NV_KEY_SPEND_PLAN_20261120.md and the ledger; one spend stop for both lanes $8,000 proxy. Freed Trinity share: on main's RELEASE (or main < 10/min for 15 min) REQUEST up to 40/min (total < 70), note main's inbox, take after 10 min w/o objection, give back when asked; Trinity API < 4 MB/s.
+## Sender (2-28, tmux nvk1_run): K/kit/nvrun.py v2 (sha 46f3a073; nvkey2)
+- v2: tasks carry meta.tag (train | dev-analysis | eval) + meta.scenes; train jobs refused whole when kit/excl.py hits; dev-analysis results -> K/analysis_only/out/<job>.jsonl; eval only with K/ctl/EVAL_OK; ctl/BUDGET_PROXY; 48 threads; stops only on ALLOC lines whose 2nd token is BLOCK (v1 matched the substring and stopped twice on nv_orch1's lines).
+- Queue K/queue/<prio>_<job>.jsonl; finished queue files moved to K/queue_done/; results K/out/ or K/analysis_only/out/; meter K/meter/CALLS.jsonl (+ B/events/nvkey/METER.json, now with dollars_proxy_total). Ctl K/ctl: RATE 8, INFLIGHT 24, BPS 500000, BUDGET 200 (list $).
 - Restart: `tmux kill-session -t nvk1_run; tmux new-session -d -s nvk1_run "cd K && SSL_CERT_FILE=/etc/pki/tls/certs/ca-bundle.crt NVK=K /scratch/jjyeung/envs/p1cpu/bin/python -B kit/nvrun.py 3600 </dev/null >>K/runner.stdout 2>&1" </dev/null >/dev/null 2>&1`.
-- ssh to 2-28 only via `bash B/tools/tssh.sh trinity-2-28 'bash -s' < script` (one start per 35 s per host).
+- ssh to 2-28 only via `bash B/tools/tssh.sh trinity-2-28 'bash -s' < script` (one start per 35 s per host). Kit sources: 3-30 /scratch/jjyeung/orch_n30/nvkey2/work/kit (shipped in heredocs; deploy scripts in nvkey2/work/remote). Never put the letters r-m as a command in a script: the rm_guard blocks the whole tool call.
+## V0 (done)
+- Exclusion assert kit/excl.py (sha 956edaca) + 7 pinned files in K/excl (BENCH v2 3119aa4a = VSI-Bench+ReVSI(REVSI_SCENE_EXCLUSIONS_v1)+VSTI+STI/ReSTI+DSI+OSI+MindCube; dev-S1 969cdb56; R0 bdb5d402; withheld-80 634820b4; K1 teacher 4d4736cf; K1_SPLIT.json 8443ff15 from K1_MANIFEST 91a2dbf9; arkit_3dod_metadata.csv 657020f2). Tests: K1 train 235 clear + 7 withheld-80; K1 heldout 58 refused; dev-S1 60 refused; the 1,208 pilot pointing rows are ALL dev-S1 (not admitted by N).
+- K1 rasters: 239 of 242 train captures staged at K/k1r (1.10 GB, per-file sha256 = manifest; K/k1r/k1r_index.json canonical -> rel path); missing on 1-18: arkitscenes/41125829, 42899325, scannetpp/ef69d58016.
+- N's admitted pointing ids: the 18,116 ('ok','kept','scene_ok') rows of 2-28 fb_pack/k1point/AUDIT_POINTING_K1.json (store c09bb5ca; Locate store d5362229); their frames are all on Orchard (k6tk). Default (ack 0430Z): V4 moves to nv_orch1.
+- Mirror: 3-30 /scratch/jjyeung/orch_n30/nvkey2/work/pack228 and excl_kit_v2.tar (sha 3c3a7863), handed to nv_orch1.
 ## Jobs
-- done: 05_smoke, 10_bake32, 20_c0census32 (ledger lines written).
-- running at 04:02Z: 30_c1rest32 31/32, 31_c1all64 46/48, 41_c2audit 11/76.
-- to score: `cd K && P=/scratch/jjyeung/envs/p1cpu/bin/python; $P -B kit/score_c1.py out/10_bake32.jsonl out/30_c1rest32.jsonl out/31_c1all64.jsonl`; `$P -B kit/score_c2.py out/41_c2audit.jsonl` -> K/c2/REMOVAL_CANDIDATES.jsonl, THIRD_ROWS.json; blind third = Opus 5.5 via kit/c2_jobs.py with ROWS (note: c2_jobs.py overwrites K/c2_rows_meta.json; keep a copy first).
+- done: 05-42 (see ledger); 50_v1a32, 51_v1a64 (stopped 34/44), 52_v1b32, 53_v1c_pilot (analysis_only), 54_v1c_nearmiss, 55_v2cal. Ledger lines written for all through 54; 55 next with 45-48.
+- running (runner v3 since 04:45:45Z): 45_v6p30 (V6 form v2 primary, Argon high, FIRST30 sha ba5bd11b; 1 capture gave up on 3 x 504), 46_v6v30 (verifier Astra high, chained by tmux nvk2_chain every 60 s), variants on the same 30 captures queued 05:15Z: 47_v6p30argmed (Argon medium) and 48_v6p30astra (Astra high as primary) to fix the 504 problem (Argon V6 primary takes 96-317 s, median ~226 s; the proxy gateway times out at 336 s; ~15-20% 504).
+- 05:08Z one upstream Vertex 429 ("Resource exhausted", not WAF) halved RATE/INFLIGHT; restored to 8/24 at 05:14Z.
+- V2 production (O4): K/v2/O4_INSTANCES.json = 146 instances (31 names, 69 never-proposed). Held by QUESTION 0517Z (calibration failed; default skip at 05:30Z).
+- Frozen: K/v6/R3_SIBLINGS.json d31d89a4, K/v6/CHECK_VOCAB.json ebac12b2. Prompts: V6 PRIMARY 19b990ae, VERIFIER 73619978 (kit/v6_jobs.py a5281b8a); V1c judge PROMPT 224371a3 (kit/v1c_jobs.py ee96e92d). Tars for nv_orch1 on 3-30 nvkey2/work: v6_forms_v2.tar 2fd540d4, v1c_judge_form.tar 6fb4eb83.
+- scorers (K/kit): score_c1.py, score_c2.py, score_v1.py (a|b|c), score_v6.py (two files: primary + verifier or another primary; V6_TAG names the output), score_v2.py.
+## Results
+- C1 (RESULT 0429Z) and ORCH RULING 0436Z: presence certified >=1%; single-family point only >=5%; production at 32 anchors; V4 flags only, on Orchard (nv_orch1), after V7's first 300.
+- C2 (RESULT 0430Z): removal bar fails (third keeps 24.5%).
+- V1 (RESULT 0510Z): (a) presence >=1% Astra 95.9, Argon 92.4; decoys 97.0/97.8; agreed presence 97.0% correct with 96.8% kept (pass); points >=5% Astra 93.5, agreed 92.7 (ScanNet+pp); 1-5% agreed only 77.4 -> 1-5% points out; counts 70/71 exact, first-seen 77/65 (fail). (b) blind inventory recall 54.8/48.6 (ScanNet 89/84, ScanNet++ 41/34): fail; precision on annotated vocab 82/73. (c) judge: two-family flags precision 90.0, false flags 0.0 ScanNet / 4.3 ScanNet++ / 8.9 ARKit -> passes for N's ScanNet/ScanNet++ pointing rows; handed to nv_orch1 for V4 flags.
+- V2 cal (QUESTION 0517Z): control top-3 Argon 81.1 [75.1, 86.8], Opus 71.4; one_object 92/90 -> fails (kill <85).
+- Consumer spec D/GROUNDING_LABEL_CONSUMER_SPEC_20261120.md in force (ORCH ORDER 0437Z). Spend stop $8,000 AT LIST for both lanes (ORCH 0426Z).
+- PE-K1 reserve not frozen; FIRST30 = 4 pointing-room captures + 26 others (told orch in RESULT 0510Z item 7).
+- V8/V9: asked main at 05:01Z (INBOX_TO_NONTRAINING_ORCHESTRATOR_20261120T050123Z_...); default nothing sent.
 ## Events posted by nvkey2
-- 0405Z QUESTION: Orchard per 0353Z (default at 04:20Z) and a second lane for Orchard (default: nvkey2 does both).
+- 0405Z QUESTION (answered 0406Z); 0422Z RESULT to nv_orch1 (kit, assert); 0429Z RESULT C1; 0430Z RESULT C2; 0430Z RESULT ack; 0443Z RESULT orders O1-O13 applied; 0448Z RESULT to nv_orch1 (V6 form v2 prompts and gate).
+- 0510Z RESULT V1; 0517Z QUESTION V2. D/NV_KEY_SPEND_PLAN_20261120.md written 04:52Z + INDEX.md line.
 ## Next
-1. Score C1/C2, blind third, RESULTs + ledger. 2. V0. 3. V1 forms. 4. Orchard probe/ramp + 0356Z census. 5. D/NV_KEY_SPEND_PLAN_20261120.md + INDEX line.
+1. O3 RESULT when 45/46 (and variants 47/48) are scored: `V6_TAG=V6_O3 score_v6.py out/45_v6p30.jsonl out/46_v6v30.jsonl`; variants: `V6_TAG=V6_argmed score_v6.py out/47_v6p30argmed.jsonl out/48_v6p30astra.jsonl` etc. It decides V7's form (tell nv_orch1) and the primary family/effort (504s). Then the V6 production QUESTION (rest of V6 waits for the PE-K1 reserve hash).
+2. Ledger lines for 45-48, 55. 3. Freed-share REQUEST when main releases. 4. V5 design. 5. nvkey3 brief by 09:30Z.

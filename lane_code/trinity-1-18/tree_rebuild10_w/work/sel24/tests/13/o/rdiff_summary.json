@@ -1,0 +1,84 @@
+{
+  "N_rows": 1,
+  "N_rows_listed": 1,
+  "N_rows_without_P": 0,
+  "N_schema": [
+    {
+      "name": "i",
+      "type": "INTEGER"
+    },
+    {
+      "name": "row",
+      "type": "TEXT"
+    },
+    {
+      "name": "target",
+      "type": ""
+    }
+  ],
+  "P_rows": 1,
+  "P_rows_absent_from_N": 0,
+  "P_schema": [
+    {
+      "name": "i",
+      "type": "INTEGER"
+    },
+    {
+      "name": "row",
+      "type": "TEXT"
+    },
+    {
+      "name": "target",
+      "type": ""
+    }
+  ],
+  "U_Faithful": {
+    "N": 1,
+    "N_listed": 1,
+    "P": 1,
+    "absent_listed": 0,
+    "listed": 1
+  },
+  "absent_and_listed": 0,
+  "absent_and_unlisted": 0,
+  "content_columns": [
+    "i",
+    "row",
+    "target"
+  ],
+  "content_encoding": "typed length-prefixed SQLite values; raw UTF-8 TEXT; includes i",
+  "inputs": {
+    "N": {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/work/sel24/tests/13/1.sqlite",
+      "sha256": "741c257007c4792bcb91cdf4626765256d3d81777f0bee1a92e62fa981ddad7a"
+    },
+    "P": {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/work/sel24/tests/13/0.sqlite",
+      "sha256": "741c257007c4792bcb91cdf4626765256d3d81777f0bee1a92e62fa981ddad7a"
+    }
+  },
+  "key_columns": [
+    "dataset",
+    "scene",
+    "qid",
+    "s1_source.name"
+  ],
+  "matched_identical": 1,
+  "mismatched": 0,
+  "rdiff_sha256": "5642509e6b68b41724b2cf6d87f6dded0744c90248d1b66d6abe5050efa046f4",
+  "removal_files": [
+    {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/work/sel24/tests/13/0.json",
+      "sha256": "765ef50b0923072ed2e824eb9a0ea3b574a0ab431c2c55e932b2c59a15dc68a4"
+    }
+  ],
+  "schema": "rdiff-v1",
+  "script_sha256": "bc2db7747322d4c3eda8372ce4c9a3e74d457baa609f2798c465bf4054e75d92",
+  "status": "FAIL",
+  "tree": {
+    "key_function": "student_pilot.row_removals.row_keys",
+    "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24e/work/tree_r1",
+    "reader": "student_pilot.row_removals.Removals",
+    "row_removals_sha256": "440810bd0377f8f72b24040e1f2bbe4a7686feb86c29ba537f5e31ac1f64c800"
+  }
+}

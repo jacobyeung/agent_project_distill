@@ -124,4 +124,11 @@ def main():
     if not args.inspect_only:raise SystemExit('GT conversion refused; see inspection evidence')
 
 
-if __name__=='__main__':main()
+if __name__=='__main__':
+    import sys
+    if len(sys.argv)>1 and sys.argv[1]=='convert':
+        sys.path.insert(0,str(ROOT))
+        from gt.v2 import main as convert_main
+        convert_main(sys.argv[2:])
+    else:
+        main()

@@ -1,8 +1,8 @@
 """nvkey1: append one line per (job, model) to distill_design/NV_SPEND_LEDGER.jsonl from the runner's meter, for jobs given on the command line
-(only when that job has no line yet for that model). usage: ledger.py PURPOSE_JSON  where PURPOSE_JSON = {"job": "purpose", ...}"""
+(only when that job has no line yet for that model). usage: ledger.py LANE PURPOSE_JSON  where PURPOSE_JSON = {"job": "purpose", ...}; LANE names the lane that ran the job (nvkey2 v2)."""
 import json, sys, collections, os, time
 K = '/scratch/jjyeung/orch_n30/nvkey1/work'; LED = '/data2/jjyeung/agent_project_data/distill_design/NV_SPEND_LEDGER.jsonl'
-purpose = json.loads(sys.argv[1]); seen = set()
+LANE = sys.argv[1]; purpose = json.loads(sys.argv[2]); seen = set()
 if os.path.exists(LED):
     for l in open(LED):
         try: d = json.loads(l); seen.add((d.get('job'), d.get('model'), d.get('lane')))
@@ -17,8 +17,8 @@ for l in open(K + '/meter/CALLS.jsonl'):
     c['first'] = c['first'] or r['utc']; c['last'] = r['utc']
 with open(LED, 'a') as f:
     for (job, model), c in sorted(agg.items()):
-        if (job, model, 'nvkey1') in seen: continue
-        f.write(json.dumps(dict(utc=time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()), lane='nvkey1', host=os.uname()[1], job=job, model=model, calls=c['calls'], ok=c['ok'], faults=c['faults'],
+        if (job, model, LANE) in seen: continue
+        f.write(json.dumps(dict(utc=time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()), lane=LANE, host=os.uname()[1], job=job, model=model, calls=c['calls'], ok=c['ok'], faults=c['faults'],
                                 input_tokens=c['input_tokens'], output_tokens=c['output_tokens'], thinking_tokens_in_output=c['thinking_tokens'],
                                 dollars_list=round(c['dollars_list'], 4), dollars_proxy_reported=round(c['dollars_proxy'], 4), request_bytes=c['bytes'],
                                 first=c['first'], last=c['last'], purpose=purpose[job],

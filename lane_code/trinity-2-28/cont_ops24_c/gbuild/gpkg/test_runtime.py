@@ -54,7 +54,7 @@ class RuntimeTests(unittest.TestCase):
                 if len(seen)==20:calls[0]['served']=not calls[0]['served']
                 return dict(schema='ground-capture-v1',item_id=r['item_id'],capture=r['capture'],
                             source_indices=r['source_indices'],objects=[],geometry=None,calls=calls,answer_pass=False)
-            with patch.dict(sys.modules,modules),patch.object(worker,'load_rows',return_value=refs),patch.object(worker,'replay',side_effect=replay):
+            with patch.object(worker,'bind_reader_root'),patch.object(worker,'assert_reader_root'),patch.dict(sys.modules,modules),patch.object(worker,'load_rows',return_value=refs),patch.object(worker,'replay',side_effect=replay):
                 result=worker.run(cfg,100,clock=lambda:0)
             receipt=json.loads((root/'r/metadata/PARITY.json').read_text())
             with gzip.open(root/'c/0.gz','rt') as f:rows=list(map(json.loads,f))
@@ -128,7 +128,7 @@ class RuntimeTests(unittest.TestCase):
             ref=dict(item_id='a',capture='x',source_indices=list(range(32)),mapping={'dense_count':64},
                      calls=[{'call':'<ground obj="x" mode="box">'}]*6)
             bound={'row':{},'frames':{'anchor_indices':list(range(32)),'native_frames':[0]*64,'dense_indices':list(range(64))}}
-            with patch.object(worker,'Capture',cap):row=worker.replay(gen,bound,ref)
+            with patch.object(worker,'Capture',cap),patch.object(worker,'assert_reader_root'):row=worker.replay(gen,bound,ref)
             self.assertEqual(len(prefills),1);self.assertEqual(row['prefills'],1);self.assertEqual(row['decode_steps'],0)
             self.assertEqual(len(responded),5);self.assertEqual(len(row['calls']),6)
             self.assertFalse(row['calls'][-1]['served']);self.assertEqual(gen.hook.servers,{})
@@ -137,7 +137,7 @@ class RuntimeTests(unittest.TestCase):
         refs=json.loads((build.ROOT/'kit2/kit/rerun2/items544.json').read_text())['items']
         root=temp();marker=root/'r/metadata/STOP';marker.parent.mkdir(parents=True);marker.write_text('stop')
         modules={'orchard_h10':mod('orchard_h10'),'orchard_h10.common':mod('orchard_h10.common',write=write)}
-        with patch.dict(sys.modules,modules),patch.object(worker,'load_rows',return_value=refs):
+        with patch.object(worker,'bind_reader_root'),patch.object(worker,'assert_reader_root'),patch.dict(sys.modules,modules),patch.object(worker,'load_rows',return_value=refs):
             result=worker.run(dict(output=str(root/'r'),stop_file=str(marker)),100,clock=lambda:0)
         self.assertEqual(result['completed'],0);self.assertIsNone(result['failure'])
         self.assertEqual(gzip.decompress((root/'c/0.gz').read_bytes()),b'')

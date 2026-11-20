@@ -1,0 +1,35 @@
+--- /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24e/out/kit_n_go/b/rg.py	1969-12-31 19:00:00.000000000 -0500
++++ /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24h/out/kit_n_go/b/rg.py	2026-11-19 23:25:18.651050182 -0500
+@@ -13,6 +13,8 @@
+     from z import write
+     root=Path(root)
+     point=load(pinned(cfg['streams']['pointing']))
++    from rb import routing_status
++    routing_status(cfg)
+     result=build(cfg,root/'selection',point['division'],model_pin(cfg))
+     actual=pinned(result['database'])
+     rows=0; row_ids=hashlib.sha256(); full=hashlib.sha256()
+@@ -26,19 +28,12 @@
+         routing_database=load(pinned(cfg['streams']['routing']))['database'])
+     comparison=None
+     if compare:
+-        from copy import deepcopy
++        from rb import reconstruct, DB
+         p_pin=cfg['r1_training']['p_run']['config'];p=load(pinned(p_pin));pin=p['streams']['routing']
+-        if pin['sha256']!='ca0616dbc67cf9a257774b43a9d5b134957b3f3ce0451e6bf5378f3d7d0c1984':
+-            raise ValueError('P_TRAINED_ROUTING_PIN_DIFFERS')
+         receipt=load(pinned(pin));p_db=pinned(receipt['database'])
+-        if not receipt['database']['sha256'].startswith('4e8e6c04'):raise ValueError('P_TRAINED_ROUTING_DATABASE_DIFFERS')
+-        materialization=load(pinned(receipt['materialization']))
+-        pcfg=deepcopy(p);pcfg['s1_routing']=materialization['inputs'];pcfg['streams']['routing']=materialization['legacy']
+-        from i import refresh
+-        p_input=write(root/'p0.json',pcfg)
+-        refreshed=refresh(dict(config=p_input,staged_pins=[p_input]),root/'pi')
+-        pcfg=load(pinned(refreshed['config']))
+-        reproduced=build(pcfg,root/'pr',materialization['division'],materialization['base_model'])
++        if receipt['database']['sha256']!=DB:raise ValueError('P_TRAINED_ROUTING_DATABASE_DIFFERS')
++        rebuilt=reconstruct(cfg,root,directory='pr')
++        reproduced=load(root/'pr/receipt.json')
+         hashes=[hashlib.sha256(),hashlib.sha256()];count=0
+         with sqlite3.connect(p_db.as_uri()+'?mode=ro',uri=True) as a,sqlite3.connect(pinned(reproduced['database']).as_uri()+'?mode=ro',uri=True) as b:
+             for before,after in zip_longest(a.execute('SELECT i,row,target FROM rows ORDER BY i'),b.execute('SELECT i,row,target FROM rows ORDER BY i')):

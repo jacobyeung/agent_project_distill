@@ -1,0 +1,11 @@
+--- /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24e/out/kit_n_go/b/rd.py	1969-12-31 19:00:00.000000000 -0500
++++ /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24h/out/kit_n_go/b/rd.py	2026-11-19 23:25:56.689988069 -0500
+@@ -53,6 +53,8 @@
+         f.write(raw)
+     if int(returncode) == 0 and 'routing_selection.json' not in records:
+         raise ValueError('R1_ROUTING_SELECTION_MISSING')
++    from ep import publish_artifacts
++    publish_artifacts(target, root)
+     return records
+ 
+ 

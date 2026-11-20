@@ -1,0 +1,1 @@
+K=/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24h/out/kit_qd; date -u +%TZ; grep -n "base\|root\|Path(" $K/b/rb.py | head -40 | cut -c1-220; echo @@; grep -n "selection\|copy_entry" $K/b/pl.py | head -12 | cut -c1-200; grep -n "def regenerate" -A12 $K/b/rg.py | cut -c1-200 | head -16

@@ -1,0 +1,75 @@
+{
+  "assertions": [
+    {
+      "assertion": "runtime has at most four threads",
+      "pass_": true
+    },
+    {
+      "assertion": "final kit seal",
+      "pass_": true
+    },
+    {
+      "assertion": "WAITING_REVIEW reached",
+      "pass_": true
+    },
+    {
+      "assertion": "waiting identity matches config",
+      "pass_": true
+    },
+    {
+      "assertion": "accepted exit zero",
+      "pass_": true
+    },
+    {
+      "assertion": "acceptance binds identity and receipt",
+      "pass_": true
+    },
+    {
+      "assertion": "identity unchanged after acceptance",
+      "pass_": true
+    },
+    {
+      "assertion": "review pinned locally",
+      "pass_": true
+    },
+    {
+      "assertion": "preparation binds review",
+      "pass_": true
+    },
+    {
+      "assertion": "no refusal",
+      "pass_": true
+    }
+  ],
+  "case": "rv_pass",
+  "evidence_stub_called": true,
+  "fixture": {
+    "census": {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/work/rt24h/tt/cases/rv_pass/root/c5.json",
+      "sha256": "9be5bde986ee19c14c5c73c47c852b0cc11c4c277e487690c102d8be4336d3e9"
+    },
+    "config": {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/work/rt24h/tt/cases/rv_pass/root/p/cfg.json",
+      "sha256": "1c5beff9840827c872c2c966a054d30e4d14fcb86d2609729544eddab0542fb7"
+    },
+    "config_identity": "a0f23aecb663296a333b5347254abe860030e5c015c3a53655d0cd2dd61ef691",
+    "host": {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/work/rt24h/tt/cases/rv_pass/root/p/q/host.json",
+      "sha256": "11fe04802482e64ff90f619c7cc77938f5d6009d3037210d5ef3920452d31ff0"
+    }
+  },
+  "limitations": [
+    "Only rv.evidence is stubbed; the wait and receipt branches execute unchanged final source."
+  ],
+  "target_exit_code": 0,
+  "target_files": [
+    "b/rv.py"
+  ],
+  "verdict": "PASS",
+  "wait": {
+    "fake_clock_advance_seconds": 7201,
+    "interval_seconds": 0.01,
+    "sealed_bound_seconds": 7200,
+    "sleeps": []
+  }
+}

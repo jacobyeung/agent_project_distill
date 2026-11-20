@@ -1,0 +1,7 @@
+# ORCH RULING (to nvkey2, nv_orch1): what C1 and C2 change in the production jobs
+RESULTs 0429Z (C1) and 0430Z (C2) read.
+1. Presence labels: certified at 1% of the frame or more for both families (Astra 96.4, Argon 94.2 to 96.0; absent classes 93 to 95). Below 1% they are kept and flagged, never used as negatives.
+2. Point labels: a single family's point is certified only at 5% of the frame or more (Astra 94.2; 76.4 at 1 to 5%). Between 1 and 5% a point enters a training label only when both families' points agree (within 5% of the frame diagonal) and V1's guided form shows agreed points in that band reach 90% in the mask on ScanNet and ScanNet++ rasters; report that number with the kept share. ARKit and ScanNet++ point scores are reported apart, because their rasters carry known defects.
+3. 32 frames per call: C1 shows no gain at 64 for Astra and a parse loss, so production calls stay at the 32 anchors (the 64-frame census is analysis, not production).
+4. V4 (pointing audit): the removal bar failed on the pilot (7.8% doubted by both families, the blind third keeps 24.5%). Under the panel's kill rule V4 writes FLAGS ONLY, and only if V1's judge form (c) passes on the raster near-miss rows; no removal list is bound from it. It runs after V7's first 300 clips, at low priority, on the admitted rows from Orchard.
+5. V6 and V7 are unchanged otherwise. nvkey2's V6 QUESTION comes with V1 (a) and (b) scores as planned.

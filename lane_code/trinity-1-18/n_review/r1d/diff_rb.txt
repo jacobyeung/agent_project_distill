@@ -1,0 +1,199 @@
+--- /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24e/out/kit_n_go/b/rb.py	1969-12-31 19:00:00.000000000 -0500
++++ /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24h/out/kit_n_go/b/rb.py	2026-11-19 23:39:00.432707193 -0500
+@@ -1,32 +1,171 @@
+-"""Reconstruct P's pinned database using its authenticated native recipe."""
++"""Reconstruct authenticated bytes with their sealed producer."""
+ from pathlib import Path
+ from copy import deepcopy
++import json
++import subprocess
++import sys
++import tarfile
+ 
++DB = "4e8e6c04e697d8f12ecd9d705e197e94f73f4a9dc508b7a9e9b4f36487336f84"
++TREE = "e5be8157d855b4c9f611876b7fde5d0c7d8bd11def319e15c00e37daef2c3536"
+ 
+-def reconstruct(cfg, root):
++
++def selection_check(selection, recipe):
++    expected, actual = recipe["pool_selection_counts"], selection["sources"]
++    fields = ("status", "reason", "retained", "per_type")
++    for name in sorted(set(expected) | set(actual)):
++        if (name not in expected or name not in actual or
++                {k: actual[name][k] for k in fields if k in actual[name]} !=
++                {k: expected[name][k] for k in fields if k in expected[name]}):
++            raise ValueError("R1_RECONSTRUCTION_SELECTION_DIFFERS:"+name)
++
++
++def statuses(actual, expected):
++    for name in sorted(set(actual) | set(expected)):
++        if (name not in actual or name not in expected or
++                actual[name].get("status") != expected[name].get("status")):
++            raise ValueError("R1_ROUTING_SOURCE_STATUS_DIFFERS:"+name)
++
++
++def routing_status(cfg):
++    from student_pilot.p3_provenance import load, pinned
++    if not cfg.get("s1_routing"):
++        return
++    p = load(pinned(cfg["r1_training"]["p_run"]["config"]))
++    expected = load(pinned(p["s1_routing"]["selection"]))
++    if p["s1_routing"]["selection"]["sha256"] != "5db993b148c7aa1ace685f7c29b0e20daa6ac4e3e5b3613e4c3fc2b24bdde2af":
++        raise ValueError("R1_ROUTING_REFERENCE_DIFFERS")
++    statuses(load(pinned(cfg["s1_routing"]["selection"]))["sources"], expected["sources"])
++
++
++def mount_inputs(p, recipe):
++    from student_pilot.p3_provenance import load, pinned
++    mounts = {}
++    def add(pin):
++        target = Path(pin["path"])
++        if not target.is_absolute() or ".." in target.parts:
++            raise ValueError("R1_RECONSTRUCTION_PATH_INVALID")
++        source = str(pinned(pin))
++        item = dict(source=source, sha256=pin["sha256"])
++        if str(target) in mounts and mounts[str(target)] != item:
++            raise ValueError("R1_RECONSTRUCTION_PATH_CONFLICT")
++        mounts[str(target)] = item
++    def visit(value):
++        if isinstance(value, dict):
++            if "path" in value and "sha256" in value:
++                add({k:value[k] for k in ("path", "sha256")})
++            else:
++                for v in value.values(): visit(v)
++        elif isinstance(value, list):
++            for v in value: visit(v)
++    for key in ("remove_files", "dev_scene_exclusions", "benchmark_scene_exclusions", "s1_route_policy"):
++        visit(p.get(key))
++    for key in ("inputs", "legacy", "division", "base_model"):
++        visit(recipe[key])
++    for h, path in recipe["inputs"].get("catalog", {}).items():
++        add(dict(path=path, sha256=h))
++    legacy = load(pinned(recipe["legacy"]))
++    visit({k:legacy[k] for k in ("database", "division")})
++    selection = load(pinned(recipe["inputs"]["selection"]))
++    selection_check(selection, recipe)
++    visit(selection["manifest"])
++    visit(selection["remove_files"])
++    visit(selection.get("tokenizer"))
++    for value in selection["sources"].values():
++        if value["status"] == "ELIGIBLE":
++            visit({k:value[k] for k in ("source", "selection")})
++    manifest = load(pinned(selection["manifest"]))
++    for value in manifest["exclusions"].values():
++        if not isinstance(value, dict): continue
++        for key in ("list", "withhold", "v2"):
++            if key in value: add(dict(path=value[key], sha256=value[key+"_sha256"]))
++    model = load(pinned(recipe["base_model"]))
++    for name, h in model["files"].items():
++        if name.endswith((".json", ".txt", ".jinja", ".model")):
++            add(dict(path=str(Path(model["root"])/name), sha256=h))
++    return mounts
++
++
++def command(root, control, tree, mounts):
++    import shutil
++    binary = shutil.which("bwrap")
++    if not binary: raise ValueError("R1_BINARY_MISSING:bwrap")
++    # Native rows retain logical provenance paths. Bind the staged bytes there
++    # in a private view instead of rewriting the paths embedded in those rows.
++    roots = sorted({"/"+Path(p).parts[1] for p in mounts if not p.startswith("/tmp/")})
++    if any(p not in ("/scratch", "/lustre", "/home", "/data", "/data2", "/data3", "/project") for p in roots):
++        raise ValueError("R1_RECONSTRUCTION_PATH_INVALID")
++    cmd = [binary, "--ro-bind", "/usr", "/usr", "--symlink", "usr/bin", "/bin",
++           "--symlink", "usr/lib", "/lib", "--symlink", "usr/lib64", "/lib64",
++           "--ro-bind", "/etc", "/etc", "--dev-bind", "/dev", "/dev", "--proc", "/proc", "--tmpfs", "/tmp"]
++    for p in (Path(sys.base_prefix), Path(sys.prefix), Path(__file__).resolve().parent, Path(root)):
++        cmd += ["--ro-bind", str(p), str(p)]
++    cmd += ["--bind", str(root), str(root)]
++    for target, item in sorted(mounts.items()): cmd += ["--ro-bind", item["source"], target]
++    cmd += ["--chdir", str(root), sys.executable, "-I", "-s", "-B", str(Path(__file__).resolve()), str(control), str(tree)]
++    return cmd
++
++
++def reconstruct(cfg, root, *, directory="base"):
+     from z import load, checked, write
+-    from i import refresh
+-    from student_pilot.p3_provenance import pinned
+-    from student_pilot.s1_routing import build
+-    p = load(pinned(cfg['r1_training']['p_run']['config']))
+-    pin = p['streams']['routing']
+-    if pin['sha256'] != 'ca0616dbc67cf9a257774b43a9d5b134957b3f3ce0451e6bf5378f3d7d0c1984':
+-        raise ValueError('P_TRAINED_ROUTING_PIN_DIFFERS')
++    from student_pilot.p3_provenance import pinned, file_pin
++    from student_pilot.source_seal import check_archive, inventory
++    root = Path(root)
++    p = load(pinned(cfg["r1_training"]["p_run"]["config"]))
++    pin = p["streams"]["routing"]
++    if pin["sha256"] != "ca0616dbc67cf9a257774b43a9d5b134957b3f3ce0451e6bf5378f3d7d0c1984":
++        raise ValueError("P_TRAINED_ROUTING_PIN_DIFFERS")
+     receipt = load(pinned(pin))
+-    expected = receipt['database']['sha256']
+-    if expected != '4e8e6c04e697d8f12ecd9d705e197e94f73f4a9dc508b7a9e9b4f36487336f84':
+-        raise ValueError('P_TRAINED_ROUTING_DATABASE_DIFFERS')
+-    recipe = load(pinned(receipt['materialization']))
+-    pcfg = deepcopy(p)
+-    pcfg['s1_routing'] = recipe['inputs']
+-    pcfg['streams']['routing'] = recipe['legacy']
+-    pin = write(Path(root)/'base_input.json',pcfg)
+-    request = refresh(dict(config=pin,staged_pins=[pin]),Path(root)/'base_refresh')
+-    rebuilt = build(load(pinned(request['config'])),Path(root)/'base',recipe['division'],recipe['base_model'])
+-    path = pinned(rebuilt['database'])
+-    # The original database is unavailable. Its receipt authenticates every byte
+-    # of the reconstruction before any existing reader or comparison can use it.
+-    if rebuilt['database']['sha256'] != expected:
+-        raise ValueError('P_TRAINED_ROUTING_RECONSTRUCTION_DIFFERS:'+expected)
+-    checked(path,expected)
++    if receipt["database"]["sha256"] != DB:
++        raise ValueError("P_TRAINED_ROUTING_DATABASE_DIFFERS")
++    recipe = load(pinned(receipt["materialization"]))
++    selection_check(load(pinned(recipe["inputs"]["selection"])), recipe)
++    seal = load(pinned(p["code"]))
++    tree_pin = cfg["r1_training"]["p_tree"]
++    if tree_pin["sha256"] != TREE or seal["archive"]["sha256"] != TREE:
++        raise ValueError("R1_RECONSTRUCTION_TREE_DIFFERS")
++    check_archive(tree_pin, seal["files"])
++    tree = root/(directory+"_tree")
++    with tarfile.open(pinned(tree_pin)) as archive:
++        archive.extractall(tree, filter="data")
++    if inventory(tree) != seal["files"]:
++        raise ValueError("R1_RECONSTRUCTION_TREE_DIFFERS")
++    mounts = mount_inputs(p, recipe)
++    control = root/(directory+"_input.json")
++    write(control, dict(config=p, recipe=recipe, root=str(root), directory=directory))
++    write(root/(directory+"_mounts.json"), mounts)
++    subprocess.run(command(root, control, tree, mounts), check=True)
++    result = load(root/directory/"receipt.json")
++    path = root/directory/"rows.sqlite"
++    if result["database"]["sha256"] != DB:
++        raise ValueError("P_TRAINED_ROUTING_RECONSTRUCTION_DIFFERS:"+DB)
++    checked(path, DB)
+     return path
++
++
++def child(control, tree):
++    sys.path.insert(0, str(tree))
++    from student_pilot.p3_provenance import load, pinned, file_pin, write
++    from student_pilot.s1_pool_relocate import relocate
++    from student_pilot.s1_routing import build
++    value = load(control); p = value["config"]; recipe = value["recipe"]
++    root = Path(value["root"]); directory = value["directory"]
++    pcfg = deepcopy(p); pcfg["s1_routing"] = deepcopy(recipe["inputs"])
++    pcfg["streams"]["routing"] = recipe["legacy"]
++    selected = load(pinned(recipe["inputs"]["selection"]))
++    selection_check(selected, recipe)
++    refresh = root/(directory+"_refresh"); refresh.mkdir()
++    try:
++        moved = relocate(recipe["inputs"]["selection"], recipe["inputs"].get("catalog", {}), refresh/"p")
++        selected = load(pinned(moved["relocated"]))
++        selection_check(selected, recipe)
++        pcfg["s1_routing"]["selection"] = moved["relocated"]
++        write(refresh/"r.json", dict(status="PASS", prepared=False, selection=moved["relocated"]))
++        build(pcfg, root/directory, recipe["division"], recipe["base_model"])
++    except BaseException as error:
++        if not (refresh/"r.json").exists():
++            write(refresh/"r.json", dict(status="REFUSE", refusal=str(error), prepared=False))
++        raise
++
++
++if __name__ == "__main__": child(sys.argv[1], sys.argv[2])

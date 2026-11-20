@@ -1,0 +1,20 @@
+--- /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24e/out/kit_n_go/b/z.py	1969-12-31 19:00:00.000000000 -0500
++++ /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24h/out/kit_n_go/b/z.py	2026-11-19 23:25:18.652050180 -0500
+@@ -228,7 +228,7 @@
+         cfg['streams']['routing']=runtime['streams']['routing']
+     else:
+         cfg['streams']=runtime['streams']
+-    cfg['s1_routing']=runtime['s1_routing']
++    cfg['s1_routing']=load(kit/'k/n.json')['s1_routing']
+     cfg['init_artifact']['artifact']=pins['artifact'];cfg['routing_opener_init']='keep'
+     cfg['r1_training'].update(p_run=run,handover_receipt=dict(path=ns+'/e.json',sha256=sha(milestone/'e.json')),
+         persisted_files={p['sha256']:paths.get(p['sha256'],ns+'/u/'+p['sha256']) for p in pins.values()},
+@@ -396,7 +396,7 @@
+     if combined.hexdigest()!=h['export']['sha256'] or total!=h['export']['bytes']:raise ValueError('E29')
+     cfg=load(kit/'k/n.json');metadata_closure(values,metadata,[cfg]);ns=spec['namespace']
+     if cfg['streams']['routing']['sha256']!=runtime['streams']['routing']['sha256']:raise ValueError('E55')
+-    cfg['streams']['routing']=runtime['streams']['routing'];cfg['s1_routing']=runtime['s1_routing']
++    cfg['streams']['routing']=runtime['streams']['routing'];cfg['s1_routing']=load(kit/'k/n.json')['s1_routing']
+     cfg['init_artifact']['artifact']=pins['artifact'];cfg['routing_opener_init']='keep'
+     paths={x:ns+'/u/'+x for x in values}
+     expected_paths={x['sha256']:ns+'/u/'+x['sha256'] for x in spec['uploads']}

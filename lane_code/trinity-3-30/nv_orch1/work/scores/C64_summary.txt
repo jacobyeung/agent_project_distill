@@ -1,0 +1,38 @@
+parse_failures {}
+finish {'gcp/google/gemini-4-argon|stop': 40, 'openai/openai/gpt-6.2-astra|stop': 40}
+== gemini-4-arg
+  objects 145
+  sparse_R<3 61
+  sparse: v32 bucket -> v64 bucket {'0->0': 1, '0->3+': 3, '1-2->1-2': 4, '1-2->3+': 12, '3+->0': 1, '3+->3+': 40}
+  frame-count group (R<3, v32 1-2) 16
+    moved to v64>=3 12
+    of those, >=3 already at the 64-call anchors (form change, not new frames) 2
+    moved by band (GT max share at anchors) {'GT<0.2%': '1 of 1', '0.2-1%': '2 of 3', '1-5%': '3 of 3', '>=5%': '0 of 0'}
+    moved, no GT 6 of 9
+  GT subset objects 59
+  GT subset sparse 23
+  GT sparse: GT-anchor bucket (>=0.2%) {'3+': 11, '1-2': 9, '0': 3}
+  GT sparse with GT 1-2 at 32: est64>=3 (GT anchors + precision-scaled interleaved) 6 of 9
+  GT sparse with GT 1-2 at 32: labeller v64>=3 8
+  anchor frames, 64-call: precision / recall vs GT>=0.2% [0.787, 0.987]
+  anchor frames, 32-call (C0): precision vs GT>=0.2% 0.803
+  over-count on GT subset: labeller visible anchors / GT visible anchors (64-call, 32-call) [1.254, 1.222]
+  over-count, sparse GT subset: labeller 3+ at anchors where GT 1-2 4 of 9
+== gpt-6.2-astr
+  objects 145
+  sparse_R<3 61
+  sparse: v32 bucket -> v64 bucket {'0->0': 2, '0->3+': 2, '1-2->1-2': 3, '1-2->3+': 7, '3+->3+': 47}
+  frame-count group (R<3, v32 1-2) 10
+    moved to v64>=3 7
+    of those, >=3 already at the 64-call anchors (form change, not new frames) 0
+    moved by band (GT max share at anchors) {'GT<0.2%': '1 of 1', '0.2-1%': '2 of 2', '1-5%': '2 of 2', '>=5%': '0 of 0'}
+    moved, no GT 2 of 5
+  GT subset objects 59
+  GT subset sparse 23
+  GT sparse: GT-anchor bucket (>=0.2%) {'3+': 11, '1-2': 9, '0': 3}
+  GT sparse with GT 1-2 at 32: est64>=3 (GT anchors + precision-scaled interleaved) 6 of 9
+  GT sparse with GT 1-2 at 32: labeller v64>=3 9
+  anchor frames, 64-call: precision / recall vs GT>=0.2% [0.748, 0.994]
+  anchor frames, 32-call (C0): precision vs GT>=0.2% 0.756
+  over-count on GT subset: labeller visible anchors / GT visible anchors (64-call, 32-call) [1.328, 1.302]
+  over-count, sparse GT subset: labeller 3+ at anchors where GT 1-2 5 of 9

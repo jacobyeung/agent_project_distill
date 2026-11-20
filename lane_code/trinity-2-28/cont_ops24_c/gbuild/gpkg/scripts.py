@@ -22,9 +22,11 @@ printf 'pid=%s log=%s\\n' "$!" "$S.log"
 '''.replace('BODYTEXT', body).replace('TOKEN', token).replace('NUMBER', number)
 
 
-def render():
-    info = json.loads((ROOT/'out/BUILD.json').read_text()); token = info['token']
-    b64 = base64.b64encode((ROOT/'out/delivery.tgz').read_bytes()).decode()
+def render(out=None,script_dir=None,cpu_partition='preempt'):
+    out=Path(out or ROOT/'out');script_dir=Path(script_dir or ROOT/'orchard')
+    script_dir.mkdir(parents=True,exist_ok=True)
+    info = json.loads((out/'BUILD.json').read_text()); token = info['token']
+    b64 = base64.b64encode((out/'delivery.tgz').read_bytes()).decode()
     meta = base64.b64encode(jd(info)).decode()
     body = '''/usr/bin/python3 -I -s -B - <<'PY'
 import base64,hashlib,io,json,os,tarfile
@@ -59,7 +61,7 @@ with tarfile.open(fileobj=io.BytesIO(raw)) as t:
             if hashlib.file_digest(f,'sha256').hexdigest()!=h:raise ValueError('installed file differs')
 print(json.dumps(dict(package=str(p),verified=True,added_bytes=total)))
 PY'''.replace('DELIVERY',b64).replace('DESCRIPTOR',meta)
-    (ROOT/'orchard/o_place.sh').write_text(background(token,'0',body))
+    (script_dir/'o_place.sh').write_text(background(token,'0',body))
     body = '''cd "$P"
 (set -C; : > a/0.lock)
 test ! -e a/c
@@ -69,7 +71,7 @@ reply=$(env -i PATH=/usr/local/bin:/usr/bin:/bin HOME="$HOME" USER="$USER" CUDA_
 job=${reply%%;*}; [[ "$job" =~ ^[0-9]+$ ]]
 printf '%s\\n' "$job" > a/4.txt
 cat a/4.txt'''.replace('TOKEN',token)
-    (ROOT/'orchard/o_cpu.sh').write_text(background(token,'1',body))
+    (script_dir/'o_cpu.sh').write_text(background(token,'1',body.replace('--partition=preempt','--partition='+cpu_partition)))
     body = '''cd "$P"
 (set -C; : > a/1.lock)
 test ! -e a/8.txt
@@ -81,7 +83,7 @@ reply=$(/usr/bin/python3 -I -s -B 3.py submit --gpus 1 --time 05:00:00)
 job=${reply%%;*}; [[ "$job" =~ ^[0-9]+$ ]]
 printf '%s\\n' "$job" > a/8.txt
 cat a/8.txt'''
-    (ROOT/'orchard/o_check_sub.sh').write_text(background(token,'2',body))
+    (script_dir/'o_check_sub.sh').write_text(background(token,'2',body))
     body = '''cd "$P"
 (set -C; : > a/2.lock)
 job=$(cat a/8.txt); [[ "$job" =~ ^[0-9]+$ ]]
@@ -117,7 +119,7 @@ with tarfile.open(dest/'0.tgz') as t:
         with (dest/name).open('xb') as f:f.write(raw)
         print(name);print(raw.decode())
 PY'''
-    (ROOT/'orchard/o_fetch.sh').write_text(background(token,'3',body))
+    (script_dir/'o_fetch.sh').write_text(background(token,'3',body))
     return token
 
 

@@ -14,3 +14,18 @@
 - Orchard: placed /project/community/jjyeung/a1abb3a204ff8 (+10.8 MB; free 238 GiB). CPU entry-sequence job 173603 on general (CPU only; o_cpu_general.sh) RUNNING orchard-community-2 since ~03:57Z. GPU submit (o_check_sub.sh) waits for CPU.json pass AND review GO.
 ## 04:05Z
 - CPU job 173603 COMPLETED 6:02; a/c/CPU.json passed (bundle guard, entry sequence, memory fits). GPU submit waits for review c24_rev verdict.
+## 04:22Z
+- Review c24_rev (Astra, 4 min): GO-WITH-FIXES, one MAJOR (trailer-less gzip after forced kill unreadable) -> reader-side salvage, in round 2; no job-side change needed.
+- First submit of a1abb3a204ff8 rejected by sbatch (gres gpu:h100:1 invalid on general). Rebuilt with parent resources (gpu:1, 16 CPU): token a5d6f41359166 (delivery f4509a4a…, plan d55222ad…), 13 tests pass. Placed (+10.8 MB), CPU job 173613 COMPLETED/passed, GPU job 173616 submitted 04:20Z on general, PENDING (Resources). Monitor tmux c24_monG (work/monG_173616.log).
+- Removal candidate: /project/community/jjyeung/a1abb3a204ff8 (10.8 MB, unused).
+- Codex round 2 RUNNING on 2-28 (tmux c24_r2, gbuild/BRIEF_R2.md): T2 point-prompt package (Astra points from nvkey1), GT adapter v2 (rulings: downsample predictions to 240x320, ScanNet++ half extents doubled, rigid SE3 no scale), reader salvage.
+## 04:44Z
+- ORCH ORDER 0350Z: T2 first, then the 64-frame ground-call arm (replaces optional arms), then T1 funnel. NOTE 0356Z: T2 splits sparse items by GT visibility (1-2 vs >=3 frames).
+- 173616 FAILED 1:0 in 3 s on orchard-community-4 (no trace; output /dev/null). Hand resubmission 173618 of the same sealed BATCH.sh (logs a/d.log) ran 5 min on community-2: staging OK, GCS capture upload OK (20-byte capture verified), worker died: ImportError e2e_reader.parity resolves to h1eval/reader_core copy (h1eval/__init__ inserts reader_core at sys.path[0]). Return a5d6f413591660002a632 in pool ae71c903 (move to _fetched later).
+- Codex round 2 DONE (45 tests; salvage, scorer, GT adapter v2; C2 blocked on SAM source access). Round 2c RUNNING (tmux c24_r2c on 2-28; BRIEF_R2B.md): import fix + real-payload CPU import smoke test, rebuild T1, point-prompt package with selector-restricted control arm + text repeat; SAM3 API copies in gbuild/sam3_ref.
+- Next brief ready: /dev/shm/c24/BRIEF_R3.md (64-frame arm).
+## 05:07Z
+- Round 2c DONE (52 tests): T1 fixed a52c1dcfae7bb (delivery ef9575f1…; not placed yet); T2 package ab704caf7807e (delivery 0d547179…; Astra points sha fb6246cf…; 150 point + 150 restricted-selector + 10 text replays; forecast 167 GPU-min, 84-250). Real-payload import smoke test reproduces the old failure, passes fixed ones.
+- T2: placed (+11.0 MB, free 232.8 GiB), CPU job 173624 passed, GPU job 173625 submitted ~05:06Z by hand sbatch (logs a/d.log, --exclude=orchard-community-4; script /dev/shm/c24/o_sub_hand.sh). Monitor tmux c24_monT2 (work/monG_173625.log).
+- Astra review c24_rev2 of T2 point runtime + scorer RUNNING on 2-28 (rev2/); if BLOCKER in runtime -> scancel 173625 and rebuild.
+- Next Codex: BRIEF_R3 (64-frame arm) after rev2.
