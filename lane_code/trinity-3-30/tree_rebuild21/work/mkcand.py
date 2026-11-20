@@ -16,7 +16,7 @@ mkdir -m 700 {C} && cp -a qd {C}/qd && cp -a s{tag}/qd/. {C}/qd/
 cd {C}/qd; for f in $(find . -type f | sed 's#^\\./##'); do case $f in BUILD.json|SHA256SUMS.txt) ;; *) grep -q "  $f\\$" SHA256SUMS.txt || {{ echo "EXTRA $f"; exit 1; }} ;; esac; done
 [ "$(sha256sum SHA256SUMS.txt | cut -c1-64)" = {seals['qd']} ] && [ "$(sha256sum -c SHA256SUMS.txt 2>&1 | grep -vc ': OK$')" = 0 ] && [ -z "$(find . -name __pycache__)" ] || {{ echo CAND SEAL BAD; exit 1; }}
 echo CAND {C}/qd seal $(sha256sum SHA256SUMS.txt | cut -c1-16) files $(find . -type f | wc -l)
-cd $X; sed "s#^ROOT=/project/community/jjyeung/okh7/x_22c714e1/qd\\$#ROOT=$X/{C}/qd#" rcj/rcj.sh > {C}/rcj.sh; chmod 700 {C}/rcj.sh; grep -n "^ROOT=" {C}/rcj.sh; diff rcj/rcj.sh {C}/rcj.sh | wc -l
+cd $X; mkdir -m 700 {C}/rcj && cp -a rcj/. {C}/rcj/ && if [ -d s{tag}/rcj ]; then cp -a s{tag}/rcj/. {C}/rcj/; fi; echo CAND RCJ; (cd {C}/rcj && sha256sum * | cut -c1-16,65-); RS=$X/rcj/rcj.sh; [ -f s{tag}/rcj/rcj.sh ] && RS=$X/s{tag}/rcj/rcj.sh; sed "s#^ROOT=/project/community/jjyeung/okh7/x_22c714e1/qd\\$#ROOT=$X/{C}/qd#; s#^H=/project/community/jjyeung/okh7/x_22c714e1/rcj\\$#H=$X/{C}/rcj#" $RS > {C}/rcj.sh; chmod 700 {C}/rcj.sh; grep -n "^ROOT=\|^H=" {C}/rcj.sh; diff rcj/rcj.sh {C}/rcj.sh | wc -l
 for f in x.py:d8517333228a4cac pc.py:bd87252b711f9a2b nd.py:eb0ba92e7e989752 ch.py:16d7210bbca556a0 f.json:37cbc05d134a0129 ps.py:6945292e167d9f60 P_SAMPLE_I.json:fff742bb8ca70d50; do [ "$(sha256sum rcj/${{f%%:*}} | cut -c1-16)" = "${{f##*:}}" ] || {{ echo "BAD rcj/$f"; exit 1; }}; done
 [ "$(sha256sum qd/SHA256SUMS.txt | cut -c1-16)" = 221d17824d467daa ] || {{ echo REVIEWED QD CHANGED; exit 1; }}
 cd {C}/qd && sbatch --job-name={jn} ../rcj.sh r; sleep 15

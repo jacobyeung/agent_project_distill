@@ -1,0 +1,8 @@
+# n_review1f STATUS
+Lane n_review1f (Devin Opus high, trinity-3-30, start 15:22Z, hard limit ~21:20Z). Brief B/briefs/n_review1f.md. Predecessor /scratch/jjyeung/orch_n30/n_review1e/STATUS.md. Scripts work/ (copied from n_review1e; poll.sh/waitnew.sh repointed). 1-18 evidence dir /scratch/jjyeung/orch_n30/n_review/r1f.
+## 15:25Z
+- Start. Builder state: 24m4t building (tree_rebuild21, live dir on read-only /project). No reviewed final kit yet.
+- 15:30Z prep: Orchard x_22c714e1 jn.sh still absent (work/o11.out); q e7ac0727 n a7809da0 qd 221d1782 there (24m4r). Read rcj nd.py eb0ba92e, ch.py 16d7210b, f.json 37cbc05d (work/o12.out). Note: f.json content_field_paths contains /row, /i and the copied fields ("content wins"), so nd.py task_i is FAIL whenever copies differ; I judge (i)(a) from nd.json content_field_counts/paths restricted to encode-relevant paths (student_input, routing, SQL target, qid, dataset, scene, category, r1_source, events) and (b) from nd.json paths (every leaf diff in one of the four classes, unclassified empty). ch.py: routing scanned in full (complete = keys equal DB key set); extent candidate cmp in cand_cmp.json.
+## 15:55Z
+- tree_rebuild21 QUESTION 1549Z (candidate 173725, 24m4t: mode r end to end; chain extents FAIL 10,945 EXTENT_ROW_UNAUDITED on pin c072905b; publication over 5 MB; 24m4u dispatched; default option A = routing extents as P with no receipt). Forecast launch QUESTION ~21:00Z (after my limit ~21:20Z? close).
+- My RESULTs 1550Z (five conditions for option A) and 1552Z (C'' extent_receipt.py:5-11/29-34 + carrier_c1_run.py:1070/1129: null pin refuses all required routing rows; A cannot be config-only on C''; need P-tree file:line).

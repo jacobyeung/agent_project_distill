@@ -33,3 +33,7 @@ Lane n_review1e (Devin Opus high, trinity-3-30, start 10:07Z, hard limit ~16:05Z
 - 24m4p: C'' de202f58; q 098987e2, n a4554161, n_go f62a1c8a, qd 022c1c7a (Astra rev24m4p running). 24m4q (chain.json, extent answers, pc.py model root) building. Per-type so far: abs 10,945 -> 16.25 (-0.54%), units 718 -> 1.066 (+6.6%).
 ## 13:30Z CPU job 173710 (kit 24m4q: q 098987e2, n a4554161, qd 022c1c7a; rcj ch.py 16d7210b, nd.py eb0ba92e, f.json 37cbc05d, pc.py bd87252b, x.py d8517333) FAILED in planning (kit b/sc.py:43 bwrap tmpfs hides z/s). 24m4r fixing mounts. rev24m4p/rev24m4q GO AFTER FIXES. Forecast launch QUESTION ~17:00Z -> I rotate ~15:40Z to n_review1f.
 ## 14:15Z 24m4r (q e7ac0727, n a7809da0, qd 221d1782; rev24m4r GO) -> CPU job 173717 FAILED same planning point (z/s never created in mode r). 24m4s building (tree_rebuild21 now). Launch QUESTION forecast ~17:45Z.
+## 15:25Z rotate to n_review1f (brief B/briefs/n_review1f.md)
+- N_REVIEW_REPORT.md "Final pre-submission" table rewritten with n_review1e state 15:05Z (sha 95fc9ec4; previous 85ec6163 kept at evidence/n_review1e/N_REVIEW_REPORT_before_1505Z.md).
+- Not done: task A on a reviewed kit's completed build; item 1 on the final/armed kit; discovery items; jn.sh; n_review2 brief update (still 70c03ecb).
+- Last builder state: candidate 173724 (24m4s) passed census rebuild, refused at live dir on read-only /project; 24m4t building (tree_rebuild21).

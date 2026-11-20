@@ -20,3 +20,4 @@ trinity-1-18 W=/scratch/jjyeung/orch_n30/tree_rebuild10_w (43 GB of 40 GB cap; n
 - trinity-1-18 W/w24q (untar 24m4p + 11 min of killed Codex 24m4q; superseded by W/w24q2). Orchard x_22c714e1/s24m4n/ + s24m4n.tar (superseded by s24m4o3). Added by tree_rebuild20 12:37Z.
 - Orchard login /tmp/bwp.b1YfdV (bwrap probe dir, 1 empty file). Orchard x_22c714e1/s24m4r/ (empty after overlay) + s24m4r.tar. Added by tree_rebuild21 14:02Z.
 - Orchard x_22c714e1/s24m4s/ + s24m4s.tar (24m4s upload; q/n deltas not overlaid), x_22c714e1/c_8de0c8b3/ (candidate kit copy) after review/overlay. Added by tree_rebuild21 14:43Z.
+- Orchard x_22c714e1/s24m4t/ + s24m4t.tar, c_291c6f58/ (candidate); 1-18 W/w24s (superseded by w24t after review). Added by tree_rebuild21 15:10Z.

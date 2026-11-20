@@ -1,0 +1,1 @@
+date -u +%TZ; tmux ls 2>/dev/null | grep tr2; C=/home/jjyeung/agent_project_distill/agent/scratch/codex_runs; d=$(ls -d $C/*_tree_rebuild_rev24m4t | tail -1); echo $d; test -f $d/final_message.md && cat $d/final_message.md
