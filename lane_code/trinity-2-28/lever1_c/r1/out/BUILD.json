@@ -345,8 +345,8 @@
     "l.json",
     "9.json"
   ],
-  "delivery_bytes": 3704563,
-  "delivery_sha256": "fba95b8b0b00c87ec7900817a0977084e18efed504b8918e24eccf9224302974",
+  "delivery_bytes": 3704924,
+  "delivery_sha256": "87a55270aa3ed70b5e00021284a4284f8eb6ca1116c1cd35ee6fe810e6365041",
   "external_inputs": {
     "removed": [
       "sam_checkpoint",
@@ -365,14 +365,14 @@
     ]
   },
   "files": {
-    "0.json": "0b339170bc944a4936794deb598a1c264759b0b5e0b11b71f513b39e9047b91b",
-    "0.tgz": "97268c391d36cfd987d8cc9deb35007455489f973659d174c5d97cc0bc39562c",
-    "3.py": "20ef16f8fb25d93753a5b34b7d06beb18ab94336203bf33d58821a1d21dd5a62",
-    "BATCH.sh": "9a55f83857dc77508688de52303774bc582cab35d39bbd7c3dcef248f2292fec",
-    "CONFIG.json": "0b339170bc944a4936794deb598a1c264759b0b5e0b11b71f513b39e9047b91b",
+    "0.json": "c64c5ac0d15b0a1bc1ba5602089186f12d9e2aa767e953dbcf85500db9b3d758",
+    "0.tgz": "8b9f63b8c6dd0776b061e68691da4d4425a1a1df1702f1c3a13c5524b2567ad3",
+    "3.py": "625cc1fa37953a233a67d971054a97d6c7622360ac521fe32a887931d4e73573",
+    "BATCH.sh": "6cea63adb2161e7d3afacd3a751698c8eb4971216277a326ee45e5145596150f",
+    "CONFIG.json": "c64c5ac0d15b0a1bc1ba5602089186f12d9e2aa767e953dbcf85500db9b3d758",
     "INPUTS.example.json": "f84f4e352c1cb36f8632b011538653e4042296bb9d630287e31758496947b881",
-    "PACKAGE.json": "4a2f38bc0ef6a09c08cddb7f8d67a51b6466d4bc689a67f4d8ef8446a4127d4c",
-    "SUBMIT.cmd": "ffb80c8fc03496b6f2d77894ea47105d075c1b7d9b49df0cda317b2e0588e1a9",
+    "PACKAGE.json": "6624c1357f1efb81ed681f240dcf7e7c55d4fb75b16b60c70f9e00bd69c65269",
+    "SUBMIT.cmd": "9e3989f92f26cee32ea11b7402fd91716efc157df989e278101f9f35931878a5",
     "a/1.json": "f84f4e352c1cb36f8632b011538653e4042296bb9d630287e31758496947b881",
     "a/5.py": "a6ab35aa0fa8ea73659b8b9d26a0d91503d241612f7af55c176c9431b5afaf78",
     "a/6.py": "67f04814d1b4dffc4c5f0423ab7ada4a0c7efb55d2b6e601a2299d5252b712df",
@@ -381,14 +381,21 @@
     "a/export.json": "3dab6467186a46f91a1c6e5b17ea2a7829a4ece7902045d5f53f0ae1d953fcf9"
   },
   "forecast": {
-    "allocation_margin_s": 134.9865522600303,
+    "allocation_margin_s": 734.9865522600303,
     "allocation_planning_minutes": 37.7502241289995,
-    "allocation_s": 2400,
+    "allocation_s": 3000,
     "allowances_measured": false,
     "captures": 60,
     "caveat": "T1 replay is 16.75 min, including SAM/linking. Add 6 min shared loading and 1 min indexed RGB/telemetry inside worker, plus 10 min shared archive staging and 4 min publication. All allowances are unmeasured; no first-output or GPU wall-time guarantee.",
     "compressed_return_conservative_bytes": 80000000,
     "compressed_return_forecast_bytes": 40000000,
+    "deadline_offsets_s": {
+      "capture_publication_stop": 2910,
+      "failure_receipt_stop": 2998,
+      "normal_publication_stop": 2990,
+      "staging_stop": 2760,
+      "worker_latest_stop": 2730
+    },
     "float16_depth_bytes": 9987840,
     "indexed_staging_monitor_allowance_s": 60,
     "lossless_depth_plane_bytes": 49939200,
@@ -399,11 +406,12 @@
     "t1_first_per_capture_replay_s": 1005.0134477399697,
     "t1_first_per_capture_tower_s": 430.61447064887034,
     "t1_replay_minutes": 16.750224128999495,
+    "worker_cap_reason": "Forecast 1425.01s leaves 374.99s within 1800s; with 600s staging and 240s publication a capped worker fits in 2640s, leaving 360s of the allocation. No evidence requires 35 minutes.",
     "worker_cap_s": 1800,
     "worker_forecast_minutes": 23.750224128999495,
     "worker_margin_s": 374.9865522600303
   },
-  "installed_bytes": 3885227,
+  "installed_bytes": 3885234,
   "job_name": "a15_cot_apa784b94c2e6af",
   "layout": {
     "bindings": [
@@ -3368,7 +3376,7 @@
   "payload_expanded_bytes": 30859705,
   "payload_files": {
     "8.py": "58bfbec168a84bdb1f47e27aee92f0e6d85ce8b79c440203a1d416bd0410f749",
-    "9.json": "a9d2c322c8aa1bf3483ea987e463c0a0afbfb16fb32d3ed6e57d11b93b3031b3",
+    "9.json": "33d2c72387131e7ee296a60c143b8580ab4bdfcd89231c8a51b1bf9f4f0351d5",
     "b/x174a3df53738/x11d2efb5efb8.py": "83a936fe314615f96c515da30b7b2760045523d37017d52ec48da21bfe3cf589",
     "b/x174a3df53738/x1a9afdcb2265.py": "dc1ffbaad712d3a0a3168c2e73f31d1a29c8825efefd8686fcfbcd97bb30f67c",
     "b/x174a3df53738/x2ffacb2e8a97.py": "306282436f1bfc31f18bc3524e22cb0342e5f821c46652e3576c2d85232f5307",
@@ -3427,7 +3435,7 @@
     "l.py": "b36ed29becfbb61eaab675cbd7953fc1f0501b32590ed4e1cbc57ffa679f53b4",
     "orchard_h10/__init__.py": "94f3dc8dc3ed8682612301e2cc29be387687fc4d216e00a021e04af1fb19c18a",
     "orchard_h10/budget.py": "ae8728ebe097a17f59e2fec0bc46fc399e28e84bf838c4924e7d92f189d46c32",
-    "orchard_h10/common.py": "a3c5761b520914b0d15855a7e372e6d69d24205b6e09aeb226c15d34ccc6fccc",
+    "orchard_h10/common.py": "88d1e5a2cc6c944444760d31898fc4bd323398a3b7cd1153cb00f3a35e7034c8",
     "orchard_h10/e.py": "dae5fd109146d06706d0728d8a098ac6af1f547364e468fea2eed3637ff26b3b",
     "orchard_h10/entry.py": "61e6bcb6d58edabbf7dbe439a5f4543c21f1246f129eb29b8e00e5cd9e07d09c",
     "orchard_h10/export_pins.py": "4c1a663defd2f185cee2119233d6b0ff061e1516bc2788dda6ce597019f47fe4",
@@ -3714,8 +3722,8 @@
     "xbc51e9e65d79/x27832caf482e.py": "8448dc6d6d2bb793c771328eda6c1879632748da706844846844367d5c2d4d7b",
     "xbc51e9e65d79/x9e6cff09b396.py": "2ebef5248701dbe9f152f4849e58298af051f095ef3cabe0b3b992359c9b1e07"
   },
-  "payload_sha256": "97268c391d36cfd987d8cc9deb35007455489f973659d174c5d97cc0bc39562c",
-  "plan_sha256": "1ed3aeee9f95305f259bcdf03b75d8edc3de319c91118b5ecf2b9bf31bb827e5",
+  "payload_sha256": "8b9f63b8c6dd0776b061e68691da4d4425a1a1df1702f1c3a13c5524b2567ad3",
+  "plan_sha256": "968129449bfaafd127ac1257f522516255ef088853fdc7ea6b1fa2df62d2f78b",
   "token": "a784b94c2e6af",
-  "walltime": "00:40:00"
+  "walltime": "00:50:00"
 }

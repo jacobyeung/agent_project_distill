@@ -1,11 +1,36 @@
 {
-  "payload_sha256": "c0475990df75c91450b84da5a9cdc8e28b56600c8edec3633263c09d1056fd6c",
-  "delivery_sha256": "b7b0148bb78b2d7ac49a64dd1dfc264cf70ee122c4781293abe35c8235095302",
+  "token": "a784b94c2e6af",
+  "delivery_sha256": "87a55270aa3ed70b5e00021284a4284f8eb6ca1116c1cd35ee6fe810e6365041",
+  "delivery_bytes": 3704924,
+  "payload_sha256": "8b9f63b8c6dd0776b061e68691da4d4425a1a1df1702f1c3a13c5524b2567ad3",
+  "plan_sha256": "968129449bfaafd127ac1257f522516255ef088853fdc7ea6b1fa2df62d2f78b",
   "diagnostics": {
     "passed": true,
     "max_lines": 200,
     "max_line_chars": 2048,
     "authenticated_members": 2
+  },
+  "early_stage": {
+    "passed": true,
+    "source_gate_seconds": 0.02054417999170255,
+    "missing_vendor_rejected": true,
+    "indexed_frames": 2,
+    "deferred_second_png": true,
+    "corrupt_rgb_rejected": true
+  },
+  "first_write": {
+    "passed": true,
+    "captures": 60,
+    "first_write_before_next_stage": true,
+    "early_tower_before_carrier": true,
+    "failed_tower_prevents_carrier_and_next_stage": true
+  },
+  "memory": {
+    "passed": true,
+    "incomplete_preserved": true,
+    "gpu_double_bytes": 1234,
+    "process_hwm": "kernel cumulative bytes",
+    "capture_rss": "one-second sampled peak bytes"
   },
   "capture": {
     "passed": true,
@@ -27,5 +52,45 @@
     "passed": true,
     "code": "E99:546f7765724572726f72",
     "lines": 13
+  },
+  "production_fetch": {
+    "passed": true,
+    "delivery_sha256": "87a55270aa3ed70b5e00021284a4284f8eb6ca1116c1cd35ee6fe810e6365041",
+    "source_archive_sha256": "a09b1514be17a3e082cbea3b46050f18280584fedf7c9d74501d78103eea8f0a",
+    "fetched_sha256": "a09b1514be17a3e082cbea3b46050f18280584fedf7c9d74501d78103eea8f0a",
+    "fetched": "tests/fix_jgxgh_5q/a/a/f/0.tgz",
+    "traceback": {
+      "lines": [
+        "Traceback (most recent call last):",
+        "  File \"/scratch/jjyeung/orch_n30/lever1_c/r1/tests/fix_jgxgh_5q/p/g/w.py\", line 99, in run",
+        "    root=bind_reader_root()",
+        "         ^^^^^^^^^^^^^^^^^^",
+        "  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py\", line 1139, in __call__",
+        "    return self._mock_call(*args, **kwargs)",
+        "           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
+        "  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py\", line 1143, in _mock_call",
+        "    return self._execute_mock_call(*args, **kwargs)",
+        "           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
+        "  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py\", line 1198, in _execute_mock_call",
+        "    raise effect",
+        "student_pilot.tower_errors.TowerError: injected current delivery worker exception"
+      ],
+      "limit": 200,
+      "width": 2048
+    },
+    "failed_status_accepted": true,
+    "production_script_sha256": "84b8f0ec9286534e8f976637202104c4d2f01844f0b6a0dfb1c08e8a7d0b083b",
+    "package_pins_checked": true,
+    "plan_pin_checked": true,
+    "pool_receipt_checked": true,
+    "fetched_receipt_checked": true,
+    "inner_identity_checked": true,
+    "negative_checks": 4,
+    "adaptations": [
+      "local pool path binding",
+      "local interpreter binding",
+      "cloud channel disabled"
+    ],
+    "empirical_gpu_result": false
   }
 }

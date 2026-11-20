@@ -161,7 +161,7 @@ class PackageTests(unittest.TestCase):
         for n,h in info['files'].items():self.assertEqual(R.sha(self.package/n),h)
         for n,h in info['payload_files'].items():self.assertEqual(R.sha(self.payload/n),h)
         from orchard_h10.common import submit_argv
-        argv=submit_argv(info['token'],1,'00:40:00')
+        argv=submit_argv(info['token'],1,'00:50:00')
         for arg in ('--exclude=orchard-community-4','--mem=200G','--partition=general','--gres=gpu:1','--cpus-per-task=16'):self.assertIn(arg,argv)
         plan=json.loads((self.payload/'9.json').read_text());self.assertEqual(plan['stop_margin'],270)
         for n in info['changed_payload']:
@@ -216,6 +216,7 @@ class PackageTests(unittest.TestCase):
         self.assertEqual(set(j.wire_loads(copied.read_bytes())),{'a0'})
         self.assertEqual(j.loads(copied.read_bytes()),j.loads(source.read_bytes()))
         R.dump(HERE/'out/CPU_ENTRY_STUB.json',dict(passed=True,stub_weights=True,actual_operator_rehearsal=True,
+           delivery_sha256=self.info['delivery_sha256'],delivery_bytes=self.info['delivery_bytes'],
            entries=result,payload=self.info['payload_sha256'],plan=self.info['plan_sha256'],
            output_scan=dict(passed=True,raw=True,decoded_json=True,deny=list(layout.DENY),files=files),
            item_copy_exact=True,repeated_rehearsal=True))

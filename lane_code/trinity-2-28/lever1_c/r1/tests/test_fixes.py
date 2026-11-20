@@ -35,7 +35,10 @@ class FixTests(unittest.TestCase):
         cls.files={m.name:d for m,d in BD.B.read_tar((cls.package/'0.tgz').read_bytes())}
         sys.path.insert(0,str(cls.payload));import l
         cls.loader=l.install(cls.payload)
-        cls.evidence={}
+        raw=(HERE/'out/delivery.tgz').read_bytes()
+        assert BD.B.sha(raw)==cls.info['delivery_sha256']
+        assert len(raw)==cls.info['delivery_bytes']
+        cls.evidence={k:cls.info[k] for k in ('token','delivery_sha256','delivery_bytes','payload_sha256','plan_sha256')}
 
     @classmethod
     def tearDownClass(cls):
@@ -109,7 +112,7 @@ class FixTests(unittest.TestCase):
         scripts=list((HERE/'orchard').glob('o_*.sh'))
         for p in scripts:self.assertEqual(scan(p.read_text()),[],p.name)
         from orchard_h10.common import submit_argv
-        argv=submit_argv(self.info['token'],1,'00:40:00')
+        argv=submit_argv(self.info['token'],1,'00:50:00')
         self.assertEqual(scan(' '.join(argv)),[])
         from orchard_h10.runner import environment
         env=environment(dict(package='/tmp/a0',output=str(temp()/'0'),device='cpu'),'0',0)
@@ -257,8 +260,12 @@ class FixTests(unittest.TestCase):
         inputs['_export']=export_pins.load(inputs,self.package)
         for f in inputs['files'].values():f['path']=f['path'].replace(original,logical)
         d=self.root/'d';d.mkdir(exist_ok=True)
-        modules={name:types.ModuleType(name) for name in ('torch','torchvision','transformers','scipy')}
+        import importlib
+        modules={name:types.ModuleType(name) for name in ('torchvision','transformers','scipy')}
         for m in modules.values():m.__version__='5.12.0'
+        # Preparation now imports the real vendor gate before checking versions.
+        # Keep torch real; only the unused environment-version probes are doubles.
+        modules['torch']=importlib.import_module('torch')
         env=Path(inputs['files']['env']['path']);env.parent.mkdir(parents=True,exist_ok=True)
         env.write_text(j.wire_dumps(dict(versions={name:m.__version__ for name,m in modules.items()})))
         cfg=j.loads(self.files['9.json']);cfg['logical']=logical
@@ -363,7 +370,7 @@ class FixTests(unittest.TestCase):
         root=temp();out=root/'r';(out/'metadata').mkdir(parents=True)
         path=root/'sj/b0/c/0.gz';path.parent.mkdir(parents=True);path.write_bytes(b'0')
         cfg=dict(logical='/scratch/jjyeung/b0',pool='/tmp/a0',plan_sha256='0'*64)
-        now=[0.];calls=[]
+        now=[2760.];calls=[]
         def slow(argv,**kw):
             calls.append(dict(argv=argv,timeout=kw['timeout'],start=now[0]))
             now[0]+=kw['timeout']
@@ -376,20 +383,20 @@ class FixTests(unittest.TestCase):
             if action=='publish':raise TimeoutError('0')
             return pool_io.operate(action,*a)
         with patch.dict(os.environ,dict(PATH='/usr/bin:/bin',HOME='/tmp/a0',USER='0'),clear=True),patch.object(subprocess,'run',side_effect=slow),patch.object(results,'pool_operation',side_effect=pool),patch.object(results,'GCS_ROOT','gs://a0'),patch.object(results,'CLOUD_CONFIG','/tmp/a0'):
-            budget.finish(root,cfg,out,'a'+'0'*20,results,240,job.upload_capture,job.write,False,clock=lambda:now[0])
+            budget.finish(root,cfg,out,'a'+'0'*20,results,3000,job.upload_capture,job.write,False,clock=lambda:now[0])
         self.assertEqual([c['timeout'] for c in calls],[150,80,8])
-        self.assertLess(now[0],240)
+        self.assertLess(now[0],3000)
         copied=json.loads((root/'q'/('a'+'0'*20)/'RETURN_RECEIPT.json').read_text())
         self.assertEqual(copied['error'],'E35')
         self.assertEqual(json.loads((out/'RETURN_RECEIPT.json').read_text())['error'],'E35')
-        self.evidence['slow_upload']=dict(passed=True,deadline=240,finished_at=now[0],calls=calls)
+        self.evidence['slow_upload']=dict(passed=True,deadline=3000,finished_at=now[0],calls=calls)
 
     def test_upload_describe_readback_share_deadline(self):
         from orchard_h10 import job,budget
         root=temp();out=root/'r';(out/'metadata').mkdir(parents=True)
         path=root/'sj/b0/c/0.gz';path.parent.mkdir(parents=True);path.write_bytes(b'0')
         cfg=dict(logical='/scratch/jjyeung/b0')
-        now=[0.];calls=[]
+        now=[2760.];calls=[]
         def transfer(argv,**kw):
             calls.append(dict(action=argv[2],timeout=kw['timeout'],start=now[0]))
             if argv[2]=='cp':now[0]+=100;return types.SimpleNamespace(returncode=0)
@@ -398,27 +405,51 @@ class FixTests(unittest.TestCase):
             now[0]+=kw['timeout'];raise subprocess.TimeoutExpired(argv,kw['timeout'])
         results=types.SimpleNamespace(GCS_ROOT='gs://a0',CLOUD_CONFIG='/tmp/a0')
         with patch.dict(os.environ,dict(PATH='/usr/bin:/bin',HOME='/tmp/a0',USER='0'),clear=True),patch.object(subprocess,'run',side_effect=transfer):
-            with budget.window(150,clock=lambda:now[0]):
+            with budget.window(2910,clock=lambda:now[0]):
                 result=job.upload_capture(root,cfg,out,'a'+'0'*20,results)
         self.assertEqual([c['timeout'] for c in calls],[150,50,10])
-        self.assertFalse(result['verified']);self.assertEqual(now[0],150)
+        self.assertFalse(result['verified']);self.assertEqual(now[0],2910)
         self.evidence['transfer_deadlines']=dict(passed=True,calls=calls)
 
     def test_worker_deadline_reaps_before_publication(self):
         op=runpy.run_path(str(self.package/'a/6.py'));root=temp();(root/'metadata').mkdir();marker=root/'metadata/STOP'
-        now=[0.];waits=[]
-        class Process:
-            pid=123
-            def wait(self,timeout):
-                waits.append(timeout);now[0]+=timeout
-                if len(waits)<3:raise subprocess.TimeoutExpired('0',timeout)
-                return -9
-        cfg=dict(stop_file=str(marker),prefix=[],output=str(root))
-        with patch.dict(op['run'].__globals__,prepare=lambda c:{0:cfg},commands=lambda *a:['0']),patch('orchard_h10.runner.environment',return_value={}),patch('orchard_h10.common.opaque'),patch.object(os,'killpg') as signals:
-            result=op['run'](dict(output=str(root)),2400,['0'],launcher=lambda *a,**k:Process(),clock=lambda:now[0])
-        self.assertEqual(waits,[1800,20,5]);self.assertEqual(signals.call_count,2)
-        self.assertLessEqual(now[0],2400-240);self.assertFalse(result['complete'])
-        self.evidence['worker_deadline']=dict(passed=True,waits=waits,reaped_at=now[0],allocation_end=2400)
+        evidence=[]
+        for started in (0,600,1200):
+            root=temp();(root/'metadata').mkdir();marker=root/'metadata/STOP'
+            now=[float(started)];waits=[]
+            class Process:
+                pid=123
+                def wait(self,timeout):
+                    waits.append(timeout);now[0]+=timeout
+                    if len(waits)<3:raise subprocess.TimeoutExpired('0',timeout)
+                    return -9
+            cfg=dict(stop_file=str(marker),prefix=[],output=str(root))
+            with patch.dict(op['run'].__globals__,prepare=lambda c:{0:cfg},commands=lambda *a:['0']),patch('orchard_h10.runner.environment',return_value={}),patch('orchard_h10.common.opaque'),patch.object(os,'killpg') as signals:
+                result=op['run'](dict(output=str(root)),3000,['0'],launcher=lambda *a,**k:Process(),clock=lambda:now[0])
+            self.assertEqual(waits,[min(1800,2730-started),20,5]);self.assertEqual(signals.call_count,2)
+            self.assertLessEqual(now[0],2760);self.assertFalse(result['complete'])
+            evidence.append(dict(start=started,waits=waits,reaped_at=now[0],allocation_end=3000))
+        self.evidence['worker_deadline']=dict(passed=True,cases=evidence)
+
+    def test_fifty_minute_admission_and_absolute_windows(self):
+        from orchard_h10 import budget
+        from orchard_h10.common import submit_argv
+        argv=submit_argv(self.info['token'],1,'00:50:00')
+        self.assertIn('--time=00:50:00',argv)
+        for value in ('00:40:00','00:49:59'):
+            with self.assertRaises(ValueError):submit_argv(self.info['token'],1,value)
+        self.assertEqual(json.loads(self.files['9.json'])['budget_gpu_seconds'],3000)
+        for name in ('3.py','SUBMIT.cmd'):
+            text=(self.package/name).read_text();self.assertIn('00:50:00',text);self.assertNotIn('00:40:00',text)
+        for name in ('o_cpu.sh','o_check_sub.sh','o_sub_hand.sh'):
+            text=(HERE/'orchard'/name).read_text();self.assertIn('00:50:00',text);self.assertNotIn('00:40:00',text)
+        forecast=self.info['forecast']
+        self.assertEqual(forecast['deadline_offsets_s'],dict(worker_latest_stop=2730,staging_stop=2760,capture_publication_stop=2910,normal_publication_stop=2990,failure_receipt_stop=2998))
+        self.assertEqual((budget.WORK_RESERVE,budget.RECEIPT_RESERVE,budget.FINAL_RESERVE),(240,90,10))
+        self.assertGreater(forecast['allocation_margin_s'],734)
+        self.assertGreater(forecast['worker_margin_s'],374)
+        self.evidence['allocation']=dict(passed=True,seconds=3000,worker_cap=1800,windows=forecast['deadline_offsets_s'])
+
 
 
 if __name__=='__main__':unittest.main(verbosity=2)

@@ -1,0 +1,2 @@
+W=/scratch/jjyeung/orch_n30/tree_rebuild10_w; date -u +%TZ; tmux ls | grep tr2; C=/home/jjyeung/agent_project_distill/agent/scratch/codex_runs; d=$(ls -d $C/*_tree_rebuild_rev24m4z4 | tail -1); echo $d; test -f $d/final_message.md && cat $d/final_message.md
+Z=$W/w24z4/out/kit_n_go; grep -n "timeout\|o.py\|j2\|ckstop\|stop_checkpoint" $Z/b/pc.sh | head -30; grep -n "def pass_once\|def final\|checkpoints()\|exports()\|stop_checkpoint(\|archive(" $Z/b/pc.py | head -30; grep -n "j2\|RESULT\|argv" $Z/b/o.py | head

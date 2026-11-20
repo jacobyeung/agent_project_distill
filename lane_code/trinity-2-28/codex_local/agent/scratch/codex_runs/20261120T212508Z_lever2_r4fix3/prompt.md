@@ -1,0 +1,5 @@
+# Fix round 3: WORD probe kit (rank 4) — scorer archive whitelist
+
+Continue in `/scratch/jjyeung/orch_n30/lever1_c/r4kit/` under BRIEF_R4KIT.md, BRIEF_R4FIX.md, BRIEF_R4FIX2.md (rules hold; FROZEN.json unchanged; local /scratch reads approved, do not stop to ask; no ssh/git/network/GPU/kill/Slurm; no /home or /data*).
+Third review (GO AFTER FIXES, one blocker): every GPU run that reaches batching creates `3.jsonl` and worker exceptions add `4.json`; finalization includes both (control.py:229) but score.py:77 rejects either. Allow both members and test the actual scorer entrypoint on a successful, a partial (timeout after k pairs) and a failed return, each produced by the real finalization code and passed through the real fetch. Check every other consumer of the return for the same whitelist mismatch.
+Keep token d93a17be024f5 if only score.py changes and the delivery bytes are unchanged; otherwise one new token, with PLACE.md, REPORT.md, BUILD.json, FORECAST.json in agreement. Re-run all tests. Final message: the fix with evidence, tests, token, delivery sha256 and bytes. Be quick.

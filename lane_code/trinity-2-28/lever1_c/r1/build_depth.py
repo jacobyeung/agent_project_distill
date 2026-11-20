@@ -46,9 +46,11 @@ def reference():
         captures=60,t1_replay_minutes=replay_s/60,
         worker_forecast_minutes=(replay_s+360+60)/60,allocation_planning_minutes=(replay_s+360+60+600+240)/60,
         shared_load_allowance_s=360,indexed_staging_monitor_allowance_s=60,
-        worker_cap_s=1800,allocation_s=2400,worker_margin_s=1800-replay_s-420,
-        allocation_margin_s=2400-replay_s-420-600-240,
+        worker_cap_s=1800,allocation_s=3000,worker_margin_s=1800-replay_s-420,
+        allocation_margin_s=3000-replay_s-420-600-240,
         staging_allowance_s=600,publication_allowance_s=240,allowances_measured=False,
+        worker_cap_reason='Forecast 1425.01s leaves 374.99s within 1800s; with 600s staging and 240s publication a capped worker fits in 2640s, leaving 360s of the allocation. No evidence requires 35 minutes.',
+        deadline_offsets_s=dict(worker_latest_stop=3000-270,staging_stop=3000-240,capture_publication_stop=3000-90,normal_publication_stop=3000-10,failure_receipt_stop=3000-2),
         float16_depth_bytes=60*32*51*51*2,lossless_depth_plane_bytes=60*32*51*51*10,
         compressed_return_forecast_bytes=40_000_000,compressed_return_conservative_bytes=80_000_000,return_cap_bytes=1_000_000_000,
         caveat='T1 replay is 16.75 min, including SAM/linking. Add 6 min shared loading and 1 min indexed RGB/telemetry inside worker, plus 10 min shared archive staging and 4 min publication. All allowances are unmeasured; no first-output or GPU wall-time guarantee.')
@@ -77,6 +79,8 @@ def build(out=HERE/'out',scripts=HERE/'orchard'):
     # resource signal, operator deadline and publication cap change.
     common=pf['orchard_h10/common.py'].decode()
     common=B.once(common,"'--time='+walltime, '--signal=B:USR1@1800'","'--exclude=orchard-community-4', '--time='+walltime, '--signal=B:USR1@120'")
+    common=B.once(common,'not 2400 <= limit','not 3000 <= limit')
+    common=B.once(common,'at least 40 minutes','at least 50 minutes')
     pf['orchard_h10/common.py']=common.encode()
     job=pf['orchard_h10/job.py'].decode().replace('1_900_000_000','1_000_000_000')
     job=job.replace("with (out/'logs/0.log').open('wb') as log:","with open('/dev/null','wb') as log:").replace("with (out/'logs/1.log').open('wb') as log:","with open('/dev/null','wb') as log:")
@@ -113,9 +117,9 @@ def build(out=HERE/'out',scripts=HERE/'orchard'):
     op=B.once(op,"    # Exercise the actual tower socket and selector with CPU weight doubles.","    from g.d import decode, encode\n    import numpy as np\n    from types import SimpleNamespace\n    synthetic=SimpleNamespace(depth_grid=np.ones((32,51,51)),grid_uv=np.linspace(0,1000,51))\n    assert np.array_equal(decode(encode(synthetic,{}))[0],synthetic.depth_grid)\n    # Exercise the actual tower socket and selector with CPU weight doubles.")
     op=B.once(op,"    from g.d import decode, encode", "    from student_pilot.g3t_online import VENDOR, vendor_digest\n    from student_pilot.tower_read import SOURCE_SHA256\n    from student_pilot.c1r_ref import source_import\n    if vendor_digest()!=SOURCE_SHA256:raise ValueError('E53')\n    source_import(VENDOR)\n    from g.d import decode, encode")
     nf['a/6.py']=op.encode()
-    # 40 minutes accommodates staging. The worker itself has a 30-minute cap.
+    # 50 minutes accommodates staging. The worker itself has a 30-minute cap.
     for n in ('3.py','SUBMIT.cmd'):
-        nf[n]=nf[n].replace(b'05:00:00',b'00:40:00')
+        nf[n]=nf[n].replace(b'05:00:00',b'00:50:00')
     entry=pf['orchard_h10/entry.py'].decode()
     entry=entry.replace('from orchard_h10.common import install_process_guard', 'import l\nPath=l.install(p).Path\nfrom orchard_h10.common import install_process_guard')
     pf['orchard_h10/entry.py']=entry.encode()
@@ -157,20 +161,41 @@ def build(out=HERE/'out',scripts=HERE/'orchard'):
     nf['a/1.json']=nf['INPUTS.example.json']=wire.pack(B.jd(inputs))
     # All model/evaluator sources retain their exact bytes; only path resolution changes.
     # One unplaced identity for this repair; all content remains SHA256 sealed.
-    token='a784b94c2e6af'
-    plan['token']=token;plan['stop_margin']=270;plan['return_margin']=240;plan['budget_gpu_seconds']=2400
+    token='a6f198d3c7b20'
+    plan['token']=token;plan['stop_margin']=270;plan['return_margin']=240;plan['budget_gpu_seconds']=3000
     plan['payload_pins']={n:dict(bytes=len(d),sha256=B.sha(d)) for n,d in pf.items() if n!='9.json'}
     pf['9.json']=wire.pack(B.jd(plan))
     nf['0.tgz']=B.write_tar([B.added(n,pf[n]) for n in sorted(pf)])
     pub.update(token=token,payload_bytes=len(nf['0.tgz']),payload_sha256=B.sha(nf['0.tgz']),plan_sha256=B.canonical(plan))
     nf['0.json']=nf['CONFIG.json']=B.jd(pub)
     nf['BATCH.sh']=B.make_batch(original['BATCH.sh'],oldtoken,token,original['0.json'],nf['0.json'],original['a/6.py'],nf['a/6.py'])
+    # The bootstrap must work with the allocation's clean environment.
+    line,bundle=B.bundle_of(nf['BATCH.sh'])
+    parts=B.read_tar(bundle)
+    updated=[]
+    for member,data in parts:
+        if member.name=='0.py':
+            helper=(HERE/'runtime/a.py').read_bytes()
+            data=B.once(data,b' job.main(root)',
+                b" exec(bytes.fromhex('"+helper.hex().encode()+b"'),scope:={})\n scope['allocation'](shared,public,sha)\n job.main(root)")
+        updated.append((member,data))
+    bundle=B.write_tar(updated)
+    batch=B.once(nf['BATCH.sh'],line,('b=bytes.fromhex(%r)'%bundle.hex()).encode())
+    recovery={'j':codec,'e':(HERE/'runtime/e.py').read_bytes(),
+              'chain_save':pf['orchard_h10/vendor/chain_save.py'],
+              'orchard_results':pf['orchard_h10/vendor/orchard_results.py'],
+              'return_io':pf['orchard_h10/vendor/return_io.py'],'auth':nf['a/7.py']}
+    supervisor=('RECOVERY='+repr({k:v.hex() for k,v in recovery.items()})+'\nPOOL='+repr(plan['pool'])+'\n').encode()
+    supervisor+=(HERE/'runtime/b.py').read_bytes()+b'\nraise SystemExit(supervise(r,b))\n'
+    start=batch.index(b'r.mkdir(mode=0o700)')
+    stop=batch.index(b'\nA',start)
+    nf['BATCH.sh']=batch[:start]+b"exec(bytes.fromhex('"+supervisor.hex().encode()+b"'))"+batch[stop:]
     pk=json.loads(nf['PACKAGE.json']);pk['token']=token
     pk['files']={n:B.sha(v) for n,v in nf.items() if n!='PACKAGE.json'};nf['PACKAGE.json']=B.jd(pk)
     delivery=B.write_tar([B.added(n,nf[n]) for n in sorted(nf)])
     result=dict(token=token,package='/project/community/jjyeung/'+token,job_name='a15_cot_ap'+token,
         forecast=forecast,
-        walltime='00:40:00',delivery_bytes=len(delivery),delivery_sha256=B.sha(delivery),
+        walltime='00:50:00',delivery_bytes=len(delivery),delivery_sha256=B.sha(delivery),
         payload_expanded_bytes=sum(map(len,pf.values())),layout=layout_proof,external_inputs=input_proof,
         installed_bytes=sum(map(len,nf.values())),files={n:B.sha(v) for n,v in nf.items()},
         payload_files={n:B.sha(v) for n,v in pf.items()},payload_sha256=B.sha(nf['0.tgz']),plan_sha256=B.canonical(plan),
@@ -179,13 +204,13 @@ def build(out=HERE/'out',scripts=HERE/'orchard'):
     for n,v in [('BUILD.json',B.jd(result)),('REFERENCE.json',B.jd(ref)),('FORECAST.json',B.jd(forecast)),('delivery.tgz',delivery)]:
         (out/n).write_bytes(v)
     import scripts as S
-    public_info={k:v for k,v in result.items() if k not in ('layout','external_inputs')}
+    public_info={k:v for k,v in result.items() if k not in ('layout','external_inputs','forecast')}
     (out/'BUILD.json').write_bytes(B.jd(public_info))
     S.render(out,scripts,cpu_partition='general')
     (out/'BUILD.json').write_bytes(B.jd(result))
     for p in scripts.glob('*.sh'):
         if p.name!='o_place.sh':
-            text=p.read_text().replace('05:00:00','00:40:00').replace('--cpus-per-task=8','--cpus-per-task=16').replace("--exclude='orchard-flame-[0-31]'",'--exclude=orchard-community-4')
+            text=p.read_text().replace('05:00:00','00:50:00').replace('--cpus-per-task=8','--cpus-per-task=16').replace("--exclude='orchard-flame-[0-31]'",'--exclude=orchard-community-4')
             if p.name=='o_fetch.sh':
                 text=text.replace("with (dest/name).open('xb') as f:f.write(raw)","with (dest/({'CAPTURE.json':'4.json','PARITY.json':'5.json'}[name])).open('xb') as f:f.write(raw)")
                 text=text.replace("print(name);print(raw.decode())","print(hashlib.sha256(raw).hexdigest())")

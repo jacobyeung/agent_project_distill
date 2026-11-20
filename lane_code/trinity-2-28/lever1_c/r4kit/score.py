@@ -74,7 +74,7 @@ def main():
         members=t.getmembers();assert all(m.isfile() for m in members)
         assert sum(m.size for m in members)<=50000000
         assert len({m.name for m in members})==len(members)
-        assert {m.name for m in members}<={'0.jsonl','1.json','2.json'}
+        assert {m.name for m in members}<={'0.jsonl','1.json','2.json','3.jsonl','4.json'}
         if '1.json' not in {m.name for m in members}:
             result=dict(complete=False,gate='incomplete; no verdict',arm_D='closed')
         else:

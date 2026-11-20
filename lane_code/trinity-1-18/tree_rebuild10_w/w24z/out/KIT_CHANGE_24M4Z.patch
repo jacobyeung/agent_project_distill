@@ -1,0 +1,318 @@
+--- a/out/kit_n_go/b/o.py
++++ b/out/kit_n_go/b/o.py
+@@ -2,12 +2,17 @@
+ from pathlib import Path
+ sys.path.insert(0,str(Path(__file__).resolve().parent))
+ from z import load,write,name_guard
+-k=Path(__file__).resolve().parents[1];s=load(k/'k/p.json');r=Path(sys.argv[1]);out=Path(s['n_root'])/'o'/os.environ['SLURM_JOB_ID'];out.mkdir(parents=True,exist_ok=True)
++k=Path(__file__).resolve().parents[1];s=load(k/'k/p.json');r=Path(sys.argv[1]);out=Path(s['n_root'])/'o'/os.environ['SLURM_JOB_ID']
+ safe=name_guard(k)
+ files=[r/n for n in ('q.log','rooms.log','rooms.json','h.log','t.log','p/q/RESULT.json','p/q/host.json','p/q/f.json') if (r/n).is_file()]
+ local=r/'o';local.mkdir(parents=True,exist_ok=True)
+ with tarfile.open(local/'o.tar','w:gz') as t:
+  for p in files:t.add(p,arcname=safe(str(p.relative_to(r))),recursive=False)
+-shutil.copyfile(local/'o.tar',out/'o.tar')
+ write(local/'RESULT.json',dict(proof_rc=int(sys.argv[2]),rooms_rc=int(sys.argv[3]),GO=False,submitted_by_build=False))
+-shutil.copyfile(local/'RESULT.json',out/'RESULT.json')
++try:
++ out.mkdir(parents=True,exist_ok=True)
++ for name in ('o.tar','RESULT.json'):
++  shutil.copyfile(local/name,out/(name+'.part'))
++  os.replace(out/(name+'.part'),out/name)
++except OSError as error:
++ with (local/'retry.log').open('a') as stream:stream.write('E'+str(error.errno)+'\n')
+--- a/out/kit_n_go/b/pc.py
++++ b/out/kit_n_go/b/pc.py
+@@ -57,28 +57,41 @@
+         if not self.job.replace('_', '').isalnum():
+             raise ValueError('E91')
+         self.live = self.target/'o'/self.job/'live'
+-        self.claims = self.target/'o'/'gcs_claims'
++        self.claims = self.root/'live_spool/claims'
+         self.checkpoint = self.target/'n_ck'/self.job
+         self.spool = self.root/'live_spool'
+         self.train = Path(train) if train else self.root/'p/q/r'
+-        self.sessions = Path(sessions) if sessions is not None else (Path(home)/'sess.json' if home is not None else self.target/'n_s/sess.json')
++        self.sessions = Path(sessions) if sessions is not None else (Path(home)/'sess.json' if home is not None else self.target/'n_s'/('sess_'+self.job+'.json'))
+         self.home = self.sessions.parent
+         self.writer = Path(writer) if writer else self.kit/'b/gc.py'
+         self.names = read(self.kit/'k/y.json')
+         if target is not None and Path(target).absolute() != self.target:
+             raise ValueError('R1_COPY_TARGET_OUTSIDE_N_ROOT')
+         self.paths()
+-        self.live.mkdir(parents=True, exist_ok=True)
+         self.spool.mkdir(parents=True, exist_ok=True)
+         self.claims.mkdir(parents=True, exist_ok=True)
++        self.state = self.spool/'state'
++        self.state.mkdir(exist_ok=True)
+         self.final_pass = False
++        private = self.spool/'private'
++        private.mkdir(exist_ok=True, mode=0o700)
++        cached = private/'sess.json'
++        if not cached.exists():
++            raw = self.session_bytes()
++            values = json.loads(raw)
++            expected = {key+'.j'+self.job+f'.part{i:02d}-of-04'
++                        for key in self.names['objects'].values() for i in range(4)}
++            if not expected.issubset(values):
++                raise ValueError('E101')
++            fd = os.open(cached, os.O_WRONLY|os.O_CREAT|os.O_EXCL|os.O_NOFOLLOW, 0o600)
++            with os.fdopen(fd, 'wb') as stream: stream.write(raw)
++
+ 
+     def paths(self):
+         # Validate before the first mkdir and every pass. Reject symlink ancestors.
+         forbidden = (self.kit, self.root/'kit', self.root/'h')
+         for name, path, expected in (
+             ('LIVE', self.live, self.target/'o'/self.job/'live'),
+-            ('CLAIMS', self.claims, self.target/'o/gcs_claims'),
+             ('N_CK', self.checkpoint, self.target/'n_ck'/self.job),
+             ('SESSIONS', self.sessions, self.target/'n_s'/self.sessions.name)):
+             absolute = path.absolute()
+@@ -96,6 +109,17 @@
+         if self.spool.is_symlink() or beneath(self.spool.resolve(), self.kit):
+             raise ValueError('R1_COPY_SPOOL_INSIDE_KIT')
+ 
++    def note(self, label, error):
++        with (self.spool/'retry.log').open('a') as stream:
++            stream.write(json.dumps(dict(time=int(time.time()), action=label,
++                error=type(error).__name__, errno=getattr(error,'errno',None)))+'\n')
++
++    def attempt(self, label, action):
++        try:
++            return action()
++        except Exception as error:
++            self.note(label, error)
++
+     def small(self):
+         self.paths()
+         with (self.spool/'small.lock').open('a') as lock:
+@@ -104,6 +128,7 @@
+ 
+     def _small(self):
+         # Each publication has one shared byte budget, including its manifest.
++        self.live.mkdir(parents=True, exist_ok=True)
+         rows, pending = [], []
+         markers = []
+         for pattern in ('checkpoint_*/complete.json', 'm*/artifact.json'):
+@@ -143,6 +168,9 @@
+                 raw = f.read(allowance)
+             pending.append((p.name, raw))
+             remaining -= len(raw)
++        for p in sorted(self.state.glob('*')):
++            if p.is_file() and p.stat().st_size <= metadata_budget:
++                raw = p.read_bytes(); pending.append((p.name, raw)); metadata_budget -= len(raw)
+         total = 0
+         for name, raw in pending:
+             dest = self.live/name
+@@ -155,6 +183,14 @@
+         raw = (json.dumps(record, sort_keys=True)+'\n').encode()
+         assert total + len(raw) <= CAP
+         (self.live/'copy.json').write_bytes(raw)
++        local = self.root/'o'
++        for name in ('o.tar', 'RESULT.json'):
++            source = local/name
++            if source.is_file():
++                destination = self.target/'o'/self.job/name
++                partial = destination.with_name(name+'.part')
++                shutil.copyfile(source, partial)
++                os.replace(partial, destination)
+         return total + len(raw)
+ 
+     def archive(self, directory, marker):
+@@ -197,11 +233,11 @@
+         return target
+ 
+     def claim(self, labels, identity):
+-        # A global project-side lock serializes generations across allocations.
++        # Allocation-specific object keys and a local lock serialize this allocation.
+         with (self.claims/'lock').open('a') as lock:
+             fcntl.flock(lock, fcntl.LOCK_EX)
+             for label in labels:
+-                key = self.names['objects'][label]
++                key = self.names['objects'][label] + '.j' + self.job
+                 p = self.claims/(hashlib.sha256(key.encode()).hexdigest()+'.json')
+                 if p.exists():
+                     if read(p)['identity'] == identity:
+@@ -267,16 +303,16 @@
+ 
+     def send(self, directory, marker, labels):
+         identity = sha(marker)
+-        done = self.live/('gcs_'+directory.name+'.done')
++        done = self.state/('gcs_'+directory.name+('_stop' if labels == ['ckstop'] else '')+'.done')
+         if done.exists():
+             if read(done)['marker_sha256'] != identity:
+                 raise ValueError('E98')
+             return
+         archive = self.archive(directory, marker)
+         try:
+-            raw = self.session_bytes()
++            raw = (self.spool/'private/sess.json').read_bytes()
+         except ValueError as error:
+-            put(self.live/('gcs_'+directory.name+'.json'), dict(status='export not uploaded: sessions unusable ('+str(error)+')', archive=str(archive), marker_sha256=identity))
++            put(self.state/('gcs_'+directory.name+'.json'), dict(status='export not uploaded: sessions unusable ('+str(error)+')', archive=str(archive), marker_sha256=identity))
+             return
+         label, key = self.claim(labels, identity)
+         # Session capabilities and their writer sidecars stay in node-local runtime storage.
+@@ -292,7 +328,7 @@
+         with open('/dev/null', 'wb') as quiet:
+             rc = subprocess.run([sys.executable, '-B', str(self.writer), 'split', str(local), key, str(archive), '4', '4'], stdout=quiet, stderr=quiet).returncode
+         if rc:
+-            put(self.live/('gcs_'+directory.name+'.json'), dict(status='upload pending retry', object=key, returncode=rc))
++            put(self.state/('gcs_'+directory.name+'.json'), dict(status='upload pending retry', object=key, returncode=rc))
+             return
+         receipts = Path(str(local)+'.receipts.jsonl')
+         parts = {v['name']:v for v in (json.loads(line) for line in receipts.read_text().splitlines())}
+@@ -324,7 +360,7 @@
+             try:
+                 self.send(marker.parent, marker, labels)
+             except Exception as error:
+-                put(self.live/('gcs_'+marker.parent.name+'.json'),
++                put(self.state/('gcs_'+marker.parent.name+'.json'),
+                     dict(status='pending retry', error=type(error).__name__))
+ 
+     def stop_checkpoint(self):
+@@ -332,38 +368,21 @@
+         # before run_*.json is written, in which case the latest completed state wins.
+         markers = list(self.train.glob('checkpoint_*/complete.json'))
+         if not markers:
+-            put(self.live/'ckstop.json', dict(status='no completed checkpoint'))
++            put(self.state/'ckstop.json', dict(status='no completed checkpoint'))
+             return
+         marker = max(markers, key=lambda p:(read(p).get('step', -1),p.stat().st_mtime_ns))
+         identity = sha(marker)
+         directory = marker.parent
+         size = sum(p.stat().st_size+1024 for p in directory.rglob('*') if p.is_file())
+-        self.paths()
+-        destination = self.checkpoint
+-        if shutil.disk_usage(self.target).free >= size+RESERVE+10240:
+-            destination.mkdir(parents=True, exist_ok=True)
+-            done = destination/'complete.json'
+-            if done.exists():
+-                if read(done)['marker_sha256'] != identity:
+-                    raise ValueError('E98')
+-                return
+-            target = destination/(directory.name+'.tar')
+-            partial = target.with_name(target.name+'.part')
+-            # Stream directly to the project, without a second node-local copy.
+-            with tarfile.open(partial, 'w') as t:
+-                for p in sorted(directory.rglob('*')):
+-                    if p.is_symlink():
+-                        raise ValueError('E94')
+-                    if p.is_file():
+-                        t.add(p, arcname=str(p.relative_to(directory)), recursive=False)
+-            if sha(marker) != identity:
+-                raise ValueError('E96')
+-            os.replace(partial, target)
+-            result = dict(status='project', path=str(target), bytes=target.stat().st_size, sha256=sha(target), marker_sha256=identity)
+-            put(done, result); put(self.live/'ckstop.json', result)
+-        else:
+-            self.send(directory, marker, ['ckstop'])
+-            put(self.live/'ckstop.json', dict(status='gcs' if (self.live/('gcs_'+directory.name+'.done')).exists() else 'left node-local', marker_sha256=identity, reason='project free space below size plus 50 GiB'))
++        self.send(directory, marker, ['ckstop'])
++        put(self.state/'ckstop.json', dict(status='gcs' if
++            (self.state/('gcs_'+directory.name+'_stop.done')).exists() else 'left node-local',
++            marker_sha256=identity))
++
++    def checkpoints(self):
++        for marker in sorted(self.train.glob('checkpoint_*/complete.json')):
++            self.attempt('checkpoint', lambda marker=marker: self.send(
++                marker.parent, marker, ['ck%02d'%i for i in range(16)]))
+ 
+     def pass_once(self, final=False, small=True):
+         self.paths()
+@@ -371,12 +390,12 @@
+             fcntl.flock(lock, fcntl.LOCK_EX)
+             self.final_pass = final
+             if small:
+-                self.small()
+-            for action in [self.exports] + ([self.stop_checkpoint] if final else []):
++                self.attempt('small', self.small)
++            for action in [self.checkpoints, self.exports] + ([self.stop_checkpoint] if final else []):
+                 try:
+                     action()
+                 except Exception as e:
+-                    put(self.live/(action.__name__+'.json'), dict(status='pending retry', error=type(e).__name__))
++                    self.note(action.__name__, e)
+ 
+ 
+ def main():
+@@ -386,26 +405,29 @@
+     p.add_argument('--small', action='store_true')
+     p.add_argument('--loop-small', action='store_true')
+     p.add_argument('--sessions')
++    p.add_argument('--prepare', action='store_true')
+     args = p.parse_args()
+     c = Copier(args.kit,args.root,args.job,sessions=args.sessions)
++    if args.prepare:
++        return
+     if args.small:
+-        c.small()
++        c.attempt('small', c.small)
+         return
+     stop = [False]
+     for sig in (signal.SIGTERM,signal.SIGUSR1,signal.SIGINT):
+         signal.signal(sig, lambda *_:stop.__setitem__(0,True))
+     if args.loop_small:
+         while not stop[0]:
+-            c.small()
++            c.attempt('small', c.small)
+             for _ in range(600):
+                 if stop[0]:break
+                 time.sleep(1)
+-        c.small()
++        c.attempt('small', c.small)
+         return
+     last = 0.
+     while True:
+         now = time.monotonic()
+-        c.pass_once(final=args.final, small=not args.loop)
++        c.attempt('pass', lambda: c.pass_once(final=args.final, small=not args.loop))
+         if now-last>=600:
+             last=now
+         if not args.loop:
+--- a/out/kit_n_go/b/pc.sh
++++ b/out/kit_n_go/b/pc.sh
+@@ -27,9 +27,11 @@
+ # Do not archive files while an unfinished trainer can still modify them.
+         timeout --signal=TERM --kill-after=5 150 python3 -B -I -s "$ROOT/b/pc.py" "$ROOT" "$N" "$SLURM_JOB_ID" --small || true
+     fi
++    python3 -B -I -s "$ROOT/b/o.py" "$N" "$status" 0 || true
+     python3 -B -I -s "$ROOT/b/ep.py" "$ROOT" "$N" "$SLURM_JOB_ID" "$status" || true
+     exit "$status"
+ }
++python3 -B -I -s "$ROOT/b/pc.py" "$ROOT" "$N" "$SLURM_JOB_ID" --prepare
+ trap 'tk_live_finish $?' EXIT
+ trap 'tk_live_finish 143 signal' TERM
+ trap 'tk_live_finish 138 signal' USR1
+--- a/out/kit_n_go/k/y.json
++++ b/out/kit_n_go/k/y.json
+@@ -1 +1 @@
+-{"encoding": "base64-json", "sha256": "e696d1510dae8687364c07fb369b1e24171593911cfaad294deff1af6409ab1e", "payload": "eyJvYmplY3RzIjp7ImNrc3RvcCI6InE5LzIyYzcxNGUxLzQ2OWRkZWNlX2Nrc3RvcC50YXIiLCJtMTAwIjoicTkvMjJjNzE0ZTEvNDY5ZGRlY2VfbTEwMC50YXIiLCJtMTAwMCI6InE5LzIyYzcxNGUxLzQ2OWRkZWNlX20xMDAwLnRhciIsIm0yMDAiOiJxOS8yMmM3MTRlMS80NjlkZGVjZV9tMjAwLnRhciIsIm00MDAiOiJxOS8yMmM3MTRlMS80NjlkZGVjZV9tNDAwLnRhciIsIm02MDAiOiJxOS8yMmM3MTRlMS80NjlkZGVjZV9tNjAwLnRhciIsIm04MDAiOiJxOS8yMmM3MTRlMS80NjlkZGVjZV9tODAwLnRhciIsIm1zdG9wIjoicTkvMjJjNzE0ZTEvNDY5ZGRlY2VfbXN0b3AudGFyIiwibXN0b3BCIjoicTkvMjJjNzE0ZTEvNDY5ZGRlY2VfbXN0b3BCLnRhciIsIm1zdG9wQyI6InE5LzIyYzcxNGUxLzQ2OWRkZWNlX21zdG9wQy50YXIifX0K"}
++{"encoding": "base64-json", "payload": "eyJvYmplY3RzIjp7ImNrMDAiOiJxOS8yMmM3MTRlMS80NjlkZGVjZV9jazAwLnRhciIsImNrMDEiOiJxOS8yMmM3MTRlMS80NjlkZGVjZV9jazAxLnRhciIsImNrMDIiOiJxOS8yMmM3MTRlMS80NjlkZGVjZV9jazAyLnRhciIsImNrMDMiOiJxOS8yMmM3MTRlMS80NjlkZGVjZV9jazAzLnRhciIsImNrMDQiOiJxOS8yMmM3MTRlMS80NjlkZGVjZV9jazA0LnRhciIsImNrMDUiOiJxOS8yMmM3MTRlMS80NjlkZGVjZV9jazA1LnRhciIsImNrMDYiOiJxOS8yMmM3MTRlMS80NjlkZGVjZV9jazA2LnRhciIsImNrMDciOiJxOS8yMmM3MTRlMS80NjlkZGVjZV9jazA3LnRhciIsImNrMDgiOiJxOS8yMmM3MTRlMS80NjlkZGVjZV9jazA4LnRhciIsImNrMDkiOiJxOS8yMmM3MTRlMS80NjlkZGVjZV9jazA5LnRhciIsImNrMTAiOiJxOS8yMmM3MTRlMS80NjlkZGVjZV9jazEwLnRhciIsImNrMTEiOiJxOS8yMmM3MTRlMS80NjlkZGVjZV9jazExLnRhciIsImNrMTIiOiJxOS8yMmM3MTRlMS80NjlkZGVjZV9jazEyLnRhciIsImNrMTMiOiJxOS8yMmM3MTRlMS80NjlkZGVjZV9jazEzLnRhciIsImNrMTQiOiJxOS8yMmM3MTRlMS80NjlkZGVjZV9jazE0LnRhciIsImNrMTUiOiJxOS8yMmM3MTRlMS80NjlkZGVjZV9jazE1LnRhciIsImNrc3RvcCI6InE5LzIyYzcxNGUxLzQ2OWRkZWNlX2Nrc3RvcC50YXIiLCJtMTAwIjoicTkvMjJjNzE0ZTEvNDY5ZGRlY2VfbTEwMC50YXIiLCJtMTAwMCI6InE5LzIyYzcxNGUxLzQ2OWRkZWNlX20xMDAwLnRhciIsIm0yMDAiOiJxOS8yMmM3MTRlMS80NjlkZGVjZV9tMjAwLnRhciIsIm00MDAiOiJxOS8yMmM3MTRlMS80NjlkZGVjZV9tNDAwLnRhciIsIm02MDAiOiJxOS8yMmM3MTRlMS80NjlkZGVjZV9tNjAwLnRhciIsIm04MDAiOiJxOS8yMmM3MTRlMS80NjlkZGVjZV9tODAwLnRhciIsIm1zdG9wIjoicTkvMjJjNzE0ZTEvNDY5ZGRlY2VfbXN0b3AudGFyIiwibXN0b3BCIjoicTkvMjJjNzE0ZTEvNDY5ZGRlY2VfbXN0b3BCLnRhciIsIm1zdG9wQyI6InE5LzIyYzcxNGUxLzQ2OWRkZWNlX21zdG9wQy50YXIifX0K", "sha256": "1d36f008050d46c6c8676b64641071afe3ed8378ebaec4c0e3b24da95c82c4db"}
+--- a/out/kit_n_go/SHA256SUMS.txt
++++ b/out/kit_n_go/SHA256SUMS.txt
+@@ -11,9 +11,9 @@
+ cc4eed7db8cdc27625e00b3f8cfdf5e2a8537f54fad390ffda5dc64e8969763c  b/i.py
+ ccbb31228b7adb409fa73c997c18ffe579ae9fe71d72852481493af502dfe203  b/l.py
+ 0626e40a81f17deaef6d032ca8de8b280c4ad0fc5ef503b2745e09aee58dd301  b/m.py
+-c78e969dd37fef3684275a64b4bc0638c139fcfec003c93abf16d89321cb90cd  b/o.py
+-4adfa8ab8eee48ea318e1f9dae225f892c8dcfbd486554d8453e0a8ef0dbd6d4  b/pc.py
+-e4ede6baaa213ba7b8fc814753c2dfc76a900e298125fb48948cc2eab7cbe036  b/pc.sh
++ac6308705940cc0849ef3f6bb799daa1debccf1258afb2517caf6bea7ec92619  b/o.py
++a5fa3ead1b0bb4853e3679ca37925537f38f8dee82d17695062206be5880e582  b/pc.py
++9f8d55b7e94d3071815ba8cca07467c9d4b3812a9fc71f2de956e7b58abed879  b/pc.sh
+ 49ce4fcd5ca6b80b1ddd1bf04c787d665a3a3fba1b1163e9ccc10c93da4bdfa8  b/pl.py
+ 880c2cd84c31e226a8f2c24c74f96f424ef68455e6205920b56b9ea07e811ddb  b/px.py
+ 985c3c63e512771656ebd9829d961376afe6ee505f29d8c0780b3dee19593551  b/q.sh
+@@ -49,4 +49,4 @@
+ 1f0b53cda0ccc4b39e33363ced11597e6d795214843b8f2b2a8e49f9794a5ab0  k/r.json
+ 9de5331185aba94e5fb05f877f4f7406f24433d17f41c4c8a7b255faa48b82f1  k/s.json
+ 5f2d77c4bc9905d877a259b666ac4a7fa6005de538730b806ceb249468699e38  k/t_e047002134f979bd.tar
+-fe63459826d83b49bafddba41d25640e52ef2a188f78f3837b2a80047f2d9692  k/y.json
++3386b5250b3574b9884a849d75fb2a207e66e801c3685ac2ee08b041f5703c34  k/y.json
+--- a/out/kit_n_go/BUILD.json
++++ b/out/kit_n_go/BUILD.json
+@@ -1 +1 @@
+-{"encoding": "base64-json", "payload": "ewogICJHTyI6IHRydWUsCiAgImNvbmZpZ19zaGEyNTYiOiAiYTFmZDhiNDAzODdhMWI1MDI4MDA0YTFmMjMyYWVhNWU3MTJhOWYzZGQ4ZTNmOGJhNzNiNjYxY2VmMjQ5NTNkOSIsCiAgImtpdF9zaGEyNTYiOiAiYWEyZDEyNjcwNjVkOTIwZGIyM2RjM2U2YWE1ZjQxYzg3Yjg3ZDU3YjJjZjI3ZjEyYWY4MjI1NWE3ODZjOTdlYSIsCiAgInJlc291cmNlX3JlcXVlc3QiOiB7CiAgICAiY3B1cyI6IDQ4LAogICAgImdwdXMiOiA0LAogICAgIm1lbW9yeV9naWIiOiA4MDAsCiAgICAibWluaW11bV9ncHVfZ2liIjogNzUsCiAgICAicGFydGl0aW9uIjogImFkdmFuY2VkIiwKICAgICJyYW5rcyI6IDQsCiAgICAid2FsbF9ob3VycyI6IDI0CiAgfSwKICAic2l6aW5nIjogIkdVRVNTOyByZWFsIG1vZGVsIGZpdCBoYXMgbm90IGJlZW4gbWVhc3VyZWQiLAogICJzb3VyY2Vfc2VhbCI6ICI5ZDJiYmI4YWQyMDlkOTFlMjFlNTYxMjE3ODVmNjJiMGRkZGYzYzhkOWYxNGRiOGQyM2RhZjZkY2QxZDM1OTFiIgp9Cg==", "sha256": "9a95015fdbd47de2f2575c78689f143eb97b65db19967a35e9c5a816109325a8"}
++{"encoding": "base64-json", "payload": "ewogICJHTyI6IHRydWUsCiAgImNvbmZpZ19zaGEyNTYiOiAiYTFmZDhiNDAzODdhMWI1MDI4MDA0YTFmMjMyYWVhNWU3MTJhOWYzZGQ4ZTNmOGJhNzNiNjYxY2VmMjQ5NTNkOSIsCiAgImtpdF9zaGEyNTYiOiAiYjkzNDM1NzQ3ZWJmZTJhMGIzMTI3OWFkNGMxNTZjZGQwOTU4ZjlkOTZkOTEwMDg5NzEwM2EzMWRmYjlmZTkwNSIsCiAgInJlc291cmNlX3JlcXVlc3QiOiB7CiAgICAiY3B1cyI6IDQ4LAogICAgImdwdXMiOiA0LAogICAgIm1lbW9yeV9naWIiOiA4MDAsCiAgICAibWluaW11bV9ncHVfZ2liIjogNzUsCiAgICAicGFydGl0aW9uIjogImFkdmFuY2VkIiwKICAgICJyYW5rcyI6IDQsCiAgICAid2FsbF9ob3VycyI6IDI0CiAgfSwKICAic2l6aW5nIjogIkdVRVNTOyByZWFsIG1vZGVsIGZpdCBoYXMgbm90IGJlZW4gbWVhc3VyZWQiLAogICJzb3VyY2Vfc2VhbCI6ICI5ZDJiYmI4YWQyMDlkOTFlMjFlNTYxMjE3ODVmNjJiMGRkZGYzYzhkOWYxNGRiOGQyM2RhZjZkY2QxZDM1OTFiIgp9Cg==", "sha256": "5956696e9537526e07044aa507c75d3eff3a8d11c82a6c2d005ad82c3668148d"}

@@ -131,7 +131,7 @@ class FailureTests(unittest.TestCase):
         S,J,R,*_=job.template()
         job.write(out/'FAILED.json',dict(error='E98'))
         with patch.object(R,'pool_operation',return_value={}),patch.object(R,'upload',return_value=dict(verified=True)):
-            receipt=R.publish(out,'/tmp/0','a0123456789abcdef','0'*64,1)
+            receipt=R.publish(out,str(out.parent/'0'),'a0123456789abcdef','0'*64,1)
         archive=Path(receipt['local_return'])/'result.tar.gz'
         self.assertEqual(BD.B.sha(archive.read_bytes()),receipt['archive_sha256'])
         with tarfile.open(archive) as tf:
@@ -152,6 +152,60 @@ class FailureTests(unittest.TestCase):
         trace=j.loads((root/'r/metadata/7.json').read_bytes())['lines']
         self.assertTrue(any('Tower G3T source pin differs' in line for line in trace))
         self.evidence['worker_failure']=dict(passed=True,code=result['failure'],lines=len(trace))
+
+    def test_worker_failure_through_production_fetch(self):
+        from g import w
+        from orchard_h10 import job
+        from student_pilot.tower_errors import TowerError
+        import j,runpy
+        root=temp();out=root/'r';pool=root/'0'
+        cfg=dict(output=str(out),settings='0.json',stop_file=str(root/'1'))
+        with patch.object(w,'bind_reader_root',side_effect=TowerError('injected current delivery worker exception')):
+            result=w.run(cfg,100.,clock=lambda:0.)
+        self.assertEqual(result['completed'],0)
+        job_id='123456';token=self.info['token']+format(int(job_id),'08x')
+        plan=self.info['plan_sha256']
+        job.write(out/'FAILED.json',dict(plan_sha256=plan,error=result['failure']))
+        job.write(out/'metadata/RETURN_ID.json',dict(token=token,job=job_id))
+        job.write(out/'metadata/CAPTURE.json',dict(uploaded=False,error=result['failure']))
+        _,_,R,*_=job.template()
+        local_io={'__name__':'local_pool_io'}
+        exec(compile(self.files['orchard_h10/vendor/return_io.py'],'return_io.py','exec'),local_io)
+        operate=local_io['operate'];operate('test',pool,token)
+        # Use real publication and real pool-copy receipts. Cloud is unavailable.
+        with patch.dict(os.environ,{'SLURM_JOB_ID':job_id}),\
+             patch.object(R,'pool_operation',side_effect=lambda action,pool,token,local=None,**kw:operate(action,pool,token,local)),\
+             patch.object(R,'upload',side_effect=RuntimeError('local test has no cloud channel')):
+            receipt=R.publish(out,pool,token,plan,1)
+        self.assertTrue(receipt['returned'])
+        self.assertEqual(receipt['verified_channels'],['pool'])
+        original_plan=j.loads(self.files['9.json'])
+        command=[sys.executable,'-I','-s','-B',str(HERE/'tests/local_fetch.py'),'parent',
+                 str(self.package),original_plan['pool'],str(pool),job_id,str(HERE/'orchard/o_fetch.sh')]
+        process=subprocess.run(command,cwd=HERE,text=True,capture_output=True,env=os.environ.copy())
+        self.assertEqual(process.returncode,0,process.stdout+process.stderr)
+        fetched=self.package/'a/f/0.tgz'
+        self.assertEqual(BD.B.sha(fetched.read_bytes()),receipt['archive_sha256'])
+        with tarfile.open(fetched) as archive:
+            trace=j.loads(archive.extractfile('metadata/7.json').read())
+            self.assertTrue(any('injected current delivery worker exception' in line for line in trace['lines']))
+            self.assertEqual(archive.extractfile('metadata/7.json').read(),(out/'metadata/7.json').read_bytes())
+        dest=self.package/'a/f'
+        auth=runpy.run_path(str(self.package/'a/7.py'))
+        ex=j.loads((dest/'EXIT.json').read_bytes())
+        got=j.loads((dest/'RETURN_RECEIPT.json').read_bytes())
+        self.assertFalse(ex['complete']);self.assertEqual(ex['status'],'FAILED')
+        for field,value in [('token','a00000000'),('plan_sha256','0'*64),('archive_sha256','0'*64)]:
+            with self.assertRaises(ValueError):auth['validate_exit'](dict(ex,**{field:value}),fetched,plan,token)
+        with self.assertRaises(ValueError):auth['validate_receipt'](dict(got,returned=False),ex,dest/'EXIT.json',fetched,plan,token)
+        self.evidence['production_fetch']=dict(passed=True,delivery_sha256=self.info['delivery_sha256'],
+            source_archive_sha256=receipt['archive_sha256'],fetched_sha256=BD.B.sha(fetched.read_bytes()),
+            fetched=str(fetched.relative_to(HERE)),traceback=trace,failed_status_accepted=True,
+            production_script_sha256=BD.B.sha((HERE/'orchard/o_fetch.sh').read_bytes()),
+            package_pins_checked=True,plan_pin_checked=True,pool_receipt_checked=True,
+            fetched_receipt_checked=True,inner_identity_checked=True,negative_checks=4,
+            adaptations=['local pool path binding','local interpreter binding','cloud channel disabled'],
+            empirical_gpu_result=False)
 
     def test_early_source_gate_and_lazy_rgb(self):
         from orchard_h10 import s,job

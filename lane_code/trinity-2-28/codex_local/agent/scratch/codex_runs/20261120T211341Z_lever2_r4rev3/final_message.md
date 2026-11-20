@@ -1,0 +1,20 @@
+**GO AFTER FIXES — one new blocker.**
+
+**Fix the scorer’s archive whitelist.** Every GPU run that reaches batching creates `3.jsonl`; worker exceptions add `4.json`. Finalization includes both, but [score.py:77](/scratch/jjyeung/orch_n30/lever1_c/r4kit/score.py:77) rejects either. I reproduced this assertion failure in memory. Allow both members and test the actual scorer entrypoint on successful, partial, and failed returns. Producer evidence: [control.py:229](/scratch/jjyeung/orch_n30/lever1_c/r4kit/src/control.py:229).
+
+The five prior blockers are addressed:
+
+- **Controller failure returns:** staging/check/launch exceptions finalize authenticated returns, with bounded staging and subprocess execution. [control.py:258](/scratch/jjyeung/orch_n30/lever1_c/r4kit/src/control.py:258).
+- **CPU fetch:** fetch selects `a/c` or `a/g` and verifies the mode. Tests cover eleven failures in each mode. [control.py:290](/scratch/jjyeung/orch_n30/lever1_c/r4kit/src/control.py:290), [test_fixes.py:104](/scratch/jjyeung/orch_n30/lever1_c/r4kit/tests/test_fixes.py:104).
+- **Tracebacks:** controller and worker diagnostics remain separate, hex-packed, and capped at 200 lines/24,000 bytes. Real-worker fetch coverage exists for both modes. [storage.py:37](/scratch/jjyeung/orch_n30/lever1_c/r4kit/src/storage.py:37), [test_fixes.py:335](/scratch/jjyeung/orch_n30/lever1_c/r4kit/tests/test_fixes.py:335).
+- **Naming:** I checked all 475 mapped source paths; none contains a denied substring. Runtime imports use those physical paths. External-interface exceptions have stated reasons; production GPU caches remain untested. [storage.py:118](/scratch/jjyeung/orch_n30/lever1_c/r4kit/src/storage.py:118), [NAMING_AUDIT.json:380](/scratch/jjyeung/orch_n30/lever1_c/r4kit/NAMING_AUDIT.json:380).
+- **Forecast:** 1,367.2 seconds leaves 352.8 seconds/20.51% before the effective cutoff. This still assumes an **unmeasured 2× batch-forward cost**. Whole-pair admission, per-batch timings, and incremental pair flushing are implemented. [FORECAST.json:12](/scratch/jjyeung/orch_n30/lever1_c/r4kit/FORECAST.json:12), [runtime.py:34](/scratch/jjyeung/orch_n30/lever1_c/r4kit/src/runtime.py:34).
+
+Remaining checks:
+
+- **Execution/resources:** general, gpu:1, 16 CPUs, 200G, required exclusion, 30-minute allocation and 25-minute worker cap match. Expanded delivery/payload are 15,210,568/13,065,735 bytes, below 32 MiB. [control.py:117](/scratch/jjyeung/orch_n30/lever1_c/r4kit/src/control.py:117), [runtime.py:84](/scratch/jjyeung/orch_n30/lever1_c/r4kit/src/runtime.py:84).
+- **Checkpoint/payload:** delivered export exactly matches D400 step 400, artifact `5083243cfedd2a389dfca579c5452e7d0c73b03a58e1cb7d204292ddd10e67cd`. All 290 twins preserve frame metadata and differ only by the specified wording and arm identifier; payload label checks pass. [FROZEN.json:15](/scratch/jjyeung/orch_n30/lever1_c/r4kit/FROZEN.json:15), [test_probe.py:100](/scratch/jjyeung/orch_n30/lever1_c/r4kit/tests/test_probe.py:100).
+- **Generation:** eight unequal-length tiny-CPU prompts have recorded identical serial/batched outputs; full-checkpoint GPU parity is unmeasured. The loop caps generation at 64 tokens, stops on call openers, and serves no tools. `<ground` matches the reader’s syntax. [test_fixes.py:182](/scratch/jjyeung/orch_n30/lever1_c/r4kit/tests/test_fixes.py:182), [batch.py:43](/scratch/jjyeung/orch_n30/lever1_c/r4kit/src/batch.py:43), [carrier_c1_decode.py:35](/scratch/jjyeung/orch_n30/lever1_c/r4kit/in/D400/src/tree/student_pilot/carrier_c1_decode.py:35).
+- **Freeze/statistics:** frozen hash remains `3743891f…`, checked before packaging. Scoring correctly applies the ≥95% gate and 10,000 paired room-bootstrap draws, seed 20261120; incomplete runs receive no verdict. [build.py:69](/scratch/jjyeung/orch_n30/lever1_c/r4kit/build.py:69), [score.py:44](/scratch/jjyeung/orch_n30/lever1_c/r4kit/score.py:44).
+
+I passed **11 read-only tests** and verified delivered wrappers and hashes. Write-based rehearsals were inspected, not rerun. Token `d93a17be024f5`; delivery **4,235,885 bytes**, SHA-256 `9d023abcd0335d57ce99f02e54961b20838c3114c9cd3b537056d4532ca2ef36`.

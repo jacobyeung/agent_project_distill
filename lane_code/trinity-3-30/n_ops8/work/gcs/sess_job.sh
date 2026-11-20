@@ -7,6 +7,12 @@ J=${1:?job}; MODE=${2:-all}; D=${3:-/project/community/jjyeung/okh7/x_22c714e1/n
 PY=/scratch/jjyeung/envs/p1cpu/bin/python; MINT=/scratch/jjyeung/orch_n30/n_ops1/work/gcs/mint_n.py
 B=/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30
 [[ $J =~ ^[0-9]+$ ]] || { echo "REFUSED: job id not numeric"; exit 3; }
+if [[ $MODE != names ]]; then  # ORCH RULING 2152Z item 5
+  HA=/scratch/jjyeung/orch_n30/n_ops8/work/HOSTKEY_ALERT; [[ -e $HA ]] && { echo "REFUSED: host-key alert present ($HA)"; exit 3; }
+  rec=$(find /scratch/jjyeung/orch_n30/n_ops1/work/mon/raw -name '*.raw' -mmin -10 -exec grep -l -E 'IDENTIFICATION HAS CHANGED|Host key verification failed' {} + 2>/dev/null | head -1 || true)
+  [[ -n $rec ]] && { echo "REFUSED: host-key warning within 10 min ($rec)"; exit 3; }
+  timeout 20 ssh -O check -o ControlPath=/tmp/cm-n30-orchard-%r orchard 2>&1 | grep -q 'Master running' || { echo "REFUSED: no verified Orchard master (ssh -O check)"; exit 3; }
+fi
 NF=$G/names_$J.json; S=$G/private/sess_$J.json; I=$G/private/install_$J.sh
 if [[ $MODE == names || $MODE == mint || $MODE == all ]]; then
   [[ -e $NF ]] || $PY - "$Y" "$J" "$NF" <<'PY'

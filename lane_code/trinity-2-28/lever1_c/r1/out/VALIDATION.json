@@ -1,319 +1,238 @@
 {
-  "tests": 32,
-  "existing_tests": 14,
-  "review_regressions": 14,
-  "failure_regressions": 4,
   "passed": true,
-  "real_T1_printed_gap_items": 20,
-  "gap_tolerance_m": 0.0,
-  "imports": true,
-  "entry_stub": true,
-  "dry_run": "depth return missing",
-  "python_files_compiled": 330,
-  "shell_syntax": {
-    "orchard/o_check_sub.sh": {
-      "returncode": 0,
-      "stderr": ""
-    },
-    "orchard/o_cpu.sh": {
-      "returncode": 0,
-      "stderr": ""
-    },
-    "orchard/o_fetch.sh": {
-      "returncode": 0,
-      "stderr": ""
-    },
-    "orchard/o_get.sh": {
-      "returncode": 0,
-      "stderr": ""
-    },
-    "orchard/o_place.sh": {
-      "returncode": 0,
-      "stderr": ""
-    },
-    "orchard/o_sub_hand.sh": {
-      "returncode": 0,
-      "stderr": ""
-    },
-    "orchard/pull_depth.sh": {
-      "returncode": 0,
-      "stderr": ""
-    }
-  },
+  "status": "All required CPU validation passed for the exact rebuilt delivery",
+  "scope": "CPU correctness, sealed import closure, naming, simulated deadlines and local production failure fetch; no live GPU timing",
+  "validated_at_utc": "2026-11-20T21:52:01.386458+00:00",
   "token": "a784b94c2e6af",
-  "delivery_sha256": "b7b0148bb78b2d7ac49a64dd1dfc264cf70ee122c4781293abe35c8235095302",
-  "delivery_bytes": 3522551,
-  "payload_expanded_bytes": 29706935,
-  "gpu_executed": false,
-  "submitted": false,
-  "status": "ready for independent re-review",
-  "failure_checks": {
-    "payload_sha256": "c0475990df75c91450b84da5a9cdc8e28b56600c8edec3633263c09d1056fd6c",
-    "delivery_sha256": "b7b0148bb78b2d7ac49a64dd1dfc264cf70ee122c4781293abe35c8235095302",
-    "diagnostics": {
-      "passed": true,
-      "max_lines": 200,
-      "max_line_chars": 2048,
-      "authenticated_members": 2
+  "delivery_sha256": "87a55270aa3ed70b5e00021284a4284f8eb6ca1116c1cd35ee6fe810e6365041",
+  "delivery_bytes": 3704924,
+  "payload_sha256": "8b9f63b8c6dd0776b061e68691da4d4425a1a1df1702f1c3a13c5524b2567ad3",
+  "plan_sha256": "968129449bfaafd127ac1257f522516255ef088853fdc7ea6b1fa2df62d2f78b",
+  "payload_expanded_bytes": 30859705,
+  "required_tests": 43,
+  "tests_run": 43,
+  "suites": [
+    {
+      "script": "tests/test_all.py",
+      "log": "out/TEST_ALL.log",
+      "tests": 14,
+      "seconds": 7.539089167999919,
+      "returncode": 0,
+      "sha256": "aa007946e800fcc37a5c6022a87c5dfbe6491967660c28002121b1d272492e26",
+      "script_sha256": "0a4e591e62043c79ad17941559db007d84604e21336ac702ee4ac55a5bc0cbec"
     },
-    "capture": {
-      "passed": true,
-      "dense": 64,
-      "anchors": 32,
-      "prefills": 1,
-      "decode_steps": 0,
-      "scale": 2.0,
-      "real": "preprocessing, conversion, sampling, validation, own scaling, capture",
-      "stubbed": "neural forwards and weight identity"
+    {
+      "script": "tests/check_imports.py",
+      "log": "out/TEST_IMPORTS.log",
+      "tests": 0,
+      "seconds": 2.555215372995008,
+      "returncode": 0,
+      "sha256": "26679fb541cca27dde8d93acc31a605420b27b99a1471ebd99b6b48a8743df0a",
+      "script_sha256": "dd922b7828bae1da9dca2177a2ad8530017a06cec8cc1f3d2ed300b171ea716b"
     },
-    "source": {
-      "passed": true,
-      "files": 26,
-      "parent_digest": "df1ea59a73b0ad08b51670bfa37da84eace99b9d0c45c8d270f7052b42e98701",
-      "corrupt_source_rejected": true
+    {
+      "script": "tests/test_fixes.py",
+      "script_sha256": "5c950e064532a2ad942c08eb546af5caf58eae1719327a5224823fcdc9eb4c12",
+      "log": "out/TEST_FIXES.log",
+      "tests": 15,
+      "seconds": 33.74158610099403,
+      "returncode": 0,
+      "sha256": "b0e2d67729dfd354b104463fbe8a0758fef969a20d60c1e1f3430e722cc1f6c8"
     },
-    "worker_failure": {
-      "passed": true,
-      "code": "E99:546f7765724572726f72",
-      "lines": 13
+    {
+      "script": "tests/test_failure.py",
+      "script_sha256": "95fff0429a607826d4c62d2f3356ee2477286b1b5165161922c529b36fb135ca",
+      "log": "out/TEST_FAILURE.log",
+      "tests": 8,
+      "seconds": 5.5425752450100845,
+      "returncode": 0,
+      "sha256": "b7ab224ed7c9824fc4de22ea2743d3ff22e8e1fd84b5b9ddfb27c54538c6887d"
+    },
+    {
+      "script": "tests/test_import_audit.py",
+      "script_sha256": "44eb81fb68440265448d44de28fe2932de78a7171a08b37b8744247e4d202ae1",
+      "log": "out/TEST_AUDIT.log",
+      "tests": 6,
+      "seconds": 17.820741463991,
+      "returncode": 0,
+      "sha256": "046559581af633d674367ddbfb3e5eadfb0fc7529dfcb58cf03d77fa69ae9476"
     }
-  },
-  "cpu_rehearsal_output_scan": {
+  ],
+  "import_checks": 2,
+  "cpu_rehearsal_runs": 2,
+  "syntax": {
     "passed": true,
-    "raw": true,
-    "decoded_json": true,
-    "deny": [
-      "split",
-      "vsi",
-      "revsi",
-      "scannet",
-      "arkit",
-      "sam",
-      "g3t",
-      "depth",
-      "distill",
-      "qwen",
-      "ground",
-      "dev",
-      "bench",
-      "mask",
-      "tower",
-      "reader",
-      "student",
-      "teacher",
-      "k1",
-      "t1"
+    "delivery_sha256": "87a55270aa3ed70b5e00021284a4284f8eb6ca1116c1cd35ee6fe810e6365041",
+    "python_files": 332,
+    "shell": {
+      "orchard/o_check_sub.sh": 0,
+      "orchard/o_cpu.sh": 0,
+      "orchard/o_fetch.sh": 0,
+      "orchard/o_get.sh": 0,
+      "orchard/o_place.sh": 0,
+      "orchard/o_sub_hand.sh": 0,
+      "orchard/pull_depth.sh": 0
+    },
+    "all_package_and_payload_pins": true
+  },
+  "production_failure_fetch": {
+    "passed": true,
+    "delivery_sha256": "87a55270aa3ed70b5e00021284a4284f8eb6ca1116c1cd35ee6fe810e6365041",
+    "source_archive_sha256": "a09b1514be17a3e082cbea3b46050f18280584fedf7c9d74501d78103eea8f0a",
+    "fetched_sha256": "a09b1514be17a3e082cbea3b46050f18280584fedf7c9d74501d78103eea8f0a",
+    "fetched": "tests/fix_jgxgh_5q/a/a/f/0.tgz",
+    "traceback": {
+      "lines": [
+        "Traceback (most recent call last):",
+        "  File \"/scratch/jjyeung/orch_n30/lever1_c/r1/tests/fix_jgxgh_5q/p/g/w.py\", line 99, in run",
+        "    root=bind_reader_root()",
+        "         ^^^^^^^^^^^^^^^^^^",
+        "  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py\", line 1139, in __call__",
+        "    return self._mock_call(*args, **kwargs)",
+        "           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
+        "  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py\", line 1143, in _mock_call",
+        "    return self._execute_mock_call(*args, **kwargs)",
+        "           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
+        "  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py\", line 1198, in _execute_mock_call",
+        "    raise effect",
+        "student_pilot.tower_errors.TowerError: injected current delivery worker exception"
+      ],
+      "limit": 200,
+      "width": 2048
+    },
+    "failed_status_accepted": true,
+    "production_script_sha256": "84b8f0ec9286534e8f976637202104c4d2f01844f0b6a0dfb1c08e8a7d0b083b",
+    "package_pins_checked": true,
+    "plan_pin_checked": true,
+    "pool_receipt_checked": true,
+    "fetched_receipt_checked": true,
+    "inner_identity_checked": true,
+    "negative_checks": 4,
+    "adaptations": [
+      "local pool path binding",
+      "local interpreter binding",
+      "cloud channel disabled"
     ],
-    "files": [
-      {
-        "path": "metadata/IDENTITY.json",
-        "bytes": 2937,
-        "sha256": "442c14b3a800299b46858c27b0a2ddf576825edaf8a25cd007ccde780fdf56db"
-      },
-      {
-        "path": "metadata/MEMORY.json",
-        "bytes": 1081,
-        "sha256": "3c02ddd2581a0fac0e354e55d0f4fc212b8ce5fc4bece7686474437a7c4c74f6"
-      },
-      {
-        "path": "metadata/a/3.json",
-        "bytes": 251092,
-        "sha256": "392ea8e67828e2577f335f841722168f854bc085c7f97d6053fefba67a4d58b5"
-      },
-      {
-        "path": "metadata/a/3.lock",
-        "bytes": 0,
-        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
-      },
-      {
-        "path": "metadata/a/30.json",
-        "bytes": 4271,
-        "sha256": "35952e0f31876c217265dcdcc3bb0ad90682fdba225f0628dab80d9cfc6a5be2"
-      },
-      {
-        "path": "metadata/a/5.py",
-        "bytes": 7660,
-        "sha256": "20747680945a4dfbe85792b5d3c70452b189fd28dd39f60fa8c8e1ff39104b52"
-      },
-      {
-        "path": "metadata/reads/0/metadata/0.json",
-        "bytes": 1865,
-        "sha256": "94d51ce294bc1d90a10598f1bd2e5b2234d7d4e38802123b0a31acb5aa5f31ca"
-      },
-      {
-        "path": "metadata/reads/0/metadata/READ_IDENTITY.json",
-        "bytes": 3141,
-        "sha256": "9a5f39b0712493a7216ede114474a70433317699b4d8128222f623fd8d6279e7"
-      }
+    "empirical_gpu_result": false
+  },
+  "import_audit": {
+    "passed": true,
+    "files_parsed": 332,
+    "retained_sources": 296,
+    "vendor_files": 26,
+    "reachable_files": 299,
+    "reachable_imports": 3060,
+    "unresolved": [],
+    "excluded_reachable_import_sites": 63,
+    "unreachable_files": 33,
+    "excluded_unreachable_import_sites": 370,
+    "environment_packages": [
+      "PIL",
+      "huggingface_hub",
+      "numpy",
+      "packaging",
+      "safetensors",
+      "scipy",
+      "tokenizers",
+      "torch",
+      "torchvision",
+      "transformers"
     ]
   },
-  "workspace_limit_bytes": 2000000000,
-  "cpu_rehearsal": {
-    "passed": true,
-    "stub_weights": true,
-    "actual_operator_rehearsal": true,
-    "entries": [
-      {
-        "read": 0,
-        "types": [
-          "object_abs_distance"
-        ],
-        "args": [
-          "--export-pin",
-          "0.json",
-          "--items",
-          "/scratch/jjyeung/orch_n30/lever1_c/r1/tests/case_p8tyiv4q/r/metadata/a/3.json",
-          "--export",
-          "e",
-          "--artifact-manifest",
-          "b",
-          "--reader-root",
-          "/scratch/jjyeung/orch_n30/lever1_c/r1/tests/case_67zopw9v/p/b",
-          "--settings",
-          "/scratch/jjyeung/orch_n30/lever1_c/r1/tests/case_p8tyiv4q/r/metadata/reads/0/metadata/0.json",
-          "--out",
-          "/scratch/jjyeung/orch_n30/lever1_c/r1/tests/case_p8tyiv4q/r/metadata/journals",
-          "--arms",
-          "tower",
-          "--shard",
-          "0/1",
-          "--device",
-          "cpu",
-          "--stop-at",
-          "1",
-          "--finish-by",
-          "2",
-          "--stop-file",
-          "/scratch/jjyeung/orch_n30/lever1_c/r1/tests/case_p8tyiv4q/r/metadata/STOP",
-          "--modes",
-          "none",
-          "--types",
-          "object_abs_distance",
-          "--type-journals"
-        ],
-        "worker_argv": [
-          "/scratch/jjyeung/envs/p1cpu/bin/python",
-          "-B",
-          "-I",
-          "5.py",
-          "30.json"
-        ],
-        "settings": {
-          "perception_memo": "verify",
-          "perception_memo_modules": [
-            "g3t"
-          ],
-          "perception_memo_verify_ids": [
-            "vsi590k_042574",
-            "vsi590k_042581",
-            "vsi590k_042584",
-            "vsi590k_042588",
-            "vsi590k_042597",
-            "vsi590k_042604",
-            "vsi590k_042608",
-            "vsi590k_042612",
-            "vsi590k_042613",
-            "vsi590k_042627",
-            "vsi590k_042632",
-            "vsi590k_042644",
-            "vsi590k_042645",
-            "vsi590k_042656",
-            "vsi590k_042674",
-            "vsi590k_042690",
-            "vsi590k_042715",
-            "vsi590k_042717",
-            "vsi590k_044593",
-            "vsi590k_044597",
-            "vsi590k_044622",
-            "vsi590k_045538",
-            "vsi590k_045546",
-            "vsi590k_045785",
-            "vsi590k_045786",
-            "vsi590k_046210",
-            "vsi590k_046212",
-            "vsi590k_047592",
-            "vsi590k_050188",
-            "vsi590k_050630"
-          ],
-          "save_own_depth": false,
-          "stage1_select_rule": "candidates_argmax",
-          "tree": "/scratch/jjyeung/orch_n30/lever1_c/r1/tests/case_67zopw9v/p/tree"
-        },
-        "expected": 150
-      }
-    ],
-    "payload": "c0475990df75c91450b84da5a9cdc8e28b56600c8edec3633263c09d1056fd6c",
-    "plan": "ac4b8b79365255ed1d44ea99a85884bb60f529b107f5e78dd0c24c5f49b4b868",
-    "output_scan": {
-      "passed": true,
-      "raw": true,
-      "decoded_json": true,
-      "deny": [
-        "split",
-        "vsi",
-        "revsi",
-        "scannet",
-        "arkit",
-        "sam",
-        "g3t",
-        "depth",
-        "distill",
-        "qwen",
-        "ground",
-        "dev",
-        "bench",
-        "mask",
-        "tower",
-        "reader",
-        "student",
-        "teacher",
-        "k1",
-        "t1"
-      ],
-      "files": [
-        {
-          "path": "metadata/IDENTITY.json",
-          "bytes": 2937,
-          "sha256": "442c14b3a800299b46858c27b0a2ddf576825edaf8a25cd007ccde780fdf56db"
-        },
-        {
-          "path": "metadata/MEMORY.json",
-          "bytes": 1081,
-          "sha256": "3c02ddd2581a0fac0e354e55d0f4fc212b8ce5fc4bece7686474437a7c4c74f6"
-        },
-        {
-          "path": "metadata/a/3.json",
-          "bytes": 251092,
-          "sha256": "392ea8e67828e2577f335f841722168f854bc085c7f97d6053fefba67a4d58b5"
-        },
-        {
-          "path": "metadata/a/3.lock",
-          "bytes": 0,
-          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
-        },
-        {
-          "path": "metadata/a/30.json",
-          "bytes": 4271,
-          "sha256": "35952e0f31876c217265dcdcc3bb0ad90682fdba225f0628dab80d9cfc6a5be2"
-        },
-        {
-          "path": "metadata/a/5.py",
-          "bytes": 7660,
-          "sha256": "20747680945a4dfbe85792b5d3c70452b189fd28dd39f60fa8c8e1ff39104b52"
-        },
-        {
-          "path": "metadata/reads/0/metadata/0.json",
-          "bytes": 1865,
-          "sha256": "94d51ce294bc1d90a10598f1bd2e5b2234d7d4e38802123b0a31acb5aa5f31ca"
-        },
-        {
-          "path": "metadata/reads/0/metadata/READ_IDENTITY.json",
-          "bytes": 3141,
-          "sha256": "9a5f39b0712493a7216ede114474a70433317699b4d8128222f623fd8d6279e7"
-        }
-      ]
+  "evidence": {
+    "CPU_ENTRY_STUB": {
+      "path": "out/CPU_ENTRY_STUB.json",
+      "sha256": "111c3aab7fe36fdd68375ff7d5ee98b75ad997e91f4dfaa0b9f08681ba84a963"
     },
-    "item_copy_exact": true,
-    "repeated_rehearsal": true
+    "FIX_CHECKS": {
+      "path": "out/FIX_CHECKS.json",
+      "sha256": "766b660f31ddf0d11dc690e37763971f04766c503c83458298a3d39f1da68590"
+    },
+    "FAILURE_CHECKS": {
+      "path": "out/FAILURE_CHECKS.json",
+      "sha256": "4c0adc63f56a01c995e42cd026eb953ac17bec583961e60bc8331ee6bcd26401"
+    },
+    "IMPORT_CHECK": {
+      "path": "out/IMPORT_CHECK.json",
+      "sha256": "3b91dd7b4f90f25cfa43cdfd68f26e81d4a7b4c0219aedf56a8b124915cdf80b"
+    },
+    "IMPORT_AUDIT": {
+      "path": "out/IMPORT_AUDIT.json",
+      "sha256": "2da335b40135ca8ebc5c798c9800121ad5cc503c69eff2853e1307897be3b345"
+    },
+    "SYNTAX_CHECKS": {
+      "path": "out/SYNTAX_CHECKS.json",
+      "sha256": "91e7f228d320739dd515d6de79a05c829c93bb854bb7071b24096b9641e70761"
+    },
+    "BUDGET_CHECK": {
+      "path": "out/BUDGET_CHECK.json",
+      "sha256": "5611cc056114929066a7613537ce02c668adf78f8ea670f6e38f8e2ebd8f50e9"
+    },
+    "REAL_PARITY_20": {
+      "path": "out/REAL_PARITY_20.json",
+      "sha256": "24abf58c94f5f2d750bad9c7b65821a91040ba806f69666e0b3b749aa97d8ad8"
+    },
+    "DRY_RUN": {
+      "path": "out/DRY_RUN.json",
+      "sha256": "a8b9278fd87900b8e5d2169275bda236152d7b3d76d3435790c8ccdbc0a3ed3e"
+    }
+  },
+  "budget": {
+    "allocation_margin_s": 734.9865522600303,
+    "allocation_planning_minutes": 37.7502241289995,
+    "allocation_s": 3000,
+    "allowances_measured": false,
+    "captures": 60,
+    "caveat": "T1 replay is 16.75 min, including SAM/linking. Add 6 min shared loading and 1 min indexed RGB/telemetry inside worker, plus 10 min shared archive staging and 4 min publication. All allowances are unmeasured; no first-output or GPU wall-time guarantee.",
+    "compressed_return_conservative_bytes": 80000000,
+    "compressed_return_forecast_bytes": 40000000,
+    "deadline_offsets_s": {
+      "capture_publication_stop": 2910,
+      "failure_receipt_stop": 2998,
+      "normal_publication_stop": 2990,
+      "staging_stop": 2760,
+      "worker_latest_stop": 2730
+    },
+    "float16_depth_bytes": 9987840,
+    "indexed_staging_monitor_allowance_s": 60,
+    "lossless_depth_plane_bytes": 49939200,
+    "publication_allowance_s": 240,
+    "return_cap_bytes": 1000000000,
+    "shared_load_allowance_s": 360,
+    "staging_allowance_s": 600,
+    "t1_first_per_capture_replay_s": 1005.0134477399697,
+    "t1_first_per_capture_tower_s": 430.61447064887034,
+    "t1_replay_minutes": 16.750224128999495,
+    "worker_cap_reason": "Forecast 1425.01s leaves 374.99s within 1800s; with 600s staging and 240s publication a capped worker fits in 2640s, leaving 360s of the allocation. No evidence requires 35 minutes.",
+    "worker_cap_s": 1800,
+    "worker_forecast_minutes": 23.750224128999495,
+    "worker_margin_s": 374.9865522600303
+  },
+  "workspace_bytes": 2656384781,
+  "workspace_cap_bytes": 10000000000,
+  "moved_fixtures": [],
+  "validation_source_hashes": {
+    "audit_policy.py": "c49b29a0af21f889dea3b701bdf394c347170f16d8428334d53e154ffd50d2f2",
+    "build_depth.py": "24e708dcc3d7209afc2c55dee69f4ab622bcf03ad2aa3188a6ef33df233e54b1",
+    "depth_format.py": "2c7db4f32197bee03f1f66d0bb37c3be9d979e7cc88e27ac6f8d06d28a8cc54a",
+    "external_inputs.py": "80f558956ff560873e87745a5ec96175fc704ec85cbf5305cccf4e6d0f36cdcb",
+    "import_audit.py": "7637fe2419d85d945bc06c49d592807207ef07a02d15cdbc41f35f52f294cedf",
+    "layout.py": "a8415d9f4305334cea4966c8e24d251dfedb4c75144c636b3070abf9492e0222",
+    "relift.py": "2521f3daae4edf5a628e52f07b23f0a5bd46f9de8f5009443210eab1bfa21bd5",
+    "runtime/budget.py": "b3748effce7f3d9c11d6cc5cd5eab0e38ffb0ae7e2095fd173f9bd4e49ed1a28",
+    "runtime/e.py": "46379b501e04ad82c19ee8bf85d662c324ab1c4b79b6cd08074b70eab11b7f8c",
+    "runtime/j.py": "b47ec67992f1e93741b989d9840418c0319f4b67dfbf0f04e3f10bad3d3b049c",
+    "runtime/l.py": "b36ed29becfbb61eaab675cbd7953fc1f0501b32590ed4e1cbc57ffa679f53b4",
+    "runtime/m.py": "d4eeb59a80981cd907bfdedc28519617af15db8f7c1322ebf5725bcaf0e223d2",
+    "runtime/s.py": "4ad6f35f54b4557b9888b37892f6118fee5c78062b6901b471365713985f168c",
+    "runtime/t.py": "9579355e2b7f9b46be3770b6e02ea34e243380097a631bd161d67af710c455b4",
+    "runtime/w.py": "26392a6b1207b92dd7c00eae4e5f7571d9a5db5421a23d5a99b6f14259f334f6",
+    "tests/check_imports.py": "dd922b7828bae1da9dca2177a2ad8530017a06cec8cc1f3d2ed300b171ea716b",
+    "tests/local_fetch.py": "0ada5fb2039880673b28c4e4b1c8ee9b197dda014d698aa7148f1f646eba783b",
+    "tests/test_all.py": "0a4e591e62043c79ad17941559db007d84604e21336ac702ee4ac55a5bc0cbec",
+    "tests/test_failure.py": "95fff0429a607826d4c62d2f3356ee2477286b1b5165161922c529b36fb135ca",
+    "tests/test_fixes.py": "5c950e064532a2ad942c08eb546af5caf58eae1719327a5224823fcdc9eb4c12",
+    "tests/test_import_audit.py": "44eb81fb68440265448d44de28fe2932de78a7171a08b37b8744247e4d202ae1",
+    "validate.py": "84c970535825fd0aa8eddb9235bed2562723cf38a3f9aa33130bd78aa50ab090"
   }
 }

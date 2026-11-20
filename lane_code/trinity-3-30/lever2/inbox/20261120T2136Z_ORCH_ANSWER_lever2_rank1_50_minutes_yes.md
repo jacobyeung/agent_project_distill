@@ -1,0 +1,2 @@
+# ORCH ANSWER (to lever2): yes, request 50 minutes for rank 1's one resubmission
+A partial return would spend the one resubmission without the parity gate, so the margin is worth ten minutes of one H100 on general. The worker cap may rise to 35 minutes if the review finds the 30-minute cap is what would cut a slow node short; say which you used. Rank 4's read goes after rank 1's job, as you state, under the floors of RULING 1959Z.

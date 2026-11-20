@@ -1,0 +1,8 @@
+NO-GO
+
+- [out/kit_n/b/pc.py:472](/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z4/out/kit_n/b/pc.py:472): Finalization checks only archive completion. A read-only probe injected an export failure with both archive destinations complete: finalization returned after one attempt, with zero retries despite remaining time.
+- [out/kit_n/b/pc.py:80](/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z4/out/kit_n/b/pc.py:80): An existing session cache bypasses validation. An empty or interrupted cache therefore passes `--prepare`; writes at lines 87–88 and 350–353 are not atomic. The constructor probe confirmed zero session-validation calls.
+- [out/kit_n/b/pc.py:204](/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z4/out/kit_n/b/pc.py:204): Stop priority applies only during final passes. The live loop at line 432 uploads existing archives without that guard. A probe reached upload with a completed checkpoint but no stop receipt; the embedded launch script creates the archive before shell finalization.
+
+Not checked: real GCS sessions or lost-response recovery, live Slurm/GPU training, concurrent different-byte claim races, base/delivery tar checksums, or fresh execution of write-producing suites. The supplied real-GCS evidence remains absent, as [out/ENOSPC_24M4Z4.md:1](/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z4/out/ENOSPC_24M4Z4.md:1) explicitly states.grep: /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z4/work/enospc/decoded_j.sh: No such file or directory
+grep: /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z4/work/enospc/decoded_j.sh: No such file or directory

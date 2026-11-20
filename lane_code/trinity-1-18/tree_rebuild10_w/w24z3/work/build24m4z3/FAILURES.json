@@ -1,0 +1,41 @@
+{
+  "failures": [
+    {
+      "name": "Missing-archive-session fixture permissions",
+      "log": "work/build24m4z3/current_tests.log",
+      "output": "test_allocation_names_and_slot_limit (__main__.Current.test_allocation_names_and_slot_limit) ... ok\ntest_archive_failed_part_retry_idempotence (__main__.Current.test_archive_failed_part_retry_idempotence) ... gcsput: q9/22c714e1/469ddece_o.tar.j41.part02-of-04 attempt 0: OSError: injected failed part\ngcsput: FAILED q9/22c714e1/469ddece_o.tar.j41.part02-of-04: injected failed part\n{\"gcsput\": \"split\", \"name\": \"q9/22c714e1/469ddece_o.tar.j41\", \"objects\": 4, \"uploaded\": 3, \"failed\": 1, \"bytes\": 8192, \"seconds\": 0.0, \"MBps\": 3.5}\n{\"gcsput\": \"split\", \"name\": \"q9/22c714e1/469ddece_o.tar.j41\", \"objects\": 4, \"uploaded\": 1, \"failed\": 0, \"bytes\": 2048, \"seconds\": 0.0, \"MBps\": 2.0}\nok\ntest_empty_stop_safe (__main__.Current.test_empty_stop_safe) ... ok\ntest_gc_rejects_wrong_digest (__main__.Current.test_gc_rejects_wrong_digest) ... gcsput: q9/x attempt 0: OSError: GCS size/md5 mismatch for q9/x: 128 wrong\nok\ntest_listing_budget (__main__.Current.test_listing_budget) ... ok\ntest_missing_and_incomplete (__main__.Current.test_missing_and_incomplete) ... ok\ntest_missing_archive_sessions_refuses (__main__.Current.test_missing_archive_sessions_refuses) ... FAIL\ntest_private_modes_and_symlinks (__main__.Current.test_private_modes_and_symlinks) ... ok\ntest_retry_idempotence_and_local_state (__main__.Current.test_retry_idempotence_and_local_state) ... ok\ntest_stop_uses_dedicated_object (__main__.Current.test_stop_uses_dedicated_object) ... ok\n\n======================================================================\nFAIL: test_missing_archive_sessions_refuses (__main__.Current.test_missing_archive_sessions_refuses)\n----------------------------------------------------------------------\nValueError: file mode\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z3/work/build24m4z3/current_tests.py\", line 70, in test_missing_archive_sessions_refuses\n    with self.assertRaisesRegex(ValueError,'E101'):C.Copier(k,n,'41')\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: \"E101\" does not match \"file mode\"\n\n----------------------------------------------------------------------\nRan 10 tests in 0.483s\n\nFAILED (failures=1)\n",
+      "resolved_by": "work/build24m4z3/current_tests_final.log",
+      "reason": "The fixture replaced its session file with mode 0644; chmod 0600 restores the required session fixture and E101 is asserted."
+    },
+    {
+      "name": "Legacy finalizer fixture incomplete",
+      "log": "work/build24m4z3/legacy_ready.log",
+      "output": "test_byte_cap_and_marker_only_listing (__main__.Live24F.test_byte_cap_and_marker_only_listing) ... ok\ntest_term_final_copy (__main__.Live24F.test_term_final_copy) ... ERROR\n\n======================================================================\nERROR: test_term_final_copy (__main__.Live24F.test_term_final_copy)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z3/work/build24m4z3/legacy_ready_tests.py\", line 120, in test_term_final_copy\n    p.send_signal(signal.SIGTERM);rc=p.wait(timeout=20)\n                                     ^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/subprocess.py\", line 1264, in wait\n    return self._wait(timeout=timeout)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/subprocess.py\", line 2045, in _wait\n    raise TimeoutExpired(self.args, timeout)\nsubprocess.TimeoutExpired: Command '['/bin/bash', '/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z3/work/build24m4z3/legacy_ready/live_tests_v2/term/job.sh']' timed out after 20 seconds\n\n----------------------------------------------------------------------\nRan 2 tests in 20.176s\n\nFAILED (errors=1)\n",
+      "resolved_by": "work/build24m4z3/legacy_verified.log",
+      "reason": "The legacy fixture omitted o.py and the archive label, so its finalizer exhausted the 20-second fixture wait. The completed fixture uses current archive dependencies and retains the original assertions."
+    },
+    {
+      "name": "Native checker discovery",
+      "output": "rg: work/tree_r1c/student_pilot/launch_kit.py: No such file or directory (os error 2)\nrg: work/tree_r1c/student_pilot/launch_kit_n.py: No such file or directory (os error 2)\n",
+      "resolved_by": "work/build24m4z3/FINAL_SEALS.json",
+      "reason": "The actual native checker is launch_r1.build.verify."
+    },
+    {
+      "name": "Legacy fixture source audit",
+      "output": "The intermediate legacy_final fixture copied archive dependencies from the named w24z2 workspace; its result is not used as evidence on new bytes.",
+      "resolved_by": "work/build24m4z3/legacy_verified.log",
+      "reason": "The verified fixture resolves all source dependencies from this workspace."
+    }
+  ],
+  "unresolved": [],
+  "expected_negative_checks": [
+    "failed archive part",
+    "rejected MD5",
+    "missing/incomplete sessions",
+    "missing four archive sessions",
+    "ENOSPC before training"
+  ],
+  "cluster_killed_processes": [],
+  "remote_validation": "NOT_RUN",
+  "inherited_failures": "work/build24m4z2/FAILURES.json"
+}

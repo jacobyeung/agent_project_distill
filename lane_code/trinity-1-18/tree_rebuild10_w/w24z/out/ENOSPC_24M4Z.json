@@ -1,0 +1,932 @@
+{
+  "build": "24m4z",
+  "verdict": "FAIL_ENOSPC_LAUNCH_GATE",
+  "items": [
+    {
+      "item": 1,
+      "name": "Live evidence and traps",
+      "behavior": "pc.py small() raises OSError(28). Both --loop-small and --loop exit 1, with no restart supervisor and no node-local failure log in the original kit. The 600-second small loop cannot resume after space returns; a fresh manual small() succeeds. The final pass runs small first, so ENOSPC prevents its exports/stop checkpoint actions. EXIT preserves status 0; TERM/USR1 with a real fake-worker descendant save its local checkpoint and return 0. The no-worker signal tests return 143/138. pl.py is a pre-training publisher, not the periodic publisher.",
+      "fatal": false,
+      "fatal_detail": "Not fatal to the independently running trainer; fatal to both publication workers. Trap finalization suppresses its failed publication commands.",
+      "data_loss": false,
+      "data_loss_detail": "Local source evidence survives. Remote evidence remains stale/missing; .part files can be empty, and direct copy.json writes can damage an old manifest. Node loss before a retry loses unpublished evidence.",
+      "retry": "No automatic retry after the uncaught error. Manual recovery succeeds.",
+      "runtime_log": "Original stderr goes to X/j through jn.sh and may itself be unwritable. Tests capture stderr on node-local disk.",
+      "tests": [
+        "full_small",
+        "full_loop_small",
+        "full_loop",
+        "full_final",
+        "recovered_small_manual",
+        "worker_trap_term",
+        "worker_trap_usr1"
+      ],
+      "fix": "Proposed pc.py catches publication errors, logs to N/live_spool/retry.log and keeps its loops alive. jn2.sh separately retries screened wrapper log tails.",
+      "outside_seal": false,
+      "logs": [
+        "work/enospc/logs/full_small.log",
+        "work/enospc/logs/full_loop_small.log",
+        "work/enospc/logs/full_loop.log",
+        "work/enospc/logs/full_final.log",
+        "work/enospc/logs/recovered_small_manual.log",
+        "work/enospc/logs4/worker_trap_term.log",
+        "work/enospc/logs4/worker_trap_usr1.log"
+      ]
+    },
+    {
+      "item": 2,
+      "name": "Stdout and stderr",
+      "behavior": "The requested file-fd test makes Python print/flush exit 120. With the real l.py, the logger exits 120 on ENOSPC and the x.py-like printing child exits 120 on BrokenPipeError. Direct stderr flush also exits 120. The wrapper fix keeps both fds local: a 300-line child and l.py exit 0 and save a 4096-byte checkpoint; the helper records E28 and automatically publishes the exact 1694-byte tail after recovery.",
+      "fatal": true,
+      "fatal_detail": "Yes for the tested printing child/logger. Actual trainer stdout is already redirected to N/t.log in the decoded shell; this test does not prove Slurm daemon buffering propagates ENOSPC to a real job.",
+      "data_loss": true,
+      "data_loss_detail": "Original stdout/stderr bytes that only target the full filesystem are lost. Under jn2.sh full local logs survive during allocation; published tails are intentionally bounded to 300000 bytes per stream.",
+      "retry": "Original l.py has none. jn2.sh helper retries every 600 seconds; focused test uses its interval argument at 0.1 seconds.",
+      "runtime_log": "Fixed N/j2.log, N/j2.err, N/j2.retry.log; Slurm bootstrap fds /tmp/q_22c714e1_%j.log/.err.",
+      "tests": [
+        "full_direct_print",
+        "full_pipeline",
+        "direct_stderr_full",
+        "wrapper_full_pipeline_bounded",
+        "wrapper_retry_local",
+        "wrapper_automatic_recovery"
+      ],
+      "fix": "out/jn2.sh changes only the wrapper and starts an independent log-tail publisher. It does not fix kit publication or GCS claims.",
+      "outside_seal": true,
+      "logs": [
+        "work/enospc/logs/full_direct_print.log",
+        "work/enospc/logs/full_pipeline.log",
+        "work/enospc/logs2/direct_stderr_full.log",
+        "work/enospc/logs2/wrapper_full_pipeline_bounded.log",
+        "work/enospc/logs2/wrapper_retry_local.log",
+        "work/enospc/logs2/wrapper_automatic_recovery.log"
+      ]
+    },
+    {
+      "item": 3,
+      "name": "Pre-training receipts and review gate",
+      "behavior": "The real rv.put write path raises OSError(28) for v.json, h0.json, c0..c4.json and s0/s1. Replayed sealed pl.py and h.py publication statements fail at their actual write sites. rv.run fails writing v.json, then fails again writing REVIEW_REFUSED.json. If space fills after WAITING_REVIEW is written, reads still work and a missing review reaches the deadline; the refusal write then also raises ENOSPC. No training admission is granted.",
+      "fatal": true,
+      "fatal_detail": "Yes, before training; fail-closed admission is appropriate. The publication statements and review state machine were tested with synthetic prerequisites, not a full data preparation run.",
+      "data_loss": false,
+      "data_loss_detail": "Config/host sources remain node-local. Census keys may exist only in memory before a failed first publication, but can be recomputed; no training checkpoint exists at this phase. The independent review.json is read, never written by this job.",
+      "retry": "No receipt-publication retry. The review poll retries reads only, up to the sealed 7200-second bound (scaled to 1 second in the focused test).",
+      "runtime_log": "Most receipt exceptions go to N/q.log, N/h.log or N/rv.log; outer staging diagnostics can use wrapper stdout.",
+      "tests": [
+        "receipt_v_json",
+        "receipt_h0_json",
+        "receipt_c0_json",
+        "receipt_c1_json",
+        "receipt_c2_json",
+        "receipt_c3_json",
+        "receipt_c4_json",
+        "full_pl_sites",
+        "full_h_site",
+        "full_rv_run",
+        "review_wait_full_timeout"
+      ],
+      "fix": "Keep the gate fail-closed; reserve enough space or retry preparation with a fresh reviewed allocation. No bypass is proposed.",
+      "outside_seal": true,
+      "logs": [
+        "work/enospc/logs/receipt_v_json.log",
+        "work/enospc/logs/receipt_h0_json.log",
+        "work/enospc/logs/receipt_c0_json.log",
+        "work/enospc/logs/receipt_c1_json.log",
+        "work/enospc/logs/receipt_c2_json.log",
+        "work/enospc/logs/receipt_c3_json.log",
+        "work/enospc/logs/receipt_c4_json.log",
+        "work/enospc/logs/full_pl_sites.log",
+        "work/enospc/logs/full_h_site.log",
+        "work/enospc/logs/full_rv_run.log",
+        "work/enospc/logs2/review_wait_full_timeout.log"
+      ]
+    },
+    {
+      "item": 4,
+      "name": "Checkpoints, stop checkpoint and exports",
+      "behavior": "Native persistence produces node-local archives and durable=false receipts when X is full. The final config has r1_training and no r2_persistence. pc.py does not upload ordinary checkpoints at all; it uploads exports and the final stop checkpoint. A fresh export/stop upload fails on the project-side claim before gc.py runs. With a preexisting claim, real gc.py reaches the local fake HTTP sink (four verified parts), then the project done write fails. The free-space race also fails writing n_ck/...tar.part and never falls back to GCS. Direct gc.py with local sessions/receipts succeeds.",
+      "fatal": false,
+      "fatal_detail": "The fake trainer continues, but the copier dies and durability fails. Upload failure is not a trainer exception in this kit.",
+      "data_loss": false,
+      "data_loss_detail": "No only local checkpoint/archive copy is deleted. Fresh-state GCS publication is blocked, so allocation loss would lose unuploaded states; ordinary checkpoints have no periodic GCS route in the original kit.",
+      "retry": "Native local receipt persists. pc.py loop terminates when its error-status write also fails; no automatic restart. Recovery requires a new copier invocation.",
+      "runtime_log": "N/p/q/r/persist and N/live_spool hold local archives. Writer receipts are N/live_spool/private/sess.json.receipts.jsonl. Original copier exceptions use the vulnerable batch stderr.",
+      "tests": [
+        "full_export",
+        "full_stop",
+        "full_gc_direct",
+        "prior_claim_upload",
+        "prior_claim_receipts",
+        "stop_space_check_race",
+        "native_checkpoint_full",
+        "recovered_export_manual",
+        "recovered_stop_manual"
+      ],
+      "fix": "Proposed sealed patch uses per-allocation GCS names, cached sessions, local claims/status/receipts, 16 ordinary-checkpoint slots and a dedicated stop object. No project write lies on the upload path. New sessions must be minted externally before launch; no network was used here.",
+      "outside_seal": false,
+      "logs": [
+        "work/enospc/logs/full_export.log",
+        "work/enospc/logs/full_stop.log",
+        "work/enospc/logs/full_gc_direct.log",
+        "work/enospc/logs2/prior_claim_upload.log",
+        "work/enospc/logs2/prior_claim_receipts.log",
+        "work/enospc/logs2/stop_space_check_race.log",
+        "work/enospc/logs4/native_checkpoint_full.log",
+        "work/enospc/logs/recovered_export_manual.log",
+        "work/enospc/logs/recovered_stop_manual.log",
+        "work/enospc/native_export.log",
+        "work/enospc/proposed_final.log"
+      ]
+    },
+    {
+      "item": 5,
+      "name": "Exit archive and diagnostics",
+      "behavior": "o.py creates N/o/o.tar, then shutil.copyfile to X/o/<job>/o.tar raises OSError(28), exits 1 and skips creation of N/o/RESULT.json. The decoded shell has set +e and exits with the saved training rc, so the archive error does not change that rc. ep.py also exits 1; pc.sh suppresses it. After recovery, rerunning o.py succeeds.",
+      "fatal": false,
+      "fatal_detail": "Fatal to the archive subprocess only; not to the saved job/training status.",
+      "data_loss": false,
+      "data_loss_detail": "The complete local o.tar survives. A remote partial tar may remain and RESULT.json is absent until retry. The archive is not uploaded to GCS by this kit, so node teardown before recovery can lose it.",
+      "retry": "No original exit-archive retry. Proposed o.py retains RESULT locally, catches ENOSPC, logs locally and lets small publication retry while the allocation is alive; finalizer attempts again.",
+      "runtime_log": "Original exception uses batch stderr. Fixed wrapper captures it locally; proposed archive retry log is N/o/retry.log.",
+      "tests": [
+        "full_exit_archive",
+        "full_ep",
+        "recovered_archive_manual",
+        "trap_exit"
+      ],
+      "fix": "Proposed b/o.py and b/pc.py/b/pc.sh changes. No promise of retries after allocation teardown; durable exit-archive upload would require an additional separately provisioned object.",
+      "outside_seal": false,
+      "logs": [
+        "work/enospc/logs/full_exit_archive.log",
+        "work/enospc/logs/full_ep.log",
+        "work/enospc/logs/recovered_archive_manual.log",
+        "work/enospc/logs/trap_exit.log"
+      ]
+    }
+  ],
+  "write_map": [
+    {
+      "source": "inputs/jn.sh:12-13; b/l.py:6-7",
+      "phase": "before/during/exit",
+      "path": "X/j/a15_cot_apb2edfac4_<job>.log and .err",
+      "bytes": "All batch stdout/stderr; unbounded and runtime-dependent",
+      "notes": "Slurm creates/owns these files; file-fd failure was simulated, not slurmd itself."
+    },
+    {
+      "source": "inputs/jn.sh:21",
+      "phase": "before",
+      "path": "X/o/<job>/",
+      "bytes": "0 payload bytes; filesystem metadata only",
+      "notes": "mkdir under set -e can refuse launch on ENOSPC."
+    },
+    {
+      "source": "b/pc.py:71,73; b/rv.py:63",
+      "phase": "before/during/exit",
+      "path": "X/o/<job>/live/; X/o/gcs_claims/",
+      "bytes": "0 payload bytes; metadata only",
+      "notes": ""
+    },
+    {
+      "source": "b/pl.py:254-256; b/rv.py:36-45",
+      "phase": "before",
+      "path": "X/o/<job>/live/s0.json, s1.json, each via .part",
+      "bytes": "Observed 35026 + 1410 = 36436 bytes",
+      "notes": "Plan payload publishes these before the host. pl.py regeneration mode uses a local live directory instead."
+    },
+    {
+      "source": "b/cs.py:109,116; b/a.py:61-64",
+      "phase": "before",
+      "path": "live/c0.json..c3.json and live/c4.json, each via .part",
+      "bytes": "Four encoded key lists; PASS keys [] are 3 bytes each. c4 is rewritten after each of four streams. Final census bundle <1000000 bytes.",
+      "notes": "Cumulative write bytes include all four c4 prefixes, not just the final file."
+    },
+    {
+      "source": "b/h.py:34-39",
+      "phase": "before",
+      "path": "live/h0.json via .part",
+      "bytes": "len(N/p/hr.json); no explicit byte cap",
+      "notes": "Writes only when protected_census is bound; source hr.json remains local."
+    },
+    {
+      "source": "b/rv.py:256-257",
+      "phase": "before",
+      "path": "live/v.json and identity.txt via .part",
+      "bytes": "v.json <=50000000 bytes; identity.txt =65 bytes",
+      "notes": "v.py itself only validates the kit and prints its seal; it does not write v.json."
+    },
+    {
+      "source": "b/rv.py:166-225",
+      "phase": "before",
+      "path": "live/e0.json..e7.json via .part",
+      "bytes": "Combined payload <2000000 bytes",
+      "notes": "Four sample/type reports, rooms report and its digest, two exclusion lists."
+    },
+    {
+      "source": "b/rv.py:277-278,306,311",
+      "phase": "before",
+      "path": "live/WAITING_REVIEW.json; REVIEW_ACCEPTED.json or REVIEW_REFUSED.json via .part",
+      "bytes": "Serialized status JSON; timestamps/identity/error-dependent",
+      "notes": "No size accounting can treat a refusal and an acceptance as both required for a successful run."
+    },
+    {
+      "source": "b/rv.py:264",
+      "phase": "before, conditional",
+      "path": "live/d5.json via .part",
+      "bytes": "Encoded refusal JSON",
+      "notes": "Discovery-only branch; not reached by final GO kit."
+    },
+    {
+      "source": "b/rv.py:57,67-97,284",
+      "phase": "before",
+      "path": "X/n_r/review.json",
+      "bytes": "0 job-written bytes",
+      "notes": "Read-only independent review. Max accepted input size 2000000 bytes; it is not a job output."
+    },
+    {
+      "source": "b/pc.py:107-157",
+      "phase": "before/during/exit",
+      "path": "live/markers.json; metrics_*.jsonl; attempt_*.json; run_*.json; *.steps; t.log,q.log,h.log,rooms.log; copy.json",
+      "bytes": "Per pass <=50000000 bytes including manifest; logs share <=40000000; markers <=1000000",
+      "notes": "Data files use .part/replace. copy.json is direct. Small worker starts before x.py and repeats every600s; final traps also call it."
+    },
+    {
+      "source": "b/pc.py:199-212,36-41",
+      "phase": "during/exit",
+      "path": "X/o/gcs_claims/lock and <sha256(object-key)>.json via .part",
+      "bytes": "Lock 0 bytes; JSON identity/object/job record per new object",
+      "notes": "Mandatory before new upload; shared across allocations."
+    },
+    {
+      "source": "b/pc.py:279,295,316,327-328,365-366,379",
+      "phase": "during/exit",
+      "path": "live/gcs_<directory>.json/.done; ckstop.json; exports.json; stop_checkpoint.json via .part",
+      "bytes": "Small JSON status, receipt, hashes and object names; runtime-dependent",
+      "notes": "Failed status writes can escape exception handlers and terminate copier."
+    },
+    {
+      "source": "b/pc.py:343-363",
+      "phase": "exit",
+      "path": "X/n_ck/<job>/checkpoint_<step>.tar.part -> .tar; complete.json via .part",
+      "bytes": "Whole uncompressed checkpoint tar plus JSON receipt",
+      "notes": "Chooses project when free >= contents+per-file overhead+50GiB+10240. Check is racy. Otherwise send() still needs project claim."
+    },
+    {
+      "source": "b/o.py:5,9-13; decoded k/j.json:438-439",
+      "phase": "exit",
+      "path": "X/o/<job>/o.tar and RESULT.json",
+      "bytes": "Size of gzip tar of local selected logs/receipts + serialized result JSON",
+      "notes": "Both remote copies direct, not atomic; second is skipped if first raises. Full tar is built locally first."
+    },
+    {
+      "source": "b/ep.py:21,23-27,56-66",
+      "phase": "exit; optional loop",
+      "path": "X/o/<job>/.l; q.log,rooms.log,h.log,rv.log,t.log,r.log,q.steps,q0.json,r0.json,q1.json,q2.json,RESULT.json,routing_selection.json,r1.json via .part",
+      "bytes": "All selected diagnostics and manifest <5000000 bytes; log tails300000, steps100000, JSON100000, selection2000000",
+      "notes": "Finalizer invokes once. --loop catches publication errors then prints to batch stdout; not launched by job.sh/pc.sh."
+    },
+    {
+      "source": "b/ep.py:70-107",
+      "phase": "exit",
+      "path": "X/o/<job>/{a,b}{0m,0r,1m,1r,2m,2r,3r,4r,5r}.json; materialization.json; receipt.json; refresh.json; a6.json, via .part",
+      "bytes": "Each artifact <=2000000 bytes; artifact sum <=10000000 plus a6 manifest",
+      "notes": "Only existing local artifacts copied; diagnostic aliases may duplicate bytes."
+    },
+    {
+      "source": "b/rd.py:22-57; decoded k/j.json:416-420",
+      "phase": "conditional alternative r mode",
+      "path": "X/o/<job>/q.log,r0.json,routing_selection.json,r1.json plus ep artifact family",
+      "bytes": "q.log <=2000000; r0 <=500000; selection <=2000000; manifest plus artifact budgets",
+      "notes": "Q_MODE=r path, not normal final N training."
+    },
+    {
+      "source": "b/sv.py:64-100; b/cs.py:108-116",
+      "phase": "dormant/alternate functions",
+      "path": "live/s0..s3.json; d0..d4.json",
+      "bytes": "sv bundle <1000000; cs alternate census bundle <1000000",
+      "notes": "No sv.publish caller or non-final cs.emit caller in the active launch chain; not counted in normal pre-training total."
+    },
+    {
+      "source": "b/x.py:4-5; b/z.py:576-608; b/pl.py:221,226; decoded k/j.json:29-33,344-355,403-405,414-434",
+      "phase": "all",
+      "path": "N local staging, trainer output, native persistence, and logs",
+      "bytes": "0 bytes to backing project filesystem",
+      "notes": "Virtual /project paths for P are read-only binds of N/s; X alias mounts N/x. The explicit live bind preserves real project writes. Output cfg is N/p/q/r."
+    },
+    {
+      "source": "b/gc.py:71-72,103-105; b/pc.py:283-293; sealed source launch_r2/persistence.py:42-76",
+      "phase": "during/exit",
+      "path": "N/live_spool/private/sess.json[.receipts.jsonl]; N/p/q/r/persist/*",
+      "bytes": "0 bytes to X for writer itself",
+      "notes": "Native N config lacks r2_persistence: local archive receipts say durable=false. Original pc.exports enumerates only m*/artifact.json; ordinary checkpoints are never sent."
+    }
+  ],
+  "pre_training": {
+    "total_bytes": null,
+    "status": "NOT_OBSERVABLE_FROM_SUPPLIED_OUTPUTS",
+    "measured_published_subtotal_bytes": 36436,
+    "measured_parts": [
+      {
+        "name": "s0.json",
+        "bytes": 35026,
+        "sha256": "e39e8ebfa82566363dc773d02518926572600de2d2a24e45e3c82f4925531e5f",
+        "source": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/work/d173817/173817/live/s0.json"
+      },
+      {
+        "name": "s1.json",
+        "bytes": 1410,
+        "sha256": "6e246d7b4730e2158bab277886ffc65244761211591b5c1a6fc3715ae409f356",
+        "source": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/work/d173817/173817/live/s1.json"
+      }
+    ],
+    "successful_run_fixed_inferred_bytes": {
+      "identity_txt": 65,
+      "empty_c0_c1_c2_c3": 12
+    },
+    "missing": [
+      "v.json",
+      "h0.json",
+      "c0.json",
+      "c1.json",
+      "c2.json",
+      "c3.json",
+      "c4.json prefix versions",
+      "e0.json..e7.json",
+      "WAITING_REVIEW.json",
+      "REVIEW_ACCEPTED.json",
+      "pre-training stdout/stderr byte offsets",
+      "number and sizes of pre-training pc.small passes"
+    ],
+    "formula": "B_start = B_stdout + B_stderr + B_s0 + B_s1 + B_h0 + B_v + 65 + sum(B_c0..B_c3) + sum(B_c4_prefix_1..4) + sum(B_e0..B_e7) + B_WAITING + B_ACCEPTED + sum(B_small_passes_before_start)",
+    "counting": "Cumulative successful payload writes, including replacement publications. Filesystem block/metadata allocation is separate. Snapshot file sizes alone are not this total.",
+    "evidence": "work/enospc/published_inventory.json",
+    "reason": "All 11 supplied d173* directories were inventoried. Only s0/s1 are present as normal live receipts; the other records are discovery outputs and cannot substitute for N admission receipts. No N training-start boundary/log offsets are supplied. A numeric complete total would be invented."
+  },
+  "wrapper": {
+    "path": "out/jn2.sh",
+    "outside_seal": true,
+    "sha256": "f4c63997c4a03069997bf58d6d6367e4b1d5be83829159a6e04d8f9b2c53016a",
+    "tests": [
+      "work/enospc/logs2/wrapper_full_pipeline_bounded.log",
+      "work/enospc/logs2/wrapper_retry_local.log",
+      "work/enospc/logs2/wrapper_automatic_recovery.log"
+    ]
+  },
+  "proposed_patch": {
+    "path": "out/KIT_CHANGE_24M4Z.patch",
+    "applied": false,
+    "files": [
+      "b/o.py",
+      "b/pc.py",
+      "b/pc.sh",
+      "k/y.json",
+      "SHA256SUMS.txt",
+      "BUILD.json"
+    ],
+    "old_kit_seal": "aa2d1267065d920db23dc3e6aa5f41c87b87d57b2cf27f12af82255a786c97ea",
+    "proposed_kit_seal": "b93435747ebfe2a0b31279ad4c156cdd0958f9d96d9100897103a31dfb9fe905",
+    "source_tree_seal": "9d2bbb8ad209d91e21e56121785f62b0dddf3c8d9f14db8d23daf6dcd1d3591b",
+    "tree_changes": false,
+    "tests": "work/enospc/proposed_final.log",
+    "scope": "pc.py, pc.sh, o.py, k/y.json plus exact regenerated N kit manifest/BUILD only",
+    "prerequisites": [
+      "Provision per-allocation sessions at X/n_s/sess_<job>.json with owner-private permissions before pc.sh --prepare. Keys are each k/y.json object + .j<job>, with four part suffixes. These are new resumable sessions, not reuse of prior objects.",
+      "The 26 labels require 104 session URLs (10 existing export/stop labels +16 ordinary-checkpoint slots). Stage the file before training; it is cached locally.",
+      "Regenerate affected N upload inventory/package pins and resolver receipt after applying/resealing. Other kits and tree stay unchanged.",
+      "Repeat independent kit/launch and object-allocation safety review; mint a fresh runtime review.json for the prepared config.",
+      "Redo the CPU preparation/discovery/admission job for the changed N kit, then a short four-GPU N launch that exercises TERM/USR1, checkpoints, exports and recovery before any 24-hour launch. No remote job was run here."
+    ],
+    "limits": [
+      "This is a proposed, CPU-fixture-tested patch, not an approved deployable launch. Native admission, real GCS ownership/retry semantics, throughput and finalizer deadline require those reviews/jobs.",
+      "Exit archive remains node-local if X stays full through allocation teardown; no extra GCS archive object is proposed.",
+      "The 16 ordinary-checkpoint slots follow the sealed 14+2 disk plan; slot exhaustion is logged and needs review.",
+      "Project read failures, node-local ENOSPC and full inode exhaustion are outside this block-ENOSPC test."
+    ]
+  },
+  "card_sentences": [
+    "ENOSPC gate: FAIL. The sealed N kit cannot guarantee durable state publication when X is full.",
+    "jn2.sh fixes the tested stdout/stderr failure outside the seal: local logging continues, E28 retries are local, and the same helper republishes after recovery.",
+    "The sealed copier exits on ENOSPC; new export and stop uploads require a project-side claim. Ordinary checkpoints have no periodic GCS route.",
+    "The proposed patch moves upload claims and receipts to local storage and requires fresh per-allocation GCS sessions, N resealing, review, and new CPU/admission plus short N validation jobs.",
+    "Observed pre-training live receipts total 36,436 bytes (s0=35,026; s1=1,410). The complete pre-training write total is unknown because the supplied outputs omit N admission receipts and log boundaries.",
+    "No sealed kit, tree, network service, scheduler job or GPU was changed or used by this test."
+  ],
+  "test_results": [
+    {
+      "name": "baseline_small",
+      "ok": true,
+      "result": 1023,
+      "seconds": 0.006,
+      "log": "work/enospc/logs/baseline_small.log"
+    },
+    {
+      "name": "full_small",
+      "ok": false,
+      "error": "OSError",
+      "errno": 28,
+      "message": "[Errno 28] No space left on device",
+      "seconds": 0.006,
+      "log": "work/enospc/logs/full_small.log"
+    },
+    {
+      "name": "full_loop_small",
+      "ok": true,
+      "result": {
+        "returncode": 1,
+        "stderr": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z/work/enospc/logs/full_loop_small.stderr"
+      },
+      "seconds": 0.167,
+      "log": "work/enospc/logs/full_loop_small.log"
+    },
+    {
+      "name": "full_loop",
+      "ok": true,
+      "result": {
+        "returncode": 1,
+        "stderr": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z/work/enospc/logs/full_loop.stderr"
+      },
+      "seconds": 0.166,
+      "log": "work/enospc/logs/full_loop.log"
+    },
+    {
+      "name": "full_export",
+      "ok": false,
+      "error": "OSError",
+      "errno": 28,
+      "message": "[Errno 28] No space left on device",
+      "seconds": 0.006,
+      "log": "work/enospc/logs/full_export.log"
+    },
+    {
+      "name": "full_stop",
+      "ok": false,
+      "error": "OSError",
+      "errno": 28,
+      "message": "[Errno 28] No space left on device",
+      "seconds": 0.009,
+      "log": "work/enospc/logs/full_stop.log"
+    },
+    {
+      "name": "full_final",
+      "ok": true,
+      "result": {
+        "returncode": 1,
+        "stderr": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z/work/enospc/logs/full_final.stderr"
+      },
+      "seconds": 0.116,
+      "log": "work/enospc/logs/full_final.log"
+    },
+    {
+      "name": "full_gc_direct",
+      "ok": true,
+      "result": {
+        "returncode": 0,
+        "stderr": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z/work/enospc/logs/full_gc_direct.stderr"
+      },
+      "seconds": 0.116,
+      "log": "work/enospc/logs/full_gc_direct.log"
+    },
+    {
+      "name": "receipt_v_json",
+      "ok": false,
+      "error": "OSError",
+      "errno": 28,
+      "message": "[Errno 28] No space left on device",
+      "seconds": 0.001,
+      "log": "work/enospc/logs/receipt_v_json.log"
+    },
+    {
+      "name": "receipt_h0_json",
+      "ok": false,
+      "error": "OSError",
+      "errno": 28,
+      "message": "[Errno 28] No space left on device",
+      "seconds": 0.001,
+      "log": "work/enospc/logs/receipt_h0_json.log"
+    },
+    {
+      "name": "receipt_c0_json",
+      "ok": false,
+      "error": "OSError",
+      "errno": 28,
+      "message": "[Errno 28] No space left on device",
+      "seconds": 0.001,
+      "log": "work/enospc/logs/receipt_c0_json.log"
+    },
+    {
+      "name": "receipt_c1_json",
+      "ok": false,
+      "error": "OSError",
+      "errno": 28,
+      "message": "[Errno 28] No space left on device",
+      "seconds": 0.0,
+      "log": "work/enospc/logs/receipt_c1_json.log"
+    },
+    {
+      "name": "receipt_c2_json",
+      "ok": false,
+      "error": "OSError",
+      "errno": 28,
+      "message": "[Errno 28] No space left on device",
+      "seconds": 0.0,
+      "log": "work/enospc/logs/receipt_c2_json.log"
+    },
+    {
+      "name": "receipt_c3_json",
+      "ok": false,
+      "error": "OSError",
+      "errno": 28,
+      "message": "[Errno 28] No space left on device",
+      "seconds": 0.0,
+      "log": "work/enospc/logs/receipt_c3_json.log"
+    },
+    {
+      "name": "receipt_c4_json",
+      "ok": false,
+      "error": "OSError",
+      "errno": 28,
+      "message": "[Errno 28] No space left on device",
+      "seconds": 0.0,
+      "log": "work/enospc/logs/receipt_c4_json.log"
+    },
+    {
+      "name": "receipt_s0_json",
+      "ok": false,
+      "error": "OSError",
+      "errno": 28,
+      "message": "[Errno 28] No space left on device",
+      "seconds": 0.0,
+      "log": "work/enospc/logs/receipt_s0_json.log"
+    },
+    {
+      "name": "receipt_s1_json",
+      "ok": false,
+      "error": "OSError",
+      "errno": 28,
+      "message": "[Errno 28] No space left on device",
+      "seconds": 0.0,
+      "log": "work/enospc/logs/receipt_s1_json.log"
+    },
+    {
+      "name": "full_pl_sites",
+      "ok": false,
+      "error": "OSError",
+      "errno": 28,
+      "message": "[Errno 28] No space left on device",
+      "seconds": 0.017,
+      "log": "work/enospc/logs/full_pl_sites.log"
+    },
+    {
+      "name": "full_h_site",
+      "ok": false,
+      "error": "OSError",
+      "errno": 28,
+      "message": "[Errno 28] No space left on device",
+      "seconds": 0.003,
+      "log": "work/enospc/logs/full_h_site.log"
+    },
+    {
+      "name": "full_rv_run",
+      "ok": false,
+      "error": "OSError",
+      "errno": 28,
+      "message": "[Errno 28] No space left on device",
+      "seconds": 0.004,
+      "log": "work/enospc/logs/full_rv_run.log"
+    },
+    {
+      "name": "full_review_missing",
+      "ok": true,
+      "result": null,
+      "seconds": 0.0,
+      "log": "work/enospc/logs/full_review_missing.log"
+    },
+    {
+      "name": "full_direct_print",
+      "ok": true,
+      "result": {
+        "returncode": 120,
+        "stderr": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z/work/enospc/logs/full_direct_print.stderr"
+      },
+      "seconds": 0.064,
+      "log": "work/enospc/logs/full_direct_print.log"
+    },
+    {
+      "name": "full_pipeline",
+      "ok": true,
+      "result": {
+        "child_rc": 120,
+        "logger_rc": 120,
+        "steps": 55
+      },
+      "seconds": 0.166,
+      "log": "work/enospc/logs/full_pipeline.log"
+    },
+    {
+      "name": "full_exit_archive",
+      "ok": true,
+      "result": {
+        "returncode": 1,
+        "stderr": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z/work/enospc/logs/full_exit_archive.stderr"
+      },
+      "seconds": 0.115,
+      "log": "work/enospc/logs/full_exit_archive.log"
+    },
+    {
+      "name": "full_ep",
+      "ok": true,
+      "result": {
+        "returncode": 1,
+        "stderr": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z/work/enospc/logs/full_ep.stderr"
+      },
+      "seconds": 0.115,
+      "log": "work/enospc/logs/full_ep.log"
+    },
+    {
+      "name": "trap_exit",
+      "ok": true,
+      "result": {
+        "returncode": 0,
+        "stderr": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z/work/enospc/logs/trap_exit.stderr"
+      },
+      "seconds": 0.582,
+      "log": "work/enospc/logs/trap_exit.log"
+    },
+    {
+      "name": "trap_term",
+      "ok": true,
+      "result": {
+        "returncode": 143,
+        "stderr": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z/work/enospc/logs/trap_term.stderr"
+      },
+      "seconds": 0.624,
+      "log": "work/enospc/logs/trap_term.log"
+    },
+    {
+      "name": "trap_usr1",
+      "ok": true,
+      "result": {
+        "returncode": 138,
+        "stderr": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z/work/enospc/logs/trap_usr1.stderr"
+      },
+      "seconds": 1.222,
+      "log": "work/enospc/logs/trap_usr1.log"
+    },
+    {
+      "name": "wrapper_full_pipeline",
+      "ok": false,
+      "error": "TimeoutExpired",
+      "errno": null,
+      "message": "Command '['/scratch/jjyeung/envs/p1cpu/bin/python', '-I', '-s', '-B', '/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z/work/enospc/printing.py', '/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z/work/enospc/node/fixed.steps']' timed out after 15 seconds",
+      "seconds": 15.153,
+      "log": "work/enospc/logs/wrapper_full_pipeline.log"
+    },
+    {
+      "name": "wrapper_full_direct_print",
+      "ok": true,
+      "result": {
+        "returncode": 0,
+        "stderr": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z/work/enospc/logs/wrapper_full_direct_print.stderr"
+      },
+      "seconds": 0.267,
+      "log": "work/enospc/logs/wrapper_full_direct_print.log"
+    },
+    {
+      "name": "wrapper_full_retry",
+      "ok": true,
+      "result": {
+        "alive": true,
+        "local_retry": "1795207044 E28\n1795207045 E28\n1795207045 E28\n1795207046 E28\n1795207047 E28\n1795207051 E28\n1795207055 E28\n1795207058 E28\n"
+      },
+      "seconds": 0.001,
+      "log": "work/enospc/logs/wrapper_full_retry.log"
+    },
+    {
+      "name": "trainer_full_progress",
+      "ok": true,
+      "result": {
+        "alive": false,
+        "steps": 150,
+        "checkpoint": true,
+        "sink_files": 4
+      },
+      "seconds": 0.004,
+      "log": "work/enospc/logs/trainer_full_progress.log"
+    },
+    {
+      "name": "recovered_small_manual",
+      "ok": true,
+      "result": 55623,
+      "seconds": 0.005,
+      "log": "work/enospc/logs/recovered_small_manual.log"
+    },
+    {
+      "name": "recovered_export_manual",
+      "ok": true,
+      "result": null,
+      "seconds": 0.147,
+      "log": "work/enospc/logs/recovered_export_manual.log"
+    },
+    {
+      "name": "recovered_stop_manual",
+      "ok": true,
+      "result": null,
+      "seconds": 0.115,
+      "log": "work/enospc/logs/recovered_stop_manual.log"
+    },
+    {
+      "name": "recovered_archive_manual",
+      "ok": true,
+      "result": {
+        "returncode": 0,
+        "stderr": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z/work/enospc/logs/recovered_archive_manual.stderr"
+      },
+      "seconds": 0.165,
+      "log": "work/enospc/logs/recovered_archive_manual.log"
+    },
+    {
+      "name": "wrapper_recovered",
+      "ok": false,
+      "error": "FileNotFoundError",
+      "errno": 2,
+      "message": "[Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z/work/enospc/mnt/o/24004/j2.log'",
+      "seconds": 0.001,
+      "log": "work/enospc/logs/wrapper_recovered.log"
+    },
+    {
+      "name": "trainer_complete",
+      "ok": true,
+      "result": {
+        "returncode": 0,
+        "steps": 150,
+        "checkpoint": true
+      },
+      "seconds": 0.0,
+      "log": "work/enospc/logs/trainer_complete.log"
+    },
+    {
+      "name": "review_wait_full_timeout",
+      "ok": false,
+      "error": "OSError",
+      "errno": 28,
+      "message": "[Errno 28] No space left on device",
+      "log": "work/enospc/logs2/review_wait_full_timeout.log"
+    },
+    {
+      "name": "prior_claim_upload",
+      "ok": false,
+      "error": "OSError",
+      "errno": 28,
+      "message": "[Errno 28] No space left on device",
+      "log": "work/enospc/logs2/prior_claim_upload.log"
+    },
+    {
+      "name": "prior_claim_receipts",
+      "ok": true,
+      "result": {
+        "parts": 4,
+        "sink_files": 4
+      },
+      "log": "work/enospc/logs2/prior_claim_receipts.log"
+    },
+    {
+      "name": "stop_space_check_race",
+      "ok": false,
+      "error": "OSError",
+      "errno": 28,
+      "message": "[Errno 28] No space left on device",
+      "log": "work/enospc/logs2/stop_space_check_race.log"
+    },
+    {
+      "name": "copier_init_full",
+      "ok": true,
+      "result": {
+        "live": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z/work/enospc/mnt2/o/24007/live"
+      },
+      "log": "work/enospc/logs2/copier_init_full.log"
+    },
+    {
+      "name": "direct_stderr_full",
+      "ok": true,
+      "result": {
+        "returncode": 120
+      },
+      "log": "work/enospc/logs2/direct_stderr_full.log"
+    },
+    {
+      "name": "wrapper_full_pipeline_bounded",
+      "ok": true,
+      "result": {
+        "child_rc": 0,
+        "logger_rc": 0,
+        "last_step": "299",
+        "checkpoint_bytes": 4096
+      },
+      "log": "work/enospc/logs2/wrapper_full_pipeline_bounded.log"
+    },
+    {
+      "name": "wrapper_retry_local",
+      "ok": true,
+      "result": {
+        "alive": true,
+        "log": "1795207202 E28\n1795207202 E28\n1795207202 E28\n1795207202 E28\n",
+        "project_free": 0
+      },
+      "log": "work/enospc/logs2/wrapper_retry_local.log"
+    },
+    {
+      "name": "wrapper_automatic_recovery",
+      "ok": true,
+      "result": {
+        "alive": true,
+        "published_bytes": 1694,
+        "exact": true
+      },
+      "log": "work/enospc/logs2/wrapper_automatic_recovery.log"
+    },
+    {
+      "name": "worker_trap_term",
+      "ok": true,
+      "result": {
+        "returncode": 0,
+        "checkpoint": true,
+        "steps": 4
+      },
+      "log": "work/enospc/logs4/worker_trap_term.log"
+    },
+    {
+      "name": "worker_trap_usr1",
+      "ok": true,
+      "result": {
+        "returncode": 0,
+        "checkpoint": true,
+        "steps": 4
+      },
+      "log": "work/enospc/logs4/worker_trap_usr1.log"
+    },
+    {
+      "name": "native_checkpoint_full",
+      "ok": true,
+      "result": {
+        "kind": "checkpoint",
+        "source": {
+          "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z/work/enospc/node4/p/q/r/checkpoint_10/complete.json",
+          "sha256": "c8de66dcf8b0d03da94f64fff3e02d2f9aa9934d59b9eb2826d117c3a388b113"
+        },
+        "archive": {
+          "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z/work/enospc/node4/p/q/r/persist/c8de66dcf8b0d03da94f64fff3e02d2f9aa9934d59b9eb2826d117c3a388b113.tar",
+          "sha256": "2916da151e5ca8742c44e633854355f3b56e155f3dc09745d0689e6a87ac397e"
+        },
+        "parts": [],
+        "durable": false,
+        "project_required": false
+      },
+      "log": "work/enospc/logs4/native_checkpoint_full.log"
+    },
+    {
+      "name": "native_export_full",
+      "ok": true,
+      "result": {
+        "archive": {
+          "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z/work/enospc/node4/p/q/r/persist/c8de66dcf8b0d03da94f64fff3e02d2f9aa9934d59b9eb2826d117c3a388b113.tar",
+          "sha256": "2916da151e5ca8742c44e633854355f3b56e155f3dc09745d0689e6a87ac397e"
+        },
+        "durable": false,
+        "kind": "checkpoint",
+        "parts": [],
+        "project_required": false,
+        "source": {
+          "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z/work/enospc/node4/p/q/r/checkpoint_10/complete.json",
+          "sha256": "c8de66dcf8b0d03da94f64fff3e02d2f9aa9934d59b9eb2826d117c3a388b113"
+        }
+      },
+      "log": "work/enospc/logs4/native_export_full.log"
+    }
+  ],
+  "proposed_result": {
+    "local_done": [
+      "gcs_checkpoint_7.done",
+      "gcs_checkpoint_8.done",
+      "gcs_checkpoint_8_stop.done",
+      "gcs_m100.done",
+      "gcs_m200.done"
+    ],
+    "sink_parts": 20,
+    "mandatory_project_write_attempts": [],
+    "mandatory_zero_write_assertion_passed": true,
+    "first_pass_optional_write_attempts": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z/work/enospc/mnt5/o/24008/live/markers.json.part"
+    ],
+    "local_retry": "{\"time\": 1795207404, \"action\": \"small\", \"error\": \"OSError\", \"errno\": 28}\n",
+    "recovered": true,
+    "full_free_bytes": 0
+  },
+  "test_limits_and_failures": [
+    "All mounts are private unshare -Urmn tmpfs mounts: 16 MiB initially, at most 64 MiB after recovery. dd exhausts blocks and df reports zero available. Recovery adds capacity with an explicit tmpfs remount; no filler/file deletion is used.",
+    "Exact copied kit files execute unchanged. Harness-only runtime mapping changes k/p.json n_root in memory. HTTP is replaced by an in-process local sink while real gc.py split/upload/hash/receipt code runs. The network namespace has no external connectivity.",
+    "Fake training supplies only small local steps/checkpoints. Full GPU training, full data preparation, scheduler and Slurm daemon I/O behavior were not run.",
+    "pl.py and h.py tests replay their exact AST publication statements; rv.put covers the same census receipt writer. rv.run tests replace identity/evidence prerequisites. Native persistence tests replace space-plan/complete-state prerequisites and use a zero reserve for small fixtures.",
+    "The first recovery command omitted the tmpfs source/type and failed with mount exit32; its full output is in work/enospc/attempt1/logs/recovery.log. The corrected explicit source/type remount succeeds.",
+    "The 10000-line, 1024-character-token wrapper stress fixture exceeded its 15-second screening timeout; its recovery probe ran too early. Those outputs remain in logs/wrapper_full_pipeline.log and logs/wrapper_recovered.log. The bounded 300-line test verifies successful completion and automatic recovery.",
+    "The first native export fixture reused the checkpoint marker bytes and received the existing local checkpoint receipt. The distinct-marker native_export_case.py test verifies an export archive/receipt separately; neither fixture is a real trained state."
+  ]
+}

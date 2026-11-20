@@ -1,19 +1,24 @@
 {
+  "token": "a784b94c2e6af",
+  "delivery_sha256": "87a55270aa3ed70b5e00021284a4284f8eb6ca1116c1cd35ee6fe810e6365041",
+  "delivery_bytes": 3704924,
+  "payload_sha256": "8b9f63b8c6dd0776b061e68691da4d4425a1a1df1702f1c3a13c5524b2567ad3",
+  "plan_sha256": "968129449bfaafd127ac1257f522516255ef088853fdc7ea6b1fa2df62d2f78b",
   "staging": {
     "passed": true,
-    "expanded_bytes": 29706935,
+    "expanded_bytes": 30859705,
     "limit_bytes": 33554432,
     "actual_function": "orchard_h10.job.stage",
     "external_assets": "tiny local fixtures",
     "code_receipt": {
-      "bytes": 3648607,
-      "sha256": "c0475990df75c91450b84da5a9cdc8e28b56600c8edec3633263c09d1056fd6c",
-      "seconds": 0.013355069007957354
+      "bytes": 3809866,
+      "sha256": "8b9f63b8c6dd0776b061e68691da4d4425a1a1df1702f1c3a13c5524b2567ad3",
+      "seconds": 0.012674179000896402
     }
   },
   "all_surfaces": {
     "passed": true,
-    "json_strings": 1162,
+    "json_strings": 1173,
     "input_paths": 27,
     "rgb_paths": 2912,
     "removed": [
@@ -26,8 +31,8 @@
   "identity": {
     "passed": true,
     "token": "a784b94c2e6af",
-    "delivery_bytes": 3522551,
-    "delivery_sha256": "b7b0148bb78b2d7ac49a64dd1dfc264cf70ee122c4781293abe35c8235095302"
+    "delivery_bytes": 3704924,
+    "delivery_sha256": "87a55270aa3ed70b5e00021284a4284f8eb6ca1116c1cd35ee6fe810e6365041"
   },
   "dynamic_imports": {
     "passed": true
@@ -46,6 +51,18 @@
     "tasks": 150,
     "weight_loads": "stubbed"
   },
+  "allocation": {
+    "passed": true,
+    "seconds": 3000,
+    "worker_cap": 1800,
+    "windows": {
+      "capture_publication_stop": 2910,
+      "failure_receipt_stop": 2998,
+      "normal_publication_stop": 2990,
+      "staging_stop": 2760,
+      "worker_latest_stop": 2730
+    }
+  },
   "labels": {
     "passed": true,
     "all_data_assets_scanned": true,
@@ -58,7 +75,7 @@
   },
   "naming": {
     "passed": true,
-    "members": 343,
+    "members": 346,
     "unchanged_source_hashes": 296,
     "launch_scripts": 6,
     "deny": [
@@ -91,29 +108,29 @@
   },
   "slow_upload": {
     "passed": true,
-    "deadline": 240,
-    "finished_at": 238.0,
+    "deadline": 3000,
+    "finished_at": 2998.0,
     "calls": [
       {
         "argv": [
           "gcloud",
           "storage",
           "cp",
-          "/scratch/jjyeung/orch_n30/lever1_c/r1/tests/fix_0lramy08/sj/b0/c/0.gz",
+          "/scratch/jjyeung/orch_n30/lever1_c/r1/tests/fix_k7mh6f0i/sj/b0/c/0.gz",
           "gs://a0/a00000000000000000000c/0.gz"
         ],
         "timeout": 150.0,
-        "start": 0.0
+        "start": 2760.0
       },
       {
         "action": "publish",
         "timeout": 80.0,
-        "start": 150.0
+        "start": 2910.0
       },
       {
         "action": "receipt",
         "timeout": 8.0,
-        "start": 230.0
+        "start": 2990.0
       }
     ]
   },
@@ -123,29 +140,54 @@
       {
         "action": "cp",
         "timeout": 150.0,
-        "start": 0.0
+        "start": 2760.0
       },
       {
         "action": "objects",
         "timeout": 50.0,
-        "start": 100.0
+        "start": 2860.0
       },
       {
         "action": "cat",
         "timeout": 10.0,
-        "start": 140.0
+        "start": 2900.0
       }
     ]
   },
   "worker_deadline": {
     "passed": true,
-    "waits": [
-      1800.0,
-      20,
-      5
-    ],
-    "reaped_at": 1825.0,
-    "allocation_end": 2400
+    "cases": [
+      {
+        "start": 0,
+        "waits": [
+          1800.0,
+          20,
+          5
+        ],
+        "reaped_at": 1825.0,
+        "allocation_end": 3000
+      },
+      {
+        "start": 600,
+        "waits": [
+          1800.0,
+          20,
+          5
+        ],
+        "reaped_at": 2425.0,
+        "allocation_end": 3000
+      },
+      {
+        "start": 1200,
+        "waits": [
+          1530.0,
+          20,
+          5
+        ],
+        "reaped_at": 2755.0,
+        "allocation_end": 3000
+      }
+    ]
   },
   "unused_worker_inputs": {
     "passed": true,

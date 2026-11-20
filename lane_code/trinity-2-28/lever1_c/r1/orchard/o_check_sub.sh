@@ -11,10 +11,10 @@ cd "$P"
 (set -C; : > a/1.lock)
 test ! -e a/8.txt
 /usr/bin/python3 -I -s -B a/9.py "$P"
-CUDA_VISIBLE_DEVICES= /usr/bin/python3 -I -s -B 3.py check --gpus 1 --time 00:40:00
+CUDA_VISIBLE_DEVICES= /usr/bin/python3 -I -s -B 3.py check --gpus 1 --time 00:50:00
 squeue -u jjyeung -p general -h > a/9.txt
 test ! -s a/9.txt
-reply=$(/usr/bin/python3 -I -s -B 3.py submit --gpus 1 --time 00:40:00)
+reply=$(/usr/bin/python3 -I -s -B 3.py submit --gpus 1 --time 00:50:00)
 job=${reply%%;*}; [[ "$job" =~ ^[0-9]+$ ]]
 printf '%s\n' "$job" > a/8.txt
 cat a/8.txt
