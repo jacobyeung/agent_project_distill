@@ -12,6 +12,7 @@ from unittest.mock import patch
 
 SEED = 20261124
 CHECKS = ('wording', 'text', 'extents', 'r1', 'reserve', 'r2')
+DB = '4e8e6c04e697d8f12ecd9d705e197e94f73f4a9dc508b7a9e9b4f36487336f84'
 TREE = 'de202f58b31793608f886360a9fdfb5f58c24932e35976efcf74acead62e3cfe'
 
 
@@ -40,12 +41,12 @@ class Trace:
         self.current = None
 
     def wrap(self, name, function):
-        def observed(*args, **kwargs):
+        def observed(*args):
             if self.depth:
-                return function(*args, **kwargs)
+                return function(*args)
             self.depth += 1
             try:
-                result = function(*args, **kwargs)
+                result = function(*args)
             except Exception as error:
                 self.current[name] = 'FAIL'
                 if len(self.first) < 10:
@@ -69,11 +70,11 @@ class Trace:
             extents=True, r1=bool(reader.r1_training),
             reserve=bool(reader.b7_inputs or reader.r1_training), r2=reader.r2_admission is not None)
         stack = ExitStack()
-        for name, obj, attr in [('wording', WordingExclusion, 'check'),
-                ('text', row_text_audit, 'check'), ('extents', Extents, 'check'),
-                ('r1', r1_training, 'row_check'), ('reserve', Reserve, 'check'),
-                ('r2', Admission, 'check')]:
-            stack.enter_context(patch.object(obj, attr, self.wrap(name, getattr(obj, attr))))
+        for name, obj, attr, fn in [('wording', WordingExclusion, 'check', WordingExclusion.check),
+                ('text', row_text_audit, 'check', row_text_audit.check), ('extents', Extents, 'check', Extents.check),
+                ('r1', r1_training, 'row_check', r1_training.row_check), ('reserve', Reserve, 'check', Reserve.check),
+                ('r2', Admission, 'check', Admission.check)]:
+            stack.enter_context(patch.object(obj, attr, self.wrap(name, fn)))
         return stack
 
     def row(self, reader, stream, part, index, value):
@@ -131,7 +132,8 @@ def scan(cfg, stream, sources, sample_size=None):
             count = c.execute('SELECT count(*) FROM rows').fetchone()[0]
             # Same construction as the native routing composer. The stream view
             # includes every physical row; it applies no preparation filtering.
-            receipt = dict(cfg, streams={stream: dict(database=source['database'], count=count)})
+            database = dict(source['database'], path=str(pinned(source['database'])))
+            receipt = dict(cfg, streams={stream: dict(database=database, count=count)})
             readers.append(Rows(receipt, None))
         if sample_size is None:
             selected = catalog
@@ -187,6 +189,8 @@ def candidate(cfg, directory, output):
         source = load(pinned(pin))
         if source.get('schema') != 'full-extent-receipt-v1':
             raise ValueError('E98:schema')
+        summary['source_sha256'] = sha256(pinned(pin))
+        summary['source_qid_set_sha256'] = key_hash(list(source['rows']))
         summary['source_fields'] = {k:v for k,v in source.items() if k != 'rows'}
         summary['source_rows'] = len(source['rows'])
         rows = {}
@@ -200,14 +204,30 @@ def candidate(cfg, directory, output):
                     rows[qid] = digest(content(value))
         summary.update(pool_rows=len(rows), row_set_sha256=key_hash(list(rows)),
             row_set_encoding='sorted qids; compact sorted-key UTF-8 JSON plus LF')
-        old_digests = {}; duplicates = set()
+        n_equal = sum(source['rows'].get(q, {}).get('content_sha256') == h for q,h in rows.items())
+        summary.update(pinned_N_content_equal=n_equal, pinned_N_content_mismatch=len(rows)-n_equal)
+        summary['P_database_sha256'] = sha256(directory/'base/rows.sqlite')
+        if summary['P_database_sha256'] != DB:
+            raise ValueError('E98:gate')
+        control = directory/'base_input.json'
+        if control.is_file():
+            p_config = load(control)['config']
+            summary['P_config_sha256'] = digest(p_config)
+            summary['P_config_extent_receipt'] = p_config.get('extent_receipt')
+        old_digests = {}; duplicates = set(); p_pool = set()
         with sqlite3.connect((directory/'base/rows.sqlite').as_uri()+'?mode=ro', uri=True) as c:
             for (text,) in c.execute('SELECT row FROM rows ORDER BY i'):
                 value = json.loads(text); qid = value.get('qid')
-                if qid in rows:
+                if value.get('s1_source'):
+                    p_pool.add(qid)
+                if qid in rows or qid in source['rows']:
                     if qid in old_digests:
                         duplicates.add(qid)
                     old_digests[qid] = digest(content(value))
+        common = set(old_digests) & set(source['rows'])
+        summary.update(P_pool_rows=len(p_pool), P_pool_qid_set_sha256=key_hash(list(p_pool)),
+            source_qids_in_P=len(common), source_qids_absent_from_P=len(set(source['rows'])-common),
+            source_content_equal_P=sum(source['rows'][q].get('content_sha256') == old_digests[q] for q in common))
         absent = sorted(set(rows)-set(source['rows']))
         unmatched = sorted(q for q in rows if q not in old_digests or
             source['rows'].get(q, {}).get('content_sha256') != old_digests.get(q))
@@ -256,6 +276,9 @@ def run(cfg, directory, output):
             result = dict(status='UNAVAILABLE', staged=False, rows_checked=0,
                 reason=type(error).__name__+': '+str(error))
         value['streams'][stream] = result
+        if stream == 'routing':
+            value['population'].update(database_rows=result.get('database_rows'),
+                database_key_set_sha256=result.get('database_key_set_sha256'))
         value['first_ten_refusals'].extend(result.get('first_ten_refusals', [])[:10-len(value['first_ten_refusals'])])
         value['status'] = value['streams']['routing']['status']
         write(output/'chain.json', value)

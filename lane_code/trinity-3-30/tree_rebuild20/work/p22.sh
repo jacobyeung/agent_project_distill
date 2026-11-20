@@ -1,0 +1,1 @@
+date -u +%TZ; tmux ls 2>/dev/null | grep -E 'tr20' | cut -c1-20; C=/home/jjyeung/agent_project_distill/agent/scratch/codex_runs; d=$(ls -d $C/*_tree_rebuild_rev24m4q | tail -1); test -f $d/final_message.md && head -c 3000 $d/final_message.md

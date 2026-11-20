@@ -1,0 +1,41 @@
+[
+  {
+    "name": "mask",
+    "command": [
+      "/usr/bin/bwrap",
+      "--ro-bind",
+      "/",
+      "/",
+      "--tmpfs",
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24r/work/build24m4r/tmp/probe",
+      "--ro-bind",
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24r/work/build24m4r/tmp/probe/s",
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24r/work/build24m4r/tmp/probe/s",
+      "/usr/bin/true"
+    ],
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "name": "fd",
+    "command": [
+      "/usr/bin/bwrap",
+      "--ro-bind",
+      "/",
+      "/",
+      "--proc",
+      "/proc",
+      "--tmpfs",
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24r/work/build24m4r/tmp/probe",
+      "--ro-bind",
+      "/proc/self/fd/3",
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24r/work/build24m4r/tmp/probe/s",
+      "/usr/bin/cat",
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24r/work/build24m4r/tmp/probe/s/a"
+    ],
+    "returncode": 0,
+    "stdout": "ok",
+    "stderr": ""
+  }
+]

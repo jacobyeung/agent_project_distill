@@ -208,8 +208,10 @@ def run_bound(kit, root):
                 # N's prepared paths are already authenticated and restored by the outer view.
                 at=cmd.index('--chdir');cmd[at:at]=['--ro-bind','/scratch','/scratch','--ro-bind',str(root),str(root),'--bind',str(q),str(q)]
             at=cmd.index('--chdir')
+            cmd[at:at]=['--tmpfs',value['root']]; at+=2
             for dest,item in sorted(assets.items()):
                 cmd[at:at]=['--ro-bind',item['source'],dest]; at+=3
+            cmd[at:at]=['--remount-ro',value['root']]
             cmd[-3:]=[str(script),str(control),str(source)]
             with (root/('pc_'+side+'.log')).open('xb') as log:
                 child=subprocess.run(cmd,stdout=log,stderr=-2,check=False)
