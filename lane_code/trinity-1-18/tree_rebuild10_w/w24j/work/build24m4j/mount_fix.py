@@ -1,0 +1,10 @@
+from common import *
+s=(kit('qd')/'b/rb.py').read_text()
+s=s.replace('    helper = Path(__file__).resolve().parent','    helper = Path(__file__).resolve().parent\n    launcher = Path(sys.argv[0]).resolve().parent')
+s=s.replace('in (code, helper) or','in (code, helper, launcher) or')
+s=s.replace('    env = environment() if env is None else env\n    for p in [*env["binds"], Path(__file__).resolve().parent, Path(root)]:','    env = environment() if env is None else env\n    cmd += ["--bind", str(root), str(root)]\n    for p in [*env["binds"], Path(__file__).resolve().parent, Path(tree)]:')
+s=s.replace('    cmd += ["--bind", str(root), str(root)]\n    for target','    for target')
+s=s.replace('    for name in tree_names(tree):\n','    names = set(tree_names(tree))\n    for name in sorted(names):\n').replace('if name.split(".")[0] in tree_names(tree):','if name.split(".")[0] in names:')
+s=s.replace('        except ImportError as error:\n            raise ValueError("R1_RECONSTRUCTION_IMPORT_MISSING:"+(error.name or name)) from error','        except Exception as error:\n            missing = (error.name if isinstance(error, ImportError) else None) or name\n            raise ValueError("R1_RECONSTRUCTION_IMPORT_MISSING:"+missing) from error')
+for n in NAMES:replace(kit(n)/'b/rb.py',s)
+J.write(D/'SEALS.json',{n:reseal(kit(n)) for n in NAMES})

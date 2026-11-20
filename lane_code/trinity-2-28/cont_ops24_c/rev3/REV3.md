@@ -1,0 +1,10 @@
+# Review (read-only): 64-frame ground-call package and scorer fixes, cont_ops24
+Directory: /scratch/jjyeung/orch_n30/cont_ops24_c/gbuild on trinity-2-28. Brief BRIEF_R3.md; report REPORT3.md; delivery out3/dense/delivery.tgz (token a883c5c365aee, to be submitted to Orchard general within the hour); overlay gpkg/dense_runtime/; scorer gpkg/score_ceiling.py; shared gpkg/runtime/. Read only in this directory. No ssh, network, Git, GPU, deletion, submission, or writes outside your scratch. CPU <= 6 threads, < 16 GB. Python /scratch/jjyeung/envs/p1cpu/bin/python (torch CPU).
+The arm runs the deployed ground call (text proposals, linking, selector, lift) on the 64 native tower frames of the 31 captures that have them (answering prefill keeps its 32 anchors), and is scored paired against the recorded deployed 32-frame responses. Report only verified defects that would corrupt the measurement or crash the job, each with file:line, evidence and severity (BLOCKER / MAJOR / MINOR). Check:
+1. Geometry: the extra depth/point head batches use the same retained backbone tensors; anchor geometry and the scale calculation unchanged; native-frame ordering of grids, poses, SAM frames and printed indices consistent end to end; frames 33-64 reach every producer (masks, lift, visibility, selector features, box parse/print).
+2. The N=32 path stays byte-identical to production; overlay patches only at runtime, authentication of the 17 source files correct; no sealed file edited.
+3. Selector normalization follows selector_inputs.py definitions; nothing else in the selector changes.
+4. Scorer: the <3 cohort (100) and explicit 1-2 (93) tables, GT-visibility bins, primary (31 captures/104 items) vs control population, room bootstrap seed 20261120 over the original 46 rooms, missing = 0, fallback receipt accepted as incomplete with raw-byte authentication.
+5. Job safety: imports resolve to p/b; H100 check; deadlines leave a readable partial capture; memory plausibly fits 80 GB.
+Verdict line at the end: GO, GO-WITH-FIXES (list), or NO-GO.
+

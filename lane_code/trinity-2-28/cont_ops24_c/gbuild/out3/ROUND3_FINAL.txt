@@ -1,0 +1,38 @@
+test_dense_primary_scoring_and_frame_identity (test_round3.Round3Tests.test_dense_primary_scoring_and_frame_identity) ... ok
+test_old_deliveries_identical_and_dense_seals (test_round3.Round3Tests.test_old_deliveries_identical_and_dense_seals) ... ok
+test_production_producers_in_isolated_cpu_process (test_round3.Round3Tests.test_production_producers_in_isolated_cpu_process) ... FAIL
+test_sparse100_and_authenticated_kill_receipt (test_round3.Round3Tests.test_sparse100_and_authenticated_kill_receipt) ... ok
+test_worker_fresh_repeats_and_partial_first_item_record (test_round3.Round3Tests.test_worker_fresh_repeats_and_partial_first_item_record) ... ok
+
+======================================================================
+FAIL: test_production_producers_in_isolated_cpu_process (test_round3.Round3Tests.test_production_producers_in_isolated_cpu_process)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/cont_ops24_c/gbuild/gpkg/test_round3.py", line 137, in test_production_producers_in_isolated_cpu_process
+    self.assertEqual(result.returncode,0,result.stdout+result.stderr)
+AssertionError: 1 != 0 : test_capture64_binding_and_source_authentication (__main__.Producers.test_capture64_binding_and_source_authentication) ... ERROR
+test_geometry_guards_and_anchor_deltas (__main__.Producers.test_geometry_guards_and_anchor_deltas) ... ok
+test_production32_bytes_and_every64_producer (__main__.Producers.test_production32_bytes_and_every64_producer) ... ok
+test_sam_encode_and_text_detection_all64 (__main__.Producers.test_sam_encode_and_text_detection_all64) ... ok
+test_same_aggregator_extra_head_batches_preserve_anchors (__main__.Producers.test_same_aggregator_extra_head_batches_preserve_anchors)
+Execute the full unchanged/extended run with deterministic tensor heads. ... ok
+
+======================================================================
+ERROR: test_capture64_binding_and_source_authentication (__main__.Producers.test_capture64_binding_and_source_authentication)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/cont_ops24_c/gbuild/gpkg/dense_checks.py", line 111, in test_capture64_binding_and_source_authentication
+    module.validate(row)
+  File "<dense_capture>", line 160, in validate
+ValueError: selector null slot missing
+
+----------------------------------------------------------------------
+Ran 5 tests in 14.771s
+
+FAILED (errors=1)
+
+
+----------------------------------------------------------------------
+Ran 5 tests in 28.312s
+
+FAILED (failures=1)

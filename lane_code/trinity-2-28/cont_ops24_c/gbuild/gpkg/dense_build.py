@@ -34,7 +34,6 @@ def operator(raw,once):
     text=raw.decode()
     text=once(text,'g3t = (64*9+64+32+32*51*51*5+51+2)*8',
               'g3t = (64*9+64+32+96*51*51*5+51+2)*8')
-    text=once(text,"basis='fixed_g3t_shapes'","basis='native64_plus_anchor32_g3t_shapes'")
     text=once(text,"    cfg = prepare(config)[0]; root = control(cfg)",
               "    cfg = prepare(config)[0]; root = control(cfg)\n    from g.d import installed, rehearsal\n    with installed(): rehearsal()")
     return text.encode()

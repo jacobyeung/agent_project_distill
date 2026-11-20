@@ -1,0 +1,116 @@
+{
+  "basis": "code counts plus unmeasured rates, one H100 including CPU waits",
+  "counts": {
+    "items": 150,
+    "primary_items": 104,
+    "repeats": 10,
+    "prefills": 160,
+    "baseline_text_forwards": 9536,
+    "dense_main_text_forwards": 16128,
+    "dense_repeat_text_forwards": 1280,
+    "sam_image_encodings": 8704,
+    "sam_grounding_forwards": 17408,
+    "g3t_fresh_with_working_memo": 88,
+    "g3t_fresh_if_memo_disabled": 159,
+    "extra_head_frame_pairs_with_working_memo": 1888,
+    "extra_head_frame_pairs_memo_disabled": 3616
+  },
+  "baseline_full_read_GPU_minutes": 77,
+  "frame_exposure_multiplier": 1.8266666666666667,
+  "baseline_scaled_GPU_minutes": 140.65333333333334,
+  "baseline_scaled_plus_extra_heads_GPU_minutes": [
+    141.28266666666667,
+    143.8
+  ],
+  "component_rates": {
+    "prefill_seconds": [
+      6,
+      18
+    ],
+    "sam_image_seconds": [
+      0.05,
+      0.15
+    ],
+    "sam_text_seconds": [
+      0.08,
+      0.25
+    ],
+    "g3t_original_forward_seconds": [
+      4,
+      12
+    ],
+    "extra_depth_and_point_frame_seconds": [
+      0.02,
+      0.1
+    ],
+    "cpu_lift_link_observer_minutes": [
+      20,
+      60
+    ],
+    "initial_model_load_minutes": [
+      5,
+      15
+    ]
+  },
+  "component_GPU_minutes_range": [
+    77.96000000000001,
+    238.04
+  ],
+  "planning_GPU_minutes": 149,
+  "allocated_GPU_minutes_max": 300,
+  "worker_deadline_minutes_from_start": 215,
+  "staging_reduces_worker_budget": true,
+  "first_item_files": [
+    "metadata/8_64.json",
+    "metadata/8_32.json"
+  ],
+  "first_item_model": "Estimate each population separately: 104*t64_warm + 46*t32_warm + 10*t_repeat_fresh + initial load. Cold first-item seconds are conservative until memo hits and verification costs are measured. Remaining forecast should use per-item metadata/5.json.",
+  "capture_cap_bytes": 1900000000,
+  "mean_compressed_bytes_per_160_records": 11875000.0,
+  "memory": {
+    "units": "GiB unless bytes stated",
+    "g3t_tokens_per_frame": 1374,
+    "g3t_four_retained_layers_bytes": 1440743424,
+    "g3t_four_retained_layers_GiB": 1.341796875,
+    "g3t_major_fp32_weights_GiB": 4.875,
+    "g3t_all_weights_planning_GiB": [
+      5.2,
+      6.5
+    ],
+    "sam_vit_fp32_weights_GiB": 1.65625,
+    "sam_all_weights_planning_GiB": [
+      2,
+      4
+    ],
+    "vlm_9B_bf16_base_weights_GiB": 16.763806343078613,
+    "vlm_and_auxiliary_weights_planning_GiB": [
+      18,
+      24
+    ],
+    "prefill_KV_heads_and_private_encoder_workspace_GiB": [
+      6,
+      18
+    ],
+    "g3t_or_sam_peak_workspace_GiB": [
+      4,
+      12
+    ],
+    "allocator_headroom_GiB": [
+      4,
+      8
+    ],
+    "total_planning_GiB": [
+      39.2,
+      72.5
+    ],
+    "naive_global_attention_single_matrix_GiB": 230.45361328125,
+    "sam_features_on_host": true,
+    "sam_images_per_GPU_forward": 1,
+    "depth_point_frames_per_head_forward": 8,
+    "sam_host_features_conservative_fp32_four_level_GiB": 13.447265625,
+    "dense_incremental_sampled_grids_bytes_per_capture": 3329280,
+    "expected_to_fit_80GB_H100": true,
+    "measured": false,
+    "qualification": "requires fused/memory-efficient attention and unchanged bf16 prefill; 72.5 GiB leaves little margin on a nominal 80 GB device; first actual dense item must confirm"
+  }
+}

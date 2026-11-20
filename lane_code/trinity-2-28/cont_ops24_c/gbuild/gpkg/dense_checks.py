@@ -62,6 +62,14 @@ class Producers(unittest.TestCase):
         with d.installed(ROOT/'work/payload'):
             _,_,_,actual,_=pipeline(32)
             self.assertEqual(json.dumps(actual,sort_keys=True),json.dumps(expected,sort_keys=True))
+            proposals,_=C.lift(F.cache_for('lamp',raw32),'lamp',socket.geometry,floor=.3,phrase='lamp',grids=socket.grids)
+            tracks=C.link(proposals,'lamp');C.scene_candidates({'lamp':tracks},socket.geometry)
+            accepted=F.accept_features(tracks,raw32,socket.exact)
+            extended=SI.candidate_vectors(tracks,raw32+[[] for _ in range(32)],socket.exact,accepted)[0]
+            self.assertEqual(extended[SI.FIELDS.index('name_frames_frac')],.5)
+            self.assertEqual(extended[SI.FIELDS.index('member_frames_frac')],.5)
+            self.assertEqual(extended[SI.FIELDS.index('frame_span_frac')],31/63)
+            self.assertAlmostEqual(extended[SI.FIELDS.index('name_max_score_mean')],.45)
             geo,frames,socket,actual,session=pipeline(64)
             self.assertEqual(list(socket.grids),list(range(1,65)))
             self.assertEqual(socket.exact.frames,tuple(range(1,65)))
@@ -84,6 +92,38 @@ class Producers(unittest.TestCase):
             images=list(range(64));f=dict(native_frames=images,anchor_slots=list(range(0,64,2)))
             self.assertEqual(real.anchor_frames(f),images)
         self.assertFalse(geo.has(64))  # Restored production class rejects >32.
+
+    def test_capture64_binding_and_source_authentication(self):
+        import types
+        from gpkg.dense_build import overlay,SOURCES
+        sys.path.insert(0,str(ROOT/'gpkg'))
+        from build import once,jd
+        pf={name:(ROOT/'work/payload'/name).read_bytes() for name in SOURCES}
+        pf['g/c.py']=(ROOT/'gpkg/runtime/c.py').read_bytes()
+        overlay(pf,ROOT/'gpkg',once,jd)
+        module=types.ModuleType('dense_capture_check');exec(compile(pf['g/c.py'],'<dense_capture>','exec'),module.__dict__)
+        with d.installed(ROOT/'work/payload'):
+            d.rehearsal()
+            geo=geometry(64);frames=raw(64)
+            head=types.SimpleNamespace(with_null=lambda x,*a:torch.tensor([1.]*len(x)+[-1.],dtype=torch.float64))
+            socket=stage1.StageOne(lambda name:frames,head,geo,rule='candidates_argmax')
+            session=grounding.ground_session(geo,grounding.StageOneSocket(socket.propose,socket.select,(240,320),64))
+            from e2e_reader.servers import ReadServers
+            servers=ReadServers(geometry(32),session)
+            with module.Capture(stage1.StageOne,grounding) as capture:
+                for name in ('lamp','table'):servers.mapping()['ground']('<ground obj="'+name+'" mode="box">')
+                servers.mapping()['gap']('<gap a="lamp" b="table" rule="box_grid_5cm">')
+            row=dict(schema='ground-capture-v1',source_indices=list(range(0,64,2)),
+                     ground_source_indices=list(range(64)),anchor_slots=list(range(0,64,2)),ground_frame_count=64,
+                     geometry=capture.geometry,objects=capture.objects)
+            module.validate(row)
+            self.assertTrue(capture.objects)
+            self.assertTrue(all(any(p['frame']==64 and p['source_index']==63 for p in o['proposals']) for o in capture.objects))
+            broken=copy.deepcopy(row);broken['objects'][0]['proposals'][-1]['frame']=65
+            with self.assertRaises(ValueError):module.validate(broken)
+        # Verify that the installed package refuses altered sealed source bytes.
+        with patch.object(d.hashlib,'sha256',return_value=types.SimpleNamespace(hexdigest=lambda:'0'*64)):
+            with self.assertRaisesRegex(RuntimeError,'source differs'):d.authenticate(ROOT/'work/payload')
 
     def test_geometry_guards_and_anchor_deltas(self):
         with d.installed(ROOT/'work/payload'):

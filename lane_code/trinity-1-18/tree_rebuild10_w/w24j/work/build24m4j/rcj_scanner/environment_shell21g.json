@@ -1,0 +1,96 @@
+{
+  "rcj/rcj.sh": {
+    "bindings": [
+      {
+        "expression": "ROOT=/project/community/jjyeung/okh7/x_22c714e1/qd",
+        "line": 14,
+        "names": [
+          "ROOT"
+        ]
+      },
+      {
+        "expression": "H=/project/community/jjyeung/okh7/x_22c714e1/rcj",
+        "line": 15,
+        "names": [
+          "H"
+        ]
+      },
+      {
+        "expression": "N=\"${SLURM_TMPDIR:-/tmp}/q_22c714e1_${SLURM_JOB_ID:?}\"",
+        "line": 16,
+        "names": [
+          "N"
+        ]
+      },
+      {
+        "expression": "export TMPDIR=\"$N/tmp\" XDG_CACHE_HOME=\"$N/cache\"",
+        "line": 18,
+        "names": [
+          "TMPDIR",
+          "XDG_CACHE_HOME"
+        ]
+      },
+      {
+        "expression": "export HF_HOME=\"$N/cache/hf\" TORCH_HOME=\"$N/cache/torch\" TRITON_CACHE_DIR=\"$N/cache/triton\" MPLCONFIGDIR=\"$N/cache/plot\"",
+        "line": 19,
+        "names": [
+          "HF_HOME",
+          "MPLCONFIGDIR",
+          "TORCH_HOME",
+          "TRITON_CACHE_DIR"
+        ]
+      },
+      {
+        "expression": "export PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 NUMEXPR_NUM_THREADS=8",
+        "line": 20,
+        "names": [
+          "MKL_NUM_THREADS",
+          "NUMEXPR_NUM_THREADS",
+          "OMP_NUM_THREADS",
+          "OPENBLAS_NUM_THREADS",
+          "PYTHONDONTWRITEBYTECODE"
+        ]
+      },
+      {
+        "expression": "export CUDA_VISIBLE_DEVICES= HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 TOKENIZERS_PARALLELISM=false",
+        "line": 21,
+        "names": [
+          "CUDA_VISIBLE_DEVICES",
+          "HF_HUB_OFFLINE",
+          "TOKENIZERS_PARALLELISM",
+          "TRANSFORMERS_OFFLINE"
+        ]
+      },
+      {
+        "expression": "    local rc=\"$?\"",
+        "line": 25,
+        "names": [
+          "rc"
+        ]
+      }
+    ],
+    "reason": "Reviewed literal assignments, fixed helper paths, EXIT publication trap and no dynamic dispatch; any source edit invalidates the certificate",
+    "runtime_literal_names": [
+      "CUDA_VISIBLE_DEVICES",
+      "H",
+      "HF_HOME",
+      "HF_HUB_OFFLINE",
+      "MKL_NUM_THREADS",
+      "MPLCONFIGDIR",
+      "N",
+      "NUMEXPR_NUM_THREADS",
+      "OMP_NUM_THREADS",
+      "OPENBLAS_NUM_THREADS",
+      "PYTHONDONTWRITEBYTECODE",
+      "ROOT",
+      "TMPDIR",
+      "TOKENIZERS_PARALLELISM",
+      "TORCH_HOME",
+      "TRANSFORMERS_OFFLINE",
+      "TRITON_CACHE_DIR",
+      "XDG_CACHE_HOME",
+      "rc"
+    ],
+    "sha256": "f97837e4c7805552064d3ac69abfa92be0853680b5f86f7acedf81a23e8d51d5"
+  }
+}

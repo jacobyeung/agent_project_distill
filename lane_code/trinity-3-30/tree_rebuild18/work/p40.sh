@@ -1,0 +1,1 @@
+W=/scratch/jjyeung/orch_n30/tree_rebuild10_w; date -u +%TZ; df -h /scratch | tail -1 | awk '{print $4}'; tmux ls 2>&1 | grep -c tr18_b24m4j; ls $W/w24j/out 2>/dev/null | grep -c 24M4J; head -3 $W/w24j/out/BUILD24M4J_REPORT.md 2>/dev/null | cut -c1-400

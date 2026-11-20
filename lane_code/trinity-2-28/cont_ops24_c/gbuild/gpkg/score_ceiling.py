@@ -328,12 +328,16 @@ def score(manifest,point_capture,point_receipt,t1_capture=None,t1_receipt=None,t
                 size_definition='smaller of two object mean nonempty selected-mask fractions; unknown unless both available',
                 missing_gap_score=0,missing_capture_records_score=0)
     if mode=='dense64':
+        geometry_changed=[r['item_id'] for r in rows if r['primary_dense64'] and r['anchor_geometry_unchanged'] is False]
+        geometry_unknown=[r['item_id'] for r in rows if r['primary_dense64'] and r['anchor_geometry_unchanged'] is None]
         result.update(arm_records=dict(dense64=len(points),dense64_noise=len(repeats),T1=len(t1) if t1_capture else None),
                       capture_read=dict(dense64=pr,T1=tr),arm_noise=result.pop('text_noise'),
                       primary_population='104 items on 31 captures with 64 bound native frames',
                       control_population='46 items on 29 captures with 32 bound anchors',
                       primary_complete=all(r['dense64_record_present'] for r in rows if r['primary_dense64']) and not excluded and not (run or {}).get('failure'),
                       response_strings_differ_by_design=True,parity_gate_applies=False,
+                      geometry_changed_items=geometry_changed,geometry_unmeasured_items=geometry_unknown,
+                      geometry_intervention_observed=bool(geometry_changed),
                       object_group_definition='one occurrence per question operand; paired item score attached to each occurrence; size from dense-arm masks')
     return result
 

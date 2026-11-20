@@ -47,8 +47,10 @@ def run(config,stop_at,*,clock=time.time):
             import torch
             device_name=torch.cuda.get_device_properties(0).name
             if 'H100' not in device_name:raise ValueError('requires assigned H100')
+            load_started=time.perf_counter()
             factory=make_capped_real(settings['export_dir'],artifact_spec(settings['artifact_manifest']),
                                      [r['task'] for r in refs],settings=settings,device='cuda:0')
+            initial_load_seconds=time.perf_counter()-load_started
             if factory.load_info['export'].get('step')!=544:raise ValueError('step differs')
             for pass_id,selected,target in ((0,refs,main),(1,[r for r in refs if r['calls']][:10],repeat)):
                 if pass_id and len(main)!=150:break
@@ -57,9 +59,18 @@ def run(config,stop_at,*,clock=time.time):
                     torch.cuda.synchronize();torch.cuda.reset_peak_memory_stats();started=time.perf_counter()
                     bound=parity.bind_item(ref['task'],settings)
                     binding=d.binding_record(bound,ref)
-                    if pass_id:
-                        with w.fresh_perception(factory.generator):row=w.replay(factory.generator,bound,ref)
-                    else:row=w.replay(factory.generator,bound,ref)
+                    try:
+                        if pass_id:
+                            with w.fresh_perception(factory.generator):row=w.replay(factory.generator,bound,ref)
+                        else:row=w.replay(factory.generator,bound,ref)
+                    except Exception as error:
+                        if pass_id==0 and binding['ground_frame_count'] not in first_counts:
+                            write(meta/('8_'+str(binding['ground_frame_count'])+'.json'),dict(
+                                item_id=ref['item_id'],completed=False,seconds=time.perf_counter()-started,
+                                initial_load_seconds=initial_load_seconds,ground_frame_count=binding['ground_frame_count'],
+                                peak_gpu_bytes=torch.cuda.max_memory_allocated(),peak_gpu_reserved_bytes=torch.cuda.max_memory_reserved(),
+                                failure=type(error).__name__+': '+str(error)))
+                        raise
                     torch.cuda.synchronize()
                     row.update(binding,pass_index=pass_id,arm='dense64' if pass_id==0 else 'dense64_noise',
                                seconds=time.perf_counter()-started,peak_gpu_bytes=torch.cuda.max_memory_allocated(),
@@ -70,7 +81,8 @@ def run(config,stop_at,*,clock=time.time):
                     n=binding['ground_frame_count']
                     if pass_id==0 and (not first_counts or (n not in first_counts and ref['calls'])):
                         free,total=torch.cuda.mem_get_info()
-                        first=dict(timing,gpu_name=device_name,gpu_free_bytes=free,gpu_total_bytes=total,
+                        first=dict(timing,completed=True,initial_load_seconds=initial_load_seconds,
+                                   gpu_name=device_name,gpu_free_bytes=free,gpu_total_bytes=total,
                                    remaining_worker_seconds=max(0,stop_at-clock()),
                                    linear_160_item_minutes=160*row['seconds']/60,
                                    note='first cold item includes prefill, lazy towers, CPU linking and observer; excludes initial VLM load and gzip commit; planning estimate only')

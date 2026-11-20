@@ -125,7 +125,7 @@ class Round3Tests(unittest.TestCase):
         # Exercise installation from the delivered g/, under the actual entry paths.
         p=Path(result['extraction'])/'p'
         child=subprocess.run([sys.executable,'-B','-I','-c',
-             "import sys;from pathlib import Path;p=Path(sys.argv[1]);sys.path[:0]=[str(p/'b'),str(p/'tree'),str(p)];from g.w import bind_reader_root;bind_reader_root();from g import dw,d;\nwith d.installed(): print('dense install passed')",str(p)],
+             "import sys;from pathlib import Path;p=Path(sys.argv[1]);sys.path[:0]=[str(p/'b'),str(p/'tree'),str(p)];from g.w import bind_reader_root;bind_reader_root();from g import dw,d;\nwith d.installed(): print(d.rehearsal())",str(p)],
              capture_output=True,text=True,timeout=60)
         self.assertEqual(child.returncode,0,child.stderr)
         write(ROOT/'out3/REBUILD_AND_IMPORT.json',dict(legacy=legacy,points=points['delivery_sha256'],fixed=fixed['delivery_sha256'],dense=info['delivery_sha256'],imports=result,dense_install=child.stdout))
@@ -141,7 +141,7 @@ class Round3Tests(unittest.TestCase):
         sys.modules[pkg.__name__]=pkg;dw=importlib.import_module(pkg.__name__+'.dw')
         rows=refs()
         def mod(name,**kw):m=types.ModuleType(name);m.__dict__.update(kw);return m
-        for limit in (None,-1):
+        for limit in (None,-1,'replay_failure'):
             root=temp();settings=dict(stage1_select_rule='candidates_argmax',perception_memo='verify',perception_memo_modules=['g3t'],
                 save_own_depth=False,export_dir='e',artifact_manifest='b',frames_json='0',dense_manifest='1')
             memo=types.SimpleNamespace(modules=frozenset(['g3t']));gen=types.SimpleNamespace(perception=types.SimpleNamespace(memo=memo))
@@ -164,10 +164,11 @@ class Round3Tests(unittest.TestCase):
             def replay(g,b,ref):
                 self.assertEqual(memo.modules,frozenset() if len(seen)>=150 else frozenset(['g3t']))
                 seen.append(ref['item_id'])
+                if limit=='replay_failure':raise RuntimeError('synthetic first-item failure')
                 return dict(schema='ground-capture-v1',item_id=ref['item_id'],capture=ref['capture'],source_indices=ref['source_indices'],
                             calls=ref['calls'],objects=[],geometry=None,timings=dict(g3t_s=1.))
             cfg=dict(output=str(root/'r'),stop_file=str(root/'r/metadata/STOP'),settings='0')
-            if limit is not None:cfg['first_item_max_seconds']=limit
+            if type(limit) is int:cfg['first_item_max_seconds']=limit
             with patch.dict(sys.modules,modules),patch.object(dw.d,'installed',lambda:contextlib.nullcontext({})),\
                  patch.object(dw.w,'bind_reader_root'),patch.object(dw.w,'assert_reader_root'),\
                  patch.object(dw.w,'load_rows',return_value=rows),patch.object(dw.w,'replay',side_effect=replay):
@@ -175,6 +176,8 @@ class Round3Tests(unittest.TestCase):
             self.assertEqual(len(seen),160 if limit is None else 1)
             self.assertEqual(result['complete'],limit is None)
             self.assertTrue((root/'r/metadata/8_64.json').is_file())
+            first=json.loads((root/'r/metadata/8_64.json').read_text())
+            self.assertEqual(first['completed'],limit!='replay_failure')
             run=json.loads((root/'r/metadata/PARITY.json').read_text())
             self.assertEqual(run['mode'],'dense64');self.assertFalse(run['parity_gate_applies'])
             if limit is None:self.assertEqual(len(run['arm_noise']),10)

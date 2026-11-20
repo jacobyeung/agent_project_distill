@@ -29,3 +29,14 @@
 - T2: placed (+11.0 MB, free 232.8 GiB), CPU job 173624 passed, GPU job 173625 submitted ~05:06Z by hand sbatch (logs a/d.log, --exclude=orchard-community-4; script /dev/shm/c24/o_sub_hand.sh). Monitor tmux c24_monT2 (work/monG_173625.log).
 - Astra review c24_rev2 of T2 point runtime + scorer RUNNING on 2-28 (rev2/); if BLOCKER in runtime -> scancel 173625 and rebuild.
 - Next Codex: BRIEF_R3 (64-frame arm) after rev2.
+## 05:32Z
+- T2 173625 RUNNING on orchard-community-2: 97 main items at 05:28Z (~8/min, ~200 KB/item); ETA end ~06:05-06:20Z. Progress monitor tmux c24_monP (work/monP_173625.log, srun --overlap reads job-local metadata/4.json every 5 min).
+- Review c24_rev2: GO-WITH-FIXES (scorer only: also report the <3-frames cohort of 100 items; fallback receipt handling) -> folded into round 3 (tmux c24_r3 on 2-28, BRIEF_R3.md = scorer fixes + 64-frame arm).
+- T1 fixed package a52c1dcfae7bb placed (+10.8 MB); its CPU check waits until T2 leaves general (one job at a time).
+- After T2: o_fetch (g3/orchard_points/o_fetch.sh) -> work/gpull.sh URI GEN SHA BYTES t2.gz PRIO (governed pull to 2-28 cont_ops24_c/cap) -> score_ceiling.py on 2-28.
+## 06:21Z
+- T2 DONE: 173625 COMPLETED 65 min; RESULT 0619Z (points +4.9 [-3.9,+14.2] on 150; sparse<3 +7.9; restricted selector -6.1). Files events/cont_ops/files_t2/ (T2_TABLE.md, SCORE_T2.json sha 7d6c336b…, CAPTURE.json). Capture on 2-28 cont_ops24_c/cap/t2.gz (sha 2406c812…) + GCS gen 1795155052831221. Governed pull record renamed .done.
+- Corpus: add_read.sh refuses the ground-capture format ("Cannot identify one format"); no read id. Not a reasoning-trace read.
+- Mirror: 2-28 gbuild (deliveries, code, reports, out2/GT.json, cap/) -> trinity-1-18:/scratch/jjyeung/n30_mirror/cont_ops24/gbuild_cap_20261120T0625Z.tar (132 MB, sha 66231724… matches both ends).
+- 64-frame arm: review c24_rev3 NO-GO (memory basis gate) -> fixed by me (basis kept fixed_g3t_shapes; 37 gpkg tests OK) -> token ac85ad201020f (delivery 1025c1c3…), placed, CPU 173644 passed, GPU job 173646 submitted 06:16Z, PENDING (Resources). Monitors c24_monD, c24_monPD.
+- T1 a52c1dcfae7bb placed; CPU check after the dense job leaves general.
