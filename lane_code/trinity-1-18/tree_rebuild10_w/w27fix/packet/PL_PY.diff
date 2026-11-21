@@ -1,0 +1,46 @@
+10c10
+< from z import load, checked, sha, write, seal, name_guard, selected400
+---
+> from z import load, checked, sha, write, seal, name_guard, selected400, inside
+31a32,45
+> def named_folder(folder, pool, named, link=True):
+>     """Place each named file's pool bytes under its own name in one folder; return {sha256: path}."""
+>     folder = Path(folder); folder.mkdir(mode=0o700, exist_ok=True)
+>     placed = {}
+>     for name, h in named.items():
+>         source = checked(pool(h), h); target = inside(folder, name)
+>         if target.exists():checked(target, h)
+>         elif link:os.link(source, target)
+>         else:
+>             shutil.copyfile(source, target); checked(target, h)
+>         placed[h] = str(target)
+>     return placed
+> 
+> 
+74a89,100
+>     # The opener witness takes the processor folder from where the model manifest's config.json pin
+>     # resolves. In mode q that manifest's non-weight files therefore also get one folder, q/y, under
+>     # their manifest names (hard links to q/u), and their pins resolve there once staging is done.
+>     named={}
+>     if not regeneration:
+>         for name,h in resolved['model_files'].items():
+>             if name.endswith(('.json','.txt','.jinja','.model')):
+>                 name_guard(kit)(name)
+>                 if Path(name).name!=name or name in ('.','..'):raise ValueError('E43')
+>                 if h not in sources:need(h,'model_manifest.files.'+name)
+>                 named[name]=h
+>         if 'config.json' not in named:raise ValueError('E31')
+317a344
+>         linked=named_folder(q/'y',lambda h:q/'u'/h,named) if named else {}
+321a349
+>         final_paths.update(linked)
+327a356,358
+>         if named:
+>             from pf import check
+>             check(cfg,resolved['model_manifest'])
+337a369,373
+>     if named:
+>         # Fail before the long steps: rehearse both processor folders on the planned bytes.
+>         from pf import check
+>         with scope({**sources,**named_folder(scratch/'y',lambda h:sources[h],named,link=False)}):
+>             check(cfg,resolved['model_manifest'])

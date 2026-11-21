@@ -1,8 +1,11 @@
 # tree_rebuild STATUS (successor resumes from this file alone)
-Updated: 2026-11-21T08:53Z by tree_rebuild27 (headless Claude Opus high; session trinity-3-30 /scratch/jjyeung/orch_n30/tree_rebuild27, work trinity-1-18 and 2-28; started 08:53Z; rotate by 17:50Z)
+Updated: 2026-11-21T09:39Z by tree_rebuild27 (headless Claude Opus high; session trinity-3-30 /scratch/jjyeung/orch_n30/tree_rebuild27, work trinity-1-18 and 2-28; started 08:53Z; rotate by 17:50Z)
 W = trinity-1-18:/scratch/jjyeung/orch_n30/tree_rebuild10_w (47 GB 01:21Z; 1-18 /scratch 124 GB free). Mirrors as below.
 
-## Running (08:53Z) — NEWEST FIRST
+## Running (09:39Z) — NEWEST FIRST
+- 09:39Z 09:40Z item 1 settled (B family): opener-witness (p_opener_witness.py:17-26) resolves pinned(config.json).parent = hash pool p/q/u, in-process, before admit; fw.py never ran; forward resolution fine both ways. RESULT posted. Subagent building fix.
+- 09:24Z 09:22Z 174101 FAILED 09:15:57Z mode q proof: ValueError Unrecognized processing class in /tmp/q_22c714e1/p/q/u (n_ops10 BLOCKER 0918Z). ORCH ORDER 0921Z: settle A (fw.py lost state) vs B (hash-named root, n_review1i RESULT 0922Z), fix, 4 tests, n_review1i GO, resubmit held without asking (floor 8 GiB /project). Fable xhigh subagent on 1-18 W/w27fix since 09:31Z (brief work/fix3/BRIEF.md, report work/fix3/REPORT.md). wlong.sh ended (job gone).
+- 09:13Z 09:12Z 174101 RUNNING 56:35, prep 24%; t_q.log tail unchanged since 08:44Z (silent phase) but /tmp free falls ~25 GB/min and page cache rose 445->725 GiB (cgroup 751 of 800 GiB, anon 2.6 GiB, reclaimable): working. /project 20 GiB free (ORCH ORDER 0912Z to n_ops10; I watch proj_free; <8 GiB before gate = n_ops10 BLOCKER).
 - 08:53Z tree_rebuild27 STARTED 08:53Z (headless Claude Opus, trinity-3-30). Owns 174101 (ORCH NOTE 0853Z). 08:53Z RUNNING 37:29 mode q prep 10%, anon 2.9G, file 445G of 800G, no alarm, gate files absent. Watch: read tree_rebuild26/work/watch.log tail + events/n_ops/N_WATCH_STATUS.md every 10 min until 10:30Z, then 1 min.
 - 08:46Z 174101 first 30 min WATCHED (08:15:52-08:46Z) healthy: live snapshots every 120 s (n=16), staging done 08:38Z (fla overlay on; torch 2.11.0+cu129 sees 4 H100), mode q started ~08:39Z (t_q.log screened tails), job cgroup 459.5 GiB = page cache 444 GiB, anon 2.9 GiB, shmem 0, /tmp 5.8 TB free, no alarm. Detached 1-min logger work/wlong.sh writes work/watch.log until ~11:45Z (no events; stops when the job is gone). ROTATING (context): STATUS Next exact.
 - 08:16Z STATUS Next rewritten 08:20Z for a successor.

@@ -147,6 +147,9 @@ def build(out=HERE/'out',scripts=HERE/'orchard'):
     boot_manifest=boot_order.patch(nf,pf,B,HERE)
     import write_receipt
     write_receipt.patch(nf,B,HERE)
+    # The CPU check runs the first real capture through the production worker.
+    import cpu_unit
+    cpu_unit.patch(nf,pf,B,HERE)
     codec=(HERE/'runtime/j.py').read_bytes()
     # Standalone launchers run before the package import loader exists.
     bootstrap=b"\nexec(bytes.fromhex('"+codec.hex().encode()+b"').decode(),_a0:={});_a0['install']()\n"
@@ -186,6 +189,7 @@ def build(out=HERE/'out',scripts=HERE/'orchard'):
             data=data.replace(b"if not m.name.startswith('orchard_h10/'):continue",b"if not m.name.startswith('orchard_h10/') and m.name!='j.py':continue")
             data=data.replace(b'from pathlib import Path',b'import os,runpy\nfrom pathlib import Path')
             data=B.once(data,b" proof=json.loads((shared/'a/c/CPU.json').read_text())",b" if not os.environ.get('SLURM_JOB_GPUS') and not os.environ.get('CUDA_VISIBLE_DEVICES'):\n  sys.argv=[str(shared/'a/5.py'),'--package',str(shared),'--sequence',str(shared/'a/6.py'),'--results',str(shared/'a/c')]\n  runpy.run_path(sys.argv[0],run_name='__main__')\n  return\n proof=json.loads((shared/'a/c/CPU.json').read_text())")
+            data=cpu_unit.bootstrap(data)
             helper=(HERE/'runtime/a.py').read_bytes()
             data=B.once(data,b' job.main(root)',
                 b" exec(bytes.fromhex('"+helper.hex().encode()+b"'),scope:={})\n scope['allocation'](shared,public,sha)\n job.main(root)")
@@ -228,7 +232,10 @@ def build(out=HERE/'out',scripts=HERE/'orchard'):
         payload_expanded_bytes=sum(map(len,pf.values())),layout=layout_proof,external_inputs=input_proof,
         installed_bytes=sum(map(len,nf.values())),files={n:B.sha(v) for n,v in nf.items()},
         payload_files={n:B.sha(v) for n,v in pf.items()},payload_sha256=B.sha(nf['0.tgz']),plan_sha256=B.canonical(plan),
-        parent_sha256=PARENT_SHA,changed_payload=[n for n in pf if before.get(n)!=pf[n]])
+        parent_sha256=PARENT_SHA,changed_payload=[n for n in pf if before.get(n)!=pf[n]],
+        cpu_unit=dict(stop_before_end_s=cpu_unit.UNIT_STOP_S,kill_before_end_s=cpu_unit.UNIT_KILL_S,
+                      address_space_bytes=cpu_unit.ADDRESS_SPACE,guard_bytes=cpu_unit.GUARD_BYTES,
+                      estimates_s=cpu_unit.ESTIMATES,cpu_time_limit='00:50:00',cpu_allocation_s=3000))
     out.mkdir(parents=True,exist_ok=True)
     for n,v in [('BUILD.json',B.jd(result)),('REFERENCE.json',B.jd(ref)),('FORECAST.json',B.jd(forecast)),('delivery.tgz',delivery)]:
         (out/n).write_bytes(v)

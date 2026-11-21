@@ -106,6 +106,10 @@ def supervise(root, blob, failure=None):
             value=json.loads(compared.read_bytes())
             if value.get('job')==job and value.get('plan')==public['plan_sha256']:
                 write('metadata/30.json',value)
+                # This CPU check's real-unit receipt (stages, error, memory).
+                unit=shared/'a/31.json'
+                if unit.exists() and unit.stat().st_size<=150000:
+                    write('metadata/31.json',json.loads(unit.read_bytes()))
         if supervisor_failed:
             value=dict(lines=list(failure_lines),limit=200,width=2048)
             while len(codec.pack(codec.wire_dumps(value)))>262144:value['lines']=value['lines'][1:]

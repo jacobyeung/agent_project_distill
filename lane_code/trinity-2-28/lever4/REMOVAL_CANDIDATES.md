@@ -6,3 +6,7 @@
 - Orchard /project/community/jjyeung/a7e29d4c8f103 (rank 1 package placed 01:29Z, ~8.0 MB; superseded by the E80 fix under a new token). Diagnostics kept on trinity-3-30 lever3/out/r1_cpufail_173976 and 2-28 r1/returned_fail4.
 - Orchard /project/community/jjyeung/a7e29d4c8f103 superseded by a38bd627f901e (see above); placed rank 4 okh7/*f68a2d7c903be superseded by 87f4ae5c2f44f.
 - Orchard /project/community/jjyeung/a38bd627f901e (rank 1, placed 01:56Z, ~8.0 MB; superseded by the write-test fix). Diagnostics lever3/out/r1_cpufail_173995.
+- (lever4) Orchard okh7/{a15_cot_ap,ad,af,af...c}87f4ae5c2f44f and *baf58c689fca5 (superseded rank 4 packages and returns, a few MB each; returns kept on 2-28 lever4/out/r4_gpu_173990-copy, r4_cpu_174086, r4_gpu_174087).
+- (lever4) trinity-2-28 /scratch/jjyeung/orch_n30/lever4/rev_2d19 (~9 GB reviewer mirror) and lever1_c/r4kit/tmp/rev_baf58 (reviewer mirror).
+- (lever4) trinity-2-28 lever1_c/r1_fixtures_old/real_cl2opr5g (~25 GB local real-batch attempt), /tmp/lever4_r1wt, /tmp/rev_r1_names.txt, r4kit/src/__pycache__/storage.cpython-312.pyc (stray, not in SHA256SUMS).
+- (lever4) Entries lever4's subagents queued in PENDING_USER_COMMANDS.md (a test-draft unlink, a reviewer __pycache__ rm, the rank 1 fixture dir) are not needed by the lane; one more entry is a misparse of a lever4 heredoc that deleted nothing.

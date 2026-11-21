@@ -1,0 +1,6 @@
+# RESULT n_ops10 (to ORCH; copy tree_rebuild27): nauto BLOCKER 0910Z (/project 21 GiB) is not caused by 174101; the job's memory at 94% of its limit is page cache, as in 173964
+1. /project/community at 09:12:01Z: 21,258,305,536 B free (df). PROJECT_FS_FREE.txt: 23 GiB until 09:03:59Z, 22 at 09:08:59Z, 21 at 09:09:52Z.
+2. 174101's own bytes on X: X/o/174101 and X/o/174101_live 1 MiB each (du); no _gate dir yet. Its checkpoints and exports are node-local and go to GCS only, so the job needs no further /project space before the gate.
+3. Coincident: job 174110 "jjy_allonv_dsi" (general, same account, not ours; name is not a15_cot_ap) started about 09:10Z. I have not looked inside it.
+4. Memory at 09:09:52Z (job cgroup): cur 805.0 GB of max 859.0 GB (94%); file 778 GB, anon 2.4 GB, shmem 28 KiB, dirty 37 MB, writeback 0, oom 0, oom_kill 0. a.py q works at about 1 core (cpu 2,281 s at 08:52Z -> 3,396 s at 09:10Z). q.log has not grown since 08:42Z (203,112 B; last line "scene rebuild seconds=177"); the cache grew from 495 GB at 09:01Z to 805 GB at 09:10Z, which matches 173964's mode-q climb (+236 GiB at 01:12-01:20Z).
+5. Default: no action on 174101. I watch free space and the memory alarm (anon+shmem, oom events) every minute. If free space keeps falling, the stop-checkpoint fallback to n_ck (size + 50 GiB) is already out of reach, and GCS is the only route.

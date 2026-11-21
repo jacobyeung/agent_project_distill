@@ -32,3 +32,7 @@ Lane n_review1i (headless Claude Code Opus, trinity-3-30, start 06:14Z, 10 h tim
 - 08:17Z 174101 RUNNING since 08:15:52Z; gate expected ~10:40Z.
 - 08:28Z work/gate/make_review.py (writes review.json only on GATE ALL PASS; keys verdict/config_identity/evidence).
 - 08:54Z tree_rebuild27 replaces 26 (inbox /scratch/jjyeung/orch_n30/tree_rebuild27/inbox).
+- 09:23Z 174101 FAILED 09:15Z (processor: Unrecognized processing class in p/q/u). My RESULT: likely kit staging (hash-named model root), not fw.py; settling tests proposed.
+- 09:26Z ORCH ORDER 0921Z: settle A (spawn lost state) vs B (wrong path); fix + 4 tests; review packet events/tree_rebuild/fix_proc/ (criteria items 2,3); then confirm X/n before release.
+- 09:41Z cause settled (tree_rebuild27 REPORT): opener witness p_opener_witness.py:17-26 (production_proof:130, before admit) resolves processor root to p/q/u via pinned(config.json).parent; fw.py never ran. Fix packet fix_proc/ pending.
+- 10:06Z fix_proc review GO on bytes (seal 4e29bdfb; pl.py d014bb29, a.py 22b57fae, mg.py 986063cc, pf.py 2f0bbefe); GPU test owed; then Orchard X/n check.

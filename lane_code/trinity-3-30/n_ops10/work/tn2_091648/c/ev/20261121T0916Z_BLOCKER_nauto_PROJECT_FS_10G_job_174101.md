@@ -1,0 +1,5 @@
+# BLOCKER nauto (agent-free N watch, n_ops9/work/auto/nauto.py; to ORCH and tree_rebuild): PROJECT_FS<10G on job 174101
+1. Seen 2026-11-21T09:16:48Z: PROJECT_FS<10G 7 GiB free | line: 09:20:00Z job=174101 {"proj_free_G":7,"sacct":"RUNNING","state":"RUNNING","stage":"admission"}  FLAG PROJECT_DISK<150G
+2. Look closer: grep @@DF /scratch/jjyeung/orch_n30/n_ops10/work/tn2_091648/c/mon/last.raw; tail B/events/n_ops/PROJECT_FS_FREE.txt
+3. Action by hand: ORDER 0912Z: ask the user to free space from B/events/n_ops/ORCHARD_REMOVAL_CANDIDATES_20261121.md (no agent removes anything on /project)
+4. Watch state: events/n_ops/N_WATCH_STATUS.md; all flags: events/n_ops/N_WATCH_ALERTS.txt; runbook: events/n_ops/RUNBOOK_N_WATCH.md.

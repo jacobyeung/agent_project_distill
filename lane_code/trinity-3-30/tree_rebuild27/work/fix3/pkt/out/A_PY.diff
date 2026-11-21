@@ -1,0 +1,9 @@
+63a64,66
+>     # A driver query made while admit() hides the devices would leave this process unable to open
+>     # one later; b/mg.py answers the device queries without the driver for as long as the mask is empty.
+>     from mg import guard
+66c69,70
+<      try:return native_admit(*args,**kwargs)
+---
+>      try:
+>       with guard():return native_admit(*args,**kwargs)
