@@ -161,6 +161,7 @@ def build():
                   exclusions=cfg['import_closure']['exclusions']),
         interpreter_exposure=dict(opaque_roots=['c','v'],native_archives='Preserve all pinned interpreter and third-party package paths and bytes',audit='out/IMPORT_CHECKS.json'),
         project_budget=dict(limit_bytes=50000000,enforced_max_bytes=44000000,placement_bytes=20000000,metadata_and_ledger_bytes=2000000,returns_bytes=6000000,fetches_bytes=16000000,project_logs_bytes=0),
+        cpu_preflight=dict(request='200G',address_space_bytes=190*1024**3,guarded_stop_bytes=150*1024**3,threads=16,dtype='bfloat16 (production loader)',real_batch='batch 0: first 8 frozen rows, real RGB, full step-400 checkpoint on CPU, same prefill/merge/decode/select/first-call stop as the GPU read',reserve_s=180,rows_admitted=[8,6,4,2],step_fraction=0.02,receipt='execution of CPU return 1.json: real_batch; passed requires the real-batch path check'),
         gpu_memory=dict(request='200G',guarded_stop_bytes=180*1024**3,guard_formula='max(0, memory.current - min(active_file + inactive_file, max(0, file - shmem)))',guard_fallback='process-tree RSS when memory.stat/current is unavailable',expected_peak_bytes=187000000000,full_load_rss_bytes=96000000000,page_cache_bytes=71000000000,batch_and_overhead_bytes=20000000000,measured=False),
         payload=pin(files['0.tgz']),expanded_delivery_bytes=sum(map(len,files.values())),
         expanded_payload_bytes=sum(map(len,payload.values())),private_source_bytes=sum(len(v.encode()) for v in sources.values()),

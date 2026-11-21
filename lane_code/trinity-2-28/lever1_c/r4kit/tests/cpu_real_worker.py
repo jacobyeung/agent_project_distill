@@ -2,7 +2,7 @@
 
 Usage: cpu_real_worker.py OUTPUT.json
 Runs in either the local p1cpu interpreter or the pinned Orchard interpreter.
-Scenarios: all rows admitted; time guard admits k=2; clock overrun mid-decode
+Scenarios: all rows admitted (float32 and bfloat16); time guard admits k=2; clock overrun mid-decode
 after a row selection (partial evidence, path check passes); overrun before the
 first prefill (path check fails). The failing case is finalized and fetched to
 show that the CPU return is written.

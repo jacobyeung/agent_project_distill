@@ -24,3 +24,11 @@ Lane n_review1i (headless Claude Code Opus, trinity-3-30, start 06:14Z, 10 h tim
 - 07:36Z test 174095: limit harmless for small CUDA use; device query under empty mask poisons process; tree_rebuild26 reading for such a query (possible second fix to review).
 - 07:38Z ORCH 0737Z: trace device queries on CPU; second fix (child process forward or mask guard) coming for my review; 174085 runs.
 - 07:48Z 174085 STARTED 07:44Z (orchard-community-3). WAITING_REVIEW expected ~10:05-10:15Z; gate deadline +7200 s.
+- 07:58Z trace: import-time torch.cuda.is_available in transformers qwen3_5 modeling on a possible masked route; spawned-child forward fix (W/w26fix2, packet fix_spawn/) to be reviewed by me, then 174085 scancel+resubmit.
+- 08:02Z fix_spawn review GO on bytes (seal 06d9a1b5; a.py 23398417, fw.py ae4d7c15); GPU test owed; then Orchard X/n check on request.
+- 08:06Z RESULT: no in-place swap (E32 seal check pl.plan_payload vs r0.json kit_sha256 captured at start).
+- 08:11Z 174085 cancelled; 174101 held on kit 06d9a1b5; I confirmed X/n = 06d9a1b5 on Orchard (RESULT). Gate job is now 174101.
+- 08:14Z 174101 released 08:13Z (sessions 7015b9f0), pending. Gate: bash work/gate/run_gate.sh 174101 /scratch/jjyeung/orch_n30/n_review1i/gate_174101; expect kit 06d9a1b5.
+- 08:17Z 174101 RUNNING since 08:15:52Z; gate expected ~10:40Z.
+- 08:28Z work/gate/make_review.py (writes review.json only on GATE ALL PASS; keys verdict/config_identity/evidence).
+- 08:54Z tree_rebuild27 replaces 26 (inbox /scratch/jjyeung/orch_n30/tree_rebuild27/inbox).

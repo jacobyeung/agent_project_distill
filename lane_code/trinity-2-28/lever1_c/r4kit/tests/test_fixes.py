@@ -169,6 +169,9 @@ class Fixes(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
+        # Before transformers is imported: local p1cpu lacks torchvision, which
+        # the CPU real-batch rehearsal's native video processor requires.
+        mod('cpu_real_fixture',ROOT/'tests/cpu_real_fixture.py').torchvision_fixture(ROOT)
         cls.code=fresh();C.materialize(cls.code,SOURCES)
         import torch
         torch.set_num_threads(2)

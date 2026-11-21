@@ -1,7 +1,7 @@
 {
-  "passed": false,
+  "passed": null,
   "executed": false,
-  "status": "not_run_export_absent",
+  "status": "runs_in_orchard_cpu_preflight",
   "host": "trinity-2-28",
   "checked": "2026-11-21",
   "requirement": "Batch 0 (first 8 frozen rows, 4 pairs, real RGB frames) through full forward and batched decode on CPU in the pinned environment with the real step-400 weights",
@@ -92,5 +92,7 @@
   "batched_vs_serial": null,
   "peak_rss_bytes": null,
   "wall_s": null,
-  "summary": "The orchestrator-requested CPU run of the real first batch with step-400 weights did not run: the export weights (18.8 GB of bf16 shards, 2.76 GB heads.pt) and the frame archive are not on trinity-2-28; only their metadata is (`out/REAL_BATCH_CPU.json`)."
+  "summary": "The real first batch with step-400 weights runs in the Orchard CPU preflight because the weights and frames exist only on Orchard; this node holds only their metadata (`out/REAL_BATCH_CPU.json`).",
+  "where": "Orchard CPU preflight (A_M=c) of the current delivery: after staging and processor checks it loads the full step-400 checkpoint on CPU and runs batch 0; results arrive in the fetched CPU return 1.json under real_batch (per-row tokens/count, finish, call position, per-stage seconds, agreement on the two shortest rows) with cgroup and guarded peaks under execution.",
+  "local_substitute": "out/CPU_REAL_CHECKS.json (tiny native hybrid export through the same runtime.run(c) path, local and pinned) and out/CPU_BENCH.json (real architecture timing with random bf16 weights)"
 }

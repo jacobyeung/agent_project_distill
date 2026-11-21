@@ -26,6 +26,9 @@ pinned_batch=read('out/PINNED_BATCH_CHECKS.json')
 assert pinned_batch['passed'] and pinned_batch['delivery']==build['delivery']
 pb=pinned_batch['result'];assert pb['transformers']=='5.19.0' and pb['selfcheck_with_frozen_merge']['failed']
 real_batch=read('out/REAL_BATCH_CPU.json')
+cpu_real=read('out/CPU_REAL_CHECKS.json')
+assert cpu_real['passed'] and cpu_real['delivery']==build['delivery']
+assert cpu_real['runs']['pinned']['result']['transformers']=='5.19.0'
 boots=read('out/BOOT_CHECKS.json')
 assert boots['passed'] and boots['delivery']==build['delivery']
 assert tests['delivery']==checks['delivery']==build['delivery']
@@ -48,7 +51,7 @@ assert pinned['gpu_mode']['passed'] and all(not v['present'] for v in pinned['gp
 build['boot']['local_pre_bulk_seconds']=[min(c['boot']['pre_bulk_seconds'] for c in boots['cases'] if not c['expected_failure']),max(c['boot']['pre_bulk_seconds'] for c in boots['cases'] if not c['expected_failure'])]
 build['boot']['pinned_replay']={k:pinned[k] for k in ('passed','seconds','environment','bulk_bytes','returncode')}
 save('BUILD.json',build)
-test_count=tests['tests']+checks['tests']+imports['tests']+boots['tests']+pinned['tests']+pinned_batch['tests']+1
+test_count=tests['tests']+checks['tests']+imports['tests']+boots['tests']+pinned['tests']+pinned_batch['tests']+cpu_real['tests']+1
 files=members((ROOT/'out/delivery.tgz').read_bytes());payload=members(files['0.tgz'])
 cfg=B.storage.loads(files['2.json']);sources=B.storage.loads(files['8.bin'])
 assert cfg['import_closure']==closure
@@ -62,15 +65,32 @@ for line in (ROOT/'in/D400/ret/metadata/reads/0/metadata/journals/3/0/items.json
 steps=[max(positions[m['source_id']] for m in mapping[i:i+4]) for i in range(0,len(mapping),4)]
 fixed_worker=f['model_load_s']+580*(f['per_item_other_mean_s']+f['prefill_mean_s'])
 decode=sum(steps)*2*f['tool_free_decode_s_per_token'];worker=fixed_worker+decode;total=f['base_other_s']+worker
+bench=read('out/CPU_BENCH.json')
+row_prefill=bench['vision_s']*2+bench['lm_prefill_s']
+cpu_budget=dict(job_limit_s=1800,controller_end_s=1730,worker_end_s=1720,soft_end_s=1720-180,reserve_s=180,
+    staging_s=420,staging_source='174086 CPU preflight staging (about 7 minutes)',cpu_checks_s=39,model_load_s=100,
+    prompt_preparation_s=15,row_prefill_s=row_prefill,decode_step_s=max(bench['decode_step_b8_s']),
+    serial_step_s=max(bench['decode_step_b1_s']),
+    bench='out/CPU_BENCH.json: real Qwen3.5-9B architecture, random bf16 weights, pinned torch/transformers, 16 EPYC 9224 threads; vision timed once and doubled for the private depth encoder',
+    admission='after row 1 prefill p: largest k in 8,6,4,2 with 1.1*(k-1)*p + 64*0.02*p + 10 <= soft end - now; otherwise k=2 (over_budget)',
+    passed_rule='merge ran, at least one decode step, and a row selection whenever rows finished at different steps, with no error; a soft-stop after these is a partial pass')
+cpu_budget['expected_k8_end_s']=cpu_budget['staging_s']+10+cpu_budget['cpu_checks_s']+cpu_budget['model_load_s']+cpu_budget['prompt_preparation_s']+8*row_prefill+64*cpu_budget['decode_step_s']
+cpu_budget['expected_with_serial_end_s']=cpu_budget['expected_k8_end_s']+2*(row_prefill+64*cpu_budget['serial_step_s'])
+cpu_budget['max_row_prefill_for_k8_s']=(cpu_budget['soft_end_s']-cpu_budget['staging_s']-10-cpu_budget['cpu_checks_s']-cpu_budget['model_load_s']-cpu_budget['prompt_preparation_s']-10)/(1+1.1*7+64*.02)
+cpu_budget['max_row_prefill_for_k2_s']=(cpu_budget['soft_end_s']-cpu_budget['staging_s']-10-cpu_budget['cpu_checks_s']-cpu_budget['model_load_s']-cpu_budget['prompt_preparation_s']-10)/(1+1.1+64*.02)
+cpu_budget['memory']=dict(request='200G',guarded_stop_bytes=150*1024**3,address_space_bytes=190*1024**3,
+    bench_peak_rss_bytes=bench['peak_rss_bytes'],gpu_job_host_peak_rss_bytes=43272892416,
+    expected='bf16 checkpoint 18.8 GB plus 2.8 GB heads resident; eight-row full-attention KV about 1.3 GB at 4,730 tokens; loading transient as in the GPU job (43.3 GB host peak)')
 f.update(token=build['token'], delivery=build['delivery'],
     boot=build['boot'], superseded_tokens=build['superseded_tokens'],
     interpreter_exposure=build['interpreter_exposure'],
     project_budget=build['project_budget'], gpu_memory=build['gpu_memory'],
-    memory_guard=dict(formula=build['gpu_memory']['guard_formula'],fallback=build['gpu_memory']['guard_fallback'],gpu_stop_bytes=180*1024**3,cpu_stop_bytes=110*1024**3,return_fields=['peak_tree_rss_bytes','peak_cgroup_current_bytes','cgroup_memory_peak_bytes','peak_guarded_bytes']),
+    memory_guard=dict(formula=build['gpu_memory']['guard_formula'],fallback=build['gpu_memory']['guard_fallback'],gpu_stop_bytes=180*1024**3,cpu_stop_bytes=150*1024**3,return_fields=['peak_tree_rss_bytes','peak_cgroup_current_bytes','cgroup_memory_peak_bytes','peak_guarded_bytes']),
     submission_parity=dict(export_policy='A_M only; c/g selects mode',chdir='/tmp',entry='4.sh executes /usr/bin/python3 -I -s -B 3.py work',output='/tmp/<opaque job name>-%j.8.log and .9.log',differences=['GPU adds --gres=gpu:1','A_M=c versus A_M=g selects the preflight/read'],time='00:30:00 in both modes'),
-    cpu_preflight=dict(worker_address_space_limit_bytes=32*1024**3,
-        guarded_memory_stop_bytes=110*1024**3, staging_filesystem='ext4',
-        tensors='meta shapes only; processor and two CPU prompt batches',
+    cpu_preflight=dict(worker_address_space_limit_bytes=190*1024**3,
+        guarded_memory_stop_bytes=150*1024**3, staging_filesystem='ext4',
+        tensors='meta shape proof, processor and two prompt checks, then the full bf16 step-400 checkpoint resident on CPU for batch 0',
+        real_batch=cpu_budget,
         boot_batch_selfcheck='Both modes, before bulk staging: delivered merge_caches/select_cache_rows on a tiny native hybrid model in the pinned interpreter, under 1 second (execution.boot.batch_selfcheck)',
         production_measured=False, diagnostic='DEBUG.md'),
     batch_timing_return='3.jsonl: packed per-batch preparation, prefill, slowest synchronized token-step, total seconds, completed pairs, admission estimate, remaining time, host peak RSS and GPU max allocated bytes',
@@ -193,7 +213,11 @@ PYPLACE
 /usr/bin/python3 -I -s -B "$P/3.py" check
 ```
 
-The CPU preflight uses the assigned ext4 job_tmp bind at `/tmp`; it refuses tmpfs before copying archives. It hashes all staged inputs, checks head metadata and meta model shapes, and exercises the processor on two prompts. It loads no resident full-model weights. Before any bulk staging, the boot gate of both CPU and GPU jobs runs the delivered batched cache merge on a tiny native hybrid model in the pinned interpreter (`execution.boot.batch_selfcheck`); a merge incompatible with the installed transformers fails there with zero bulk bytes. The CPU worker has a 32 GiB address-space ceiling and a 110 GiB non-reclaimable-memory stop. Missing memory.stat or memory.current falls back to process-tree RSS. The production peak remains unmeasured. `DEBUG.md` records the cause analysis and evidence.
+The CPU preflight uses the assigned ext4 job_tmp bind at `/tmp`; it refuses tmpfs before copying archives. Before any bulk staging, the boot gate of both CPU and GPU jobs runs the delivered batched cache merge on a tiny native hybrid model in the pinned interpreter (`execution.boot.batch_selfcheck`). After staging, the CPU job hashes all staged inputs, checks head metadata and meta model shapes, and exercises the processor on two prompts. It then loads the full step-400 checkpoint and heads on CPU (bf16 from the production loader, 16 threads) and runs batch 0, the first eight frozen rows in production order with their real RGB frames, through the GPU read's own code: `prompt_batch`, serial prefills, `merge_caches`, batched greedy decode with the 64-token cap and first-call-opening stop, and `select_cache_rows`. Only the device differs.
+
+The CPU time guard measures the first row's prefill p and admits the largest k in 8, 6, 4, 2 with 1.1(k-1)p + 64(0.02p) + 10 s within the time left before a 180-second reserve; otherwise it runs k=2 and records `over_budget`. A soft stop at the reserve ends the batch with partial evidence. If time remains, the two shortest admitted rows are decoded serially and compared with their batched results. The CPU return's `1.json` carries `real_batch`: per-row prompt tokens, generated tokens and count, finish reason, call position, prefill seconds per row, merge seconds, per-step seconds, selections, k and the admission reason, the agreement check, and peak RSS; the controller adds the cgroup and guarded peaks. The receipt passes only if the real-batch path ran without error: merge, at least one decode step, and a row selection whenever rows finished at different steps. A soft stop after these steps passes the path check. The CPU worker has a 190 GiB address-space ceiling and a 150 GiB non-reclaimable-memory stop under the 200G request; page-cache-aware guarding is unchanged, and missing memory.stat or memory.current falls back to process-tree RSS.
+
+CPU budget (`FORECAST.json:cpu_preflight.real_batch`): with about 420 seconds of staging, the worker ends at 1,720 seconds and the soft stop at 1,540 seconds. A local benchmark of the real 9B architecture with random bf16 weights in the pinned environment (16 EPYC 9224 threads, `out/CPU_BENCH.json`) gives about {cpu_budget['row_prefill_s']:.0f} seconds per row prefill (LM {bench['lm_prefill_s']:.0f} s at 4,730 tokens plus twice the {bench['vision_s']:.0f}-second vision encoder) and {cpu_budget['decode_step_s']:.2f} seconds per eight-row decode step. That projects completion of all eight rows at about {cpu_budget['expected_k8_end_s']:.0f} seconds and of the serial check at {cpu_budget['expected_with_serial_end_s']:.0f} seconds. All eight rows fit if a row prefill takes at most about {cpu_budget['max_row_prefill_for_k8_s']:.0f} seconds; two rows fit up to about {cpu_budget['max_row_prefill_for_k2_s']:.0f} seconds. Orchard's CPU speed is unmeasured. `DEBUG.md` records the batch-merge cause analysis.
 
 Submit the CPU preflight once:
 
@@ -217,7 +241,7 @@ P={package}
 /usr/bin/python3 -I -s -B "$P/3.py" submit
 ```
 
-The resource arguments fix general, one GPU, 16 CPUs, 200G, 30 minutes, `--exclude=orchard-community-4` and `--no-requeue`. Both modes use the same `--export=A_M=...` policy, `--chdir=/tmp`, output/error paths under `/tmp`, 30-minute limit, 200G request, sanitized submission environment and `4.sh` entry into `/usr/bin/python3 -I -s -B 3.py work`. The only submission differences are `A_M=c` versus `A_M=g` to select the workload and `--gres=gpu:1` for GPU mode. Inside the namespace, CPU hides CUDA, uses a 32 GiB address-space cap and a 110 GiB non-reclaimable-memory stop, and returns after processor checks; GPU exposes its assigned device, loads the full model and uses a 180 GiB stop. These differences keep preflight light while checking the same staging and launch path. Submission-attempt markers prevent duplicate submissions. A killed job must not be retried without the user's answer.
+The resource arguments fix general, one GPU, 16 CPUs, 200G, 30 minutes, `--exclude=orchard-community-4` and `--no-requeue`. Both modes use the same `--export=A_M=...` policy, `--chdir=/tmp`, output/error paths under `/tmp`, 30-minute limit, 200G request, sanitized submission environment and `4.sh` entry into `/usr/bin/python3 -I -s -B 3.py work`. The only submission differences are `A_M=c` versus `A_M=g` to select the workload and `--gres=gpu:1` for GPU mode. Inside the namespace, CPU hides CUDA, uses a 190 GiB address-space cap and a 150 GiB non-reclaimable-memory stop, and runs batch 0 on CPU; GPU exposes its assigned device, uses a 180 GiB stop and reads all 580 rows. Both load the full model through the same staging, launch and batch path. Submission-attempt markers prevent duplicate submissions. A killed job must not be retried without the user's answer.
 
 Fetch the GPU success or failure return:
 
@@ -268,6 +292,7 @@ nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B tests/test_imports.py
 nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B tests/test_boot.py
 nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B tests/test_pinned.py
 nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B tests/test_pinned_batch.py
+nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B tests/test_cpu_real.py
 nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B finish.py
 ```
 '''
@@ -295,7 +320,7 @@ The worker namespace exposes only this job's temporary directory and cannot see 
 
 The GPU job requests **200G (200 GiB)**. Its conservative planning peak is **187 GB (174.2 GiB)**: approximately 96 GB host RSS from the old full-load preflight, 71 GB of potentially charged staged-file page cache, and 20 GB for batch buffers and overhead. The full-model GPU peak remains unmeasured.
 
-Both supervisors poll the guarded figure every 50 ms and stop at **180 GiB (GPU)** or **110 GiB (CPU)**. The exact formula is `max(0, memory.current - min(active_file + inactive_file, max(0, file - shmem)))`. Equivalently, subtract both file LRUs and add back only their overlap with shmem. Linux file LRUs normally exclude shmem, so adding all shmem again would double-count it; the file-minus-shmem bound also protects counters that include it. Without the file/shmem pair, subtract the file LRUs directly. Missing or incomplete memory.stat/current falls back to process-tree RSS. Staging phases use the same guard. Every authenticated return records `peak_tree_rss_bytes`, `peak_cgroup_current_bytes`, `cgroup_memory_peak_bytes` (null if unavailable), and `peak_guarded_bytes`; sampled peaks merge across supervisors and staging. memory.peak is the kernel cgroup lifetime high-water, not a reset per-job counter. The guard retains 20 GiB of non-reclaimable-memory headroom under the request. The controller returns the memory-stop reason and both stream tails. External node/controller death or a spike faster than polling can still prevent finalization.
+Both supervisors poll the guarded figure every 50 ms and stop at **180 GiB (GPU)** or **150 GiB (CPU)**. The exact formula is `max(0, memory.current - min(active_file + inactive_file, max(0, file - shmem)))`. Equivalently, subtract both file LRUs and add back only their overlap with shmem. Linux file LRUs normally exclude shmem, so adding all shmem again would double-count it; the file-minus-shmem bound also protects counters that include it. Without the file/shmem pair, subtract the file LRUs directly. Missing or incomplete memory.stat/current falls back to process-tree RSS. Staging phases use the same guard. Every authenticated return records `peak_tree_rss_bytes`, `peak_cgroup_current_bytes`, `cgroup_memory_peak_bytes` (null if unavailable), and `peak_guarded_bytes`; sampled peaks merge across supervisors and staging. memory.peak is the kernel cgroup lifetime high-water, not a reset per-job counter. The guard retains 20 GiB of non-reclaimable-memory headroom under the request. The controller returns the memory-stop reason and both stream tails. External node/controller death or a spike faster than polling can still prevent finalization.
 
 Every batch records host RSS high-water and GPU max allocated bytes. Every return includes the final observations. A 200 ms sampler covers model loading; abrupt death returns the last sampled GPU peak with `gpu_peak_complete=false`, while wait4 supplies peak host RSS. Normal completion and Python exceptions record the final CUDA peak. CPU and pre-CUDA failures report zero GPU allocation with `gpu_measured=false`.
 
@@ -332,7 +357,7 @@ Both streams now reach every return. The controller, namespace supervisor and wo
 
 CPU and GPU submissions use the same export policy, sanitized environment, chdir, output paths and entry script. Only the `A_M` mode value and GPU `--gres=gpu:1` differ. Both request 200G and 30 minutes. The constructor regression compares complete argument lists, script bytes and environments.
 
-CPU preflight disables CUDA, caps address space at 32 GiB and guarded memory at 110 GiB, validates metadata and two processor batches, and skips resident full-model loading. GPU mode exposes its assigned device, loads the checkpoint and stops at 180 GiB guarded memory. Both use the same staging and namespace path.
+CPU preflight disables CUDA, caps address space at 190 GiB and guarded memory at 150 GiB, validates metadata and two processor batches, then loads the full bf16 step-400 checkpoint on CPU and runs batch 0 through the GPU read's batch path with a time guard (k >= 2 rows). Its receipt passes only if merge, decode steps and row selection run without error; the GPU submission still requires that receipt. GPU mode exposes its assigned device, loads the checkpoint and stops at 180 GiB guarded memory. Both use the same staging and namespace path.
 
 The frozen 580 prompts, greedy 64-token limit, first-opening stop and unserved tools remain intact. Native tiny-model batch parity, opaque-source loading, naming scans, staging limits and interrupted-pair retention pass. The actual scorer accepts successful, partial and failed archives produced by real finalization and fetch.
 
@@ -342,6 +367,13 @@ Evidence: `out/test_probe.log`, `out/test_fixes.log`, `out/FIX_CHECKS.json`, `ou
 """
 report += contract+import_contract
 real_batch_text=real_batch['summary']
+sc=cpu_real['runs']['pinned']['result']['scenarios']
+cpu_real_text=('The Orchard CPU preflight now runs batch 0 with the full checkpoint on CPU (see the CPU preflight section). '
+    '`tests/test_cpu_real.py` drives the delivered `runtime.run(c)` with a tiny native hybrid export, real restore, loader, prompt adapter and batch code, '
+    'both in local p1cpu and in the pinned interpreter (`out/CPU_REAL_CHECKS.json`). In the pinned environment all eight rows run in float32 '
+    f"(finishes {', '.join(x for x in sc['all_rows']['finishes'])}; {sc['all_rows']['selects']} selections; serial and batched agree on the two shortest rows) "
+    'and with the production bf16 loader dtypes; the time guard admits k=2 when only two rows fit; a soft stop after four decode steps and one selection is a partial pass; '
+    'a stop before the first prefill fails the receipt and its CPU return still finalizes and fetches. `tests/test_fixes.py` test 05 and the clean write inventory run the same CPU real batch.')
 pinned_text=f"""
 The pinned CPU boot passes all {closure['cpu_modules']:,} required imports in {pinned['seconds']:.3f} seconds with zero bulk bytes and no package doubles. The pinned GPU-mode boot, with CUDA hidden, imports those modules plus `triton` in {pinned['gpu_mode']['seconds']:.3f} seconds and records `fla` and `causal_conv1d` as absent with the PyTorch fallback expected. The pre-bulk archives were authenticated and extracted under `tmp/pinned/`; `out/PINNED_ARCHIVES.json` records their pins. The environment uses Pillow 13.0.0, NumPy 2.3.5 and Torch 2.13.0+cu130. `out/PINNED_CHECKS.json` pins the successful replay to this delivery.
 
@@ -349,7 +381,7 @@ The failed entry was `PIL._typing`: the pinned `PIL/_typing.py:8` imports `numbe
 
 Closure failures retain the entry and full exception in both the worker diagnostic and boot receipt. The typing-helper regression verifies that an exception longer than 120 characters survives authenticated fetch, with zero bulk staging. Tokens `f68a2d7c903be`, `87f4ae5c2f44f` and `baf58c689fca5` are superseded by `{token}` because placement cannot overwrite their destinations and their submission markers are spent.
 
-GPU job 174087 (token `baf58c689fca5`) booted, loaded the model (26.1 GB GPU) and failed in batch 0 after 16.8 seconds: `10.py:23` called the frozen `carrier_c1_batch_decode.merge_caches`, whose line 43 reads `.shape` from each linear-attention state. Pinned transformers 5.19.0 stores `LinearAttentionLayer.conv_states` and `recurrent_states` as `{{state_idx: tensor}}` dicts with per-index `is_*_initialized` and `has_previous_state` dicts (`cache_utils.py:950-957`); local 5.12.1 stores tensors and booleans, so local tests passed. The frozen module stays unchanged (FROZEN.json pins it). `src/batch.py` now owns `merge_caches` and `select_cache_rows`: it concatenates every state index, copies the flag and kernel-size dicts per merged layer, rejects mismatched flags, past-recording layers, static, sliding and offloaded caches, and still handles the tensor form. Decoding semantics are unchanged. In the pinned interpreter on CPU (`tests/test_pinned_batch.py`, `out/PINNED_BATCH_CHECKS.json`), the previous delivery reproduces the production traceback exactly; the new delivery matches serial decoding token for token in eight unequal-length rows, with EOS, 64-token-cap and first-call-opening stops and mid-batch row removal, and the boot self-check passes while the frozen merge fails it. {real_batch_text}
+GPU job 174087 (token `baf58c689fca5`) booted, loaded the model (26.1 GB GPU) and failed in batch 0 after 16.8 seconds: `10.py:23` called the frozen `carrier_c1_batch_decode.merge_caches`, whose line 43 reads `.shape` from each linear-attention state. Pinned transformers 5.19.0 stores `LinearAttentionLayer.conv_states` and `recurrent_states` as `{{state_idx: tensor}}` dicts with per-index `is_*_initialized` and `has_previous_state` dicts (`cache_utils.py:950-957`); local 5.12.1 stores tensors and booleans, so local tests passed. The frozen module stays unchanged (FROZEN.json pins it). `src/batch.py` now owns `merge_caches` and `select_cache_rows`: it concatenates every state index, copies the flag and kernel-size dicts per merged layer, rejects mismatched flags, past-recording layers, static, sliding and offloaded caches, and still handles the tensor form. Decoding semantics are unchanged. In the pinned interpreter on CPU (`tests/test_pinned_batch.py`, `out/PINNED_BATCH_CHECKS.json`), the previous delivery reproduces the production traceback exactly; the new delivery matches serial decoding token for token in eight unequal-length rows, with EOS, 64-token-cap and first-call-opening stops and mid-batch row removal, and the boot self-check passes while the frozen merge fails it. {real_batch_text} {cpu_real_text}
 
 GPU job 173990 (token `87f4ae5c2f44f`) failed at the boot gate on `causal_conv1d` with zero bulk bytes. `build.py` serializes `2.json` with sorted keys, so the worker tried `causal_conv1d` before `fla` and `triton`; neither of those was attempted. `fla` would also have failed: no `fla` package exists in runtime group 1, a4, a2 or a3 (only `cudnn/fla` and `vllm/third_party/flash_linear_attention` subpackages), and D400's `worker.log` lines 6–9 report the `flash-linear-attention` and `causal_conv1d` fallbacks. Transformers 5.19 resolves both kernels when `modeling_qwen3_5` is imported (`integrations/hub_kernels.py:984–1014`) and otherwise uses its PyTorch reference implementation; `kernels` is not installed, so no hub download is attempted.
 """
@@ -362,6 +394,6 @@ save('out/FINAL_CHECKS.json',dict(passed=True,token=token,delivery=build['delive
     project_budget=build['project_budget'],gpu_memory=build['gpu_memory'],forecast_seconds=total,headroom_fraction=f['headroom_fraction'],artifact=cfg['export']['artifact']['sha256']))
 names = [line.split(None, 1)[1] for line in (ROOT/'SHA256SUMS').read_text().splitlines()]
 names = sorted(set(names) | {'REPORT.md', 'finish.py', 'tests/test_fixes.py', 'tests/cache_preflight.py', 'tests/write_audit.c', 'out/CACHE_CHECKS.json', 'src/storage.py', 'src/batch.py', 'src/monitor.py', 'DEBUG.md', 'out/fail1_code/control.py', 'out/fail1_code/runtime.py', 'out/FIX_CHECKS.json', 'out/FINAL_CHECKS.json'})
-names = sorted(set(names) | {'IMPORT_CLOSURE.json','tests/import_baseline.json','tests/trace_worker.py','tests/record_import_closure.py','out/WORKER_IMPORT_TRACE.json','out/trace_worker.log','IMPORTS.md', 'tests/test_imports.py', 'tests/import_worker.py', 'out/IMPORT_CHECKS.json', 'out/test_imports.log', 'tests/test_boot.py', 'out/BOOT_CHECKS.json', 'out/test_boot.log','tests/test_pinned.py','tests/pinned_exclusions.json','out/PINNED_ARCHIVES.json','out/PINNED_CHECKS.json','out/PINNED_IMPORT_PROBE.json','out/test_pinned.log','tests/test_pinned_batch.py','tests/pinned_batch_worker.py','out/PINNED_BATCH_CHECKS.json','out/test_pinned_batch.log','out/REAL_BATCH_CPU.json'})
+names = sorted(set(names) | {'IMPORT_CLOSURE.json','tests/import_baseline.json','tests/trace_worker.py','tests/record_import_closure.py','out/WORKER_IMPORT_TRACE.json','out/trace_worker.log','IMPORTS.md', 'tests/test_imports.py', 'tests/import_worker.py', 'out/IMPORT_CHECKS.json', 'out/test_imports.log', 'tests/test_boot.py', 'out/BOOT_CHECKS.json', 'out/test_boot.log','tests/test_pinned.py','tests/pinned_exclusions.json','out/PINNED_ARCHIVES.json','out/PINNED_CHECKS.json','out/PINNED_IMPORT_PROBE.json','out/test_pinned.log','tests/test_pinned_batch.py','tests/pinned_batch_worker.py','out/PINNED_BATCH_CHECKS.json','out/test_pinned_batch.log','out/REAL_BATCH_CPU.json','tests/test_cpu_real.py','tests/cpu_real_worker.py','tests/cpu_real_fixture.py','tests/cpu_bench_worker.py','out/CPU_BENCH.json','out/CPU_REAL_CHECKS.json','out/test_cpu_real.log','tests/test_boot.py','tests/cache_preflight.py'})
 (ROOT/'SHA256SUMS').write_text(''.join(hashlib.sha256((ROOT/name).read_bytes()).hexdigest()+'  '+name+'\n' for name in names))
 print(json.dumps(read('out/FINAL_CHECKS.json'),sort_keys=True))

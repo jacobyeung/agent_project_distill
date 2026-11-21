@@ -1,0 +1,9 @@
+68a69,76
+>     # A device query made while admit() hides the devices leaves this process unable to open one
+>     # later, so the forward runs in a fresh interpreter (b/fw.py) with the job's limit and scopes.
+>     import launch_r1.production_proof as proof_module
+>     from fw import call
+>     job_limit=resource.getrlimit(resource.RLIMIT_AS)
+>     def spawned_forward(*args,**kwargs):
+>      return call('launch_r1.production_proof','forward',args,kwargs,limit=job_limit)
+>     proof_module.forward=spawned_forward

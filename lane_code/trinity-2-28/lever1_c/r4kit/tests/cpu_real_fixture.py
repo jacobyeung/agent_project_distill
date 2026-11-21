@@ -116,7 +116,8 @@ def tiny_export(t, p, cfg, dtype='float32'):
     real_pretrained = Qwen3_5ForConditionalGeneration.from_pretrained
     real_artifact, real_read = trainer.load_artifact, trainer.load
     def pretrained(*a, **kw):
-        kw['dtype'] = torch.float32
+        # bfloat16 keeps the production loader's dtype choice (bf16 LM, heads as loaded).
+        if dtype == 'float32': kw['dtype'] = torch.float32
         return real_pretrained(native_dir, **kw)
     def bind_artifact(model, artifact_pin):
         from student_pilot import trained_groups
@@ -135,8 +136,9 @@ def tiny_export(t, p, cfg, dtype='float32'):
             return value
         with patch.object(trainer, 'load', side_effect=metadata):
             value = real_artifact(model, artifact_pin)
-        # float32 for exact serial/batched comparison; bfloat16 checks CPU kernel coverage as in production.
-        model.to(getattr(torch, dtype))
+        # float32 gives an exact serial/batched comparison; bfloat16 leaves the
+        # production dtypes in place to check CPU kernel coverage.
+        if dtype == 'float32': model.float()
         return value
     with patch.object(stage_restore, 'stage', side_effect=preparation), \
          patch.object(AutoProcessor, 'from_pretrained', side_effect=processor), \

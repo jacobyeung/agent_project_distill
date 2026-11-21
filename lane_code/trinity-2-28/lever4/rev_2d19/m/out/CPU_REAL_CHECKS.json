@@ -1,0 +1,350 @@
+{
+  "passed": true,
+  "tests": 2,
+  "delivery": {
+    "bytes": 4323948,
+    "sha256": "dd819d503161c64c30870b17a502a4f857a425015386fe0ca5e4a274446b1a31"
+  },
+  "work": "out/rf0e890ce84ca",
+  "runs": {
+    "local": {
+      "passed": true,
+      "returncode": 0,
+      "seconds": 9.215069480007514,
+      "result": {
+        "passed": true,
+        "python": "/scratch/jjyeung/envs/p1cpu/bin/python",
+        "scenarios": {
+          "all_rows": {
+            "status": "complete",
+            "k": 8,
+            "path_ok": true,
+            "steps": 25,
+            "selects": 3,
+            "select_needed": true,
+            "merge_s": 0.00030203399364836514,
+            "passed": true,
+            "reason": "all_rows",
+            "prefills": 8,
+            "finishes": [
+              "call",
+              "eos",
+              "call",
+              "eos",
+              "call",
+              "eos",
+              "call",
+              "eos"
+            ],
+            "agreement": true,
+            "peak_rss_bytes": 518717440
+          },
+          "bf16_all_rows": {
+            "status": "complete",
+            "k": 8,
+            "path_ok": true,
+            "steps": 25,
+            "selects": 3,
+            "select_needed": true,
+            "merge_s": 0.00039198901504278183,
+            "passed": true,
+            "reason": "all_rows",
+            "prefills": 8,
+            "finishes": [
+              "call",
+              "eos",
+              "call",
+              "eos",
+              "call",
+              "eos",
+              "call",
+              "eos"
+            ],
+            "agreement": true,
+            "peak_rss_bytes": 539893760
+          },
+          "time_guard_k2": {
+            "status": "complete",
+            "k": 2,
+            "path_ok": true,
+            "steps": 25,
+            "selects": 1,
+            "select_needed": true,
+            "merge_s": 0.0002716679882723838,
+            "passed": true,
+            "reason": "time_guard",
+            "prefills": 2,
+            "finishes": [
+              "call",
+              "eos",
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ],
+            "agreement": true,
+            "peak_rss_bytes": 565972992
+          },
+          "overrun_mid_decode": {
+            "status": "interrupted",
+            "k": 8,
+            "path_ok": true,
+            "steps": 4,
+            "selects": 1,
+            "select_needed": true,
+            "merge_s": 0.0002906569861806929,
+            "passed": true,
+            "reason": "all_rows",
+            "prefills": 8,
+            "finishes": [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              "call",
+              null
+            ],
+            "agreement": null,
+            "peak_rss_bytes": 580304896
+          },
+          "overrun_before_prefill": {
+            "status": "interrupted",
+            "k": 0,
+            "path_ok": false,
+            "steps": 0,
+            "selects": 0,
+            "select_needed": true,
+            "merge_s": null,
+            "passed": false,
+            "reason": null,
+            "prefills": 0,
+            "finishes": [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ],
+            "agreement": null,
+            "peak_rss_bytes": 593457152
+          }
+        },
+        "transformers": "5.12.1",
+        "torch": "2.11.0+cpu",
+        "overrun_fetch": {
+          "receipt_passed": false,
+          "return_bytes": 1393
+        },
+        "admission": {
+          "fits": 8,
+          "tight": 4,
+          "over": [
+            2,
+            {
+              "reason": "over_budget",
+              "need_s": 129.0,
+              "remaining_s": 10.0,
+              "step_estimate_s": 1.0,
+              "first_prefill_s": 50.0
+            }
+          ],
+          "constants": {
+            "reserve_s": 180.0,
+            "step_fraction": 0.02,
+            "rows": [
+              8,
+              6,
+              4,
+              2
+            ],
+            "address_space": {
+              "c": 204010946560
+            }
+          }
+        },
+        "memory": {
+          "cpu_stop_bytes": 161061273600,
+          "gpu_stop_bytes": 193273528320
+        }
+      },
+      "log_tail": "ting model shards:   0%|          | 0/1 [00:00<?, ?it/s]\rWriting model shards: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:00<00:00, 786.63it/s]\n\rLoading weights:   0%|          | 0/73 [00:00<?, ?it/s]\rLoading weights: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 73/73 [00:00<00:00, 12449.55it/s]\n\rWriting model shards:   0%|          | 0/1 [00:00<?, ?it/s]\rWriting model shards: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:00<00:00, 766.22it/s]\n\rLoading weights:   0%|          | 0/73 [00:00<?, ?it/s]\rLoading weights: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 73/73 [00:00<00:00, 12329.23it/s]\n{\"a0\":\"7b226279746573223a20313339332c2022636f6465223a20302c2022657865637574696f6e223a207b2262617463685f6770755f6d61785f616c6c6f63617465645f6279746573223a20302c2022626f6f74223a207b2262756c6b5f6279746573223a20302c2022706173736564223a2066616c73652c2022726561736f6e223a2022626f6f745f6e6f745f72656163686564227d2c20226367726f75705f6d656d6f72795f7065616b5f6279746573223a206e756c6c2c2022636861726765645f6d656d6f72795f73746f705f6279746573223a203136313036313237333630302c2022636f6e74726f6c6c6572223a207b227374646572725f7461696c5f686578223a2022222c20227374646f75745f7461696c5f686578223a2022227d2c20226770755f6d61785f616c6c6f63617465645f6279746573223a20302c20226770755f6d65617375726564223a2066616c73652c20226770755f7065616b5f636f6d706c657465223a2066616c73652c202267756172645f736f75726365223a202270726f636573735f747265655f727373222c2022677561726465645f6d656d6f72795f73746f705f6279746573223a203136313036313237333630302c20226c6173745f7374616765223a207b227065616b5f7273735f6279746573223a203539333435373135322c20227365636f6e6473223a20313739353234393134382e343736323530342c20227374616765223a20226370755f636f6d706c657465227d2c20227065616b5f6367726f75705f63757272656e745f6279746573223a206e756c6c2c20227065616b5f677561726465645f6279746573223a203536373839383131322c20227065616b5f7273735f6279746573223a203539333435373135322c20227065616b5f747265655f7273735f6279746573223a203536373839383131322c202272657475726e636f6465223a20302c202273616d706c65645f6174223a20313739353234393134382e343736303634372c20227369676e616c223a206e756c6c2c20227374646572725f62797465735f72657461696e6564223a20302c20227374646572725f7461696c5f686578223a2022222c20227374646f75745f62797465735f72657461696e6564223a20302c20227374646f75745f7461696c5f686578223a2022227d2c202266726f7a656e223a202233373433383931663737383131353532393731303436313333336164303961393538386238303735653231373361373466616330303635646335643033383264222c20226a6f62223a2022313233222c20226d6f6465223a202263222c20227061636b616765223a202230663363643765336131643031373163636332616466633231643163653133373739373663326230373965346235346435353363666531616431616561356166222c2022706173736564223a2066616c73652c20227061796c6f6164223a202261333063373363666631326534326433336433633730653135376137313666636164343766383131396138656662336633633730363837303738346561336133222c20227365636f6e6473223a20302e3030393230353831383137363236393533312c2022736861323536223a202265643762666534363866383165303430326138353766333666626661346165366332623931376637303263346436353464303561353437616237643733333063227d\"}\n"
+    },
+    "pinned": {
+      "passed": true,
+      "returncode": 0,
+      "seconds": 16.051463592011714,
+      "result": {
+        "passed": true,
+        "python": "/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/19252904/e/bin/python",
+        "scenarios": {
+          "all_rows": {
+            "status": "complete",
+            "k": 8,
+            "path_ok": true,
+            "steps": 25,
+            "selects": 3,
+            "select_needed": true,
+            "merge_s": 0.00045116699766367674,
+            "passed": true,
+            "reason": "all_rows",
+            "prefills": 8,
+            "finishes": [
+              "call",
+              "eos",
+              "call",
+              "eos",
+              "call",
+              "eos",
+              "call",
+              "eos"
+            ],
+            "agreement": true,
+            "peak_rss_bytes": 952885248
+          },
+          "bf16_all_rows": {
+            "status": "complete",
+            "k": 8,
+            "path_ok": true,
+            "steps": 25,
+            "selects": 3,
+            "select_needed": true,
+            "merge_s": 0.0003792499774135649,
+            "passed": true,
+            "reason": "all_rows",
+            "prefills": 8,
+            "finishes": [
+              "call",
+              "eos",
+              "call",
+              "eos",
+              "call",
+              "eos",
+              "call",
+              "eos"
+            ],
+            "agreement": true,
+            "peak_rss_bytes": 976662528
+          },
+          "time_guard_k2": {
+            "status": "complete",
+            "k": 2,
+            "path_ok": true,
+            "steps": 25,
+            "selects": 1,
+            "select_needed": true,
+            "merge_s": 0.00017996100359596312,
+            "passed": true,
+            "reason": "time_guard",
+            "prefills": 2,
+            "finishes": [
+              "call",
+              "eos",
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ],
+            "agreement": true,
+            "peak_rss_bytes": 1002426368
+          },
+          "overrun_mid_decode": {
+            "status": "interrupted",
+            "k": 8,
+            "path_ok": true,
+            "steps": 4,
+            "selects": 1,
+            "select_needed": true,
+            "merge_s": 0.0003356240049470216,
+            "passed": true,
+            "reason": "all_rows",
+            "prefills": 8,
+            "finishes": [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              "call",
+              null
+            ],
+            "agreement": null,
+            "peak_rss_bytes": 1017393152
+          },
+          "overrun_before_prefill": {
+            "status": "interrupted",
+            "k": 0,
+            "path_ok": false,
+            "steps": 0,
+            "selects": 0,
+            "select_needed": true,
+            "merge_s": null,
+            "passed": false,
+            "reason": null,
+            "prefills": 0,
+            "finishes": [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ],
+            "agreement": null,
+            "peak_rss_bytes": 1024086016
+          }
+        },
+        "transformers": "5.19.0",
+        "torch": "2.13.0+cu130",
+        "overrun_fetch": {
+          "receipt_passed": false,
+          "return_bytes": 1398
+        },
+        "admission": {
+          "fits": 8,
+          "tight": 4,
+          "over": [
+            2,
+            {
+              "reason": "over_budget",
+              "need_s": 129.0,
+              "remaining_s": 10.0,
+              "step_estimate_s": 1.0,
+              "first_prefill_s": 50.0
+            }
+          ],
+          "constants": {
+            "reserve_s": 180.0,
+            "step_fraction": 0.02,
+            "rows": [
+              8,
+              6,
+              4,
+              2
+            ],
+            "address_space": {
+              "c": 204010946560
+            }
+          }
+        },
+        "memory": {
+          "cpu_stop_bytes": 161061273600,
+          "gpu_stop_bytes": 193273528320
+        }
+      },
+      "log_tail": "odel shards:   0%|          | 0/1 [00:00<?, ?it/s]\rWriting model shards: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:00<00:00, 697.19it/s]\n\rLoading weights:   0%|          | 0/73 [00:00<?, ?it/s]\rLoading weights: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 73/73 [00:00<00:00, 13942.81it/s]\n\rWriting model shards:   0%|          | 0/1 [00:00<?, ?it/s]\rWriting model shards: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:00<00:00, 816.33it/s]\n\rLoading weights:   0%|          | 0/73 [00:00<?, ?it/s]\rLoading weights: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 73/73 [00:00<00:00, 15094.12it/s]\n{\"a0\":\"7b226279746573223a20313339382c2022636f6465223a20302c2022657865637574696f6e223a207b2262617463685f6770755f6d61785f616c6c6f63617465645f6279746573223a20302c2022626f6f74223a207b2262756c6b5f6279746573223a20302c2022706173736564223a2066616c73652c2022726561736f6e223a2022626f6f745f6e6f745f72656163686564227d2c20226367726f75705f6d656d6f72795f7065616b5f6279746573223a206e756c6c2c2022636861726765645f6d656d6f72795f73746f705f6279746573223a203136313036313237333630302c2022636f6e74726f6c6c6572223a207b227374646572725f7461696c5f686578223a2022222c20227374646f75745f7461696c5f686578223a2022227d2c20226770755f6d61785f616c6c6f63617465645f6279746573223a20302c20226770755f6d65617375726564223a2066616c73652c20226770755f7065616b5f636f6d706c657465223a2066616c73652c202267756172645f736f75726365223a202270726f636573735f747265655f727373222c2022677561726465645f6d656d6f72795f73746f705f6279746573223a203136313036313237333630302c20226c6173745f7374616765223a207b227065616b5f7273735f6279746573223a20313032343038363031362c20227365636f6e6473223a20313739353234393136342e323339343530352c20227374616765223a20226370755f636f6d706c657465227d2c20227065616b5f6367726f75705f63757272656e745f6279746573223a206e756c6c2c20227065616b5f677561726465645f6279746573223a20313032323730353636342c20227065616b5f7273735f6279746573223a20313032343038363031362c20227065616b5f747265655f7273735f6279746573223a20313032323730353636342c202272657475726e636f6465223a20302c202273616d706c65645f6174223a20313739353234393136342e323339323535372c20227369676e616c223a206e756c6c2c20227374646572725f62797465735f72657461696e6564223a20302c20227374646572725f7461696c5f686578223a2022222c20227374646f75745f62797465735f72657461696e6564223a20302c20227374646f75745f7461696c5f686578223a2022227d2c202266726f7a656e223a202233373433383931663737383131353532393731303436313333336164303961393538386238303735653231373361373466616330303635646335643033383264222c20226a6f62223a2022313233222c20226d6f6465223a202263222c20227061636b616765223a202233376562663036643138663931303730353565643736343330316163396462366363623232336134306433356462363231663765393739343435636433626532222c2022706173736564223a2066616c73652c20227061796c6f6164223a202261333063373363666631326534326433336433633730653135376137313666636164343766383131396138656662336633633730363837303738346561336133222c20227365636f6e6473223a20302e30313031383231343232353736393034332c2022736861323536223a202266613862653332386337663732363033303661646664653238663136386361333264323637323332643631323462353366346531363735323935383662333064227d\"}\n"
+    }
+  },
+  "scope": "Tiny native hybrid export through the delivered runtime.run(c) CPU real-batch path; the full step-400 checkpoint runs only in the Orchard CPU preflight."
+}

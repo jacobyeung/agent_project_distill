@@ -1,4 +1,4 @@
-export TZ=UTC; X=/project/community/jjyeung/okh7/x_22c714e1; J=174085; L=$X/o/${J}_live
+export TZ=UTC; X=/project/community/jjyeung/okh7/x_22c714e1; J=174101; L=$X/o/${J}_live
 s=$(squeue -j $J -h -o '%T|%M|%N|%r' 2>/dev/null); [ -z "$s" ] && s="GONE|$(sacct -j $J -n -X -P -o State,ExitCode,Elapsed | head -1)"
 n=$(grep -o '"n": [0-9]*' $L/live.json 2>/dev/null | grep -o '[0-9]*'); lu=$(grep -o '"last": "[^"]*"' $L/live.json 2>/dev/null | cut -d'"' -f4)
 mem=$(awk '/^job /{j=1} /^step /{j=0} j&&/^memory.current/{getline;c=$1} j&&/^anon /{a=$2} j&&/^shmem /{h=$2} j&&/^file /{f=$2} j&&/^file_dirty/{d=$2} END{printf "cur=%.1fG anon=%.1fG shm=%.1fG file=%.1fG dirty=%.1fG",c/2^30,a/2^30,h/2^30,f/2^30,d/2^30}' $L/mem.txt 2>/dev/null)

@@ -1,0 +1,34 @@
+
+
+# ---- test harness only: deterministic stand-in selected by an environment flag ----
+import os as _hos
+if _hos.environ.get('FWT_STUB')=='1':
+    class FwtCustom(Exception):
+        def __init__(self,a,b):
+            super().__init__(f'{a}/{b}')
+    def first_batch_check(cfg, ranks, out_path, steps=1, device='cpu', progress_dir=None, rank_limit=None, encode_only=False, start_step=0):
+        import json as _j,resource as _r,sys as _s,tempfile as _t
+        from pathlib import Path as _P
+        _preloaded='torch' in _s.modules
+        import torch as _torch
+        from student_pilot import r1_persisted as _p
+        m=_hos.umask(0o077);_hos.umask(m)
+        info=dict(pid=_hos.getpid(),ppid=_hos.getppid(),cvd=_hos.environ.get('CUDA_VISIBLE_DEVICES'),
+            rlimit_as=list(_r.getrlimit(_r.RLIMIT_AS)),cuda_initialized=_torch.cuda.is_initialized(),
+            torch_in_modules_at_stub_entry=_preloaded,parent_marker=hasattr(_torch,'_fwt_marker'),
+            threads=_torch.get_num_threads(),cwd=_hos.getcwd(),tempdir=_t.tempdir,umask=oct(m),
+            TMPDIR=_hos.environ.get('TMPDIR'),job_marker=_hos.environ.get('FWT_JOB'),
+            scope=dict(_p._paths.get()),proof=_p._proof.get(),sys_path_head=_s.path[:3],
+            args=dict(ranks=list(ranks),out=str(out_path),steps=steps,device=device,start_step=start_step))
+        _P(_hos.environ['FWT_INFO']).write_text(_j.dumps(info))
+        kind=_hos.environ.get('FWT_RAISE','')
+        if kind=='value':raise ValueError('stub failure A')
+        if kind=='key':raise KeyError('missing-key')
+        if kind=='os':raise OSError(2,'No such file or directory','/nonexistent/x')
+        if kind=='runtime':raise RuntimeError('No CUDA GPUs are available')
+        if kind=='custom':raise FwtCustom('left','right')
+        if kind=='exit':_hos._exit(7)
+        records=[dict(rank=r,stream=s,loss=round(0.25*(r+1)+0.01*i+start_step/1000,6),finite=True)
+                 for r in ranks for i,s in enumerate(('alpha','beta'))]
+        _P(out_path).write_text(_j.dumps(dict(records=records),sort_keys=True))
+        return records

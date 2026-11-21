@@ -1,0 +1,163 @@
+{
+  "passed": true,
+  "python": "/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/19252904/e/bin/python",
+  "scenarios": {
+    "all_rows": {
+      "status": "complete",
+      "k": 8,
+      "path_ok": true,
+      "steps": 25,
+      "selects": 3,
+      "select_needed": true,
+      "merge_s": 0.00029155801166780293,
+      "passed": true,
+      "reason": "all_rows",
+      "prefills": 8,
+      "finishes": [
+        "call",
+        "eos",
+        "call",
+        "eos",
+        "call",
+        "eos",
+        "call",
+        "eos"
+      ],
+      "agreement": true,
+      "peak_rss_bytes": 947228672
+    },
+    "bf16_all_rows": {
+      "status": "complete",
+      "k": 8,
+      "path_ok": true,
+      "steps": 25,
+      "selects": 3,
+      "select_needed": true,
+      "merge_s": 0.0002904660068452358,
+      "passed": true,
+      "reason": "all_rows",
+      "prefills": 8,
+      "finishes": [
+        "call",
+        "eos",
+        "call",
+        "eos",
+        "call",
+        "eos",
+        "call",
+        "eos"
+      ],
+      "agreement": true,
+      "peak_rss_bytes": 969433088
+    },
+    "time_guard_k2": {
+      "status": "complete",
+      "k": 2,
+      "path_ok": true,
+      "steps": 25,
+      "selects": 1,
+      "select_needed": true,
+      "merge_s": 0.00020884297555312514,
+      "passed": true,
+      "reason": "time_guard",
+      "prefills": 2,
+      "finishes": [
+        "call",
+        "eos",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "agreement": true,
+      "peak_rss_bytes": 995942400
+    },
+    "overrun_mid_decode": {
+      "status": "interrupted",
+      "k": 8,
+      "path_ok": true,
+      "steps": 4,
+      "selects": 1,
+      "select_needed": true,
+      "merge_s": 0.00028782201115973294,
+      "passed": true,
+      "reason": "all_rows",
+      "prefills": 8,
+      "finishes": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        "call",
+        null
+      ],
+      "agreement": null,
+      "peak_rss_bytes": 1008025600
+    },
+    "overrun_before_prefill": {
+      "status": "interrupted",
+      "k": 0,
+      "path_ok": false,
+      "steps": 0,
+      "selects": 0,
+      "select_needed": true,
+      "merge_s": null,
+      "passed": false,
+      "reason": null,
+      "prefills": 0,
+      "finishes": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "agreement": null,
+      "peak_rss_bytes": 1017405440
+    }
+  },
+  "transformers": "5.19.0",
+  "torch": "2.13.0+cu130",
+  "overrun_fetch": {
+    "receipt_passed": false,
+    "return_bytes": 1380
+  },
+  "admission": {
+    "fits": 8,
+    "tight": 4,
+    "over": [
+      2,
+      {
+        "reason": "over_budget",
+        "need_s": 129.0,
+        "remaining_s": 10.0,
+        "step_estimate_s": 1.0,
+        "first_prefill_s": 50.0
+      }
+    ],
+    "constants": {
+      "reserve_s": 180.0,
+      "step_fraction": 0.02,
+      "rows": [
+        8,
+        6,
+        4,
+        2
+      ],
+      "address_space": {
+        "c": 204010946560
+      }
+    }
+  },
+  "memory": {
+    "cpu_stop_bytes": 161061273600,
+    "gpu_stop_bytes": 193273528320
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "passed": false,
+  "tests": 4,
+  "delivery": {
+    "bytes": 4310812,
+    "sha256": "210bab49e44f3390265bce1900749af87fb93cd586c73b693d5d942af376c763"
+  },
+  "returncode": 1,
+  "seconds": 10.779538457019953,
+  "interpreter": "/scratch/jjyeung/b01ec87a6f29b/d/v/py",
+  "namespace": "production constructor; system bwrap; extracted pinned archives only",
+  "cuda_visible_devices": "",
+  "package_doubles": [],
+  "work": "tmp/pinned/ba95facb393c24076984af94c8b11258a",
+  "stderr_tail": "/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/19252904/e/lib/python3.12/site-packages/transformers/loss/loss_for_object_detection.py:27: UserWarning: A NumPy version >=1.23.5 and <2.3.0 is required for this version of SciPy (detected version 2.3.5)\n  from scipy.optimize import linear_sum_assignment\n[transformers] `causal_conv1d_fn` is falling back to its reference PyTorch implementation because `causal_conv1d` is not installed. This is correct but much slower; install `causal_conv1d` for the optimized kernel.\n[transformers] `chunk_gated_delta_rule` is falling back to its reference PyTorch implementation because `flash-linear-attention` is not installed. This is correct but much slower; install `flash-linear-attention` for the optimized kernel.\n[transformers] `causal_conv1d_update` is falling back to its reference PyTorch implementation because `causal_conv1d` is not installed. This is correct but much slower; install `causal_conv1d` for the optimized kernel.\n[transformers] `fused_recurrent_gated_delta_rule` is falling back to its reference PyTorch implementation because `flash-linear-attention` is not installed. This is correct but much slower; install `flash-linear-attention` for the optimized kernel.\n",
+  "result": {
+    "passed": false,
+    "python": "/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/19252904/e/bin/python",
+    "transformers": "5.19.0",
+    "transformers_file": "/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/19252904/e/lib/python3.12/site-packages/transformers/__init__.py",
+    "torch": "2.13.0+cu130",
+    "cache_utils": "/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/19252904/e/lib/python3.12/site-packages/transformers/cache_utils.py",
+    "error": "AttributeError: 'dict' object has no attribute 'shape'",
+    "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/lever4/rev_2d19/m/tmp/pinned/ba95facb393c24076984af94c8b11258a/w.py\", line 91, in <module>\n    plain = scenario('eos_cap', {})\n            ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/lever4/rev_2d19/m/tmp/pinned/ba95facb393c24076984af94c8b11258a/w.py\", line 82, in scenario\n    batched.generate(model, processor, rows, probe, lambda i, r: actual.__setitem__(i, r), metrics=metrics)\n  File \"/scratch/jjyeung/orch_n30/lever4/rev_2d19/m/tmp/pinned/ba95facb393c24076984af94c8b11258a/p/10.py\", line 23, in generate\n  File \"/scratch/jjyeung/orch_n30/lever4/rev_2d19/m/tmp/pinned/ba95facb393c24076984af94c8b11258a/p/c/tree/xf397718cbadfbf27/carrier_c1_batch_decode.py\", line 43, in merge_caches\n  File \"/scratch/jjyeung/orch_n30/lever4/rev_2d19/m/tmp/pinned/ba95facb393c24076984af94c8b11258a/p/c/tree/xf397718cbadfbf27/carrier_c1_batch_decode.py\", line 43, in <genexpr>\nAttributeError: 'dict' object has no attribute 'shape'\n"
+  }
+}

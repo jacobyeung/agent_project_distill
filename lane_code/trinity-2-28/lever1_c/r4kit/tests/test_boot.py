@@ -1,6 +1,7 @@
 """Pre-bulk boot through prepare, production launch, finalize and real fetch."""
 import importlib.util
 import ast
+import hashlib
 import io
 import json
 import os
@@ -105,7 +106,16 @@ for _name in %r:
         pins = json.loads(files['0.json'])
         pins['files'].update({n:B.pin(files[n]) for n in ('2.json','8.bin','7.py','0.tgz')})
         files['0.json'] = B.jd(pins)
-        for name, raw in files.items(): (p/name).write_bytes(raw)
+        shared = ROOT/'out/s'/('b'+hashlib.sha256(files['8.bin']).hexdigest()[:16])
+        if not shared.exists():
+            staging = ROOT/'out/s'/('t'+uuid.uuid4().hex); staging.mkdir(parents=True)
+            (staging/'8.bin').write_bytes(files['8.bin']); (staging/'8.bin').chmod(0o400)
+            try: staging.rename(shared)
+            except OSError: pass
+        for name, raw in files.items():
+            # The unchanged read-only source blob is a hard link to one shared copy.
+            if name == '8.bin' and raw == FILES['8.bin']: os.link(shared/'8.bin', p/name)
+            else: (p/name).write_bytes(raw)
         (p/'a').mkdir()
         current = dict(passed=True, package=ctl.sha(p/'0.json'), payload=ctl.sha(p/'0.tgz'), frozen=cfg['frozen'])
         C.store(p/'a/4.json', current)

@@ -15,7 +15,7 @@
   "batches": 73,
   "batching_assumption": "An eight-row token forward costs twice a serial token forward. This GPU estimate is unmeasured; CPU timing is not used as a GPU speed estimate.",
   "boot": {
-    "archive_and_code_bytes": 8614229128,
+    "archive_and_code_bytes": 8614232000,
     "archive_bytes": 8612076000,
     "closure": {
       "aliases": {
@@ -172,7 +172,7 @@
       "trace": "out/WORKER_IMPORT_TRACE.json",
       "traced_modules": 3324
     },
-    "code_archive_bytes": 2153128,
+    "code_archive_bytes": 2156000,
     "environment_expanded_bytes": 8386282204,
     "exclusions": {
       "PIL._typing": "Typing-only PIL helper: pinned PIL/_typing.py:8 unconditionally imports numbers._IntegralLike, which is absent at runtime. PIL/Image.py:207-214 and ImageFont.py:45-52 guard this helper with TYPE_CHECKING=False; local Pillow guards the numbers import instead.",
@@ -363,8 +363,8 @@
     "interpreter_prefix": "sj/uv-python/cpython-3.12.13-linux-x86_64-gnu",
     "interpreter_source_bytes": 1621422080,
     "local_pre_bulk_seconds": [
-      4.207063767011277,
-      4.249195221986156
+      4.159510797006078,
+      4.57941449599457
     ],
     "overlay_expanded_bytes": 143782645,
     "pinned_replay": {
@@ -383,9 +383,9 @@
       },
       "passed": true,
       "returncode": 0,
-      "seconds": 10.286859165003989
+      "seconds": 10.503572542977054
     },
-    "pre_bulk_bytes": 8719178690,
+    "pre_bulk_bytes": 8719181562,
     "production_seconds": null,
     "receipt": "execution.boot",
     "runtime_groups": [
@@ -395,8 +395,8 @@
   "caveat": "Full-checkpoint GPU numerical parity, batch memory use, speed and ext4 sync/supervisor overhead are unmeasured. Slow openings/staging can still yield a partial return with no gate verdict.",
   "code_pins": {
     "src/batch.py": {
-      "bytes": 14373,
-      "sha256": "2b8e10017bf9fd10c749a4344d67fb3c6cf2a827b4e926b2f5ac5ed1c47732d1"
+      "bytes": 17214,
+      "sha256": "d891151f1ad8cf88a1925c967c2a85e814d7945645be89472d912b7caa918f1f"
     },
     "src/control.py": {
       "bytes": 25800,
@@ -404,11 +404,11 @@
     },
     "src/monitor.py": {
       "bytes": 10024,
-      "sha256": "1c914c666c1a8d1a15f6772844c45d7a24a7671008c1fd154d961e1de77f46cb"
+      "sha256": "fcd4711eb16796e8978837ee370329a73d0453ebd9f6ed79219a756679af5536"
     },
     "src/runtime.py": {
-      "bytes": 16255,
-      "sha256": "031e8177d461514e6e8c8185d20209798c9055868cda7169d37b03fcebddfd58"
+      "bytes": 22375,
+      "sha256": "366233001a36ca1a8f811c8736e415f8b277865d72c7c44cc74011dbfd77cf0c"
     }
   },
   "controller_subprocess_cutoff_s": 1730,
@@ -416,15 +416,45 @@
   "cpu_preflight": {
     "boot_batch_selfcheck": "Both modes, before bulk staging: delivered merge_caches/select_cache_rows on a tiny native hybrid model in the pinned interpreter, under 1 second (execution.boot.batch_selfcheck)",
     "diagnostic": "DEBUG.md",
-    "guarded_memory_stop_bytes": 118111600640,
+    "guarded_memory_stop_bytes": 161061273600,
     "production_measured": false,
+    "real_batch": {
+      "admission": "after row 1 prefill p: largest k in 8,6,4,2 with 1.1*(k-1)*p + 64*0.02*p + 10 <= soft end - now; otherwise k=2 (over_budget)",
+      "bench": "out/CPU_BENCH.json: real Qwen3.5-9B architecture, random bf16 weights, pinned torch/transformers, 16 EPYC 9224 threads; vision timed once and doubled for the private depth encoder",
+      "controller_end_s": 1730,
+      "cpu_checks_s": 39,
+      "decode_step_s": 0.5445116839837283,
+      "expected_k8_end_s": 1034.7668421270791,
+      "expected_with_serial_end_s": 1181.8802569176187,
+      "job_limit_s": 1800,
+      "max_row_prefill_for_k2_s": 279.8816568047337,
+      "max_row_prefill_for_k8_s": 94.78957915831663,
+      "memory": {
+        "address_space_bytes": 204010946560,
+        "bench_peak_rss_bytes": 21734875136,
+        "expected": "bf16 checkpoint 18.8 GB plus 2.8 GB heads resident; eight-row full-attention KV about 1.3 GB at 4,730 tokens; loading transient as in the GPU job (43.3 GB host peak)",
+        "gpu_job_host_peak_rss_bytes": 43272892416,
+        "guarded_stop_bytes": 161061273600,
+        "request": "200G"
+      },
+      "model_load_s": 100,
+      "passed_rule": "merge ran, at least one decode step, and a row selection whenever rows finished at different steps, with no error; a soft-stop after these is a partial pass",
+      "prompt_preparation_s": 15,
+      "reserve_s": 180,
+      "row_prefill_s": 51.98976179401507,
+      "serial_step_s": 0.3369835250196047,
+      "soft_end_s": 1540,
+      "staging_s": 420,
+      "staging_source": "174086 CPU preflight staging (about 7 minutes)",
+      "worker_end_s": 1720
+    },
     "staging_filesystem": "ext4",
-    "tensors": "meta shapes only; processor and two CPU prompt batches",
-    "worker_address_space_limit_bytes": 34359738368
+    "tensors": "meta shape proof, processor and two prompt checks, then the full bf16 step-400 checkpoint resident on CPU for batch 0",
+    "worker_address_space_limit_bytes": 204010946560
   },
   "delivery": {
-    "bytes": 4318129,
-    "sha256": "d18d1524465ce7cb6aaaeece1ba9fbb19672dc5b6ed626ca9de1e26a513f42d9"
+    "bytes": 4323948,
+    "sha256": "dd819d503161c64c30870b17a502a4f857a425015386fe0ca5e4a274446b1a31"
   },
   "effective_worker_cutoff_from_controller_start_s": 1720,
   "evidence": {
@@ -462,7 +492,7 @@
     ]
   },
   "memory_guard": {
-    "cpu_stop_bytes": 118111600640,
+    "cpu_stop_bytes": 161061273600,
     "fallback": "process-tree RSS when memory.stat/current is unavailable",
     "formula": "max(0, memory.current - min(active_file + inactive_file, max(0, file - shmem)))",
     "gpu_stop_bytes": 193273528320,
