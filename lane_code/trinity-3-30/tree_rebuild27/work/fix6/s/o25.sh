@@ -1,0 +1,3 @@
+export TZ=UTC; date -u +%TZ
+timeout 50 srun --overlap --jobid 174134 -N1 -n1 bash -c 'cd /tmp/a15_dbg_174134; echo "== postb"; cat log/postb.log; echo "== h log"; tail -c 2500 log/h_n2k.log; echo; echo "== rv log"; tail -c 1500 log/rv_n2k.log 2>/dev/null; echo; ls -la live n2k n2k/p | cut -c1-90; echo "== f"; python3 -I -B -c "import json;d=json.load(open(\"n2/p/q/f.json\"));r=d[\"records\"];import collections;print(len(r),dict(collections.Counter(x[\"stream\"] for x in r)),all(x[\"finite\"] for x in r))"; echo "== evb"; tail -n 1 n2/evb.jsonl | cut -c1-300; ls -la n2/p/q/p/frames_4608*/r | tail -2 | cut -c1-100'
+squeue -j 174134 -h -o "%i %T %M %N"

@@ -1,0 +1,3 @@
+export TZ=UTC; date -u +%TZ
+timeout 50 srun --overlap --jobid 174134 -N1 -n1 bash -c 'cd /tmp/a15_dbg_174134; echo "== postc"; cat log/postc.log | cut -c1-400; for f in d5.json WAITING_REVIEW.json REVIEW_REFUSED.json; do [ -e live2/$f ] && echo "$f: $(cut -c1-400 live2/$f)"; done; tail -n 2 log/rv2.log | cut -c1-200; echo "== eva"; grep -c . n2/eva.jsonl; tail -n 1 n2/eva.jsonl | cut -c1-900; ls -la n2/p/q/p/frames_4608*/r n2/p/q/p/frames_4608* | cut -c1-100; ps -u $(id -un) -o pid,etime,pcpu,args --width 220 | grep -E "c4.py|rv.py" | grep -v grep | cut -c1-40,120-200'
+squeue -j 174134 -h -o "%i %T %M %N"

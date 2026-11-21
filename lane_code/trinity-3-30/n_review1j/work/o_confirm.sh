@@ -1,0 +1,4 @@
+X=/project/community/jjyeung/okh7/x_22c714e1; TZ=UTC date +%TZ
+cd $X/n < /dev/null && sha256sum SHA256SUMS.txt BUILD.json b/a.py b/cn.py b/sc.py b/pl.py b/pf.py b/cs.py b/sv.py k/j.json k/c.json k/n.json k/p.json k/y.json k/t_e047002134f979bd.tar < /dev/null; nice -n 10 sha256sum -c --quiet SHA256SUMS.txt < /dev/null; echo "check_rc=$? listed=$(wc -l < SHA256SUMS.txt) files=$(find . -type f < /dev/null | wc -l) pycache=$(find . -name __pycache__ < /dev/null | wc -l)"
+find . -type f < /dev/null | sed 's|^\./||' | sort > /tmp/n_rv1j_f; awk '{print $2}' SHA256SUMS.txt | sort > /tmp/n_rv1j_l; echo "unlisted: $(comm -23 /tmp/n_rv1j_f /tmp/n_rv1j_l | tr '\n' ' ') missing: $(comm -13 /tmp/n_rv1j_f /tmp/n_rv1j_l | tr '\n' ' ')"
+cd $X; sha256sum jn7.sh u/a7682dae68defb91ed5e19120e8f53c149016d70728c417c817c6c408020a22a < /dev/null; TZ=UTC date +%TZ

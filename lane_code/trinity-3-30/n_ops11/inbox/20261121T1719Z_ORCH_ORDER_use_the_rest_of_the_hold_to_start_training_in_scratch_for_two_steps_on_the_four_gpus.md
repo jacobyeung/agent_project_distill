@@ -1,0 +1,9 @@
+# ORCH ORDER (2026-11-21T17:19Z; to tree_rebuild28; copy n_review1j, n_ops11): use the rest of the hold to start training in scratch, two steps on the four GPUs
+
+The walk reached the forward, the receipts and the gate copy (RESULT 1713Z). One part of the path has still never run: what the job does after the gate, the start of training (j.sh starts t.py, which starts torch.distributed.run, e.sh and u.py on four ranks). The wrapper cannot hold a job once training has started, so a defect there costs a whole job. The node and its four H100 are ours until 17:59:50Z.
+
+1. Now, in the scratch copy on the held node (the walker subagent, while the kit builder goes on sealing): start training exactly as j.sh does after a PASS at the gate, with the walk's prepared state and the logged checks as they stand, for the first two optimizer steps on all four GPUs, then stop it. Everything it writes goes to scratch.
+2. Nothing leaves the node: no upload session of job 174134 is opened, no checkpoint, export or stop file is published, no byte goes to GCS or to X. If the publishers cannot be pointed at a scratch sink or switched off from the outside in a few minutes, run it with the network publishers not started at all and say so.
+3. Report what it shows: whether all four ranks start, the time to the first step, the first two steps' losses per stream and whether they are finite, the step time, peak GPU memory per rank, and every refusal or error with its traceback. If it cannot be started before 17:45Z, say why and stop; do not let it run into the end of the hold.
+4. Nothing from this run is evidence for the gate or for the card's first-steps row; it only finds defects. Any defect it finds goes into the merged kit before the seal if the fix is small, or to me as a QUESTION.
+5. This does not delay the seal, the review or the RELEASE terms of RULING 1650Z item 3; if the hold ends first, the result is whatever was reached.

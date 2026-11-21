@@ -1,0 +1,217 @@
+--- a/b/cs.py
++++ b/b/cs.py
+@@ -70,15 +70,20 @@
+ def evaluate(cfg,stream,entries,admitted,classify):
+     from student_pilot.row_removals import row_keys
+     from sv import STATUSES
+-    counts=dict.fromkeys((*STATUSES,'source','admitted','unresolved'),0)
++    counts=dict.fromkeys((*STATUSES,'source','admitted','unresolved','scene_level','dataset_level'),0)
+     counts['source']=sum(1 for _ in source_rows(entries))
+-    hits=[];errors=[];protected_rows=0
++    hits=[];errors=[];protected_rows=0;how={};datasets={}
+     # Independent complete census; never sample, and never feed summaries to native.
+     for row in admitted():
+         counts['admitted']+=1
+-        try:flags=classify(row,stream)
++        detail={}
++        try:flags=classify(row,stream,detail)
+         except ValueError as error:
+             errors.append(str(error));counts['unresolved']+=1;flags={}
++        if flags:
++            counts[detail['level']+'_level']+=1
++            how[detail['how']]=how.get(detail['how'],0)+1
++            if detail['level']=='dataset':datasets[detail['dataset']]=datasets.get(detail['dataset'],0)+1
+         for name,hit in flags.items():counts[name]+=int(hit)
+         if any(flags.values()):
+             protected_rows+=1
+@@ -87,7 +92,11 @@
+             hits.extend(native_keys)
+     keys=sorted(set(hits))
+     result=dict(stream=stream,source_rows=counts['source'],admitted_rows=counts['admitted'],
+-                protected_rows=protected_rows,room_functions='Rooms.status/room, Binding.room, Withheld')
++                protected_rows=protected_rows,room_functions='Rooms.status/room, Binding.room, Withheld, alias_of inverse',
++                resolution=dict(sorted(how.items())),
++                # Rows certified by dataset only: their dataset is named by no scene list and no protected room set.
++                dataset_level=dict(rows=counts['dataset_level'],datasets=dict(sorted(datasets.items())),
++                                   lists_checked=['dev_scene_exclusions','benchmark_scene_exclusions','exclusions','R0','K1_heldout','withheld']))
+     if protected_rows:errors.insert(0,'R1_CENSUS_PROTECTED_ADMITTED:'+stream)
+     return dict(result=result,counts=counts,refusals=list(dict.fromkeys(errors))),keys
+ 
+--- a/b/sv.py
++++ b/b/sv.py
+@@ -2,10 +2,15 @@
+ from pathlib import Path
+ import sys
+ import hashlib
++import json
++import re
+ sys.path.insert(0,str(Path(__file__).resolve().parent))
+ from z import load
+ 
+ STATUSES = ("benchmark","dev","R0","withheld","K1_heldout","official")
++# Streams whose rows name scenes only by division token (carrier_c1_routing.alias_of).
++TOKEN_STREAMS = ("pose",)
++CANONICAL = ("scannet","scannetpp","scannetppv2","arkitscenes")
+ 
+ 
+ def classifier(cfg):
+@@ -13,7 +18,7 @@
+     from student_pilot.s1_exclusions import Exclusions,dev_names,benchmark_names
+     from student_pilot.r1_rooms import Rooms
+     from student_pilot.r2_withheld import Withheld,room
+-    from student_pilot.carrier_c1_routing import load_exclusions,alias_key,excluded
++    from student_pilot.carrier_c1_routing import load_exclusions,alias_key,excluded,alias_of
+     authority=Rooms(cfg["r1_training"]["room_authority"])
+     rule=Exclusions(cfg["dev_scene_exclusions"],cfg["benchmark_scene_exclusions"])
+     draw=Withheld()
+@@ -31,10 +36,69 @@
+     lists={"benchmark":set().union(*(keys(n) for n in benchmark_names(cfg["benchmark_scene_exclusions"]))),
+            "dev":set().union(*(keys(n) for n in dev_names(cfg["dev_scene_exclusions"])))}
+     vqa_binding=None
+-    def classify(row,stream):
++    tokens=None
++    def token_map():
++        # Pose rows name a scene only by its division token dN/v<hex> = alias_of(canonical). Invert
++        # alias_of over every canonical scene the pinned room authority (and the direction-twin
++        # alias list), the scene lists and the protected room sets name; never read prepare's matches.
++        nonlocal tokens
++        if tokens is not None:return tokens
++        found=set()
++        def collect(value):
++            if isinstance(value,dict):
++                for k,v in value.items():collect(k);collect(v)
++            elif isinstance(value,list):
++                for v in value:collect(v)
++            elif isinstance(value,str) and value.split('/',1)[0] in CANONICAL and value.count('/')==1 and all(value.split('/')):
++                found.add(value)
++        pins=dict(cfg["r1_training"]["room_authority"])
++        twins=cfg["r1_training"].get("direction_twins")
++        if twins:pins["twin_aliases"]=twins["aliases"]
++        def read(pin):
++            try:return json.loads(pinned(pin).read_bytes())
++            except (ValueError,UnicodeDecodeError):return None
++        for key in sorted(pins):collect(read(pins[key]))
++        collect(list(authority.aliases.values()))
++        collect(['arkitscenes/'+v for v in authority.visits])
++        for name in ("dev_scene_exclusions","benchmark_scene_exclusions","exclusions"):
++            if cfg.get(name):collect(read(cfg[name]))
++        rooms=authority.r0|authority.k1|draw.aliases
++        collect(sorted(rooms))
++        collect([r+'_%02d'%i for r in sorted(rooms) if r.startswith('scannet/scene') and re.fullmatch(r'scannet/scene\d+',r) for i in range(100)])
++        tokens={}
++        for canonical in sorted(found):
++            try:token=rule.key(alias_of(canonical))
++            except (KeyError,ValueError):continue
++            # scannetpp/x and scannetppv2/x are one scene with one token; any other clash is a conflict.
++            if tokens.setdefault(token,canonical)!=canonical and alias_key(tokens[token] or '')!=alias_key(canonical):tokens[token]=None
++        return tokens
++    def token_canonical(row):
++        try:ids=rule.identifiers(row)
++        except ValueError:return None,'unresolved'
++        found={token_map().get(k) for k in ids if k in token_map()}
++        if None in found:raise ValueError('R1_CENSUS_TOKEN_CONFLICT')
++        if len(found)>1:raise ValueError('R1_CENSUS_TOKEN_CONFLICT')
++        return (found.pop(),'division_token') if found else (None,'unresolved')
++    named=None
++    def listed_dataset(row):
++        # A dataset any list or protected room set names; its rows need a scene-level verdict.
++        nonlocal named
++        if named is None:
++            named=set()
++            for value in (*lists['benchmark'],*lists['dev'],*official,*authority.r0,*authority.k1,*draw.aliases):
++                if isinstance(value,str) and '/' in value:
++                    head=value.split('/',1)[0]
++                    try:named.add(rule.dataset(head))
++                    except Exception:named.add(head.casefold())
++        try:ds=rule.dataset(row.get('dataset'))
++        except Exception:return True
++        return ds in named
++    def classify(row,stream,detail=None):
+         nonlocal vqa_binding
+         status,canonical,how=authority.status(row)
+-        physical=None
++        physical=None;level='scene'
++        if stream in TOKEN_STREAMS and not canonical:
++            canonical,how=token_canonical(row)
+         if stream=='vqa' and status=='unresolved' and cfg.get('r1_training',{}).get('direction_twins'):
+             from student_pilot.r1_direction_twins import Binding
+             if vqa_binding is None:vqa_binding=Binding(cfg)
+@@ -54,7 +118,11 @@
+         except ValueError:
+             if not candidates:raise
+         names.update(rule.key(room_name) for room_name in physical_rooms)
+-        if not physical_rooms:raise ValueError('R1_CENSUS_ROOM_UNRESOLVED:'+stream)
++        if not physical_rooms:
++            # Dataset-level verdict only for a dataset no list and no protected room set names.
++            if stream in TOKEN_STREAMS and not candidates and not listed_dataset(row):level='dataset'
++            else:raise ValueError('R1_CENSUS_ROOM_UNRESOLVED:'+stream)
++        if detail is not None:detail.update(level=level,how=how,dataset=str(row.get('dataset')))
+         return dict(benchmark=bool(names & lists['benchmark']),dev=bool(names & lists['dev']),
+                     R0=bool(physical_rooms & authority.r0),withheld=draw.touches(dict(row,dataset=row.get('dataset',''),scene=row.get('scene','')),dict(names=sorted(names))),
+                     K1_heldout=bool(physical_rooms & authority.k1),official=excluded(official,*(alias_key(n) for n in names)))
+# separate hunk: b/pf.py against W/w32frm/n_go b/pf.py (5760c7df), since fix11 also edits b/pf.py
+--- a/b/pf.py
++++ b/b/pf.py
+@@ -5,7 +5,8 @@
+ 
+ First, run the tree's own receipt predicates on the configured stream receipts, so that a receipt
+ the preparation would refuse is refused here, by name, before the long steps. After staging, frames()
+-checks one frame pin per stream source against the request's frame roots."""
++checks one frame pin per stream source against the request's frame roots, and census() classifies the
++first 100 rows of every stream source with the post-condition's classifier."""
+ from pathlib import Path
+ 
+ 
+@@ -88,9 +89,52 @@
+         if not any(path.is_relative_to(root) for root in resolved) or not path.is_file():
+             raise ValueError('R1_FRAME_ROOT_REFUSED:%s:%s' % (label, path))
+         checked[label] = str(path)
++    census(cfg)
+     return checked
+ 
+ 
++def census(cfg, limit=100):
++    """The post-condition's classifier (b/sv.py, which b/cs.py runs on every admitted row after the
++    forward) on the first `limit` rows of each stream source right after staging, pose rows taken among
++    those the mix selects: a row it cannot place refuses here, by name. Flags are not judged here."""
++    import json
++    import sqlite3
++    from student_pilot.r1_persisted import relocated
++    from sv import classifier
++    classify = classifier(cfg)
++    def read(pin):
++        return json.loads(Path(relocated(pin)).read_text())
++    counts = {}
++    for name, pin in sorted(cfg['streams'].items()):
++        if name == 'mdg':
++            continue
++        value = read(pin)
++        parts = ([(name + '/' + str(i), part['receipt'], part.get('frame_prefix'))
++                  for i, part in enumerate(value['sources']) if part.get('kind') == 'rows']
++                 if value.get('schema') == 'c1-pose-mix-v1' else [(name, pin, None)])
++        for label, receipt, prefix in parts:
++            database = Path(relocated(read(receipt)['database']))
++            seen = 0
++            with sqlite3.connect(database.as_uri() + '?mode=ro', uri=True) as connection:
++                for (text,) in connection.execute('SELECT row FROM rows ORDER BY i'):
++                    row = json.loads(text)
++                    frames = (row.get('student_input') or {}).get('frames') or []
++                    if prefix is not None and not (frames and all(isinstance(f, dict) and str(f.get('path', '')).startswith(prefix)
++                                                                  for f in frames)):
++                        continue
++                    try:
++                        classify(row, name)
++                    except ValueError as error:
++                        raise ValueError('R1_CENSUS_PREFLIGHT_REFUSED:%s:row%d:%s' % (label, seen, error)) from error
++                    seen += 1
++                    if seen >= limit:
++                        break
++            if not seen:
++                raise ValueError('R1_CENSUS_PREFLIGHT_NO_ROWS:' + label)
++            counts[label] = seen
++    return counts
++
++
+ def check(cfg, manifest_pin):
+     receipts(cfg)
+     from student_pilot.p3_provenance import load, pinned, sha256

@@ -1,0 +1,24 @@
+{
+ "U1_all_sources_under_roots (expect PASS, pose/0 sample honours frame_prefix)": "PASS {\"pointing\": \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w33n/futmp/root1/k6tk/a.png\", \"pose/0\": \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w33n/futmp/root1/k7pd/p.png\", \"pose/1\": \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w33n/futmp/root1/k6tk/a.png\", \"vqa\": \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w33n/futmp/root2/u/b.png\"}",
+ "U2_pointing_frame_outside_roots (expect R1_FRAME_ROOT_REFUSED:pointing)": "REFUSE R1_FRAME_ROOT_REFUSED:pointing:/scratch/jjyeung/orch_n30/tree_rebuild10_w/w33n/futmp/elsewhere/k6tk/o.png",
+ "U3a_no_roots (expect R1_FRAME_ROOT_MISSING)": "REFUSE R1_FRAME_ROOT_MISSING:",
+ "U3b_root_absent (expect R1_FRAME_ROOT_MISSING)": "REFUSE R1_FRAME_ROOT_MISSING:/scratch/jjyeung/orch_n30/tree_rebuild10_w/w33n/futmp/root1,/scratch/jjyeung/orch_n30/tree_rebuild10_w/w33n/futmp/nope",
+ "U4_database_absent (expect R1_FRAME_PREFLIGHT_DATABASE_MISSING:vqa)": "REFUSE R1_FRAME_PREFLIGHT_DATABASE_MISSING:vqa",
+ "U5_no_frame_rows (expect R1_FRAME_PIN_MISSING:vqa)": "REFUSE R1_FRAME_PIN_MISSING:vqa",
+ "U6_frame_file_missing_under_root (expect R1_FRAME_ROOT_REFUSED:vqa)": "REFUSE R1_FRAME_ROOT_REFUSED:vqa:/scratch/jjyeung/orch_n30/tree_rebuild10_w/w33n/futmp/root2/u/missing.png",
+ "U7_symlink_under_root_to_outside (expect R1_FRAME_ROOT_REFUSED:vqa)": "REFUSE R1_FRAME_ROOT_REFUSED:vqa:/scratch/jjyeung/orch_n30/tree_rebuild10_w/w33n/futmp/elsewhere/k6tk/o.png",
+ "U8_prefix_with_no_matching_row (expect R1_FRAME_PIN_MISSING:pose/0)": "REFUSE R1_FRAME_PIN_MISSING:pose/0",
+ "census_stubbed": true,
+ "all_as_expected": true,
+ "per_case_ok": [
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true
+ ]
+}

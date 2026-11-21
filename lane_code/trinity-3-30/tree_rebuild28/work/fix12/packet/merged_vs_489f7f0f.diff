@@ -1,0 +1,610 @@
+--- a/b/cn.py (489f7f0f)
++++ b/b/cn.py (merged)
+@@ -0,0 +1,195 @@
++"""Scene census over the admitted population, computed in the kit for this leg.
++
++The tree's census (sc/0.json, r2_scene_bindings.rebuild) counts whole stores. The pose mix reads
++only the rows its source selects, and the routing build reads only its compatible training-division
++base rows and the ELIGIBLE pool sources. This module recounts every census source from raw rows of
++the population the stream reads, with the tree's own counters (Exclusions.expect for the independent
++census, Exclusions.keep for the filter, totals to reconcile them), and never from what prepare's
++filter matched. It writes:
++  a.json  the census over the admitted population (schema and lists of 0.json,
++          exact_rebuilt_population true), the reference the tree's coverage_report compares with
++          exact equality;
++  o.json  per source: whole-store census (0.json) = admitted + outside, with the row keys of every
++          listed row outside the admitted population;
++  3.json  2.json with scene_coverage.reference set to a.json.
++Nothing here relaxes coverage_report; it only changes which population the reference counts."""
++import gzip
++import json
++import sqlite3
++from contextlib import closing
++from copy import deepcopy
++from pathlib import Path
++
++VIEW = ('canonical', 'physical_group', 'room', 'alias')
++POSE = {'pose_a2v3': 0, 'pose_a3v2': 1}
++
++
++def view(row):
++    """The fields Exclusions.identifiers and Census.identities read, nothing else."""
++    out = {key: row[key] for key in ('dataset', 'scene', *VIEW) if key in row}
++    for nested in ('routing', 'provenance'):
++        value = row.get(nested)
++        if isinstance(value, dict):
++            out[nested] = {key: value[key] for key in VIEW if key in value}
++        elif nested in row:
++            out[nested] = value
++    return out
++
++
++def _sqlite(pin, with_target=False):
++    from student_pilot.p3_provenance import pinned
++    path = pinned(pin)
++    with closing(sqlite3.connect(path.as_uri()+'?mode=ro', uri=True)) as connection:
++        query = 'SELECT i,row,target FROM rows ORDER BY i' if with_target else 'SELECT i,row FROM rows ORDER BY i'
++        for item in connection.execute(query):
++            yield item[0], json.loads(item[1]), (json.loads(item[2]) if with_target else None)
++
++
++def _split_pose(pin, prefix):
++    from student_pilot.c1_pose_mix import _row_selected
++    admitted, outside = [], []
++    for index, row, target in _sqlite(pin, True):
++        (admitted if _row_selected(row, target, prefix) else outside).append((index, view(row)))
++    return admitted, outside
++
++
++def _split_whole(pin):
++    from student_pilot.r2_scene_bindings import rows
++    return [(index, view(row)) for index, row in enumerate(rows(pin))], []
++
++
++def _routing_check(cfg, selection, legacy):
++    """s1_routing._build's admitted base population: COMPATIBLE type, train scene, not held out."""
++    from student_pilot.p3_provenance import load, pinned
++    from student_pilot import s1_routing as R
++    from student_pilot.s1_route_policy import validate as validate_policy
++    from trace_format.contracts import contract_epoch
++    with contract_epoch(cfg.get('contract_epoch', R.new_contracts()), heading_plane_min=cfg.get('heading_plane_min', R.heading_plane_min())):
++        route_policy = validate_policy(cfg)
++        pool_types = {kind for value in selection['sources'].values() if value['status'] == 'ELIGIBLE'
++                      for kind, count in value['per_type'].items() if count and (
++                          route_policy is None or cfg['route_table'].get(kind, 'direct') == 'route'
++                          or value['kind'] == 'rows' and kind == 'route_planning')}
++        check = R.compatibility(legacy['database'], legacy, pool_types)
++    point = load(pinned(cfg['streams']['pointing']))
++    division = load(pinned(point['division']))
++    if division.get('schema') != 'diagnostic-whole-scene-division-v1' or division.get('training_only') is not True:
++        raise ValueError('R1_CENSUS_DIVISION_DIFFERS')
++    return check, set(division['train_scenes']), set(division['heldout_scenes']), point['division']
++
++
++def _split_routing(pin, check, train, heldout):
++    admitted, outside = [], []
++    for index, row, _ in _sqlite(pin):
++        key = row['dataset']+'/'+row['scene']
++        ok = check[row['routing']['question_type']]['disposition'] == 'COMPATIBLE' and key in train and key not in heldout
++        (admitted if ok else outside).append((index, view(row)))
++    return admitted, outside
++
++
++def _split_pool(selection):
++    from student_pilot.p3_provenance import pinned
++    admitted, outside = [], []
++    for name, entry in sorted(selection['sources'].items()):
++        target = admitted if entry['status'] == 'ELIGIBLE' else outside
++        with gzip.open(pinned(entry['source']), 'rt') as stream:
++            for line in stream:
++                raw = json.loads(line)
++                target.append(((name, raw['qid']), dict(view(raw), _pool_source=name)))
++    return admitted, outside
++
++
++def _count(name, items, files, pool=False):
++    """Tree counters on one population: independent census (expect) and filter (keep), reconciled
++    by totals(); returns (dev, test, listed row keys)."""
++    from student_pilot.s1_exclusions import Exclusions, totals
++    rule = Exclusions(files['dev'], files['benchmark'])
++    if pool:
++        sources = sorted({row['_pool_source'] for _, row in items})
++        listed = []
++        for source in sources:
++            part = [(key, {k: v for k, v in row.items() if k != '_pool_source'}) for key, row in items if row['_pool_source'] == source]
++            rule.expect(source, (row for _, row in part), dict(population='kit-admitted-census', source=source))
++            for key, row in part:
++                if not rule.keep(row, source):
++                    listed.append([*key, *(flag for flag in rule.matches(row).values())])
++    else:
++        rule.expect(name, (row for _, row in items), dict(population='kit-admitted-census', source=name))
++        rule.counts(name)
++        listed = []
++        for key, row in items:
++            if not rule.keep(row, name):
++                listed.append([key, *(flag for flag in rule.matches(row).values())])
++    counts = totals(rule.report(), rule)
++    return counts['dev_matches'], counts['benchmark_matches'], listed
++
++
++def admitted(result, cfg, output, *, plant=None):
++    """result: the tree's 2.json (rebuild output); cfg: the configuration rebuild ran with.
++    plant (tests only): {source: key} moves that row from the outside population into the admitted one."""
++    from student_pilot.p3_provenance import load, pinned, file_pin, write
++    from student_pilot.r2_scene_bindings import SOURCES
++    output = Path(output)
++    files = result['files']
++    whole = load(pinned(result['scene_coverage']['reference']))
++    if whole.get('exact_rebuilt_population') is not True or whole.get('withhold_file') != files['dev']:
++        raise ValueError('R1_CENSUS_WHOLE_STORE_REFERENCE_DIFFERS')
++    selection = load(pinned(result['pool_selection']))
++    pose = load(pinned(cfg['streams']['pose']))
++    census, record, keys = {}, {}, {}
++    for name in sorted(whole['withheld_training_rows']):
++        entry = whole['withheld_training_rows'][name]
++        if name == 'pool':
++            inside, outside = _split_pool(selection)
++            population = dict(rule='ELIGIBLE pool sources (s1_routing._build reads these)',
++                              sources=sorted(n for n, v in selection['sources'].items() if v['status'] == 'ELIGIBLE'))
++        else:
++            receipt = load(pinned(result['receipts'][name]))['scene_rebuild']
++            legacy = load(pinned(receipt['input_receipt']))
++            if name in POSE:
++                part = pose['sources'][POSE[name]]
++                if part.get('receipt') != receipt['input_receipt']:
++                    raise ValueError('R1_CENSUS_POSE_SOURCE_DIFFERS:'+name)
++                inside, outside = _split_pose(receipt['population'], part['frame_prefix'])
++                population = dict(rule='c1_pose_mix._row_selected', frame_prefix=part['frame_prefix'])
++            elif SOURCES.get(name) == 'routing':
++                check, train, heldout, division = _routing_check(cfg, selection, legacy)
++                inside, outside = _split_routing(receipt['population'], check, train, heldout)
++                population = dict(rule='s1_routing._build census_rows: COMPATIBLE, train, not held out',
++                                  division=division, compatible=sorted(k for k, v in check.items() if v['disposition'] == 'COMPATIBLE'))
++            else:
++                inside, outside = _split_whole(receipt['population'])
++                population = dict(rule='whole store (the stream build reads every row)')
++            if len(inside)+len(outside) != receipt['population_count']:
++                raise ValueError('R1_CENSUS_POPULATION_INCOMPLETE:'+name)
++        if plant and name in plant:
++            moved = [item for item in outside if item[0] == plant[name]]
++            if len(moved) != 1:
++                raise ValueError('R1_CENSUS_PLANT_KEY_MISSING:'+name)
++            outside = [item for item in outside if item[0] != plant[name]]
++            inside = inside+moved
++        dev, test, listed = _count(name, inside, files, pool=(name == 'pool'))
++        odev, otest, olisted = _count(name, outside, files, pool=(name == 'pool')) if outside else (0, 0, [])
++        if dev+odev != entry['rows_withheld'] or test+otest != entry['benchmark_rows_withheld']:
++            raise ValueError('R1_CENSUS_WHOLE_DIFFERS_FROM_ADMITTED_PLUS_OUTSIDE:'+name)
++        census[name] = dict(path=entry['path'], rows_withheld=dev, benchmark_rows_withheld=test)
++        record[name] = dict(population=population, admitted_rows=len(inside), outside_rows=len(outside),
++                            whole=dict(dev=entry['rows_withheld'], test=entry['benchmark_rows_withheld']),
++                            admitted=dict(dev=dev, test=test), outside=dict(dev=odev, test=otest),
++                            outside_listed_keys=olisted)
++        keys[name] = len(listed)
++    receipt = dict(schema='r1-admitted-scene-census-v1', whole_store_census=result['scene_coverage']['reference'],
++                   rule='whole-store census = admitted census + outside, per source and list', sources=record)
++    write(output/'o.json', receipt)
++    reference = dict(whole, withheld_training_rows=census, population='admitted',
++                     whole_store_census=result['scene_coverage']['reference'], outside=file_pin(output/'o.json'))
++    if reference['exact_rebuilt_population'] is not True:
++        raise ValueError('R1_CENSUS_NOT_EXACT')
++    write(output/'a.json', reference)
++    bound = deepcopy(result)
++    bound['scene_coverage'] = dict(result['scene_coverage'], reference=file_pin(output/'a.json'))
++    bound['admitted_census'] = dict(whole=result['scene_coverage']['reference'], outside=file_pin(output/'o.json'))
++    write(output/'3.json', bound)
++    print(json.dumps(dict(admitted_census={n: dict(admitted=r['admitted'], outside=r['outside'], whole=r['whole'])
++                                           for n, r in record.items()})), flush=True)
++    return file_pin(output/'3.json')
+--- a/b/cs.py (489f7f0f)
++++ b/b/cs.py (merged)
+@@ -69,25 +69,43 @@
+ 
+ def evaluate(cfg,stream,entries,admitted,classify):
+     from student_pilot.row_removals import row_keys
+-    from sv import STATUSES
++    from sv import STATUSES,PROTECTION
+     counts=dict.fromkeys((*STATUSES,'source','admitted','unresolved'),0)
+     counts['source']=sum(1 for _ in source_rows(entries))
+     hits=[];errors=[];protected_rows=0
++    resolution={};protected_by_resolution={};exposure={}
+     # Independent complete census; never sample, and never feed summaries to native.
+     for row in admitted():
+         counts['admitted']+=1
+-        try:flags=classify(row,stream)
++        detail={}
++        try:flags=classify(row,stream,detail)
+         except ValueError as error:
+             errors.append(str(error));counts['unresolved']+=1;flags={}
+         for name,hit in flags.items():counts[name]+=int(hit)
++        if flags:
++            resolution[detail['how']]=resolution.get(detail['how'],0)+1
++            for status in detail['exposure']:
++                e=exposure.setdefault(status,dict(rows=0,by_dataset={},by_category={},by_s1_source={}))
++                e['rows']+=1
++                for field in ('dataset','category','s1_source'):
++                    e['by_'+field][detail[field]]=e['by_'+field].get(detail[field],0)+1
+         if any(flags.values()):
++            protected_by_resolution[detail['how']]=protected_by_resolution.get(detail['how'],0)+1
+             protected_rows+=1
+             native_keys=row_keys(row)
+             if not native_keys:errors.append('R1_CENSUS_ROW_KEY_MISSING:'+stream)
+             hits.extend(native_keys)
+     keys=sorted(set(hits))
++    namespace=resolution.get('namespace_token',0)
+     result=dict(stream=stream,source_rows=counts['source'],admitted_rows=counts['admitted'],
+-                protected_rows=protected_rows,room_functions='Rooms.status/room, Binding.room, Withheld')
++                protected_rows=protected_rows,room_functions='Rooms.status/room, Binding.room, Withheld, alias_of token lookup',
++                protection=dict(protected_by=sorted(k for k,v in PROTECTION.items() if stream in v),
++                                exposure_recorded_not_protected=sorted(k for k,v in PROTECTION.items() if stream not in v),
++                                table={k:list(v) for k,v in PROTECTION.items()}),
++                resolved=dict(authority_and_aliases=counts['admitted']-counts['unresolved']-namespace,
++                              namespace=namespace,unresolved=counts['unresolved'],by_function=dict(sorted(resolution.items()))),
++                protected_by_resolution=dict(sorted(protected_by_resolution.items())),
++                exposure={k:dict(status='exposure recorded, not protected',**v) for k,v in sorted(exposure.items())})
+     if protected_rows:errors.insert(0,'R1_CENSUS_PROTECTED_ADMITTED:'+stream)
+     return dict(result=result,counts=counts,refusals=list(dict.fromkeys(errors))),keys
+ 
+--- a/b/pf.py (489f7f0f)
++++ b/b/pf.py (merged)
+@@ -4,7 +4,9 @@
+ root each model manifest names. Both must hold the processor files under their manifest names.
+ 
+ First, run the tree's own receipt predicates on the configured stream receipts, so that a receipt
+-the preparation would refuse is refused here, by name, before the long steps."""
++the preparation would refuse is refused here, by name, before the long steps. After staging, frames()
++checks one frame pin per stream source against the request's frame roots, and census() classifies the
++first 100 rows of every stream source with the post-condition's classifier."""
+ from pathlib import Path
+ 
+ 
+@@ -42,6 +44,97 @@
+         raise ValueError('R1_STREAM_RECEIPT_REFUSED:' + ';'.join(failed))
+ 
+ 
++def frames(cfg, roots):
++    """s1_admission.FrameAudit.keep on one frame pin per stream source, right after staging: the pin
++    resolves through the tree's resolve_read (the frame root map) to a file under one of the request's
++    frame roots, or the job refuses here, by name, instead of in the frame audit after preparation."""
++    import json
++    import sqlite3
++    from student_pilot.orchard_paths import resolve_read
++    from student_pilot.r1_persisted import relocated
++    resolved = [Path(root).resolve() for root in roots]
++    if not resolved or any(not root.is_dir() for root in resolved):
++        raise ValueError('R1_FRAME_ROOT_MISSING:' + ','.join(str(root) for root in resolved))
++    def read(pin):
++        return json.loads(Path(relocated(pin)).read_text())
++    sources = []
++    for name, pin in sorted(cfg['streams'].items()):
++        if name == 'mdg':
++            continue
++        value = read(pin)
++        if value.get('schema') == 'c1-pose-mix-v1':
++            # The mix keeps only rows whose frames all start with the source's frame_prefix
++            # (c1_pose_mix._row_selected), so the sample row is taken from those.
++            sources += [(name + '/' + str(i), part['receipt'], part.get('frame_prefix'))
++                        for i, part in enumerate(value['sources']) if part.get('kind') == 'rows']
++        else:
++            sources.append((name, pin, None))
++    checked = {}
++    for label, pin, prefix in sources:
++        database = Path(relocated(read(pin)['database']))
++        if not database.is_file():
++            raise ValueError('R1_FRAME_PREFLIGHT_DATABASE_MISSING:' + label)
++        pins = None
++        with sqlite3.connect(database.as_uri() + '?mode=ro', uri=True) as connection:
++            for (text,) in connection.execute('SELECT row FROM rows ORDER BY i LIMIT 50000'):
++                found = json.loads(text).get('student_input', {}).get('frames')
++                if (isinstance(found, list) and found and all(isinstance(f, dict) and isinstance(f.get('path'), str)
++                                                             for f in found)
++                        and (prefix is None or all(f['path'].startswith(prefix) for f in found))):
++                    pins = found
++                    break
++        if not pins:
++            raise ValueError('R1_FRAME_PIN_MISSING:' + label)
++        path = resolve_read(pins[0]['path']).resolve()
++        if not any(path.is_relative_to(root) for root in resolved) or not path.is_file():
++            raise ValueError('R1_FRAME_ROOT_REFUSED:%s:%s' % (label, path))
++        checked[label] = str(path)
++    census(cfg)
++    return checked
++
++
++def census(cfg, limit=100):
++    """The post-condition's classifier (b/sv.py, which b/cs.py runs on every admitted row after the
++    forward) on the first `limit` rows of each stream source right after staging, pose rows taken among
++    those the mix selects: a row it cannot place refuses here, by name. Flags are not judged here."""
++    import json
++    import sqlite3
++    from student_pilot.r1_persisted import relocated
++    from sv import classifier
++    classify = classifier(cfg)
++    def read(pin):
++        return json.loads(Path(relocated(pin)).read_text())
++    counts = {}
++    for name, pin in sorted(cfg['streams'].items()):
++        if name == 'mdg':
++            continue
++        value = read(pin)
++        parts = ([(name + '/' + str(i), part['receipt'], part.get('frame_prefix'))
++                  for i, part in enumerate(value['sources']) if part.get('kind') == 'rows']
++                 if value.get('schema') == 'c1-pose-mix-v1' else [(name, pin, None)])
++        for label, receipt, prefix in parts:
++            database = Path(relocated(read(receipt)['database']))
++            seen = 0
++            with sqlite3.connect(database.as_uri() + '?mode=ro', uri=True) as connection:
++                for (text,) in connection.execute('SELECT row FROM rows ORDER BY i'):
++                    row = json.loads(text)
++                    frames = (row.get('student_input') or {}).get('frames') or []
++                    if prefix is not None and not (frames and all(isinstance(f, dict) and str(f.get('path', '')).startswith(prefix)
++                                                                  for f in frames)):
++                        continue
++                    try:
++                        classify(row, name)
++                    except ValueError as error:
++                        raise ValueError('R1_CENSUS_PREFLIGHT_REFUSED:%s:row%d:%s' % (label, seen, error)) from error
++                    seen += 1
++                    if seen >= limit:
++                        break
++            if not seen:
++                raise ValueError('R1_CENSUS_PREFLIGHT_NO_ROWS:' + label)
++            counts[label] = seen
++    return counts
++
++
+ def check(cfg, manifest_pin):
+     receipts(cfg)
+     from student_pilot.p3_provenance import load, pinned, sha256
+--- a/b/pl.py (489f7f0f)
++++ b/b/pl.py (merged)
+@@ -278,8 +278,9 @@
+             live.mkdir(mode=0o700,exist_ok=True)
+         else:
+             live,_=location(kit,root.parent,os.environ['SLURM_JOB_ID'])
+-        put(live/'s0.json',(scene/'2.json').read_bytes())
+-        put(live/'s1.json',(scene/'0.json').read_bytes())
++        put(live/'s0.json',(scene/'3.json').read_bytes())
++        put(live/'s1.json',(scene/'a.json').read_bytes())
++        put(live/'s4.json',(scene/'o.json').read_bytes())
+         effective.update(r2_scene_rebuild=cfg['r2_scene_rebuild'],scene_coverage=cfg['scene_coverage'],s1_routing=cfg['s1_routing'])
+         with scope(sources):
+             source_record=census_sources(effective)
+@@ -356,6 +357,10 @@
+         if named:
+             from pf import check
+             check(cfg,resolved['model_manifest'])
++        # The frame audit after preparation demands each frame pin's map target inside the request's
++        # frame roots; check one pin per stream source now that the copies exist.
++        from pf import frames
++        frames(cfg,request['frame_roots'])
+         if output and early_base is None:
+             from rb import reconstruct
+             generated=reconstruct(cfg,q)
+--- a/b/sc.py (489f7f0f)
++++ b/b/sc.py (merged)
+@@ -63,8 +63,9 @@
+     start=time.monotonic()
+     try:subprocess.run(command,check=True)
+     finally:print('scene rebuild seconds=%.3f'%(time.monotonic()-start),flush=True)
+-    physical=physical/'sc';result=load(physical/'2.json')
+-    cfg['r2_scene_rebuild']=dict(path=str(destination/'sc/2.json'),sha256=sha(physical/'2.json'))
++    # 3.json is the tree's 2.json bound to the census over the admitted population (cn.py).
++    physical=physical/'sc';result=load(physical/'3.json')
++    cfg['r2_scene_rebuild']=dict(path=str(destination/'sc/3.json'),sha256=sha(physical/'3.json'))
+     cfg['scene_coverage']=result['scene_coverage']
+     cfg['s1_routing']['selection']=result['pool_selection']
+     return physical
+@@ -77,7 +78,9 @@
+     value=load(sys.argv[1])
+     with scope(value['paths']):
+         result=rebuild(value['spec'],value['config'],value['output'])
+-        cfg=dict(value['config'],r2_scene_rebuild=file_pin(Path(value['output'])/'2.json'),scene_coverage=result['scene_coverage'])
++        from cn import admitted
++        bound=admitted(result,value['config'],value['output'])
++        cfg=dict(value['config'],r2_scene_rebuild=bound,scene_coverage=load(bound['path'])['scene_coverage'])
+         verify(cfg)
+ 
+ if __name__=='__main__':main()
+--- a/b/sv.py (489f7f0f)
++++ b/b/sv.py (merged)
+@@ -2,10 +2,21 @@
+ from pathlib import Path
+ import sys
+ import hashlib
++import json
+ sys.path.insert(0,str(Path(__file__).resolve().parent))
+ from z import load
+ 
+ STATUSES = ("benchmark","dev","R0","withheld","K1_heldout","official")
++# Which list protects which stream (ORCH RULING 2026-11-21T17:16Z item 6). A status that does not
++# protect a stream is counted for it as exposure (recorded, not protected) and never as protected.
++PROTECTION = {"benchmark":("pose","vqa","routing","pointing"),"dev":("pose","vqa","routing","pointing"),
++              "R0":("pose","vqa","routing","pointing"),"withheld":("pose","vqa","routing","pointing"),
++              "official":("pose","vqa","routing","pointing"),"K1_heldout":("vqa","pointing")}
++# Streams whose rows name scenes only by division token dN/v<hex> (carrier_c1_routing.alias_of).
++TOKEN_STREAMS = ("pose",)
++CANONICAL = ("scannet","scannetpp","scannetppv2","arkitscenes")
++# ScanNet captures form a closed namespace; its tokens are an exact lookup (RULING 1716Z item 1).
++SCANNET_NAMESPACE = tuple('scannet/scene%04d_%02d'%(a,b) for a in range(807) for b in range(10))
+ 
+ 
+ def classifier(cfg):
+@@ -13,16 +24,60 @@
+     from student_pilot.s1_exclusions import Exclusions,dev_names,benchmark_names
+     from student_pilot.r1_rooms import Rooms
+     from student_pilot.r2_withheld import Withheld,room
+-    from student_pilot.carrier_c1_routing import load_exclusions,alias_key,excluded
++    from student_pilot.carrier_c1_routing import load_exclusions,alias_key,excluded,alias_of
+     authority=Rooms(cfg["r1_training"]["room_authority"])
+     rule=Exclusions(cfg["dev_scene_exclusions"],cfg["benchmark_scene_exclusions"])
+     draw=Withheld()
+     official=load_exclusions(cfg["exclusions"])
++    def collect(value,found):
++        if isinstance(value,dict):
++            for k,v in value.items():collect(k,found);collect(v,found)
++        elif isinstance(value,list):
++            for v in value:collect(v,found)
++        elif isinstance(value,str) and value.split('/',1)[0] in CANONICAL and value.count('/')==1 and all(value.split('/')):
++            found.add(value)
++    def read(pin):
++        try:return json.loads(pinned(pin).read_bytes())
++        except (ValueError,UnicodeDecodeError):return None
++    def invert(canonicals):
++        table={}
++        for canonical in sorted(canonicals):
++            try:token=rule.key(alias_of(canonical))
++            except (KeyError,ValueError):continue
++            # scannetpp/x and scannetppv2/x are one scene with one token; any other clash is a conflict.
++            if table.setdefault(token,canonical)!=canonical and alias_key(table[token] or '')!=alias_key(canonical):table[token]=None
++        return table
++    # Tier 1: every canonical scene the pinned room authority, the direction-twin alias list, the scene
++    # lists and the protected room sets name. Tier 2: the whole ScanNet capture namespace. Never prepare's matches.
++    found=set()
++    pins=dict(cfg["r1_training"]["room_authority"])
++    if cfg["r1_training"].get("direction_twins"):pins["twin_aliases"]=cfg["r1_training"]["direction_twins"]["aliases"]
++    for key in sorted(pins):collect(read(pins[key]),found)
++    collect(list(authority.aliases.values()),found)
++    collect(['arkitscenes/'+v for v in authority.visits],found)
++    for name in ("dev_scene_exclusions","benchmark_scene_exclusions","exclusions"):
++        if cfg.get(name):collect(read(cfg[name]),found)
++    collect(sorted(authority.r0|authority.k1|draw.aliases),found)
++    named_tokens=invert(found)
++    namespace=invert(SCANNET_NAMESPACE)
++    if len(namespace)!=len(SCANNET_NAMESPACE) or None in namespace.values():raise ValueError('R1_CENSUS_NAMESPACE_TOKEN_COLLISION')
++    if any(named_tokens.get(k) not in (None,v) and alias_key(named_tokens[k])!=alias_key(v) for k,v in namespace.items() if k in named_tokens):
++        raise ValueError('R1_CENSUS_NAMESPACE_TOKEN_COLLISION')
++    def resolve_token(key):
++        for how,table in (('aliases_token',named_tokens),('namespace_token',namespace)):
++            if key in table:
++                if table[key] is None:raise ValueError('R1_CENSUS_TOKEN_CONFLICT')
++                return table[key],how
++        return None,None
+     def keys(name):
+         result={rule.key(name)}
+-        # Native canonical and physical-room functions provide cross-capture keys.
++        # Native canonical and physical-room functions provide cross-capture keys; a listed division
++        # token resolves to its capture, so its whole physical room is listed (RULING 1716Z item 2).
+         ds,scene=name.split("/",1)
+         canonical,_=authority.canonical(dict(dataset=ds,scene=scene))
++        if not canonical:
++            try:canonical,_=resolve_token(rule.key(name))
++            except ValueError:canonical=None
+         if canonical:
+             result.add(rule.key(canonical))
+             try:result.add(rule.key(authority.room(canonical)))
+@@ -30,16 +85,37 @@
+         return result
+     lists={"benchmark":set().union(*(keys(n) for n in benchmark_names(cfg["benchmark_scene_exclusions"]))),
+            "dev":set().union(*(keys(n) for n in dev_names(cfg["dev_scene_exclusions"])))}
++    official_rooms=set(official)
++    for n in official:
++        if '/' in n:
++            try:official_rooms.update(alias_key(k) for k in keys(n))
++            except Exception:pass
+     vqa_binding=None
+-    def classify(row,stream):
++    def family(value):
++        # Routing rows carry their source family as a record; the receipt keeps its name only.
++        return value.get('name') if isinstance(value,dict) else value
++    def token_canonical(row):
++        try:ids=rule.identifiers(row)
++        except ValueError:return None,'unresolved'
++        found={}
++        for k in ids:
++            canonical,how=resolve_token(k)
++            if canonical:found[canonical]=how
++        if len({alias_key(c) for c in found})>1:raise ValueError('R1_CENSUS_TOKEN_CONFLICT')
++        return next(iter(found.items())) if found else (None,'unresolved')
++    def classify(row,stream,detail=None):
+         nonlocal vqa_binding
+         status,canonical,how=authority.status(row)
++        how='authority_'+how
+         physical=None
++        if stream in TOKEN_STREAMS and not canonical:
++            canonical,how=token_canonical(row)
+         if stream=='vqa' and status=='unresolved' and cfg.get('r1_training',{}).get('direction_twins'):
+             from student_pilot.r1_direction_twins import Binding
+             if vqa_binding is None:vqa_binding=Binding(cfg)
+             physical=vqa_binding.room(row)
+             canonical,_=vqa_binding.tiered.canonical(row)
++            how='twin_binding'
+         candidates=[canonical] if canonical else []
+         if stream=='pointing':
+             other=(row.get('provenance') or {}).get('canonical_scene')
+@@ -55,9 +131,14 @@
+             if not candidates:raise
+         names.update(rule.key(room_name) for room_name in physical_rooms)
+         if not physical_rooms:raise ValueError('R1_CENSUS_ROOM_UNRESOLVED:'+stream)
+-        return dict(benchmark=bool(names & lists['benchmark']),dev=bool(names & lists['dev']),
+-                    R0=bool(physical_rooms & authority.r0),withheld=draw.touches(dict(row,dataset=row.get('dataset',''),scene=row.get('scene','')),dict(names=sorted(names))),
+-                    K1_heldout=bool(physical_rooms & authority.k1),official=excluded(official,*(alias_key(n) for n in names)))
++        flags=dict(benchmark=bool(names & lists['benchmark']),dev=bool(names & lists['dev']),
++                   R0=bool(physical_rooms & authority.r0),withheld=draw.touches(dict(row,dataset=row.get('dataset',''),scene=row.get('scene','')),dict(names=sorted(names))),
++                   K1_heldout=bool(physical_rooms & authority.k1),official=excluded(official_rooms,*(alias_key(n) for n in names)))
++        exposure=sorted(k for k,v in flags.items() if v and stream not in PROTECTION[k])
++        for k in exposure:flags[k]=False
++        if detail is not None:detail.update(how=how,exposure=exposure,dataset=str(row.get('dataset')),
++                                            category=str(row.get('category')),s1_source=str(family(row.get('s1_source'))))
++        return flags
+     return classify
+ 
+ 
+--- a/k/j.json:decoded (489f7f0f)
++++ b/k/j.json:decoded (merged)
+@@ -367,7 +367,12 @@
+     export PYTHONDONTWRITEBYTECODE=1 PYTHONNOUSERSITE=1 PYTHONPATH="$ANYHOST_JOBS/site_alias"
+     export Q_E1=1 Q_E2=orchard A_SITE_PROFILE="$X/b/profile.json"
+     export Q_E3="$X/models"
+-    export Q_E4="{\"/data2\": \"$X/data2root\"}"
++    # The job folder is also bound at Q_NJ, under the tree's owned node-local root /tmp/jjyeung, and the
++    # kit's python steps run there. Frame reads then resolve to the kit's copy of the frame store inside
++    # the job folder (q/f/<sha256 of the frame root>), the root the request names to the frame audit.
++    case "${Q_NS:-}" in /tmp/?*) ;; *) echo E06 >&2; exit 1 ;; esac
++    Q_NJ="/tmp/jjyeung/${Q_NS#/tmp/}"
++    export Q_E4="{\"/data2\": \"$Q_NJ/p/q/f/$(printf '%s' "$X/data2root" | sha256sum | cut -c1-64)\"}"
+     export C1_INIT_LOCAL="$P/init"
+     export HF_HOME="$TK_JOBDIR/cache/hf" HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 HF_HUB_DISABLE_TELEMETRY=1
+     export OMP_NUM_THREADS=48 MKL_NUM_THREADS=48 OPENBLAS_NUM_THREADS=48 TOKENIZERS_PARALLELISM=false WANDB_DISABLED=true
+@@ -400,7 +405,7 @@
+ tk_pythonpath c
+ tk_bwrap
+ export PATH="$(dirname "${BW[0]}"):$PATH"
+-BW+=(--bind "$Q_ROOT" "$Q_NS" --setenv TK_JOB_START "${TK_JOB_START:?}")
++BW+=(--bind "$Q_ROOT" "$Q_NS" --bind "$Q_ROOT" "$Q_NJ" --setenv TK_JOB_START "${TK_JOB_START:?}")
+ Q_LIVE=$(/usr/bin/python3 -B -I -s "$Q_KIT/b/rv.py" --live "$Q_ROOT" "${SLURM_JOB_ID:?}")
+ BW+=(--bind "$Q_LIVE" "$Q_LIVE")
+ if [[ "${Q_CAPTURE:-0}" == 1 ]]; then
+@@ -411,7 +416,7 @@
+ "${BW[@]}" "$PILOT_VENV/bin/python" -B -s "$Q_KIT/b/g.py"
+ fi
+ set +e
+-"${BW[@]}" "$PILOT_VENV/bin/python" -B -s "$Q_KIT/b/a.py" "${Q_MODE:-q}" "$Q_NS/p" "$Q_NS/r.json" 2>&1 | /usr/bin/python3 -B "$Q_KIT/b/l.py" "$Q_KIT" > "$Q_ROOT/q.log"
++"${BW[@]}" "$PILOT_VENV/bin/python" -B -s "$Q_KIT/b/a.py" "${Q_MODE:-q}" "$Q_NJ/p" "$Q_NJ/r.json" 2>&1 | /usr/bin/python3 -B "$Q_KIT/b/l.py" "$Q_KIT" > "$Q_ROOT/q.log"
+ rc=${PIPESTATUS[0]}
+ if [[ "${Q_MODE:-q}" == r ]]; then
+     /usr/bin/python3 -B -I -s "$Q_KIT/b/rd.py" "$Q_ROOT" "${SLURM_JOB_ID:?}" "$rc"
+@@ -419,19 +424,19 @@
+     if [[ "$rc" == 0 ]]; then rc=$rp; fi
+     exit "$rc"
+ fi
+-"${BW[@]}" "$PILOT_VENV/bin/python" -B -s "$Q_KIT/b/d.py" "$Q_NS/p/s" "$Q_NS/r.json" "$Q_NS/n.json" "$Q_NS/rooms.json" 2>&1 | /usr/bin/python3 -B "$Q_KIT/b/l.py" "$Q_KIT" > "$Q_ROOT/rooms.log"
++"${BW[@]}" "$PILOT_VENV/bin/python" -B -s "$Q_KIT/b/d.py" "$Q_NJ/p/s" "$Q_NJ/r.json" "$Q_NJ/n.json" "$Q_NJ/rooms.json" 2>&1 | /usr/bin/python3 -B "$Q_KIT/b/l.py" "$Q_KIT" > "$Q_ROOT/rooms.log"
+ rr=${PIPESTATUS[0]}
+ if [[ "$rc" == 0 && "$rr" == 0 ]]; then
+-"${BW[@]}" "$PILOT_VENV/bin/python" -B -s "$Q_KIT/b/h.py" "$Q_NS/p" "$Q_NS/v.json" 2>&1 | /usr/bin/python3 -B "$Q_KIT/b/l.py" "$Q_KIT" > "$Q_ROOT/h.log"
++"${BW[@]}" "$PILOT_VENV/bin/python" -B -s "$Q_KIT/b/h.py" "$Q_NJ/p" "$Q_NJ/v.json" 2>&1 | /usr/bin/python3 -B "$Q_KIT/b/l.py" "$Q_KIT" > "$Q_ROOT/h.log"
+ rc=${PIPESTATUS[0]}
+ if [[ "$rc" == 0 ]]; then
+ export OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8
+-"${BW[@]}" nice -n 10 "$PILOT_VENV/bin/python" -B -s "$Q_KIT/b/rv.py" "$Q_NS" "$Q_NS/v.json" "${SLURM_JOB_ID:?}" 2>&1 | /usr/bin/python3 -B "$Q_KIT/b/l.py" "$Q_KIT" > "$Q_ROOT/rv.log"
++"${BW[@]}" nice -n 10 "$PILOT_VENV/bin/python" -B -s "$Q_KIT/b/rv.py" "$Q_NJ" "$Q_NJ/v.json" "${SLURM_JOB_ID:?}" 2>&1 | /usr/bin/python3 -B "$Q_KIT/b/l.py" "$Q_KIT" > "$Q_ROOT/rv.log"
+ rc=${PIPESTATUS[0]}
+ fi
+ if [[ "$rc" == 0 ]]; then
+ export OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8
+-"${BW[@]}" "$PILOT_VENV/bin/python" -B -s "$Q_KIT/b/t.py" "$Q_NS/p" "$Q_NS/v.json" 2>&1 | /usr/bin/python3 -B "$Q_KIT/b/l.py" "$Q_KIT" > "$Q_ROOT/t.log"
++"${BW[@]}" "$PILOT_VENV/bin/python" -B -s "$Q_KIT/b/t.py" "$Q_NJ/p" "$Q_NJ/v.json" 2>&1 | /usr/bin/python3 -B "$Q_KIT/b/l.py" "$Q_KIT" > "$Q_ROOT/t.log"
+ rc=${PIPESTATUS[0]}
+ fi
+ fi

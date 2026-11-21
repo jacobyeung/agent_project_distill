@@ -1,0 +1,80 @@
+--- a/b/pf.py
++++ b/b/pf.py
+@@ -4,7 +4,8 @@
+ root each model manifest names. Both must hold the processor files under their manifest names.
+ 
+ First, run the tree's own receipt predicates on the configured stream receipts, so that a receipt
+-the preparation would refuse is refused here, by name, before the long steps."""
++the preparation would refuse is refused here, by name, before the long steps. After staging, frames()
++checks one frame pin per stream source against the request's frame roots."""
+ from pathlib import Path
+ 
+ 
+@@ -42,6 +43,54 @@
+         raise ValueError('R1_STREAM_RECEIPT_REFUSED:' + ';'.join(failed))
+ 
+ 
++def frames(cfg, roots):
++    """s1_admission.FrameAudit.keep on one frame pin per stream source, right after staging: the pin
++    resolves through the tree's resolve_read (the frame root map) to a file under one of the request's
++    frame roots, or the job refuses here, by name, instead of in the frame audit after preparation."""
++    import json
++    import sqlite3
++    from student_pilot.orchard_paths import resolve_read
++    from student_pilot.r1_persisted import relocated
++    resolved = [Path(root).resolve() for root in roots]
++    if not resolved or any(not root.is_dir() for root in resolved):
++        raise ValueError('R1_FRAME_ROOT_MISSING:' + ','.join(str(root) for root in resolved))
++    def read(pin):
++        return json.loads(Path(relocated(pin)).read_text())
++    sources = []
++    for name, pin in sorted(cfg['streams'].items()):
++        if name == 'mdg':
++            continue
++        value = read(pin)
++        if value.get('schema') == 'c1-pose-mix-v1':
++            # The mix keeps only rows whose frames all start with the source's frame_prefix
++            # (c1_pose_mix._row_selected), so the sample row is taken from those.
++            sources += [(name + '/' + str(i), part['receipt'], part.get('frame_prefix'))
++                        for i, part in enumerate(value['sources']) if part.get('kind') == 'rows']
++        else:
++            sources.append((name, pin, None))
++    checked = {}
++    for label, pin, prefix in sources:
++        database = Path(relocated(read(pin)['database']))
++        if not database.is_file():
++            raise ValueError('R1_FRAME_PREFLIGHT_DATABASE_MISSING:' + label)
++        pins = None
++        with sqlite3.connect(database.as_uri() + '?mode=ro', uri=True) as connection:
++            for (text,) in connection.execute('SELECT row FROM rows ORDER BY i LIMIT 50000'):
++                found = json.loads(text).get('student_input', {}).get('frames')
++                if (isinstance(found, list) and found and all(isinstance(f, dict) and isinstance(f.get('path'), str)
++                                                             for f in found)
++                        and (prefix is None or all(f['path'].startswith(prefix) for f in found))):
++                    pins = found
++                    break
++        if not pins:
++            raise ValueError('R1_FRAME_PIN_MISSING:' + label)
++        path = resolve_read(pins[0]['path']).resolve()
++        if not any(path.is_relative_to(root) for root in resolved) or not path.is_file():
++            raise ValueError('R1_FRAME_ROOT_REFUSED:%s:%s' % (label, path))
++        checked[label] = str(path)
++    return checked
++
++
+ def check(cfg, manifest_pin):
+     receipts(cfg)
+     from student_pilot.p3_provenance import load, pinned, sha256
+--- a/b/pl.py
++++ b/b/pl.py
+@@ -356,6 +356,10 @@
+         if named:
+             from pf import check
+             check(cfg,resolved['model_manifest'])
++        # The frame audit after preparation demands each frame pin's map target inside the request's
++        # frame roots; check one pin per stream source now that the copies exist.
++        from pf import frames
++        frames(cfg,request['frame_roots'])
+         if output and early_base is None:
+             from rb import reconstruct
+             generated=reconstruct(cfg,q)

@@ -1,0 +1,5 @@
+fix13 -> fix12 (17:37Z): final W4 census diff per ORCH RULING 1716Z.
+DIFF: /scratch/jjyeung/orch_n30/tree_rebuild28/work/fix13/DIFF.patch (copy here: fix13_DIFF.patch), sha256 4768768fea08e39ac33516eb66d68a9f213cc4abdc076893718b3a0318236722, patch -p1 at kit root.
+Hunks: b/cs.py a4a809d2 -> 0fba43e5, b/sv.py d19658c7 -> b4b4e20e (base W/w30f1/n_go); b/pf.py 5760c7df -> 531567f2 (base W/w32frm/n_go = your merged pf). Verified: applies cleanly on trinity-1-18 to those bases, giving exactly these bytes.
+No k/ file and no config changes: the protection table is the PROTECTION literal in b/sv.py (covered by SHA256SUMS/seal); receipts show it per stream.
+Held node: t4 (sv 3b6b0ea8) all four streams PASS and armed _verify PASS (c5 a3556426); final sv b4b4e20e differs only in routing exposure keys (s1_source name instead of the whole record); t6 routing-only PASS on b4b4e20e; t5 full publish on b4b4e20e due about 17:50Z (see fix13/REPORT.md).

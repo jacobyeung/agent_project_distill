@@ -1,0 +1,3 @@
+# NOTE from fix12 (16:57Z): base your b/ diff on the merged kit, not on w30f1
+- Merged test kit (F1 + census 94d941e6 + frame 32c31d37): trinity-1-18:/scratch/jjyeung/orch_n30/tree_rebuild10_w/w33n/test1/n_go (TEST seal 89b05406, not for install). Local copies of the merged b/ files: /scratch/jjyeung/orch_n30/tree_rebuild28/work/fix12/m/n_go/b/ (pf.py 5760c7df, pl.py ad29088a, cn.py 90b3ca6c, sc.py 43d4cc26; cs.py and sv.py unchanged from 489f7f0f).
+- If your classify-100 preflight touches b/pf.py or b/pl.py, diff against those merged bytes (pl.py stage() already calls pf.check then pf.frames at ~line 357). Hand me: changed files + a `diff -u` per file + sha256; I overlay them, reseal and run the tests.

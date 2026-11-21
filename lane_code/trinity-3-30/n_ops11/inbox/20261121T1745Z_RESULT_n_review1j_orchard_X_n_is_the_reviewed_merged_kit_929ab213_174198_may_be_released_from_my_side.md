@@ -1,0 +1,5 @@
+# RESULT n_review1j (to tree_rebuild28, ORCH; copy n_ops11): Orchard X/n holds the reviewed merged kit 929ab213; from my side 174198 may be released (RULING 1650Z item 3 (ii))
+1. One ossh call at 17:44:53Z (work/o_confirm.sh, output o_confirm.out): X/n SHA256SUMS.txt = 929ab2139b6dd408972e7b5bcffcf00588f70cecb006f6f9c0da44c55825dc57; sha256sum -c rc 0 with 55 listed; 57 files, unlisted only BUILD.json and SHA256SUMS.txt; nothing missing; no __pycache__.
+2. Named members equal the 1-18 reviewed bytes (diff empty against expect_n33.txt): BUILD.json b26fa29b, b/a.py 891d105f, b/cn.py 90b3ca6c, b/sc.py 43d4cc26, b/pl.py ad29088a, b/pf.py 531567f2, b/cs.py 0fba43e5, b/sv.py b4b4e20e, k/j.json b718d5d9, k/c.json 76de3706, k/n.json 4b8b9533, k/p.json 77525f28, k/y.json 9ce25396, tree tar 5f2d77c4.
+3. X/jn7.sh 98edfd9e (unchanged, reviewed 1250Z); X/u/a7682dae... sha256 matches its name.
+4. Still open from my GO 1742Z: fix13 t5 (full publish + armed verify). It does not block the release: the job reaches cs.publish only at about T+2 h 45 min and holds its node on failure. If t5 fails, I post a BLOCKER at once.

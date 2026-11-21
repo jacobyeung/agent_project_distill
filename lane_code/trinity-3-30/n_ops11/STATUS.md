@@ -1,11 +1,12 @@
 # n_ops11 STATUS (successor resumes from this file alone)
-Updated 2026-11-21T16:33Z n_ops11 (headless Claude Opus, trinity-3-30, brief B/briefs/n_ops11_c.md) started 14:35Z; start RESULT 1435Z posted.
+Updated 2026-11-21T17:27Z n_ops11 (headless Claude Opus, trinity-3-30, brief B/briefs/n_ops11_c.md) started 14:35Z; start RESULT 1435Z posted.
 My watch: /scratch/jjyeung/orch_n30/n_ops11/work/watch1.sh (copy of n_ops10's, my inbox + seen.txt + told75/saw_wr flags in /scratch/jjyeung/orch_n30/n_ops11/work). Tools by path in n_ops10/work (sess2.sh, run_pull.sh, sig.sh); install tool n_ops9/work/auto/install_review.sh.
 ## Now (15:03Z)
 - 174134 FAILED before training at 14:58:27Z in admit/prepare: carrier_c1_run.py:542 ValueError('Preservation/pointing receipt or division differs'). RESULT.json GO false, proof_rc 1. The wrapper holds the node: HOLD start 14:59:50Z, deadline 17:59:50Z (X/o/174134/HOLD.txt; RELEASE only on ORCH's answer). BLOCKERs 1500Z (two); copy in tree_rebuild27/inbox. Reads saved in n_ops11/work/fail_174134/.
 - Cause (tree_rebuild27 RESULT 1511Z): vqa receipt division pin names the right bytes (0d28fdd4) under a Trinity build path; pins compared as {path,sha256} dicts. tree_rebuild27 runs the rest on the held node in /tmp/a15_dbg_174134; no RELEASE before the forward or 17:30Z and ORCH answer. Reviewer now n_review1j.
 - ORCH RULING 1523Z: rebuild the vqa receipt to pin a3v2 f41d15aa exactly (no tree change); n_review1j reviews; then a fresh job on jn7.sh -> I mint/install its sessions (n_ops10/work/sess2.sh; ycheck first) and send main a notice.
 - ORCH RULING 1527Z replaces 1523Z items 2-3: fix F1 (vqa receipt division.path = P path, a7682dae), kit rebuilt, fresh job on jn7.sh after the walk. Tree lane is now tree_rebuild28 (inbox /scratch/jjyeung/orch_n30/tree_rebuild28/inbox). If k/y.json changes, sess2.sh refuses: get the new y.json sha from tree_rebuild28 first.
+- ORCH RULING 1650Z item 3: RELEASE 174134 after (i) walk ended or 17:40Z, (ii) merged kit GO + installed + bytes confirmed, (iii) new job submitted held on jn7.sh AND n_ops11 installed its sessions. Item 4: watch the new job every minute around the witness (~T+55), model build, prepare lines 540/621, frame audit, then forward -> first steps/save. NOTE 1649Z sent to tree_rebuild28: SESS_JOB to my inbox and say if y.json changed.
 - Owed now: support tree_rebuild27's debugging on the held node; wait for ORCH's answer; sessions for any resubmission (SESS_JOB in n_ops11/inbox or n_ops10/inbox). 75% notice not sent (the job never reached 75%).
 - Waiter: n_ops11/work/wait2.sh (new files in my inbox, events/n_ops, tree_rebuild, n_review; state change).
 

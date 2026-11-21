@@ -1,0 +1,58 @@
+export TZ=UTC; date -u +%TZ
+timeout 60 srun --overlap --jobid 174134 -N1 -n1 bash -c 'cd /tmp/a15_dbg_174134 && base64 -d > ship5.tgz && tar xzf ship5.tgz && ls -la post3.py kw.py postb.sh | cut -c1-80' <<'B64'
+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
+B64
+echo rc=$?
+nohup setsid srun --overlap --jobid 174134 -N1 -n1 bash -c 'cd /tmp/a15_dbg_174134 && exec bash postb.sh n2 n2k b n2f > log/postb.log 2>&1' > /dev/null 2>&1 < /dev/null &
+sleep 8
+timeout 40 srun --overlap --jobid 174134 -N1 -n1 bash -c 'cd /tmp/a15_dbg_174134; cat log/postb.log; echo == post2; grep "^EV" log/post2.log | tail -1 | cut -c1-300; ls -la live | cut -c1-80; echo == f; python3 -I -B -c "import json;d=json.load(open(\"n2/p/q/f.json\"));r=d[\"records\"];print(len(r),sorted(set((x[\"stream\"]) for x in r)),all(x[\"finite\"] for x in r))"'

@@ -1,0 +1,2 @@
+export TZ=UTC; date -u +%TZ
+timeout 40 srun --overlap --jobid 174134 -N1 -n1 bash -c 'cd /tmp/a15_f13_174134; echo == hostLIVE; ls -la --time-style=+%H:%M:%S /project/community/jjyeung/okh7/x_22c714e1/o/174134/live/ | head; echo == myLIVE; ls -la --time-style=+%H:%M:%S live | head; for f in t3 t4; do echo == $f; grep "^EV" log/$f.log | grep -v "LAYOUT" | cut -c1-3000 | tail -7; done; ps -u $(id -un) -o pid,etime,pcpu,args --width 150 | grep -E "t1.py" | grep -v grep; uptime'

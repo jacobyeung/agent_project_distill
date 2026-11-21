@@ -1,0 +1,58 @@
+export TZ=UTC; date -u +%TZ
+timeout 60 srun --overlap --jobid 174134 -N1 -n1 bash -c 'cd /tmp/a15_dbg_174134 && base64 -d > ship7.tgz && tar xzf ship7.tgz && ls -la accept.py u2.py e2.sh tr.sh | cut -c1-80' <<'B64'
+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
+B64
+echo rc=$?
+nohup setsid srun --overlap --jobid 174134 -N1 -n1 bash -c 'cd /tmp/a15_dbg_174134 && exec bash tr.sh n2k > log/tr.log 2>&1' > /dev/null 2>&1 < /dev/null &
+sleep 35
+timeout 30 srun --overlap --jobid 174134 -N1 -n1 bash -c 'cd /tmp/a15_dbg_174134; cat log/tr.log; echo == accept; tail -c 600 log/accept.log; echo; echo == train; tail -c 1500 log/train.log; echo; nvidia-smi --query-gpu=index,memory.used,utilization.gpu --format=csv,noheader | tr "\n" ";"; echo'

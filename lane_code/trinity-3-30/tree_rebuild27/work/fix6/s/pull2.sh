@@ -1,0 +1,2 @@
+export TZ=UTC; date -u +%TZ 1>&2
+timeout 80 srun --overlap --jobid 174134 -N1 -n1 bash -c 'cd /tmp/a15_dbg_174134 && tar czf - --ignore-failed-read n2/eva.jsonl n2/evb.jsonl n2/p/q/f.json n2/p/q/bb/handover.json live2/WAITING_REVIEW.json live2/REVIEW_REFUSED.json live2/e5.json live2/identity.txt xr/o/174134_gate/SHA256SUMS xr/o/174134_gate/NOTES.txt log c.py c2.py c4.py 2>/dev/null | base64 -w 76; du -sh /tmp/a15_dbg_174134 1>&2; ls /tmp/a15_dbg_174134 1>&2'

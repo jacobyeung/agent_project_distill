@@ -1,0 +1,11 @@
+--- a/b/sv.py
++++ b/b/sv.py
+@@ -65,6 +65,8 @@
+         rooms=authority.r0|authority.k1|draw.aliases
+         collect(sorted(rooms))
+         collect([r+'_%02d'%i for r in sorted(rooms) if r.startswith('scannet/scene') and re.fullmatch(r'scannet/scene\d+',r) for i in range(100)])
++        # ScanNet capture names are a closed namespace (scene0000_00 .. scene0806_09); alias_of is inverted over it.
++        collect(['scannet/scene%04d_%02d'%(a,b) for a in range(807) for b in range(10)])
+         tokens={}
+         for canonical in sorted(found):
+             try:token=rule.key(alias_of(canonical))

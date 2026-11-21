@@ -1,0 +1,240 @@
+diff -ruN /scratch/jjyeung/orch_n30/tree_rebuild10_w/w30f1/n_go/b/cn.py /scratch/jjyeung/orch_n30/tree_rebuild10_w/w31cen/n_go/b/cn.py
+--- x/b/cn.py	1969-12-31 19:00:00.000000000 -0500
++++ x/b/cn.py	2026-11-21 11:15:10.530824429 -0500
+@@ -0,0 +1,195 @@
++"""Scene census over the admitted population, computed in the kit for this leg.
++
++The tree's census (sc/0.json, r2_scene_bindings.rebuild) counts whole stores. The pose mix reads
++only the rows its source selects, and the routing build reads only its compatible training-division
++base rows and the ELIGIBLE pool sources. This module recounts every census source from raw rows of
++the population the stream reads, with the tree's own counters (Exclusions.expect for the independent
++census, Exclusions.keep for the filter, totals to reconcile them), and never from what prepare's
++filter matched. It writes:
++  a.json  the census over the admitted population (schema and lists of 0.json,
++          exact_rebuilt_population true), the reference the tree's coverage_report compares with
++          exact equality;
++  o.json  per source: whole-store census (0.json) = admitted + outside, with the row keys of every
++          listed row outside the admitted population;
++  3.json  2.json with scene_coverage.reference set to a.json.
++Nothing here relaxes coverage_report; it only changes which population the reference counts."""
++import gzip
++import json
++import sqlite3
++from contextlib import closing
++from copy import deepcopy
++from pathlib import Path
++
++VIEW = ('canonical', 'physical_group', 'room', 'alias')
++POSE = {'pose_a2v3': 0, 'pose_a3v2': 1}
++
++
++def view(row):
++    """The fields Exclusions.identifiers and Census.identities read, nothing else."""
++    out = {key: row[key] for key in ('dataset', 'scene', *VIEW) if key in row}
++    for nested in ('routing', 'provenance'):
++        value = row.get(nested)
++        if isinstance(value, dict):
++            out[nested] = {key: value[key] for key in VIEW if key in value}
++        elif nested in row:
++            out[nested] = value
++    return out
++
++
++def _sqlite(pin, with_target=False):
++    from student_pilot.p3_provenance import pinned
++    path = pinned(pin)
++    with closing(sqlite3.connect(path.as_uri()+'?mode=ro', uri=True)) as connection:
++        query = 'SELECT i,row,target FROM rows ORDER BY i' if with_target else 'SELECT i,row FROM rows ORDER BY i'
++        for item in connection.execute(query):
++            yield item[0], json.loads(item[1]), (json.loads(item[2]) if with_target else None)
++
++
++def _split_pose(pin, prefix):
++    from student_pilot.c1_pose_mix import _row_selected
++    admitted, outside = [], []
++    for index, row, target in _sqlite(pin, True):
++        (admitted if _row_selected(row, target, prefix) else outside).append((index, view(row)))
++    return admitted, outside
++
++
++def _split_whole(pin):
++    from student_pilot.r2_scene_bindings import rows
++    return [(index, view(row)) for index, row in enumerate(rows(pin))], []
++
++
++def _routing_check(cfg, selection, legacy):
++    """s1_routing._build's admitted base population: COMPATIBLE type, train scene, not held out."""
++    from student_pilot.p3_provenance import load, pinned
++    from student_pilot import s1_routing as R
++    from student_pilot.s1_route_policy import validate as validate_policy
++    from trace_format.contracts import contract_epoch
++    with contract_epoch(cfg.get('contract_epoch', R.new_contracts()), heading_plane_min=cfg.get('heading_plane_min', R.heading_plane_min())):
++        route_policy = validate_policy(cfg)
++        pool_types = {kind for value in selection['sources'].values() if value['status'] == 'ELIGIBLE'
++                      for kind, count in value['per_type'].items() if count and (
++                          route_policy is None or cfg['route_table'].get(kind, 'direct') == 'route'
++                          or value['kind'] == 'rows' and kind == 'route_planning')}
++        check = R.compatibility(legacy['database'], legacy, pool_types)
++    point = load(pinned(cfg['streams']['pointing']))
++    division = load(pinned(point['division']))
++    if division.get('schema') != 'diagnostic-whole-scene-division-v1' or division.get('training_only') is not True:
++        raise ValueError('R1_CENSUS_DIVISION_DIFFERS')
++    return check, set(division['train_scenes']), set(division['heldout_scenes']), point['division']
++
++
++def _split_routing(pin, check, train, heldout):
++    admitted, outside = [], []
++    for index, row, _ in _sqlite(pin):
++        key = row['dataset']+'/'+row['scene']
++        ok = check[row['routing']['question_type']]['disposition'] == 'COMPATIBLE' and key in train and key not in heldout
++        (admitted if ok else outside).append((index, view(row)))
++    return admitted, outside
++
++
++def _split_pool(selection):
++    from student_pilot.p3_provenance import pinned
++    admitted, outside = [], []
++    for name, entry in sorted(selection['sources'].items()):
++        target = admitted if entry['status'] == 'ELIGIBLE' else outside
++        with gzip.open(pinned(entry['source']), 'rt') as stream:
++            for line in stream:
++                raw = json.loads(line)
++                target.append(((name, raw['qid']), dict(view(raw), _pool_source=name)))
++    return admitted, outside
++
++
++def _count(name, items, files, pool=False):
++    """Tree counters on one population: independent census (expect) and filter (keep), reconciled
++    by totals(); returns (dev, test, listed row keys)."""
++    from student_pilot.s1_exclusions import Exclusions, totals
++    rule = Exclusions(files['dev'], files['benchmark'])
++    if pool:
++        sources = sorted({row['_pool_source'] for _, row in items})
++        listed = []
++        for source in sources:
++            part = [(key, {k: v for k, v in row.items() if k != '_pool_source'}) for key, row in items if row['_pool_source'] == source]
++            rule.expect(source, (row for _, row in part), dict(population='kit-admitted-census', source=source))
++            for key, row in part:
++                if not rule.keep(row, source):
++                    listed.append([*key, *(flag for flag in rule.matches(row).values())])
++    else:
++        rule.expect(name, (row for _, row in items), dict(population='kit-admitted-census', source=name))
++        rule.counts(name)
++        listed = []
++        for key, row in items:
++            if not rule.keep(row, name):
++                listed.append([key, *(flag for flag in rule.matches(row).values())])
++    counts = totals(rule.report(), rule)
++    return counts['dev_matches'], counts['benchmark_matches'], listed
++
++
++def admitted(result, cfg, output, *, plant=None):
++    """result: the tree's 2.json (rebuild output); cfg: the configuration rebuild ran with.
++    plant (tests only): {source: key} moves that row from the outside population into the admitted one."""
++    from student_pilot.p3_provenance import load, pinned, file_pin, write
++    from student_pilot.r2_scene_bindings import SOURCES
++    output = Path(output)
++    files = result['files']
++    whole = load(pinned(result['scene_coverage']['reference']))
++    if whole.get('exact_rebuilt_population') is not True or whole.get('withhold_file') != files['dev']:
++        raise ValueError('R1_CENSUS_WHOLE_STORE_REFERENCE_DIFFERS')
++    selection = load(pinned(result['pool_selection']))
++    pose = load(pinned(cfg['streams']['pose']))
++    census, record, keys = {}, {}, {}
++    for name in sorted(whole['withheld_training_rows']):
++        entry = whole['withheld_training_rows'][name]
++        if name == 'pool':
++            inside, outside = _split_pool(selection)
++            population = dict(rule='ELIGIBLE pool sources (s1_routing._build reads these)',
++                              sources=sorted(n for n, v in selection['sources'].items() if v['status'] == 'ELIGIBLE'))
++        else:
++            receipt = load(pinned(result['receipts'][name]))['scene_rebuild']
++            legacy = load(pinned(receipt['input_receipt']))
++            if name in POSE:
++                part = pose['sources'][POSE[name]]
++                if part.get('receipt') != receipt['input_receipt']:
++                    raise ValueError('R1_CENSUS_POSE_SOURCE_DIFFERS:'+name)
++                inside, outside = _split_pose(receipt['population'], part['frame_prefix'])
++                population = dict(rule='c1_pose_mix._row_selected', frame_prefix=part['frame_prefix'])
++            elif SOURCES.get(name) == 'routing':
++                check, train, heldout, division = _routing_check(cfg, selection, legacy)
++                inside, outside = _split_routing(receipt['population'], check, train, heldout)
++                population = dict(rule='s1_routing._build census_rows: COMPATIBLE, train, not held out',
++                                  division=division, compatible=sorted(k for k, v in check.items() if v['disposition'] == 'COMPATIBLE'))
++            else:
++                inside, outside = _split_whole(receipt['population'])
++                population = dict(rule='whole store (the stream build reads every row)')
++            if len(inside)+len(outside) != receipt['population_count']:
++                raise ValueError('R1_CENSUS_POPULATION_INCOMPLETE:'+name)
++        if plant and name in plant:
++            moved = [item for item in outside if item[0] == plant[name]]
++            if len(moved) != 1:
++                raise ValueError('R1_CENSUS_PLANT_KEY_MISSING:'+name)
++            outside = [item for item in outside if item[0] != plant[name]]
++            inside = inside+moved
++        dev, test, listed = _count(name, inside, files, pool=(name == 'pool'))
++        odev, otest, olisted = _count(name, outside, files, pool=(name == 'pool')) if outside else (0, 0, [])
++        if dev+odev != entry['rows_withheld'] or test+otest != entry['benchmark_rows_withheld']:
++            raise ValueError('R1_CENSUS_WHOLE_DIFFERS_FROM_ADMITTED_PLUS_OUTSIDE:'+name)
++        census[name] = dict(path=entry['path'], rows_withheld=dev, benchmark_rows_withheld=test)
++        record[name] = dict(population=population, admitted_rows=len(inside), outside_rows=len(outside),
++                            whole=dict(dev=entry['rows_withheld'], test=entry['benchmark_rows_withheld']),
++                            admitted=dict(dev=dev, test=test), outside=dict(dev=odev, test=otest),
++                            outside_listed_keys=olisted)
++        keys[name] = len(listed)
++    receipt = dict(schema='r1-admitted-scene-census-v1', whole_store_census=result['scene_coverage']['reference'],
++                   rule='whole-store census = admitted census + outside, per source and list', sources=record)
++    write(output/'o.json', receipt)
++    reference = dict(whole, withheld_training_rows=census, population='admitted',
++                     whole_store_census=result['scene_coverage']['reference'], outside=file_pin(output/'o.json'))
++    if reference['exact_rebuilt_population'] is not True:
++        raise ValueError('R1_CENSUS_NOT_EXACT')
++    write(output/'a.json', reference)
++    bound = deepcopy(result)
++    bound['scene_coverage'] = dict(result['scene_coverage'], reference=file_pin(output/'a.json'))
++    bound['admitted_census'] = dict(whole=result['scene_coverage']['reference'], outside=file_pin(output/'o.json'))
++    write(output/'3.json', bound)
++    print(json.dumps(dict(admitted_census={n: dict(admitted=r['admitted'], outside=r['outside'], whole=r['whole'])
++                                           for n, r in record.items()})), flush=True)
++    return file_pin(output/'3.json')
+diff -ruN /scratch/jjyeung/orch_n30/tree_rebuild10_w/w30f1/n_go/b/pl.py /scratch/jjyeung/orch_n30/tree_rebuild10_w/w31cen/n_go/b/pl.py
+--- x/b/pl.py	2026-11-21 04:50:46.506006150 -0500
++++ x/b/pl.py	2026-11-21 11:15:10.525824435 -0500
+@@ -278,8 +278,9 @@
+             live.mkdir(mode=0o700,exist_ok=True)
+         else:
+             live,_=location(kit,root.parent,os.environ['SLURM_JOB_ID'])
+-        put(live/'s0.json',(scene/'2.json').read_bytes())
+-        put(live/'s1.json',(scene/'0.json').read_bytes())
++        put(live/'s0.json',(scene/'3.json').read_bytes())
++        put(live/'s1.json',(scene/'a.json').read_bytes())
++        put(live/'s4.json',(scene/'o.json').read_bytes())
+         effective.update(r2_scene_rebuild=cfg['r2_scene_rebuild'],scene_coverage=cfg['scene_coverage'],s1_routing=cfg['s1_routing'])
+         with scope(sources):
+             source_record=census_sources(effective)
+diff -ruN /scratch/jjyeung/orch_n30/tree_rebuild10_w/w30f1/n_go/b/sc.py /scratch/jjyeung/orch_n30/tree_rebuild10_w/w31cen/n_go/b/sc.py
+--- x/b/sc.py	1969-12-31 19:00:00.000000000 -0500
++++ x/b/sc.py	2026-11-21 11:15:10.518824443 -0500
+@@ -63,8 +63,9 @@
+     start=time.monotonic()
+     try:subprocess.run(command,check=True)
+     finally:print('scene rebuild seconds=%.3f'%(time.monotonic()-start),flush=True)
+-    physical=physical/'sc';result=load(physical/'2.json')
+-    cfg['r2_scene_rebuild']=dict(path=str(destination/'sc/2.json'),sha256=sha(physical/'2.json'))
++    # 3.json is the tree's 2.json bound to the census over the admitted population (cn.py).
++    physical=physical/'sc';result=load(physical/'3.json')
++    cfg['r2_scene_rebuild']=dict(path=str(destination/'sc/3.json'),sha256=sha(physical/'3.json'))
+     cfg['scene_coverage']=result['scene_coverage']
+     cfg['s1_routing']['selection']=result['pool_selection']
+     return physical
+@@ -77,7 +78,9 @@
+     value=load(sys.argv[1])
+     with scope(value['paths']):
+         result=rebuild(value['spec'],value['config'],value['output'])
+-        cfg=dict(value['config'],r2_scene_rebuild=file_pin(Path(value['output'])/'2.json'),scene_coverage=result['scene_coverage'])
++        from cn import admitted
++        bound=admitted(result,value['config'],value['output'])
++        cfg=dict(value['config'],r2_scene_rebuild=bound,scene_coverage=load(bound['path'])['scene_coverage'])
+         verify(cfg)
+ 
+ if __name__=='__main__':main()
