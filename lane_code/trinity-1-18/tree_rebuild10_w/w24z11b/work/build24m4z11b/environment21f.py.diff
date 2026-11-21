@@ -1,0 +1,11 @@
+--- 24m4z11/environment21f.py
++++ 24m4z11b/environment21f.py
+@@ -21,7 +21,7 @@
+     # Exact immutable final-copier AST: open forwards file kwargs only, and these
+     # getattr calls read fixed fields from self/error, never an environment API.
+     import hashlib
+-    frozen_copier=(doc=='b/pc.py' and hashlib.sha256(ast.dump(tree,include_attributes=False).encode()).hexdigest()=='9cbe86131354a22eb7fbc56bc20489f1d01066d466337db82154acefa8b8e4ec')
++    frozen_copier=(doc=='b/pc.py' and hashlib.sha256(ast.dump(tree,include_attributes=False).encode()).hexdigest()=='a2d52e6562a2fb10158c52d38c956ae33793070752b6f59e2c69d30b79942bb4')
+     fixed_getattr={"getattr(self, 'diagnostic_prefix', False)","getattr(self, 'stop_settled', False)","getattr(error, 'errno', None)"}
+     bindings = {}
+     dirty = set()

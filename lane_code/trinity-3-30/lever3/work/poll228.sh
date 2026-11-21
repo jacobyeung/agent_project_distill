@@ -5,3 +5,4 @@ for d in $(ls -td $R/*lever[123]_* 2>/dev/null | head -4); do echo "== $(basenam
 uptime
 df -h /scratch | tail -1
 echo "-- arkref $(tail -2 $C/nogt/ark_ref_stage.log 2>/dev/null | tr "\n" " ")"; ls $C/r1rev4 2>/dev/null
+echo "-- rev dirs"; ls -d $R/*lever3_* 2>/dev/null; for d in $(ls -d $R/*lever3_* 2>/dev/null); do echo "== $(basename $d) $(stat -c %s $d/transcript.log 2>/dev/null) final=$([ -f $d/final_message.md ] && echo y || echo n)"; grep -v WARN $d/transcript.log 2>/dev/null | tail -c 300 | tr -d '\r'; echo; done; tail -2 $C/r1bootrev_run.log $C/r4boot2rev_run.log

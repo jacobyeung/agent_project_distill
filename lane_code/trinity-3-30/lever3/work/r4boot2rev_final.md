@@ -1,0 +1,12 @@
+**GO AFTER FIXES — complete the pre-bulk import closure.**
+
+- **Blocking defect:** [src/runtime.py:110](/scratch/jjyeung/orch_n30/lever1_c/r4kit/src/runtime.py:110) scans imports in only five wrapper files. It misses function-local imports inside their dependencies. For example, routed prompt preparation requires `student_pilot.carrier_c1_canary` at [evalpath/runtime.py:128](/scratch/jjyeung/orch_n30/lever1_c/r4kit/in/D400/src/tree/evalpath/runtime.py:128), but that module is absent from the recorded import inventory. Its failure would occur **after bulk staging**, defeating this gate.
+- **Required fix:** include the transitive lazy imports used by restore, processor construction, model loading and prompt preparation. Extend the missing-module test to omit one such dependency in both modes and verify zero bulk bytes plus its traceback through production fetch. The current test removes the directly imported `stage_restore` only ([tests/test_boot.py:65](/scratch/jjyeung/orch_n30/lever1_c/r4kit/tests/test_boot.py:65)).
+
+The remaining reviewed controls pass:
+
+- Both modes require boot success before bulk copies; boot and workload share interpreter, namespace and environment construction ([control.py:273](/scratch/jjyeung/orch_n30/lever1_c/r4kit/src/control.py:273), [control.py:315](/scratch/jjyeung/orch_n30/lever1_c/r4kit/src/control.py:315)).
+- Existing negative tests record zero bulk bytes and authenticated fetched tracebacks in both modes ([BOOT_CHECKS.json:10](/scratch/jjyeung/orch_n30/lever1_c/r4kit/out/BOOT_CHECKS.json:10), [BOOT_CHECKS.json:54](/scratch/jjyeung/orch_n30/lever1_c/r4kit/out/BOOT_CHECKS.json:54)).
+- Diagnostics retain both streams; ext4 enforcement, the 44 MB `/project` budget, naming audits, resources and deadlines show no additional blocker ([monitor.py:154](/scratch/jjyeung/orch_n30/lever1_c/r4kit/src/monitor.py:154), [control.py:100](/scratch/jjyeung/orch_n30/lever1_c/r4kit/src/control.py:100), [control.py:28](/scratch/jjyeung/orch_n30/lever1_c/r4kit/src/control.py:28)).
+- I independently verified the delivery hash and implementation hashes. Recorded validation reports **42 passing tests** for this exact delivery ([FINAL_CHECKS.json:3](/scratch/jjyeung/orch_n30/lever1_c/r4kit/out/FINAL_CHECKS.json:3)); tests were not rerun during this read-only review.
+- PLACE, REPORT, BUILD and FORECAST agree: token `f68a2d7c903be`; **4,255,483 bytes**; SHA-256 `233ee0816bc9a6e39c999519cbe0944a1b024518c1c0e61a7925b043254dbd66`.

@@ -1,0 +1,185 @@
+[
+  {
+    "name": "real_exit_stop_and_diagnostics",
+    "status": "PASS",
+    "detail": [
+      {
+        "mode": "nominal",
+        "version": "before",
+        "immediate": false,
+        "stop_uploaded_bytes": 1054720,
+        "final_log_bytes": 0,
+        "full_X": true,
+        "real_exit": true
+      },
+      {
+        "mode": "nominal",
+        "version": "after",
+        "immediate": true,
+        "stop_uploaded_bytes": 1054720,
+        "final_log_bytes": 2097152,
+        "full_X": true,
+        "real_exit": true
+      },
+      {
+        "mode": "signal",
+        "version": "before",
+        "immediate": false,
+        "stop_uploaded_bytes": 1054720,
+        "final_log_bytes": 0,
+        "full_X": true,
+        "real_exit": true
+      },
+      {
+        "mode": "signal",
+        "version": "after",
+        "immediate": true,
+        "stop_uploaded_bytes": 1054720,
+        "final_log_bytes": 2097152,
+        "full_X": true,
+        "real_exit": true
+      },
+      {
+        "mode": "forecast",
+        "version": "before",
+        "immediate": true,
+        "stop_uploaded_bytes": 1054720,
+        "final_log_bytes": 0,
+        "full_X": true,
+        "real_exit": true
+      },
+      {
+        "mode": "forecast",
+        "version": "after",
+        "immediate": true,
+        "stop_uploaded_bytes": 0,
+        "final_log_bytes": 2097152,
+        "full_X": true,
+        "real_exit": true
+      },
+      {
+        "mode": "diagnostics",
+        "version": "before",
+        "immediate": true,
+        "stop_uploaded_bytes": 1054720,
+        "final_log_bytes": 0,
+        "full_X": true,
+        "real_exit": true
+      },
+      {
+        "mode": "diagnostics",
+        "version": "after",
+        "immediate": true,
+        "stop_uploaded_bytes": 0,
+        "final_log_bytes": 2097152,
+        "full_X": true,
+        "real_exit": true
+      }
+    ]
+  },
+  {
+    "name": "observer_constructors",
+    "status": "PASS",
+    "detail": [
+      {
+        "kind": "e3",
+        "version": "before",
+        "returncode": 1
+      },
+      {
+        "kind": "e3",
+        "version": "after",
+        "returncode": 0
+      },
+      {
+        "kind": "tgcs",
+        "version": "before",
+        "returncode": 1
+      },
+      {
+        "kind": "tgcs",
+        "version": "after",
+        "returncode": 0
+      }
+    ]
+  },
+  {
+    "name": "malformed_ranges",
+    "status": "PASS",
+    "detail": [
+      {
+        "version": "before",
+        "cases": 28,
+        "http_codes": [
+          308,
+          308,
+          308,
+          308,
+          308,
+          308,
+          308,
+          308,
+          308,
+          400,
+          400,
+          400,
+          400,
+          400,
+          400,
+          200,
+          409,
+          409,
+          409,
+          409,
+          409,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200
+        ]
+      },
+      {
+        "version": "after",
+        "cases": 28,
+        "http_codes": [
+          400,
+          400,
+          400,
+          400,
+          400,
+          400,
+          400,
+          400,
+          400,
+          400,
+          400,
+          400,
+          400,
+          400,
+          400,
+          400,
+          400,
+          400,
+          400,
+          400,
+          400,
+          400,
+          400,
+          400,
+          400,
+          400,
+          400,
+          400
+        ]
+      }
+    ]
+  },
+  {
+    "name": "stop_tool",
+    "status": "FAIL",
+    "output": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z12/work/build24m4z12/findings_tests.py\", line 7, in test\n    try:r=dict(name=name,status='PASS',detail=fn())\n                                              ^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z12/work/build24m4z12/findings_tests.py\", line 115, in setting\n    (r/(value+'.log')).write_text(p.stdout+p.stderr);assert p.returncode==0,p.stderr\n                                                            ^^^^^^^^^^^^^^^\nAssertionError: Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z12/work/build24m4z12/findings_final/setting/set_stop.py\", line 35, in <module>\n    if __name__==\"__main__\":main()\n                            ^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z12/work/build24m4z12/findings_final/setting/set_stop.py\", line 24, in main\n    check(k);envelope,cfg=decode(k/\"k/n.json\");cfg[\"recipe\"][\"stop_before_seconds\"]=seconds\n    ^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z12/work/build24m4z12/findings_final/setting/set_stop.py\", line 16, in check\n    if p.returncode or p.stdout.strip()!=sha(k/\"SHA256SUMS.txt\"):raise ValueError(p.stderr or \"seal mismatch\")\n                                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nValueError: Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z12/work/build24m4z12/findings_final/setting/kit_n/b/v.py\", line 5, in <module>\n    print(seal(sys.argv[1]))\n          ^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z12/work/build24m4z12/findings_final/setting/kit_n/b/z.py\", line 47, in seal\n    if actual!=expected:raise ValueError('E13')\n                        ^^^^^^^^^^^^^^^^^^^^^^^\nValueError: E13\n\n\n"
+  }
+]

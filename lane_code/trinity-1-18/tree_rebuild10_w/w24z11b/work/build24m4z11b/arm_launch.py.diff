@@ -1,0 +1,22 @@
+--- 24m4z11/arm_launch.py
++++ 24m4z11b/arm_launch.py
+@@ -3,7 +3,7 @@
+ import base64, gzip, hashlib, importlib.util, json, os, re, resource, shutil, subprocess, sys, tempfile, time
+ resource.setrlimit(resource.RLIMIT_AS, (14*1024**3, 14*1024**3))
+ L=Path(__file__).resolve().parents[1]
+-D=L/'work/build24m4z11'
++D=L/'work/build24m4z11b'
+ E=L.parent/'work/d173912/173912'
+ SELECTION='a49f117f60add326e1ef3e8eb2b92a73ec299425e8efb477fa9e84d462789e73'
+ GENERATED='5e35c3ce600a867be194911642caccb23098035b4bf08909e519a170a1c243df'
+@@ -12,8 +12,8 @@
+ METADATA='3ee233af526a4f82be382591bb78727c0262dfccdf5fcd26a3563ed3ff8e8461'
+ BASE='ca0616dbc67cf9a257774b43a9d5b134957b3f3ce0451e6bf5378f3d7d0c1984'
+ SOURCE_SEALS={'q':'df93cfba9769ca82f48ac3bfdbb117ffc2d06b6f694ed1694c23d815fa97e2a9',
+- 'n':'fb5c7f62c91b55cf0b432e65fd79d582c581b1fa27aa5b23ef36bb8001fab867',
+- 'n_go':'5c8ba4b4dc52c08388b4e911dd77ea3a380a79a53eb6389010ff9fb666fe2b4d'}
++ 'n':'402a2fe23831c449e46cdb0b80fa9cde41e0bd5abf6d9edb57a106c0d5b202f2',
++ 'n_go':'22db0727c2eb58c14cd14d371799b9e508264ab201155ec68243597bb9598444'}
+ sys.path[:0]=[str(L/'out'),str(L/'work/tree_r1c')]
+ import arm_routing as arm
+ # Keep all executable dependencies in this delivered workspace.

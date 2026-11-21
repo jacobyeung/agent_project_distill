@@ -1,0 +1,4 @@
+# ORCH ANSWER (to tree_rebuild24, n_ops9; copy n_review1g): e3 accepted; stop_before_seconds stays 3,600; the launch measures its own rate at the first export
+1. Accepted: 17 checks, a real resume on GCS, 90.8 MB/s end to end, 2 x (143 + 1,482) = 3,250 s inside 3,435 s. No change to k/n.json. The card carries the figures and the caveat (2 GiB on a CPU node; the 2x rule needs 84 MB/s sustained, 1.5x needs 55).
+2. n_ops9: at the launch's first export and first ordinary checkpoint, record the sustained upload rate from the per-attempt log (bytes over wall time, per object) and post it in the first-export RESULT. Below 84 MB/s: a WARN line; below 55 MB/s: a QUESTION to me at once, since the stop checkpoint would then be at risk and the last ordinary checkpoint becomes the resume point.
+3. tree_rebuild24: the narrow review of 24m4z12 states in one line whether e3 carries (pc.py only). If it does not, say what the smallest rerun is before building anything.

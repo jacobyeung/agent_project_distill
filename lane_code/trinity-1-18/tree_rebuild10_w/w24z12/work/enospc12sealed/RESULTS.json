@@ -1,0 +1,804 @@
+[
+  {
+    "name": "prepare_missing",
+    "status": "PASS",
+    "result": {
+      "returncode": 1,
+      "training_started": false,
+      "error": "file missing"
+    },
+    "log": "work/enospc12sealed/logs/prepare_missing.log"
+  },
+  {
+    "name": "prepare_incomplete",
+    "status": "PASS",
+    "result": {
+      "returncode": 1,
+      "training_started": false,
+      "error": "E101"
+    },
+    "log": "work/enospc12sealed/logs/prepare_incomplete.log"
+  },
+  {
+    "name": "full",
+    "status": "PASS",
+    "result": {
+      "free_bytes": 0
+    },
+    "log": "work/enospc12sealed/logs/full.log"
+  },
+  {
+    "name": "wrapper_local_logs",
+    "status": "PASS",
+    "result": {
+      "child_rc": 0,
+      "logger_rc": 0,
+      "local_checkpoint_bytes": 4096,
+      "project_free": 0
+    },
+    "log": "work/enospc12sealed/logs/wrapper_local_logs.log"
+  },
+  {
+    "name": "nonfatal_launch_finalizer",
+    "status": "PASS",
+    "result": {
+      "returncode": 0,
+      "training_started": true,
+      "local_archive_bytes": 1375,
+      "archive_retry": "{\"time\": 1795222142, \"action\": \"small\", \"error\": \"OSError(28, 'No space left on device')\", \"errno\": 28}\n{\"time\": 1795222144, \"action\": \"small\", \"error\": \"OSError(28, 'No space left on device')\", \"errno\": 28}\n{\"time\": 1795222145, \"action\": \"small\", \"error\": \"OSError(28, 'No space left on device')\", \"errno\": 28}\n{\"time\": 1795222146, \"action\": \"small\", \"error\": \"OSError(28, 'No space left on device')\", \"errno\": 28}\n{\"time\": 1795222146, \"action\": \"o_copy\", \"error\": \"OSError(28, 'No space left on device')\", \"errno\": 28}\n{\"time\": 1795222146, \"action\": \"small\", \"error\": \"OSError(28, 'No space left on device')\", \"errno\": 28}\n{\"time\": 1795222146, \"action\": \"o_copy\", \"error\": \"OSError(28, 'No space left on device')\", \"errno\": 28}\n{\"time\": 1795222146, \"action\": \"small\", \"error\": \"OSError(28, 'No space left on device')\", \"errno\": 28}\n{\"time\": 1795222146, \"action\": \"o_copy\", \"error\": \"OSError(28, 'No space left on device')\", \"errno\": 28}\n{\"time\": 1795222147, \"action\": \"small\", \"error\": \"OSError(28, 'No space left on device')\", \"errno\": 28}\n{\"time\": 1795222147, \"action\": \"o_copy\", \"error\": \"OSError(28, 'No space left on device')\", \"errno\": 28}\n{\"time\": 1795222147, \"action\": \"small\", \"error\": \"OSError(28, 'No space left on device')\", \"errno\": 28}\n{\"time\": 1795222147, \"action\": \"o_copy\", \"error\": \"OSError(28, 'No space left on device')\", \"errno\": 28}\n{\"time\": 1795222148, \"action\": \"small\", \"error\": \"OSError(28, 'No space left on device')\", \"errno\": 28}\n{\"time\": 1795222148, \"action\": \"o_copy\", \"error\": \"OSError(28, 'No space left on device')\", \"errno\": 28}\n{\"time\": 1795222148, \"action\": \"small\", \"error\": \"OSError(28, 'No space left on device')\", \"errno\": 28}\n{\"time\": 1795222148, \"action\": \"o_copy\", \"error\": \"OSError(28, 'No space left on device')\", \"errno\": 28}\n{\"time\": 1795222148, \"action\": \"small\", \"error\": \"OSError(28, 'No space left on device')\", \"errno\": 28}\n{\"time\": 1795222148, \"action\": \"o_copy\", \"error\": \"OSError(28, 'No space left on device')\", \"errno\": 28}\n{\"time\": 1795222148, \"action\": \"small\", \"error\": \"OSError(28, 'No space left on device')\", \"errno\": 28}\n{\"time\": 1795222148, \"action\": \"o_copy\", \"error\": \"OSError(28, 'No space left on device')\", \"errno\": 28}\n{\"time\": 1795222149, \"action\": \"small\", \"error\": \"OSError(28, 'No space left on device')\", \"errno\": 28}\n{\"time\": 1795222149, \"action\": \"o_copy\", \"error\": \"OSError(28, 'No space left on device')\", \"errno\": 28}\n{\"time\": 1795222149, \"action\": \"small\", \"error\": \"OSError(28, 'No space left on device')\", \"errno\": 28}\n{\"time\": 1795222149, \"action\": \"o_copy\", \"error\": \"OSError(28, 'No space left on device')\", \"errno\": 28}\n{\"time\": 1795222149, \"action\": \"small\", \"error\": \"OSError(28, 'No space left on device')\", \"errno\": 28}\n{\"time\": 1795222149, \"action\": \"o_copy\", \"error\": \"OSError(28, 'No space left on device')\", \"errno\": 28}\n{\"time\": 1795222149, \"action\": \"small\", \"error\": \"OSError(28, 'No space left on device')\", \"errno\": 28}\n{\"time\": 1795222149, \"action\": \"o_copy\", \"error\": \"OSError(28, 'No space left on device')\", \"errno\": 28}\n{\"time\": 1795222149, \"action\": \"small\", \"error\": \"OSError(28, 'No space left on device')\", \"errno\": 28}\n{\"time\": 1795222149, \"action\": \"o_copy\", \"error\": \"OSError(28, 'No space left on device')\", \"errno\": 28}\n{\"time\": 1795222149, \"action\": \"small\", \"error\": \"OSError(28, 'No space left on device')\", \"errno\": 28}\n{\"time\": 1795222149, \"action\": \"o_copy\", \"error\": \"OSError(28, 'No space left on device')\", \"errno\": 28}\n{\"time\": 1795222149, \"action\": \"small\", \"error\": \"OSError(28, 'No space left on device')\", \"errno\": 28}\n{\"time\": 1795222149, \"action\": \"o_copy\", \"error\": \"OSError(28, 'No space left on device')\", \"errno\": 28}\n{\"time\": 1795222150, \"action\": \"small\", \"error\": \"OSError(28, 'No space left on device')\", \"errno\": 28}\n{\"time\": 1795222150, \"action\": \"o_copy\", \"error\": \"OSError(28, 'No space left on device')\", \"errno\": 28}\n{\"time\": 1795222150, \"action\": \"small\", \"error\": \"OSError(28, 'No space left on device')\", \"errno\": 28}\n{\"time\": 1795222150, \"action\": \"o_copy\", \"error\": \"OSError(28, 'No space left on device')\", \"errno\": 28}\n{\"time\": 1795222150, \"action\": \"small\", \"error\": \"OSError(28, 'No space left on device')\", \"errno\": 28}\n{\"time\": 1795222150, \"action\": \"o_copy\", \"error\": \"OSError(28, 'No space left on device')\", \"errno\": 28}\n{\"time\": 1795222150, \"action\": \"small\", \"error\": \"OSError(28, 'No space left on device')\", \"errno\": 28}\n{\"time\": 1795222150, \"action\": \"o_copy\", \"error\": \"OSError(28, 'No space left on device')\", \"errno\": 28}\n{\"time\": 1795222150, \"action\": \"small\", \"error\": \"OSError(28, 'No space left on device')\", \"errno\": 28}\n{\"time\": 1795222150, \"action\": \"o_copy\", \"error\": \"OSError(28, 'No space left on device')\", \"errno\": 28}\n{\"time\": 1795222150, \"action\": \"upload\", \"error\": \"TimeoutError('E104 reserved publication window')\", \"errno\": null}\n",
+      "project_free": 0
+    },
+    "log": "work/enospc12sealed/logs/nonfatal_launch_finalizer.log"
+  },
+  {
+    "name": "full_exports_and_stop",
+    "status": "PASS",
+    "result": {
+      "done": [
+        "gcs_checkpoint_7.done",
+        "gcs_checkpoint_7_stop.done",
+        "gcs_m100.done",
+        "gcs_o.done",
+        "gcs_u.done"
+      ],
+      "parts": 16,
+      "bytes_sha256_match": true,
+      "project_free": 0,
+      "receipts": [
+        {
+          "bytes": 527360,
+          "crc32c": "fixture",
+          "file": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z12/work/enospc12sealed/node/live_spool/e0c5aedfef8895ac6ec4ec5b0e4bcc421476ed0c6305a9188f66d5c0ac265468.tar",
+          "finished_at": 1795222143.0955107,
+          "generation": "1",
+          "md5": "XMSx8aQdoA7+K50aclX4+w==",
+          "name": "q9/22c714e1/469ddece_m100.tar.j24042.part00-of-04",
+          "offset": 0,
+          "seconds": 0.020145893096923828,
+          "sha256": "f2706688d0165079497c146dc3cc23e4b886d2d46d9a22dc12ed99631a0db432",
+          "started_at": 1795222143.0753646
+        },
+        {
+          "bytes": 527360,
+          "crc32c": "fixture",
+          "file": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z12/work/enospc12sealed/node/live_spool/e0c5aedfef8895ac6ec4ec5b0e4bcc421476ed0c6305a9188f66d5c0ac265468.tar",
+          "finished_at": 1795222143.0924609,
+          "generation": "1",
+          "md5": "sK4E1yaHH/y4Qwsbg0wiRw==",
+          "name": "q9/22c714e1/469ddece_m100.tar.j24042.part01-of-04",
+          "offset": 527360,
+          "seconds": 0.016839265823364258,
+          "sha256": "9fff9c40ad36d5b0755d6227d3553c0c929f973cc223bf9a76a778bd33a5c762",
+          "started_at": 1795222143.0756207
+        },
+        {
+          "bytes": 527360,
+          "crc32c": "fixture",
+          "file": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z12/work/enospc12sealed/node/live_spool/e0c5aedfef8895ac6ec4ec5b0e4bcc421476ed0c6305a9188f66d5c0ac265468.tar",
+          "finished_at": 1795222143.0984337,
+          "generation": "1",
+          "md5": "K4yRAIFIMUmq6hFMO0nBCA==",
+          "name": "q9/22c714e1/469ddece_m100.tar.j24042.part02-of-04",
+          "offset": 1054720,
+          "seconds": 0.022560596466064453,
+          "sha256": "d87c8b3326b39f8d22b4f19cf595b6795d8df23ec83914696053ef3997d75b18",
+          "started_at": 1795222143.0758727
+        },
+        {
+          "bytes": 527360,
+          "crc32c": "fixture",
+          "file": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z12/work/enospc12sealed/node/live_spool/e0c5aedfef8895ac6ec4ec5b0e4bcc421476ed0c6305a9188f66d5c0ac265468.tar",
+          "finished_at": 1795222143.1008654,
+          "generation": "1",
+          "md5": "Ly7U0gtZUuM/WRxTjFVlSQ==",
+          "name": "q9/22c714e1/469ddece_m100.tar.j24042.part03-of-04",
+          "offset": 1582080,
+          "seconds": 0.02473616600036621,
+          "sha256": "9deb7236463fde2fe08dd864de2e2a8bda56e7e2f9f27b394ef7daf7f3e0783b",
+          "started_at": 1795222143.076129
+        },
+        {
+          "bytes": 527360,
+          "crc32c": "fixture",
+          "file": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z12/work/enospc12sealed/node/live_spool/65d18a070ad4d74a86a33d79afca436ab9d99fff02186e7d3c87f2601f31e7f9.tar",
+          "finished_at": 1795222143.2450395,
+          "generation": "1",
+          "md5": "9adJumD7uA0cX3jgY5Epyw==",
+          "name": "q9/22c714e1/469ddece_ck00.tar.j24042.part00-of-04",
+          "offset": 0,
+          "seconds": 0.028668880462646484,
+          "sha256": "0023cbdd3b924f29a9d6b9b040dc3d299191661961a6c6595330184a1ff366b8",
+          "started_at": 1795222143.2163706
+        },
+        {
+          "bytes": 527360,
+          "crc32c": "fixture",
+          "file": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z12/work/enospc12sealed/node/live_spool/65d18a070ad4d74a86a33d79afca436ab9d99fff02186e7d3c87f2601f31e7f9.tar",
+          "finished_at": 1795222143.2394295,
+          "generation": "1",
+          "md5": "3i3y+c0Vij6/p5994glqwQ==",
+          "name": "q9/22c714e1/469ddece_ck00.tar.j24042.part01-of-04",
+          "offset": 527360,
+          "seconds": 0.022801637649536133,
+          "sha256": "f7932d8af1df6d5ca6f552064408cf666cc34133e3dfee8ea81e40e1b4dd5f5e",
+          "started_at": 1795222143.2166271
+        },
+        {
+          "bytes": 527360,
+          "crc32c": "fixture",
+          "file": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z12/work/enospc12sealed/node/live_spool/65d18a070ad4d74a86a33d79afca436ab9d99fff02186e7d3c87f2601f31e7f9.tar",
+          "finished_at": 1795222143.235033,
+          "generation": "1",
+          "md5": "z5CQAdyLuv4y9HivkqXYqw==",
+          "name": "q9/22c714e1/469ddece_ck00.tar.j24042.part02-of-04",
+          "offset": 1054720,
+          "seconds": 0.018244504928588867,
+          "sha256": "babf76e40f338465e7171e4f32c8357784819828ddfa65d03f5b137bada09259",
+          "started_at": 1795222143.2167878
+        },
+        {
+          "bytes": 527360,
+          "crc32c": "fixture",
+          "file": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z12/work/enospc12sealed/node/live_spool/65d18a070ad4d74a86a33d79afca436ab9d99fff02186e7d3c87f2601f31e7f9.tar",
+          "finished_at": 1795222143.2422009,
+          "generation": "1",
+          "md5": "VXNzAJOWN4vbgECoEaps2w==",
+          "name": "q9/22c714e1/469ddece_ck00.tar.j24042.part03-of-04",
+          "offset": 1582080,
+          "seconds": 0.025194168090820312,
+          "sha256": "fff6c2b502ac89e8c532f766b4fddc87956d04a40e4fae9be690e10f6a64c7fd",
+          "started_at": 1795222143.2170064
+        },
+        {
+          "bytes": 344,
+          "crc32c": "fixture",
+          "file": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z12/work/enospc12sealed/node/o/o.tar",
+          "finished_at": 1795222146.5338757,
+          "generation": "1",
+          "md5": "phCHrzXWj0EQq9h8aD0DHA==",
+          "name": "q9/22c714e1/469ddece_o.tar.j24042.part00-of-04",
+          "offset": 0,
+          "seconds": 0.016016483306884766,
+          "sha256": "e079f707a17ade2a1d2397b44e96bcb029a91110677f08bc5329f6e8f323267b",
+          "started_at": 1795222146.5178587
+        },
+        {
+          "bytes": 344,
+          "crc32c": "fixture",
+          "file": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z12/work/enospc12sealed/node/o/o.tar",
+          "finished_at": 1795222146.532985,
+          "generation": "1",
+          "md5": "afI/s6emGcLmrMeh/257DA==",
+          "name": "q9/22c714e1/469ddece_o.tar.j24042.part01-of-04",
+          "offset": 344,
+          "seconds": 0.014738321304321289,
+          "sha256": "268d60965fe75e19be285d56cdc02cee3ca1cb8282d318b7ed69ed2cd481ce85",
+          "started_at": 1795222146.5182457
+        },
+        {
+          "bytes": 344,
+          "crc32c": "fixture",
+          "file": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z12/work/enospc12sealed/node/o/o.tar",
+          "finished_at": 1795222146.5309749,
+          "generation": "1",
+          "md5": "nNqxxVhGYPsZBBHcSzpG1w==",
+          "name": "q9/22c714e1/469ddece_o.tar.j24042.part02-of-04",
+          "offset": 688,
+          "seconds": 0.012302160263061523,
+          "sha256": "6886a700c3879c49c025f4753039ae077c7749197aa0c440fc143d36ecc8c92f",
+          "started_at": 1795222146.518672
+        },
+        {
+          "bytes": 343,
+          "crc32c": "fixture",
+          "file": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z12/work/enospc12sealed/node/o/o.tar",
+          "finished_at": 1795222146.531866,
+          "generation": "1",
+          "md5": "sLWpHb2N4TY2iA5+QP+Yig==",
+          "name": "q9/22c714e1/469ddece_o.tar.j24042.part03-of-04",
+          "offset": 1032,
+          "seconds": 0.012749910354614258,
+          "sha256": "40746a6c705d21d4bd3411bcff845526f148f0097f383e4aea92cad350b01b1f",
+          "started_at": 1795222146.519116
+        },
+        {
+          "bytes": 524288,
+          "crc32c": "fixture",
+          "file": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z12/work/enospc12sealed/node/live_spool/u/u.log",
+          "finished_at": 1795222146.6973617,
+          "generation": "1",
+          "md5": "8ai5fJJNdrBNo9u9TjeBuA==",
+          "name": "q9/22c714e1/469ddece_u.log.j24042.part00-of-04",
+          "offset": 0,
+          "seconds": 0.016282320022583008,
+          "sha256": "13b9ba8eccd6485be58206d317496fc43ae71f041ee1882ea0a78c18d511b3b9",
+          "started_at": 1795222146.6810787
+        },
+        {
+          "bytes": 524288,
+          "crc32c": "fixture",
+          "file": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z12/work/enospc12sealed/node/live_spool/u/u.log",
+          "finished_at": 1795222150.9061003,
+          "generation": "1",
+          "md5": "mIgCkNNfNQ74loUKtEzPHg==",
+          "name": "q9/22c714e1/469ddece_u.log.j24042.part01-of-04",
+          "offset": 524288,
+          "seconds": 0.016173124313354492,
+          "sha256": "c328fda7f671170f8b3046116683964c7132b133548a332c7e4e3265201e9171",
+          "started_at": 1795222150.8899267
+        },
+        {
+          "bytes": 524288,
+          "crc32c": "fixture",
+          "file": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z12/work/enospc12sealed/node/live_spool/u/u.log",
+          "finished_at": 1795222150.9107454,
+          "generation": "1",
+          "md5": "7RPZry+InUE6u4IcVYJCxg==",
+          "name": "q9/22c714e1/469ddece_u.log.j24042.part02-of-04",
+          "offset": 1048576,
+          "seconds": 0.020444393157958984,
+          "sha256": "f63d02c30246e8266c94ef8a8092aa6d177eb986a1c4a0e41ef11943c6d8d2e6",
+          "started_at": 1795222150.8903008
+        },
+        {
+          "bytes": 524288,
+          "crc32c": "fixture",
+          "file": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z12/work/enospc12sealed/node/live_spool/u/u.log",
+          "finished_at": 1795222150.908666,
+          "generation": "1",
+          "md5": "7RPZry+InUE6u4IcVYJCxg==",
+          "name": "q9/22c714e1/469ddece_u.log.j24042.part03-of-04",
+          "offset": 1572864,
+          "seconds": 0.018057823181152344,
+          "sha256": "f63d02c30246e8266c94ef8a8092aa6d177eb986a1c4a0e41ef11943c6d8d2e6",
+          "started_at": 1795222150.8906078
+        }
+      ]
+    },
+    "log": "work/enospc12sealed/logs/full_exports_and_stop.log"
+  },
+  {
+    "name": "exit_archive_full_sink",
+    "status": "PASS",
+    "result": {
+      "project_free": 0,
+      "bytes": 1375,
+      "sha256": "2083a5f51c7cc71cb070cef3f9656217ae55aa284bb7c351ed09bd1f7ee7a2f1",
+      "parts": 4,
+      "RESULT_inside": true,
+      "final_order": [
+        "exports",
+        "checkpoints",
+        "exports",
+        "exports",
+        "exports",
+        "exports",
+        "exports",
+        "exports",
+        "exports",
+        "exports",
+        "exports",
+        "exports",
+        "exports",
+        "exports",
+        "exports",
+        "exports",
+        "exports",
+        "exports",
+        "exports",
+        "exports",
+        "exports",
+        "exports",
+        "exports",
+        "exports",
+        "exports",
+        "exports",
+        "exports",
+        "exports",
+        "exports",
+        "exports",
+        "exports",
+        "exports",
+        "exports",
+        "exports",
+        "exports",
+        "exports",
+        "exports",
+        "exports",
+        "exports",
+        "exports",
+        "exports",
+        "exports",
+        "exports",
+        "exports",
+        "exports",
+        "exports",
+        "exports",
+        "exports",
+        "exports",
+        "exports",
+        "exports",
+        "exports",
+        "exports",
+        "exports",
+        "exports",
+        "exports",
+        "exports",
+        "exports",
+        "exports",
+        "exports",
+        "exports",
+        "exports",
+        "exports",
+        "exports",
+        "exports",
+        "exports",
+        "exports",
+        "exports",
+        "exports",
+        "exports",
+        "exports",
+        "exports",
+        "exports",
+        "exports",
+        "exports",
+        "exports",
+        "exports",
+        "exports",
+        "exports",
+        "exports",
+        "exports",
+        "exports",
+        "exports",
+        "stop",
+        "exports",
+        "logs",
+        "o",
+        "u",
+        "stop",
+        "exports",
+        "logs",
+        "o",
+        "u",
+        "stop",
+        "exports",
+        "logs",
+        "o",
+        "u",
+        "stop",
+        "exports",
+        "logs",
+        "o",
+        "u",
+        "stop",
+        "exports",
+        "logs",
+        "o",
+        "u",
+        "stop",
+        "exports",
+        "logs",
+        "o",
+        "u",
+        "stop",
+        "exports",
+        "logs",
+        "o",
+        "u",
+        "stop",
+        "exports",
+        "logs",
+        "o",
+        "u",
+        "stop",
+        "exports",
+        "logs",
+        "o",
+        "u",
+        "stop",
+        "exports",
+        "logs",
+        "o",
+        "u",
+        "stop",
+        "exports",
+        "logs",
+        "o",
+        "u",
+        "stop",
+        "exports",
+        "logs",
+        "o",
+        "u",
+        "stop",
+        "exports",
+        "logs",
+        "o",
+        "u",
+        "stop",
+        "exports",
+        "logs",
+        "o",
+        "u",
+        "stop",
+        "exports",
+        "logs",
+        "o",
+        "u",
+        "stop",
+        "exports",
+        "logs",
+        "o",
+        "u",
+        "stop",
+        "exports",
+        "logs",
+        "o",
+        "u",
+        "stop",
+        "exports",
+        "logs",
+        "o",
+        "u",
+        "stop",
+        "exports",
+        "logs",
+        "o",
+        "u",
+        "stop",
+        "exports",
+        "logs",
+        "o",
+        "u",
+        "stop",
+        "exports",
+        "logs",
+        "o",
+        "u"
+      ]
+    },
+    "log": "work/enospc12sealed/logs/exit_archive_full_sink.log"
+  },
+  {
+    "name": "pretraining_full_refusal",
+    "status": "PASS",
+    "result": {
+      "refused": true,
+      "errno": 28,
+      "accepted": false
+    },
+    "log": "work/enospc12sealed/logs/pretraining_full_refusal.log"
+  },
+  {
+    "name": "full_automatic_retries",
+    "status": "PASS",
+    "result": {
+      "loop_pid": 201,
+      "alive": true,
+      "retry_rows": [
+        {
+          "time": 1795222142,
+          "action": "small",
+          "error": "OSError(28, 'No space left on device')",
+          "errno": 28
+        },
+        {
+          "time": 1795222144,
+          "action": "small",
+          "error": "OSError(28, 'No space left on device')",
+          "errno": 28
+        },
+        {
+          "time": 1795222145,
+          "action": "small",
+          "error": "OSError(28, 'No space left on device')",
+          "errno": 28
+        },
+        {
+          "time": 1795222146,
+          "action": "small",
+          "error": "OSError(28, 'No space left on device')",
+          "errno": 28
+        },
+        {
+          "time": 1795222146,
+          "action": "o_copy",
+          "error": "OSError(28, 'No space left on device')",
+          "errno": 28
+        },
+        {
+          "time": 1795222146,
+          "action": "small",
+          "error": "OSError(28, 'No space left on device')",
+          "errno": 28
+        },
+        {
+          "time": 1795222146,
+          "action": "o_copy",
+          "error": "OSError(28, 'No space left on device')",
+          "errno": 28
+        },
+        {
+          "time": 1795222146,
+          "action": "small",
+          "error": "OSError(28, 'No space left on device')",
+          "errno": 28
+        },
+        {
+          "time": 1795222146,
+          "action": "o_copy",
+          "error": "OSError(28, 'No space left on device')",
+          "errno": 28
+        },
+        {
+          "time": 1795222147,
+          "action": "small",
+          "error": "OSError(28, 'No space left on device')",
+          "errno": 28
+        },
+        {
+          "time": 1795222147,
+          "action": "o_copy",
+          "error": "OSError(28, 'No space left on device')",
+          "errno": 28
+        },
+        {
+          "time": 1795222147,
+          "action": "small",
+          "error": "OSError(28, 'No space left on device')",
+          "errno": 28
+        },
+        {
+          "time": 1795222147,
+          "action": "o_copy",
+          "error": "OSError(28, 'No space left on device')",
+          "errno": 28
+        },
+        {
+          "time": 1795222148,
+          "action": "small",
+          "error": "OSError(28, 'No space left on device')",
+          "errno": 28
+        },
+        {
+          "time": 1795222148,
+          "action": "o_copy",
+          "error": "OSError(28, 'No space left on device')",
+          "errno": 28
+        },
+        {
+          "time": 1795222148,
+          "action": "small",
+          "error": "OSError(28, 'No space left on device')",
+          "errno": 28
+        },
+        {
+          "time": 1795222148,
+          "action": "o_copy",
+          "error": "OSError(28, 'No space left on device')",
+          "errno": 28
+        },
+        {
+          "time": 1795222148,
+          "action": "small",
+          "error": "OSError(28, 'No space left on device')",
+          "errno": 28
+        },
+        {
+          "time": 1795222148,
+          "action": "o_copy",
+          "error": "OSError(28, 'No space left on device')",
+          "errno": 28
+        },
+        {
+          "time": 1795222148,
+          "action": "small",
+          "error": "OSError(28, 'No space left on device')",
+          "errno": 28
+        },
+        {
+          "time": 1795222148,
+          "action": "o_copy",
+          "error": "OSError(28, 'No space left on device')",
+          "errno": 28
+        },
+        {
+          "time": 1795222149,
+          "action": "small",
+          "error": "OSError(28, 'No space left on device')",
+          "errno": 28
+        },
+        {
+          "time": 1795222149,
+          "action": "o_copy",
+          "error": "OSError(28, 'No space left on device')",
+          "errno": 28
+        },
+        {
+          "time": 1795222149,
+          "action": "small",
+          "error": "OSError(28, 'No space left on device')",
+          "errno": 28
+        },
+        {
+          "time": 1795222149,
+          "action": "o_copy",
+          "error": "OSError(28, 'No space left on device')",
+          "errno": 28
+        },
+        {
+          "time": 1795222149,
+          "action": "small",
+          "error": "OSError(28, 'No space left on device')",
+          "errno": 28
+        },
+        {
+          "time": 1795222149,
+          "action": "o_copy",
+          "error": "OSError(28, 'No space left on device')",
+          "errno": 28
+        },
+        {
+          "time": 1795222149,
+          "action": "small",
+          "error": "OSError(28, 'No space left on device')",
+          "errno": 28
+        },
+        {
+          "time": 1795222149,
+          "action": "o_copy",
+          "error": "OSError(28, 'No space left on device')",
+          "errno": 28
+        },
+        {
+          "time": 1795222149,
+          "action": "small",
+          "error": "OSError(28, 'No space left on device')",
+          "errno": 28
+        },
+        {
+          "time": 1795222149,
+          "action": "o_copy",
+          "error": "OSError(28, 'No space left on device')",
+          "errno": 28
+        },
+        {
+          "time": 1795222149,
+          "action": "small",
+          "error": "OSError(28, 'No space left on device')",
+          "errno": 28
+        },
+        {
+          "time": 1795222149,
+          "action": "o_copy",
+          "error": "OSError(28, 'No space left on device')",
+          "errno": 28
+        },
+        {
+          "time": 1795222149,
+          "action": "small",
+          "error": "OSError(28, 'No space left on device')",
+          "errno": 28
+        },
+        {
+          "time": 1795222149,
+          "action": "o_copy",
+          "error": "OSError(28, 'No space left on device')",
+          "errno": 28
+        },
+        {
+          "time": 1795222150,
+          "action": "small",
+          "error": "OSError(28, 'No space left on device')",
+          "errno": 28
+        },
+        {
+          "time": 1795222150,
+          "action": "o_copy",
+          "error": "OSError(28, 'No space left on device')",
+          "errno": 28
+        },
+        {
+          "time": 1795222150,
+          "action": "small",
+          "error": "OSError(28, 'No space left on device')",
+          "errno": 28
+        },
+        {
+          "time": 1795222150,
+          "action": "o_copy",
+          "error": "OSError(28, 'No space left on device')",
+          "errno": 28
+        },
+        {
+          "time": 1795222150,
+          "action": "small",
+          "error": "OSError(28, 'No space left on device')",
+          "errno": 28
+        },
+        {
+          "time": 1795222150,
+          "action": "o_copy",
+          "error": "OSError(28, 'No space left on device')",
+          "errno": 28
+        },
+        {
+          "time": 1795222150,
+          "action": "small",
+          "error": "OSError(28, 'No space left on device')",
+          "errno": 28
+        },
+        {
+          "time": 1795222150,
+          "action": "o_copy",
+          "error": "OSError(28, 'No space left on device')",
+          "errno": 28
+        },
+        {
+          "time": 1795222150,
+          "action": "small",
+          "error": "OSError(28, 'No space left on device')",
+          "errno": 28
+        },
+        {
+          "time": 1795222150,
+          "action": "o_copy",
+          "error": "OSError(28, 'No space left on device')",
+          "errno": 28
+        },
+        {
+          "time": 1795222150,
+          "action": "upload",
+          "error": "TimeoutError('E104 reserved publication window')",
+          "errno": null
+        },
+        {
+          "time": 1795222151,
+          "action": "small",
+          "error": "OSError(28, 'No space left on device')",
+          "errno": 28
+        },
+        {
+          "time": 1795222153,
+          "action": "small",
+          "error": "OSError(28, 'No space left on device')",
+          "errno": 28
+        }
+      ],
+      "wrapper_retry": "1795222142 OSError [Errno 28] No space left on device\n1795222142 OSError [Errno 28] No space left on device\n1795222143 OSError [Errno 28] No space left on device\n1795222143 OSError [Errno 28] No space left on device\n1795222143 OSError [Errno 28] No space left on device\n1795222143 OSError [Errno 28] No space left on device\n1795222143 OSError [Errno 28] No space left on device\n1795222143 OSError [Errno 28] No space left on device\n1795222143 OSError [Errno 28] No space left on device\n1795222143 OSError [Errno 28] No space left on device\n1795222143 OSError [Errno 28] No space left on device\n1795222144 OSError [Errno 28] No space left on device\n1795222144 OSError [Errno 28] No space left on device\n1795222144 OSError [Errno 28] No space left on device\n1795222144 OSError [Errno 28] No space left on device\n1795222144 OSError [Errno 28] No space left on device\n1795222144 OSError [Errno 28] No space left on device\n1795222144 OSError [Errno 28] No space left on device\n1795222144 OSError [Errno 28] No space left on device\n1795222144 OSError [Errno 28] No space left on device\n1795222144 OSError [Errno 28] No space left on device\n1795222145 OSError [Errno 28] No space left on device\n1795222145 OSError [Errno 28] No space left on device\n1795222145 OSError [Errno 28] No space left on device\n1795222145 OSError [Errno 28] No space left on device\n1795222145 OSError [Errno 28] No space left on device\n1795222145 OSError [Errno 28] No space left on device\n1795222145 OSError [Errno 28] No space left on device\n1795222145 OSError [Errno 28] No space left on device\n1795222145 OSError [Errno 28] No space left on device\n1795222146 OSError [Errno 28] No space left on device\n1795222146 OSError [Errno 28] No space left on device\n1795222146 OSError [Errno 28] No space left on device\n1795222146 OSError [Errno 28] No space left on device\n1795222146 OSError [Errno 28] No space left on device\n1795222146 OSError [Errno 28] No space left on device\n1795222146 OSError [Errno 28] No space left on device\n1795222146 OSError [Errno 28] No space left on device\n1795222146 OSError [Errno 28] No space left on device\n1795222147 OSError [Errno 28] No space left on device\n1795222147 OSError [Errno 28] No space left on device\n1795222147 OSError [Errno 28] No space left on device\n1795222147 OSError [Errno 28] No space left on device\n1795222147 OSError [Errno 28] No space left on device\n1795222147 OSError [Errno 28] No space left on device\n1795222147 OSError [Errno 28] No space left on device\n1795222147 OSError [Errno 28] No space left on device\n1795222148 OSError [Errno 28] No space left on device\n1795222148 OSError [Errno 28] No space left on device\n1795222148 OSError [Errno 28] No space left on device\n1795222148 OSError [Errno 28] No space left on device\n1795222148 OSError [Errno 28] No space left on device\n1795222148 OSError [Errno 28] No space left on device\n1795222148 OSError [Errno 28] No space left on device\n1795222148 OSError [Errno 28] No space left on device\n1795222148 OSError [Errno 28] No space left on device\n1795222148 OSError [Errno 28] No space left on device\n1795222149 OSError [Errno 28] No space left on device\n1795222149 OSError [Errno 28] No space left on device\n1795222149 OSError [Errno 28] No space left on device\n1795222149 OSError [Errno 28] No space left on device\n1795222149 OSError [Errno 28] No space left on device\n1795222149 OSError [Errno 28] No space left on device\n1795222149 OSError [Errno 28] No space left on device\n1795222149 OSError [Errno 28] No space left on device\n1795222149 OSError [Errno 28] No space left on device\n1795222150 OSError [Errno 28] No space left on device\n1795222150 OSError [Errno 28] No space left on device\n1795222150 OSError [Errno 28] No space left on device\n1795222150 OSError [Errno 28] No space left on device\n1795222150 OSError [Errno 28] No space left on device\n1795222150 OSError [Errno 28] No space left on device\n1795222150 OSError [Errno 28] No space left on device\n1795222150 OSError [Errno 28] No space left on device\n1795222150 OSError [Errno 28] No space left on device\n1795222151 OSError [Errno 28] No space left on device\n1795222151 OSError [Errno 28] No space left on device\n1795222151 OSError [Errno 28] No space left on device\n1795222151 OSError [Errno 28] No space left on device\n1795222151 OSError [Errno 28] No space left on device\n1795222151 OSError [Errno 28] No space left on device\n1795222151 OSError [Errno 28] No space left on device\n1795222151 OSError [Errno 28] No space left on device\n1795222151 OSError [Errno 28] No space left on device\n1795222151 OSError [Errno 28] No space left on device\n1795222152 OSError [Errno 28] No space left on device\n1795222152 OSError [Errno 28] No space left on device\n1795222152 OSError [Errno 28] No space left on device\n1795222152 OSError [Errno 28] No space left on device\n1795222152 OSError [Errno 28] No space left on device\n1795222152 OSError [Errno 28] No space left on device\n1795222152 OSError [Errno 28] No space left on device\n1795222152 OSError [Errno 28] No space left on device\n1795222152 OSError [Errno 28] No space left on device\n1795222153 OSError [Errno 28] No space left on device\n1795222153 OSError [Errno 28] No space left on device\n"
+    },
+    "log": "work/enospc12sealed/logs/full_automatic_retries.log"
+  },
+  {
+    "name": "automatic_recovery",
+    "status": "PASS",
+    "result": {
+      "same_pid": 201,
+      "alive": true,
+      "automatic": true,
+      "archive_exact": true,
+      "wrapper_logs_exact": true
+    },
+    "log": "work/enospc12sealed/logs/automatic_recovery.log"
+  }
+]

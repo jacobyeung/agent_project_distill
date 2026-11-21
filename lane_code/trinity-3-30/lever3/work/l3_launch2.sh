@@ -1,0 +1,69 @@
+C=/scratch/jjyeung/orch_n30/lever1_c
+tmux kill-session -t "=l2_r1bootrev"; tmux kill-session -t "=l3_r4boot2rev"; echo killed
+base64 -d > $C/BRIEF_R4BOOT2REV.md <<'B64'
+IyBSZWFkLW9ubHkgZ2F0ZSByZXZpZXc6IGJvb3QtZmlyc3Qgb3JkZXIgaW4gdGhlIHI0a2l0IHBh
+Y2thZ2UKCllvdSBhcmUgYW4gaW5kZXBlbmRlbnQgQ29kZXggcmV2aWV3ZXIgb24gdHJpbml0eS0y
+LTI4IChyZWFkLW9ubHkpLiBGaW5hbCBtZXNzYWdlIG9ubHkuIE5vIHNzaCwgZ2l0LCBuZXR3b3Jr
+LCBHUFUsIGtpbGwsIFNsdXJtLCB3cml0ZXM7IG5vIC9ob21lIG9yIC9kYXRhKiByZWFkczsgbG9j
+YWwgL3NjcmF0Y2ggcmVhZHMgYXBwcm92ZWQgKGRvIG5vdCBzdG9wIHRvIGFzaykuClN1YmplY3Qg
+YC9zY3JhdGNoL2pqeWV1bmcvb3JjaF9uMzAvbGV2ZXIxX2MvcjRraXQvYCBhZnRlciBgL3NjcmF0
+Y2gvamp5ZXVuZy9vcmNoX24zMC9sZXZlcjFfYy9CUklFRl9SNEJPT1QubWRgIGFuZCBgQlJJRUZf
+UjRCT09UMi5tZGAgKGJvb3QgdGhlIHJlYWwgd29ya2VyIGFuZCBydW4gaXRzIGltcG9ydCBjbG9z
+dXJlIGJlZm9yZSBidWxrIHN0YWdpbmcpLiBUaGUgcHJldmlvdXMgYnVpbGQgcGFzc2VkIGl0cyBn
+YXRlIHJldmlldyAoR08pLiBWZXJpZnkgd2l0aCBmaWxlOmxpbmUgZXZpZGVuY2U6ICgxKSBpbiBi
+b3RoIHRoZSBDUFUgY2hlY2sgYW5kIHRoZSBHUFUgam9iLCBiZWZvcmUgYW55IGJ1bGsgYnl0ZSBp
+cyBzdGFnZWQsIHRoZSB3b3JrZXIgYm9vdHMgZXhhY3RseSBhcyBwcm9kdWN0aW9uIGRvZXMgKHNh
+bWUgaW50ZXJwcmV0ZXIsIG5hbWVzcGFjZSwgZW52IGNvbnN0cnVjdGlvbiwgcGF0aCB0cmFuc2xh
+dGlvbikgYW5kIGltcG9ydHMgaXRzIGNvbXBsZXRlIGNsb3N1cmUsIGFuZCBhbnkgZmFpbHVyZSBy
+ZXR1cm5zIGFuIGF1dGhlbnRpY2F0ZWQgdHJhY2ViYWNrIHRocm91Z2ggdGhlIHByb2R1Y3Rpb24g
+ZmV0Y2ggd2l0aCB6ZXJvIGJ1bGsgYnl0ZXMgc3RhZ2VkIChhIHRlc3Qgc2hvd3MgaXQpOyAoMikg
+bm90aGluZyBlbHNlIGNoYW5nZWQgb3IgcmVncmVzc2VkIChkaWFnbm9zdGljcyB3aXRob3V0IC9k
+ZXYvbnVsbCwgZXh0NC1vbmx5IHN0YWdpbmcsIC9wcm9qZWN0IGJ1ZGdldCwgbmFtaW5nIGRlbnkt
+bGlzdCBvbiBldmVyeSBPcmNoYXJkLXZpc2libGUgcGF0aCBhbmQgam9iLXdyaXR0ZW4gZmlsZSwg
+cmVzb3VyY2VzIGFuZCBkZWFkbGluZXMsIHZhbGlkYXRpb24gZm9yIHRoZSBleGFjdCBzaGEyNTYs
+IGRvY3MgYWdyZWUgb24gdG9rZW4gYW5kIGhhc2gpLiBWZXJkaWN0IGZpcnN0OiBHTyAvIEdPIEFG
+VEVSIEZJWEVTIChsaXN0KSAvIE5PLUdPLiBBdCBtb3N0IDMwIGxpbmVzLiBCZSBxdWljazsgZ2l2
+ZSBHTyB1bmxlc3MgYSBkZWZlY3Qgd291bGQgd2FzdGUgb3IgaW52YWxpZGF0ZSB0aGUgam9iLgo=
+B64
+cat > $C/r4boot2rev_run.sh <<'RUN'
+B=/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30; C=/scratch/jjyeung/orch_n30/lever1_c
+while [ -n "" ] && tmux has-session -t "=" 2>/dev/null; do sleep 30; done
+echo "START $(date -u +%FT%TZ)"
+mkdir -p $C/r4boot2rev; bash $B/tools/codex_local.sh review $C/r4boot2rev $C/BRIEF_R4BOOT2REV.md --model gpt-6-astra --effort high --label lever3_r4boot2rev --skip-git-check --writable-root $C/r4boot2rev
+echo "r4boot2rev DONE rc=$? $(date -u +%FT%TZ)"
+RUN
+tmux new-session -d -s l3_r4boot2rev "bash $C/r4boot2rev_run.sh > $C/r4boot2rev_run.log 2>&1"
+base64 -d > $C/BRIEF_R1BOOTREV.md <<'B64'
+IyBSZWFkLW9ubHkgZ2F0ZSByZXZpZXc6IGJvb3QtZmlyc3Qgb3JkZXIgaW4gdGhlIHIxIHBhY2th
+Z2UKCllvdSBhcmUgYW4gaW5kZXBlbmRlbnQgQ29kZXggcmV2aWV3ZXIgb24gdHJpbml0eS0yLTI4
+IChyZWFkLW9ubHkpLiBGaW5hbCBtZXNzYWdlIG9ubHkuIE5vIHNzaCwgZ2l0LCBuZXR3b3JrLCBH
+UFUsIGtpbGwsIFNsdXJtLCB3cml0ZXM7IG5vIC9ob21lIG9yIC9kYXRhKiByZWFkczsgbG9jYWwg
+L3NjcmF0Y2ggcmVhZHMgYXBwcm92ZWQgKGRvIG5vdCBzdG9wIHRvIGFzaykuClN1YmplY3QgYC9z
+Y3JhdGNoL2pqeWV1bmcvb3JjaF9uMzAvbGV2ZXIxX2MvcjEvYCBhZnRlciBgL3NjcmF0Y2gvamp5
+ZXVuZy9vcmNoX24zMC9sZXZlcjFfYy9CUklFRl9SMUJPT1QubWRgIChib290IHRoZSByZWFsIHdv
+cmtlciBhbmQgcnVuIGl0cyBpbXBvcnQgY2xvc3VyZSBiZWZvcmUgYnVsayBzdGFnaW5nKS4gVGhl
+IHByZXZpb3VzIGJ1aWxkIHBhc3NlZCBpdHMgZ2F0ZSByZXZpZXcgKEdPKS4gVmVyaWZ5IHdpdGgg
+ZmlsZTpsaW5lIGV2aWRlbmNlOiAoMSkgaW4gYm90aCB0aGUgQ1BVIGNoZWNrIGFuZCB0aGUgR1BV
+IGpvYiwgYmVmb3JlIGFueSBidWxrIGJ5dGUgaXMgc3RhZ2VkLCB0aGUgd29ya2VyIGJvb3RzIGV4
+YWN0bHkgYXMgcHJvZHVjdGlvbiBkb2VzIChzYW1lIGludGVycHJldGVyLCBuYW1lc3BhY2UsIGVu
+diBjb25zdHJ1Y3Rpb24sIHBhdGggdHJhbnNsYXRpb24pIGFuZCBpbXBvcnRzIGl0cyBjb21wbGV0
+ZSBjbG9zdXJlLCBhbmQgYW55IGZhaWx1cmUgcmV0dXJucyBhbiBhdXRoZW50aWNhdGVkIHRyYWNl
+YmFjayB0aHJvdWdoIHRoZSBwcm9kdWN0aW9uIGZldGNoIHdpdGggemVybyBidWxrIGJ5dGVzIHN0
+YWdlZCAoYSB0ZXN0IHNob3dzIGl0KTsgKDIpIG5vdGhpbmcgZWxzZSBjaGFuZ2VkIG9yIHJlZ3Jl
+c3NlZCAoZGlhZ25vc3RpY3Mgd2l0aG91dCAvZGV2L251bGwsIGV4dDQtb25seSBzdGFnaW5nLCAv
+cHJvamVjdCBidWRnZXQsIG5hbWluZyBkZW55LWxpc3Qgb24gZXZlcnkgT3JjaGFyZC12aXNpYmxl
+IHBhdGggYW5kIGpvYi13cml0dGVuIGZpbGUsIHJlc291cmNlcyBhbmQgZGVhZGxpbmVzLCB2YWxp
+ZGF0aW9uIGZvciB0aGUgZXhhY3Qgc2hhMjU2LCBkb2NzIGFncmVlIG9uIHRva2VuIGFuZCBoYXNo
+KS4gVmVyZGljdCBmaXJzdDogR08gLyBHTyBBRlRFUiBGSVhFUyAobGlzdCkgLyBOTy1HTy4gQXQg
+bW9zdCAzMCBsaW5lcy4gQmUgcXVpY2s7IGdpdmUgR08gdW5sZXNzIGEgZGVmZWN0IHdvdWxkIHdh
+c3RlIG9yIGludmFsaWRhdGUgdGhlIGpvYi4K
+B64
+cat > $C/r1bootrev_run.sh <<'RUN'
+B=/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30; C=/scratch/jjyeung/orch_n30/lever1_c
+while [ -n "" ] && tmux has-session -t "=" 2>/dev/null; do sleep 30; done
+echo "START $(date -u +%FT%TZ)"
+mkdir -p $C/r1bootrev; bash $B/tools/codex_local.sh review $C/r1bootrev $C/BRIEF_R1BOOTREV.md --model gpt-6-astra --effort high --label lever3_r1bootrev --skip-git-check --writable-root $C/r1bootrev
+echo "r1bootrev DONE rc=$? $(date -u +%FT%TZ)"
+RUN
+tmux new-session -d -s l3_r1bootrev "bash $C/r1bootrev_run.sh > $C/r1bootrev_run.log 2>&1"
+sleep 20; tmux ls | grep l[23]_; head -2 $C/r4boot2rev_run.log $C/r1bootrev_run.log

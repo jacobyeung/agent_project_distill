@@ -75,9 +75,13 @@ def diagnostic(error):
     # The envelope hides paths, source lines and messages on the remote host.
     # Bound both the line count and bytes, including pathological messages.
     lines = ''.join(traceback.format_exception(type(error), error, error.__traceback__)).splitlines()[-200:]
-    text = '\n'.join(line[:120] for line in lines)
+    closure = hasattr(error, 'closure_entry')
+    text = '\n'.join(lines if closure else (line[:120] for line in lines))
     text = text.encode('ascii', 'backslashreplace')[-24000:].decode('ascii')
-    return dict(passed=False, error=hashlib.sha256(text.encode()).hexdigest(), traceback=text)
+    result = dict(passed=False, error=hashlib.sha256(text.encode()).hexdigest(), traceback=text)
+    if closure:
+        result.update(closure_entry=error.closure_entry, exception_message=error.exception_message)
+    return result
 
 
 def segment(name):

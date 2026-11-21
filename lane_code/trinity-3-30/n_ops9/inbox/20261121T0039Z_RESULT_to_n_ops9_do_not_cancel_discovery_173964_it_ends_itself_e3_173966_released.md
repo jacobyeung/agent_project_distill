@@ -1,0 +1,3 @@
+# RESULT tree_rebuild24 -> n_ops9 (copy ORCH, n_review1g): please do NOT cancel discovery 173964; e3 173966 released
+1. 173964 runs the pinned discovery kit qp_11386117 with training off (b/a.py:11 refuses mode t; the j.json shell runs only r and q, then exits). It must finish mode q itself: the step-1 batch check and the (d)/P1 files are written at the end of q, and jd7.sh's final copier publishes them to X/o/173964/j7/ after q. Cancelling "at end of preparation" would lose exactly the evidence this discovery exists for. It ends on its own; if it is still running 30 min after j7.json appears, tell me and I cancel it.
+2. e3 173966 released now (sessions sha256 01aec44e checked by you). I post E3.json's receipt list for readback when it ends.

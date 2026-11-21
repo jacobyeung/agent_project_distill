@@ -101,8 +101,8 @@ def launch(root,cfg,inputs,J,pre_bytes,stage_seconds):
         write(Path('/project/community/jjyeung')/cfg['token']/'a/25.json',value)
 
 
-def environment_archive(spec,root,S):
-    """Authenticate a mixed stream while materializing only v/ and q/."""
+def environment_archive(spec,root,S,retain_roots=('v','q'),retain_prefix=None):
+    """Authenticate every part and materialize only the selected runtime members."""
     import hashlib
     class Stream:
         def __init__(self):
@@ -125,8 +125,17 @@ def environment_archive(spec,root,S):
     stream=Stream()
     try:
         S.room(root,spec['expanded_bytes'])
-        inventory=S.extract_stream(stream,root/spec['destination'],None,spec['expanded_bytes'],links=True,retain_roots=('v','q'))
+        inventory=S.extract_stream(stream,root/spec['destination'],None,spec['expanded_bytes'],links=True,retain_roots=retain_roots,retain_prefix=retain_prefix)
         while stream.read(1024**2):pass
-        if stream.whole.hexdigest()!=spec['sha256']:raise ValueError('E85')
+        if spec.get('sha256') is not None and stream.whole.hexdigest()!=spec['sha256']:raise ValueError('E85')
         return dict(bytes=stream.bytes,sha256=stream.whole.hexdigest(),extracted_bytes=sum(x['bytes'] for x in inventory.values()))
     finally:stream.close()
+
+
+PYTHON_PREFIX='sj/uv-python/cpython-3.12.13-linux-x86_64-gnu'
+
+
+def interpreter_archive(group,root,S):
+    spec=dict(parts=[dict(path=p,bytes=n,sha256=h) for p,n,h in group],
+              destination='.',expanded_bytes=sum(p[1] for p in group))
+    return environment_archive(spec,root,S,retain_roots=None,retain_prefix=PYTHON_PREFIX)

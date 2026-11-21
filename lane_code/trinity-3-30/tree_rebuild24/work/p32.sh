@@ -1,0 +1,2 @@
+W=/scratch/jjyeung/orch_n30/tree_rebuild10_w; P=$W/w24z11b/out/tree_rebuild_b24m4z11b_261e484f.tar; cut -c1-16 $P.sha256; sha256sum $P | cut -c1-16; timeout 300 bash -c "cat $P | ssh -o ConnectTimeout=20 trinity-2-28.ib 'cat > /scratch/jjyeung/n30_mirror/tree_rebuild23/$(basename $P) && sha256sum /scratch/jjyeung/n30_mirror/tree_rebuild23/$(basename $P) | cut -c1-16'" < /dev/null
+grep -n "3600\|k/c.json\|nice -n 10" $W/w24z11b/out/ARM_LAUNCH_24M4Z11B.md | head -14 | cut -c1-300; df -h /scratch | tail -1

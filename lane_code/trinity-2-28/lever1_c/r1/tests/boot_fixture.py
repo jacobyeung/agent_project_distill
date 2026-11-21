@@ -25,8 +25,8 @@ def configure(job,root,package,cfg,inputs,S,J,case):
     with tarfile.open(empty,'w'):pass
     def pin(path):return dict(path=str(path),bytes=path.stat().st_size,sha256=hashlib.sha256(path.read_bytes()).hexdigest())
     def spec(path):return dict(parts=[pin(path)],sha256=pin(path)['sha256'],destination=str(d.relative_to(root)),expanded_bytes=10240)
-    # Archive 4 is empty because archive 2 provides this fixture's policy files.
-    ins=dict(inputs,python=sys.executable,archives=[spec(empty),spec(empty),spec(envtar),spec(empty),spec(empty)],
+    # Archive 3 provides this fixture's environment and policy files.
+    ins=dict(inputs,python=sys.executable,archives=[spec(empty),spec(empty),spec(empty),spec(envtar),spec(empty)],
              policy=dict(vnice=str(d/'q/0'),terminator=str(d/'q/1')))
     assets=dict(groups=[],bwrap_pin=pin(empty),vnice_sha256=hashlib.sha256(policy).hexdigest(),terminator_sha256=hashlib.sha256(b'pass\n').hexdigest())
     asset_text=(Path(job.__file__).parent/'vendor/ORCHARD_ASSETS.json').read_text()

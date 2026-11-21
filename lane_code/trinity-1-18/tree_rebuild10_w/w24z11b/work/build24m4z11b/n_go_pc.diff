@@ -1,0 +1,109 @@
+--- 24m4z10/b/pc.py
++++ 24m4z12/b/pc.py
+@@ -74,6 +74,20 @@
+ ARCHIVE_SECONDS = 150
+ 
+ 
++def priority_version(train, state, nominal):
++    train, state = Path(train), Path(state)
++    request = state.parent/'stop.request'
++    markers = sorted([*train.glob('checkpoint_*/complete.json'), *train.glob('m*/artifact.json'), *train.glob('run_*.json')])
++    return dict(stop=request.stat().st_mtime_ns if request.exists() else None,
++                nominal=time.time() >= nominal,
++                markers={str(p):sha(p) for p in markers})
++
++
++def priority_settled(train, state, nominal):
++    marker = Path(state)/'priority_settled.json'
++    return marker.is_file() and read(marker) == priority_version(train, state, nominal)
++
++
+ def upload(uri, path, offset, length, name):
+     started = time.time(); url = urlsplit(uri)
+     chunk=int(os.environ.get('TK_UPLOAD_CHUNK_BYTES',8<<20))
+@@ -90,11 +104,11 @@
+         code=ran=None; conn=None
+         try:
+             train=os.environ.get('TK_PRIORITY_TRAIN')
+-            if train:
++            if train and not priority_settled(train, os.environ['TK_PRIORITY_STATE'], float(os.environ.get('TK_NOMINAL_STOP', 'inf'))):
+                 state=Path(os.environ['TK_PRIORITY_STATE'])
+                 if any(not (state/('gcs_'+p.parent.name+'.done')).exists() for p in Path(train).glob('m*/artifact.json')):
+                     raise InterruptedError('E105 export ready')
+-                if (state.parent/'stop.request').exists() or (os.environ.get('TK_NOMINAL_STOP') and time.time()>=float(os.environ['TK_NOMINAL_STOP'])):
++                if (state.parent/'stop.request').exists() or any(Path(train).glob('run_*.json')) or (os.environ.get('TK_NOMINAL_STOP') and time.time()>=float(os.environ['TK_NOMINAL_STOP'])):
+                     raise InterruptedError('E105 stop ready')
+             remaining=limit-time.time()
+             if remaining<=0: raise TimeoutError('E104 reserved publication window')
+@@ -315,11 +329,14 @@
+         logs += [self.spool/'upload.log'] if (self.spool/'upload.log').is_file() else []
+         # Share 40 MB fairly; every retained byte is from a log's tail.
+         remaining = LOG_CAP
++        screen = runpy.run_path(str(self.kit/'b/z.py'))['screen']
++        words, hashes = read(self.kit/'k/g.json'), read(self.kit/'b/wh.json')
+         for i, p in enumerate(logs):
+             allowance = remaining // (len(logs) - i)
+             with p.open('rb') as f:
+                 f.seek(max(0, p.stat().st_size - allowance))
+                 raw = f.read(allowance)
++            raw = screen(masked(raw.decode('utf-8', 'replace')), words, hashes).encode()[-allowance:] if allowance else b''
+             pending.append((p.name, raw))
+             remaining -= len(raw)
+         for p in sorted(self.state.glob('*')):
+@@ -608,10 +625,18 @@
+         self.send(directory,marker,['ckstop'])
+         put(self.state/'ckstop.json',dict(status='gcs' if stop.exists() else 'left node-local',marker_sha256=identity))
+ 
++    def ordinary_checkpoints(self):
++        stop = self.stop_marker()
++        return sorted((p for p in self.train.glob('checkpoint_*/complete.json')
++                       if p != stop and not any((self.state/('gcs_'+p.parent.name+suffix+'.done')).exists()
++                                                for suffix in ('','_stop'))),
++                      key=lambda p:(read(p).get('step',-1),p.stat().st_mtime_ns), reverse=True)
++
+     def checkpoints(self):
+-        if (self.spool/'stop.request').exists() or time.time()>=self.nominal_stop():return
+-        for marker in sorted(self.train.glob('checkpoint_*/complete.json')):
+-            if (self.state/('gcs_'+marker.parent.name+'_stop.done')).exists():continue
++        settled = priority_settled(self.train, self.state, self.nominal_stop())
++        if (self.stop_requested() or self.priority_pending()) and not settled:return
++        for marker in self.ordinary_checkpoints():
++            if time.time() >= min(self.upload_until, self.archive_due):break
+             self.attempt('checkpoint',lambda marker=marker:self.send(
+                 marker.parent,marker,['ck%02d'%i for i in range(16)]))
+ 
+@@ -670,24 +695,28 @@
+         with (self.spool/'lock').open('a') as lock:
+             fcntl.flock(lock, fcntl.LOCK_EX)
+             self.final_pass = final
++            priority = priority_version(self.train,self.state,self.nominal_stop())
+             frozen=(self.state/'gcs_o.done').exists()
+             self.upload_until=self.deadline if frozen else self.archive_due
+             for label, action in [('stop',self.stop_checkpoint),('exports',self.exports),
+-                                  ('logs',self.small),('o',self.exit_archive),('checkpoints',self.checkpoints),('u',self.diagnostics)]:
++                                  ('logs',self.small),('o',self.exit_archive),('u',self.diagnostics),('checkpoints',self.checkpoints)]:
+                 if time.time()>=self.deadline:break
+-                if label=='u' and (not final or not (self.state/'o_frozen.json').exists()):continue
++                if label=='u' and not final:continue
+                 if label=='stop' and not self.stop_ready():continue
+-                if label=='checkpoints' and (self.priority_pending() or (final and not (self.state/'gcs_o.done').exists())):continue
++                if label=='checkpoints' and not self.ordinary_checkpoints():continue
++                if label=='checkpoints' and (self.stop_requested() or self.priority_pending()) and not priority_settled(self.train,self.state,self.nominal_stop()):continue
+                 if label=='o' and not final:continue
+-                if label=='exports' and final and (self.state/'ckstop.json').exists() and read(self.state/'ckstop.json').get('status')=='left node-local' and not frozen:
+-                    self.upload_until=time.time()
+                 if label=='logs' and not small:continue
+                 if label in ('logs','o'):self.upload_until=self.deadline
+-                if label=='checkpoints':self.upload_until=self.deadline if final else self.archive_due
++                if label=='checkpoints':self.upload_until=min(self.archive_due,self.data_deadline)
+                 if final:self.upload_until=min(self.upload_until,self.data_deadline)
+                 with (self.spool/'final_order.jsonl').open('a') as stream:
+                     stream.write(json.dumps(dict(phase=label,time=time.time(),final=final))+'\n')
+                 result=self.attempt(action.__name__,action)
++                if label=='u':
++                    # The durable log prefix settles before ordinary data; its final
++                    # tail remains reserved for diagnostics of subsequent retries.
++                    put(self.state/'priority_settled.json',priority)
+                 if label=='stop':self.stop_settled=True
+                 if label=='logs':
+                     self.logs_complete=result is not None

@@ -23,9 +23,26 @@ assert imports['passed'] and imports['delivery']==build['delivery']
 boots=read('out/BOOT_CHECKS.json')
 assert boots['passed'] and boots['delivery']==build['delivery']
 assert tests['delivery']==checks['delivery']==build['delivery']
-test_count=tests['tests']+checks['tests']+imports['tests']+boots['tests']
+trace=read('out/WORKER_IMPORT_TRACE.json')
+closure=read('IMPORT_CLOSURE.json')
+assert trace['passed'] and trace['source_delivery']==build['delivery']
+assert closure['generator_sha256']==B.digest((ROOT/'tests/trace_worker.py').read_bytes())
+assert set(closure['required_modules']) == (set(read('tests/import_baseline.json')['modules']) | set(trace['modules'])) - set(closure['exclusions']) - set(closure['gpu_only'])
+assert closure['closure_sha256']==imports['closure']['closure_sha256']
+assert all(c['bulk_bytes']==0 for c in boots['cases'] if c['missing'])
+for case in boots['cases']:
+    if not case['missing']:
+        expected=set(closure['required_modules']) | (set(closure['gpu_only']) if case['mode']=='g' else set())
+        assert set(case['boot']['required_modules'])==expected
+        assert case['boot']['closure_sha256']==closure['closure_sha256']
+build['boot']['local_pre_bulk_seconds']=[min(c['boot']['pre_bulk_seconds'] for c in boots['cases'] if not c['missing']),max(c['boot']['pre_bulk_seconds'] for c in boots['cases'] if not c['missing'])]
+save('BUILD.json',build)
+test_count=tests['tests']+checks['tests']+imports['tests']+boots['tests']+1
 files=members((ROOT/'out/delivery.tgz').read_bytes());payload=members(files['0.tgz'])
 cfg=B.storage.loads(files['2.json']);sources=B.storage.loads(files['8.bin'])
+assert cfg['import_closure']==closure
+assert build['boot']['closure']['cpu_modules']==closure['cpu_modules']
+assert build['boot']['closure']['gpu_modules']==closure['gpu_modules']
 f=read('FORECAST.json');mapping=read('PAIR_MAP.json');ids={m['source_id'] for m in mapping};positions={}
 for line in (ROOT/'in/D400/ret/metadata/reads/0/metadata/journals/3/0/items.jsonl').open():
     r=json.loads(line)
@@ -273,7 +290,7 @@ Controller, namespace-supervisor and worker output enters opaque hex `8.log`/`9.
 import_contract=f'''
 The extractor preserves every native interpreter/package path. Opaque translation applies only to authored `c/` and `v/` source trees (`src/storage.py:108`). The existing native-runtime ABI exception covers the unchanged pinned external files; no new public names or exceptions are introduced. The memory guard and FROZEN.json remain unchanged.
 
-The CPU import regression verifies all {imports['runtime_files']:,} local pinned interpreter files after the real extractor, checks {imports['package_paths_checked']:,} package paths, reproduces the old missing `keyword` failure, and imports all worker import statements in a fresh staged interpreter with `-X importtime`. The worker reaches `restore` without loading checkpoint weights. Namespace test mode: {imports['mode']}. The original Orchard environment archive/boot wrapper is not local; the test reproduces its `runpy.run_path` operation and uses local p1cpu packages. `IMPORTS.md` and `out/IMPORT_CHECKS.json` record the exact evidence and limits.
+The CPU import regression verifies all {imports['runtime_files']:,} local pinned interpreter files after the real extractor, checks {imports['package_paths_checked']:,} package paths, reproduces the old missing `keyword` failure, and replays the recorded worker import closure in a fresh staged interpreter with `-X importtime`. The worker reaches `restore` without loading checkpoint weights. Namespace test mode: {imports['mode']}. The original Orchard environment archive/boot wrapper is not local; the test reproduces its `runpy.run_path` operation and uses local p1cpu packages. `IMPORTS.md` and `out/IMPORT_CHECKS.json` record the exact evidence and limits.
 '''
 place += contract+import_contract
 boot_text = f"""
@@ -283,7 +300,11 @@ Pre-bulk bytes: {build['boot']['interpreter_file_bytes']:,} CPython file bytes; 
 
 Local successful pre-bulk checks took {min(c['boot']['pre_bulk_seconds'] for c in boots['cases'] if not c['missing']):.3f}–{max(c['boot']['pre_bulk_seconds'] for c in boots['cases'] if not c['missing']):.3f} seconds with tiny staging fixtures and read-only local runtime binds. Production pre-bulk seconds remain unmeasured; each return records them in `execution.boot.pre_bulk_seconds`, alongside bytes, mode, interpreter, cwd, closure digest and import duration. Boot uses the existing 600-second staging deadline. The overall forecast retains its existing staging allowance; it does not claim measured Orchard boot time.
 
-The four boot tests use the delivered worker, the exact pinned `v/py` and `v/boot.py`, both production supervisors, the production namespace constructor with local runtime fixture binds, and real finalization/fetch. In both modes, an omitted private module fails with **zero bulk bytes staged**, and its traceback survives authenticated fetch. `out/BOOT_CHECKS.json` pins these checks to this delivery. The test uses local p1cpu libraries; full production-environment execution remains an Orchard check.
+The recorded closure contains **{closure['cpu_modules']:,} CPU modules** and **{closure['gpu_modules']:,} GPU modules**, compared with {closure['baseline_modules']:,} importable modules in the prior {closure['baseline_raw_modules']:,}-entry inventory. `tests/trace_worker.py` runs the delivered `runtime.run` on CPU with `sys.addaudithook('import')`, through real restore/meta shape checking, processor construction, model loading with tiny native weights, routed prompt preparation and the first eight-row batch. `tests/record_import_closure.py` unions the successful runtime inventory with `tests/import_baseline.json`; `IMPORT_CLOSURE.json` records every module, digest and exclusion. `src/runtime.py:106` imports every required module before bulk staging. No AST/source scan derives this closure.
+
+CPU replay excludes `fla`, `triton` and `causal_conv1d`; GPU replay requires all three before bulk. Trace harness aliases, local test modules, generated Cython/PyTorch runtime helpers and unsuccessful optional import probes are listed individually with reasons in `IMPORT_CLOSURE.json:exclusions`. Native aliases are imported after their canonical modules. The trace uses tiny tokenizer/RGB/checkpoint boundaries; full-checkpoint GPU execution remains unmeasured.
+
+The four boot tests use the delivered worker, the exact pinned `v/py` and `v/boot.py`, both production supervisors, the production namespace constructor with local runtime fixture binds, and real finalization/fetch. In both modes, omitting the lazy `student_pilot.carrier_c1_canary` module fails with **zero bulk bytes staged**, and its traceback survives authenticated fetch. `out/BOOT_CHECKS.json` pins these checks to this delivery. The test uses local p1cpu libraries; full production-environment execution remains an Orchard check.
 """
 place += boot_text
 (ROOT/'PLACE.md').write_text(place)
@@ -313,6 +334,6 @@ save('out/FINAL_CHECKS.json',dict(passed=True,token=token,delivery=build['delive
     project_budget=build['project_budget'],gpu_memory=build['gpu_memory'],forecast_seconds=total,headroom_fraction=f['headroom_fraction'],artifact=cfg['export']['artifact']['sha256']))
 names = [line.split(None, 1)[1] for line in (ROOT/'SHA256SUMS').read_text().splitlines()]
 names = sorted(set(names) | {'REPORT.md', 'finish.py', 'tests/test_fixes.py', 'tests/cache_preflight.py', 'tests/write_audit.c', 'out/CACHE_CHECKS.json', 'src/storage.py', 'src/batch.py', 'src/monitor.py', 'DEBUG.md', 'out/fail1_code/control.py', 'out/fail1_code/runtime.py', 'out/FIX_CHECKS.json', 'out/FINAL_CHECKS.json'})
-names = sorted(set(names) | {'IMPORTS.md', 'tests/test_imports.py', 'tests/import_worker.py', 'out/IMPORT_CHECKS.json', 'out/test_imports.log', 'tests/test_boot.py', 'out/BOOT_CHECKS.json', 'out/test_boot.log'})
+names = sorted(set(names) | {'IMPORT_CLOSURE.json','tests/import_baseline.json','tests/trace_worker.py','tests/record_import_closure.py','out/WORKER_IMPORT_TRACE.json','out/trace_worker.log','IMPORTS.md', 'tests/test_imports.py', 'tests/import_worker.py', 'out/IMPORT_CHECKS.json', 'out/test_imports.log', 'tests/test_boot.py', 'out/BOOT_CHECKS.json', 'out/test_boot.log'})
 (ROOT/'SHA256SUMS').write_text(''.join(hashlib.sha256((ROOT/name).read_bytes()).hexdigest()+'  '+name+'\n' for name in names))
 print(json.dumps(read('out/FINAL_CHECKS.json'),sort_keys=True))

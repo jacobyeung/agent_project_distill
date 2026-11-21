@@ -103,27 +103,45 @@ def run_batches(out, rows, progress, end, prepare_rows, generate, deadline):
     return 'complete'
 
 
-def import_closure(p):
-    """Execute the audited worker imports, including function-local imports."""
-    import ast
-    statements = set()
-    for name in ('5.py', '7.py', '9.py', '10.py', '11.py'):
-        wrapper = ast.parse((p/name).read_text()).body[0].value
-        source = bytes.fromhex(ast.literal_eval(wrapper.args[0].args[0].args[0]))
-        for node in ast.walk(ast.parse(source)):
-            if isinstance(node, (ast.Import, ast.ImportFrom)):
-                exec(compile(ast.Module(body=[node], type_ignores=[]), name, 'exec'), {})
-                statements.add(ast.unparse(node))
-    # Keep the lazy stdlib closure identical to the staged-interpreter audit.
-    for name in ('keyword', 'pkgutil', 'collections', 'asyncio', 'concurrent.futures',
-                 'multiprocessing', 'email', 'email.policy', 'xml.dom.minidom',
-                 'email._encoded_words', 'importlib.readers', 'importlib.resources.readers',
-                 'xml.sax.expatreader', 'xml.sax.xmlreader', 'xmlrpc.client',
-                 'wave', 'pydoc', 'unittest', 'venv', 'ensurepip'):
-        __import__(name)
-        statements.add('import '+name)
-    return dict(statements=len(statements), modules=len(sys.modules),
-                closure_sha256=hashlib.sha256('\n'.join(sorted(statements)).encode()).hexdigest())
+class ClosureImportError(ImportError):
+    def __init__(self, entry, error):
+        self.closure_entry = entry
+        self.exception_message = f'{type(error).__name__}: {error}'
+        super().__init__(f'Closure entry {entry}: {self.exception_message}')
+
+
+def import_closure(p, mode='c'):
+    """Replay the recorded CPU worker trace plus the prior import inventory."""
+    import importlib
+    import typing
+    assert typing.TYPE_CHECKING is False, "Boot requires runtime typing semantics"
+    def load(name):
+        try:
+            canonical = inventory['aliases'].get(name)
+            if canonical: importlib.import_module(canonical)
+            importlib.import_module(name)
+        except Exception as error:
+            raise ClosureImportError(name, error) from error
+    inventory = read(p/'2.json')['import_closure']
+    names = inventory['required_modules']
+    digest = hashlib.sha256('\n'.join(names).encode()).hexdigest()
+    assert digest == inventory['closure_sha256']
+    imported = []
+    for name in names:
+        load(name)
+        imported.append(name)
+    excluded = dict(inventory['exclusions'])
+    for name, reason in inventory['gpu_only'].items():
+        if mode == 'g':
+            load(name)
+            imported.append(name)
+        else:
+            excluded[name] = reason
+    return dict(modules=len(imported), required_modules=imported,
+                exclusions=excluded, closure_sha256=digest,
+                method=inventory['method'], trace=inventory['trace'],
+                baseline_modules=inventory['baseline_modules'],
+                traced_modules=inventory['traced_modules'])
 
 
 def run(package, mode, end):
@@ -174,7 +192,7 @@ def run(package, mode, end):
     probe = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(probe)
     if os.environ.get('A_B') == '1':
-        closure = import_closure(p)
+        closure = import_closure(p, mode)
         write(out/'10.json', dict(passed=True, mode=mode, seconds=time.monotonic()-started,
             interpreter=sys.executable, cwd=os.getcwd(), bulk_bytes=0, **closure))
         mark('boot_complete')

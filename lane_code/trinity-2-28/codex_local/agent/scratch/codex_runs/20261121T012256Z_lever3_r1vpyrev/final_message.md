@@ -1,0 +1,12 @@
+**GO.** No job-blocking defect found.
+
+- **Cause confirmed:** input 2 (`a2.tar`) omits `v/py`; input 3 (`a4.tar`) supplies the executable wrapper. The old selection reproduces the reported execvp failure. [Archive member](/scratch/jjyeung/orch_n30/lever1_c/r1/out/VPY_ARCHIVES.json:49957), [failure reproduction](/scratch/jjyeung/orch_n30/lever1_c/r1/out/VPY_CHECKS.json:91).
+- **Fix complete:** stages CPython, the base environment, overlay and policy before boot. Bulk extraction follows the accepted receipt. Pre-bulk source reads total **10,237,337,443 bytes**; mixed-stream bulk members are discarded. [Ordering](/scratch/jjyeung/orch_n30/lever1_c/r1/boot_order.py:30), [receipt gate](/scratch/jjyeung/orch_n30/lever1_c/r1/runtime/boot.py:77).
+- **Regression passes:** real pinned archives and production namespace construction execute `v/py`; old selection fails, corrected selection imports **411 modules** with zero bulk bytes staged. [Test](/scratch/jjyeung/orch_n30/lever1_c/r1/tests/test_vpy.py:79), [results](/scratch/jjyeung/orch_n30/lever1_c/r1/out/VPY_CHECKS.json:170).
+- **Other boot dependencies checked:** 2,104 links resolve; ELF loader/shared libraries resolve; stdlib and worker imports pass. Local bwrap, an extra fixture bind and an inert terminator substitute are explicitly documented. [Path audit](/scratch/jjyeung/orch_n30/lever1_c/r1/tests/test_vpy.py:115), [ELF evidence](/scratch/jjyeung/orch_n30/lever1_c/r1/out/VPY_CHECKS.json:8605).
+- **Other gates pass:** ext4 admission, 48 MB `/project` budget, naming restrictions, resources, deadlines and authenticated diagnostics retain passing evidence. **73 tests** passed against this delivery. [Validation](/scratch/jjyeung/orch_n30/lever1_c/r1/out/VALIDATION.json:2).
+- **Delivery consistent:** independently verified all 98 SHA256SUMS entries, test-script/log hashes, payload pins and placement’s embedded delivery. New token **`a7e29d4c8f103`** replaces the spent token in executable delivery paths. [Checksums](/scratch/jjyeung/orch_n30/lever1_c/r1/SHA256SUMS:1), [token](/scratch/jjyeung/orch_n30/lever1_c/r1/REPORT.md:10).
+
+Delivery: **3,700,123 bytes**, SHA256 **`86836622ee2b2b002510448d5777cfd3023817893b6f3d2649c21a716f055285`**.
+
+Read-only review; I verified recorded tests without rerunning write-producing suites.

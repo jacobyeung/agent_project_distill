@@ -1,0 +1,29 @@
+{
+  "status": "OK",
+  "tests": [
+    {
+      "case": "scanner_changed_program",
+      "refusal": "INHERITED_ENVIRONMENT_SOURCE_DIFFERS",
+      "status": "OK"
+    },
+    {
+      "case": "scanner_changed_ast",
+      "refusal": "ENV_UNRESOLVED:b/pc.py:171:environment:keyword expansion may pass an unresolved environment map: builtin_open(path, mode, *a, **kw)",
+      "status": "OK"
+    },
+    {
+      "case": "scanner_unknown_environment",
+      "refusal": "ENV_UNRESOLVED:b/new.py:2:environment:environment key is not a literal string: os.environ[key] = value",
+      "status": "OK"
+    },
+    {
+      "case": "scanner_changed_shell",
+      "refusal": "ENV_UNRESOLVED:b/pc.sh:5:environment:value for literal key 'status' is unresolved:     local status=\"$1\" signal_mode=\"${2:-}\" waited=0 copy_pid seconds",
+      "status": "OK"
+    },
+    {
+      "case": "recipes_go_native_checkers",
+      "status": "OK"
+    }
+  ]
+}

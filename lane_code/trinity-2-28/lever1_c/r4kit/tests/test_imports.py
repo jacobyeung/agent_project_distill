@@ -96,8 +96,9 @@ stdlib = staged/'lib/python3.12'
 # execute the same runpy entry with the complete staged interpreter instead.
 boot = root/'3.py'
 boot.write_text("import sys, runpy\nargs=sys.argv[1:]\nsys.argv=args\nrunpy.run_path(args[0], run_name='__main__')\n")
+native_site = module('native_fixture', ROOT/'tests/native_fixture.py').prepare(ROOT)
 command = [str(staged/'bin/python3.12'), '-I', '-S', '-B', '-X', 'importtime',
-           str(boot), str(audit), str(stdlib), str(site), str(package), str(output)]
+           str(boot), str(audit), str(stdlib), str(site), str(package), str(output), str(native_site)]
 env = C.job_environment(root, dict(PATH='/usr/bin:/bin', USER='a', CUDA_VISIBLE_DEVICES=''))
 env.update(OPENBLAS_NUM_THREADS='1', OMP_NUM_THREADS='2')
 # Use the production namespace construction when user namespaces are available.
@@ -108,7 +109,8 @@ for i in range(len(namespace)-2):
     if namespace[i:i+3] == ['--bind', '/tmp', '/tmp']:
         namespace[i:i+3] = ['--dir', '/tmp', '--bind', str(root), str(root)]
         break
-namespace += ['--bind', str(root), str(root), '--ro-bind', str(site), str(site)]
+namespace += ['--bind', str(root), str(root), '--ro-bind', str(site), str(site),
+              '--ro-bind', str(native_site), str(native_site)]
 probe = subprocess.run(namespace+['/usr/bin/true'], env=env,
                        stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=20)
 mode = 'production namespace' if probe.returncode == 0 else 'relocated isolated interpreter; namespace unavailable'
@@ -120,6 +122,7 @@ result = subprocess.run((namespace if probe.returncode == 0 else [])+command,
 assert result.returncode == 0, result.stderr.decode()[-8000:]
 evidence = json.loads(output.read_text())
 evidence.update(tests=1, delivery=B.pin((ROOT/'out/delivery.tgz').read_bytes()),
+    native_fixture='Local torchvision 0.25.0+cu128 Python modules; unused NMS schema double for CPU torch. No native CUDA operators executed.',
     mode=mode, namespace_probe=probe.stderr.decode(), runtime_files=len(inventory),
     runtime_inventory_sha256=B.digest(B.jd(inventory)), affected_runtime_files=damaged,
     package_paths_checked=len(package_paths), old_keyword_reproduced=True,

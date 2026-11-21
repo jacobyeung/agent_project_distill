@@ -1,0 +1,2 @@
+export TZ=UTC; date -u +%TZ; J=173964
+timeout 120 srun --overlap --jobid $J -n1 -c1 --mem=1G bash -c 'echo TMPDIR=$SLURM_TMPDIR; for d in ${SLURM_TMPDIR:-/tmp}/q_22c714e1_173964 /tmp/q_22c714e1_173964; do test -d $d && { echo D=$d; ls $d | head -30; ls -la $d/dr/p/q/base/ $d/dr/p/q/selection/ 2>&1 | head -12; tail -3 $d/dr/q.log 2>/dev/null | cut -c1-200; tail -3 $d/q.log 2>/dev/null | cut -c1-200; }; done; df -h /tmp | tail -1' < /dev/null 2>&1 | head -70

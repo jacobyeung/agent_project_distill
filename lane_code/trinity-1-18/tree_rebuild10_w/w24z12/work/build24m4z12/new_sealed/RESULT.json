@@ -1,0 +1,232 @@
+[
+  {
+    "name": "before_success",
+    "status": "PASS",
+    "detail": {
+      "version": "before",
+      "mode": "success",
+      "ordinary_done": [
+        false,
+        false
+      ],
+      "screened": false,
+      "real_exit": true,
+      "strict_sink": true,
+      "first_final_phases": [
+        "stop",
+        "exports",
+        "logs",
+        "o",
+        "checkpoints",
+        "u"
+      ],
+      "passes": 53,
+      "log": "work/build24m4z12/new_sealed/before_success/shell.log"
+    }
+  },
+  {
+    "name": "after_success",
+    "status": "FAIL",
+    "output": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z12/work/build24m4z12/new_findings.py\", line 9, in test\n    try:r=dict(name=name,status='PASS',detail=fn())\n                                              ^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z12/work/build24m4z12/new_findings.py\", line 53, in <lambda>\n    for version in ('before','after'):test(version+'_'+mode,lambda version=version,mode=mode:case(version,mode))\n                                                                                             ^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z12/work/build24m4z12/new_findings.py\", line 50, in case\n    assert z.returncode==0,(r/'live_probe.log').read_text()\n           ^^^^^^^^^^^^^^^\nAssertionError: Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z12/work/build24m4z12/new_runtime.py\", line 51, in <module>\n    c.pass_once(final=False,small=False)\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z12/work/build24m4z12/new_sealed/after_success/kit/b/pc.py\", line 705, in pass_once\n    if label=='stop' and not self.stop_ready():continue\n                             ^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z12/work/build24m4z12/new_sealed/after_success/kit/b/pc.py\", line 644, in stop_ready\n    return self.final_pass or self.stop_marker() is not None\n                              ^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z12/work/build24m4z12/new_sealed/after_success/kit/b/pc.py\", line 604, in stop_marker\n    if self.final_pass or list(self.train.glob('run_*.json')):return latest(markers)\n                                                                     ^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z12/work/build24m4z12/new_sealed/after_success/kit/b/pc.py\", line 603, in <lambda>\n    latest=lambda rows:max(rows,key=lambda p:(read(p).get('step',-1),p.stat().st_mtime_ns))\n                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z12/work/build24m4z12/new_sealed/after_success/kit/b/pc.py\", line 603, in <lambda>\n    latest=lambda rows:max(rows,key=lambda p:(read(p).get('step',-1),p.stat().st_mtime_ns))\n                                              ^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z12/work/build24m4z12/new_runtime.py\", line 28, in read\n    v=old(p)\n      ^^^^^^\nTypeError: 'bytes' object is not callable\n\n"
+  },
+  {
+    "name": "before_nominal",
+    "status": "PASS",
+    "detail": {
+      "version": "before",
+      "mode": "nominal",
+      "ordinary_done": [
+        false,
+        false
+      ],
+      "screened": false,
+      "real_exit": true,
+      "strict_sink": true,
+      "first_final_phases": [
+        "stop",
+        "exports",
+        "logs",
+        "o",
+        "checkpoints",
+        "u"
+      ],
+      "passes": 55,
+      "log": "work/build24m4z12/new_sealed/before_nominal/shell.log"
+    }
+  },
+  {
+    "name": "after_nominal",
+    "status": "PASS",
+    "detail": {
+      "version": "after",
+      "mode": "nominal",
+      "ordinary_done": [
+        true,
+        true
+      ],
+      "screened": true,
+      "real_exit": true,
+      "strict_sink": true,
+      "first_final_phases": [
+        "stop",
+        "exports",
+        "logs",
+        "o",
+        "u",
+        "checkpoints"
+      ],
+      "passes": 1,
+      "log": "work/build24m4z12/new_sealed/after_nominal/shell.log"
+    }
+  },
+  {
+    "name": "before_failure",
+    "status": "PASS",
+    "detail": {
+      "version": "before",
+      "mode": "failure",
+      "ordinary_done": [
+        false,
+        false
+      ],
+      "screened": false,
+      "real_exit": true,
+      "strict_sink": true,
+      "first_final_phases": [
+        "stop",
+        "exports",
+        "logs",
+        "o",
+        "u",
+        "stop"
+      ],
+      "passes": 26,
+      "log": "work/build24m4z12/new_sealed/before_failure/shell.log"
+    }
+  },
+  {
+    "name": "after_failure",
+    "status": "PASS",
+    "detail": {
+      "version": "after",
+      "mode": "failure",
+      "ordinary_done": [
+        true,
+        true
+      ],
+      "screened": true,
+      "real_exit": true,
+      "strict_sink": true,
+      "first_final_phases": [
+        "stop",
+        "exports",
+        "logs",
+        "o",
+        "u",
+        "checkpoints"
+      ],
+      "passes": 17,
+      "log": "work/build24m4z12/new_sealed/after_failure/shell.log"
+    }
+  },
+  {
+    "name": "before_resume",
+    "status": "PASS",
+    "detail": {
+      "version": "before",
+      "mode": "resume",
+      "ordinary_done": [
+        false,
+        false
+      ],
+      "screened": false,
+      "real_exit": true,
+      "strict_sink": true,
+      "first_final_phases": [
+        "stop",
+        "exports",
+        "logs",
+        "o",
+        "checkpoints",
+        "u"
+      ],
+      "passes": 52,
+      "log": "work/build24m4z12/new_sealed/before_resume/shell.log"
+    }
+  },
+  {
+    "name": "after_resume",
+    "status": "PASS",
+    "detail": {
+      "version": "after",
+      "mode": "resume",
+      "ordinary_done": [
+        true,
+        true
+      ],
+      "screened": true,
+      "real_exit": true,
+      "strict_sink": true,
+      "first_final_phases": [
+        "stop",
+        "exports",
+        "logs",
+        "o",
+        "u",
+        "checkpoints"
+      ],
+      "passes": 2,
+      "log": "work/build24m4z12/new_sealed/after_resume/shell.log"
+    }
+  },
+  {
+    "name": "before_reserve",
+    "status": "PASS",
+    "detail": {
+      "version": "before",
+      "mode": "reserve",
+      "ordinary_done": [
+        false,
+        false
+      ],
+      "screened": false,
+      "real_exit": true,
+      "strict_sink": true,
+      "first_final_phases": [
+        "stop",
+        "exports",
+        "logs",
+        "o",
+        "u",
+        "stop"
+      ],
+      "passes": 52,
+      "log": "work/build24m4z12/new_sealed/before_reserve/shell.log"
+    }
+  },
+  {
+    "name": "after_reserve",
+    "status": "PASS",
+    "detail": {
+      "version": "after",
+      "mode": "reserve",
+      "ordinary_done": [
+        false,
+        false
+      ],
+      "screened": true,
+      "real_exit": true,
+      "strict_sink": true,
+      "first_final_phases": [
+        "stop",
+        "exports",
+        "logs",
+        "o",
+        "u",
+        "checkpoints"
+      ],
+      "passes": 38,
+      "log": "work/build24m4z12/new_sealed/after_reserve/shell.log"
+    }
+  }
+]

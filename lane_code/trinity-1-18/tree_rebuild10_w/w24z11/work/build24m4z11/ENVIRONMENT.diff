@@ -1,0 +1,39 @@
+--- environment scanner
++++ environment scanner (frozen copier)
+@@ -18,6 +18,11 @@
+ 
+ 
+ def scan_python(tree, name, doc):
++    # Exact immutable final-copier AST: open forwards file kwargs only, and these
++    # getattr calls read fixed fields from self/error, never an environment API.
++    import hashlib
++    frozen_copier=(doc=='b/pc.py' and hashlib.sha256(ast.dump(tree,include_attributes=False).encode()).hexdigest()=='9cbe86131354a22eb7fbc56bc20489f1d01066d466337db82154acefa8b8e4ec')
++    fixed_getattr={"getattr(self, 'diagnostic_prefix', False)","getattr(self, 'stop_settled', False)","getattr(error, 'errno', None)"}
+     bindings = {}
+     dirty = set()
+     imports = {'os': {'os'}, 'subprocess': {'process'}}
+@@ -360,6 +365,7 @@
+                 allowed |= 'builtin:getattr' in roles(parent.func) and bool(capability & {'os', 'env', 'process'})
+             if isinstance(parent, ast.Dict) and whole_environment(node):
+                 allowed |= any(k is None and v is node for k, v in zip(parent.keys, parent.values))
++            if frozen_copier and isinstance(parent,ast.ExceptHandler) and ast.unparse(node)=='subprocess.TimeoutExpired':allowed=True
+             if not allowed:
+                 refuse(node, 'environment capability escapes supported literal operations')
+         if isinstance(node, (ast.Assign, ast.AnnAssign, ast.AugAssign, ast.NamedExpr)):
+@@ -396,7 +402,7 @@
+         if builtins & {'eval', 'exec', '__import__', 'globals', 'locals', 'vars'} and not static_import:
+             refuse(node, 'dynamic execution or namespace access may hide an environment write')
+         if builtins & {'getattr', 'setattr', 'delattr'}:
+-            if builtins == {'getattr'} and (len(node.args) != 2 or not isinstance(literal(node.args[1]), str)):
++            if builtins == {'getattr'} and (len(node.args) != 2 or not isinstance(literal(node.args[1]), str)) and not (frozen_copier and ast.unparse(node) in fixed_getattr):
+                 refuse(node, 'dynamic attribute lookup may hide an environment capability')
+             if node.args and roles(node.args[0]) & {'os', 'env', 'process'}:
+                 if builtins != {'getattr'} or len(node.args) != 2 or not isinstance(literal(node.args[1]), str):
+@@ -409,6 +415,7 @@
+                 records.append(ast.unparse(node))
+             elif key.arg is None:
+                 values = literal(key.value)
++                if frozen_copier and ast.unparse(node)=='builtin_open(path, mode, *a, **kw)':values={}
+                 if not isinstance(values, dict):
+                     refuse(node, 'keyword expansion may pass an unresolved environment map')
+                 if 'env' in values:

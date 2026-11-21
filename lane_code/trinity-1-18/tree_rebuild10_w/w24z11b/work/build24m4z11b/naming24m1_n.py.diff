@@ -1,0 +1,24 @@
+--- 24m4z11/naming24m1_n.py
++++ 24m4z11b/naming24m1_n.py
+@@ -157,9 +157,9 @@
+     def name(value,where,exception=None):
+         # These exact strings belong to the immutable final copier: an inherited
+         # environment key and the internal getattr attribute used to compute it.
+-        if (value=='TK_DIAGNOSTIC_PREFIX' and where in {'b/pc.py:159:environment','b/pc.py:520:environment'} or
+-            value=='diagnostic_prefix' and where=='b/pc.py:520:environment'):
+-            if hashlib.sha256((kit/'b/pc.py').read_bytes()).hexdigest()!='e6d7a861df0dbd0879314e38fb11779b45eae9ddee10fa3aec5282f4bdf8bc72':
++        if (value=='TK_DIAGNOSTIC_PREFIX' and where in {'b/pc.py:173:environment','b/pc.py:537:environment'} or
++            value=='diagnostic_prefix' and where=='b/pc.py:537:environment'):
++            if hashlib.sha256((kit/'b/pc.py').read_bytes()).hexdigest()!='000c23a44265764abfc845a6b18f2b17186efde8628fde146340770d3972d6a6':
+                 raise ValueError('INHERITED_ENVIRONMENT_SOURCE_DIFFERS')
+             exception='frozen_final_kit_copier'
+         if forbidden(value):
+@@ -270,7 +270,7 @@
+         if relative=='b/pc.py':
+             import environment21f as E
+             from unittest.mock import patch
+-            if hashlib.sha256((kit/relative).read_bytes()).hexdigest()!='e6d7a861df0dbd0879314e38fb11779b45eae9ddee10fa3aec5282f4bdf8bc72':
++            if hashlib.sha256((kit/relative).read_bytes()).hexdigest()!='000c23a44265764abfc845a6b18f2b17186efde8628fde146340770d3972d6a6':
+                 raise ValueError('INHERITED_ENVIRONMENT_SOURCE_DIFFERS')
+             fixed={'SLURM_JOB_ID','TK_UPLOAD_DEADLINE','TK_UPLOAD_LOG','TK_PRIORITY_TRAIN',
+                    'TK_PRIORITY_STATE','TK_NOMINAL_STOP','TK_DIAGNOSTIC_PREFIX'}

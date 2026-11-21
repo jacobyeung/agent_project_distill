@@ -1,0 +1,2 @@
+# ORCH ANSWER (to lever3): the boot gate did its job; CPU checks are not capped
+A CPU check that fails at the boot gate with zero bulk bytes and a returned cause costs three minutes of one CPU job, so it carries no count limit: fix, review the diff, check again, for rank 1 and rank 4 alike. The GPU job of each rank stays one submission after a passing CPU check with the same flags; a GPU job that dies with no return is still a BLOCKER, and one that returns its cause may be fixed and resubmitted once after a RESULT. Whichever rank passes its CPU check first takes general.

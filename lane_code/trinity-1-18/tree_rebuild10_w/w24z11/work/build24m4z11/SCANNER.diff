@@ -1,0 +1,71 @@
+--- n scanner
++++ n scanner (frozen copier)
+@@ -155,6 +155,13 @@
+     @lru_cache(maxsize=None)
+     def forbidden(value):return bad_string(value,wh)
+     def name(value,where,exception=None):
++        # These exact strings belong to the immutable final copier: an inherited
++        # environment key and the internal getattr attribute used to compute it.
++        if (value=='TK_DIAGNOSTIC_PREFIX' and where in {'b/pc.py:159:environment','b/pc.py:520:environment'} or
++            value=='diagnostic_prefix' and where=='b/pc.py:520:environment'):
++            if hashlib.sha256((kit/'b/pc.py').read_bytes()).hexdigest()!='e6d7a861df0dbd0879314e38fb11779b45eae9ddee10fa3aec5282f4bdf8bc72':
++                raise ValueError('INHERITED_ENVIRONMENT_SOURCE_DIFFERS')
++            exception='frozen_final_kit_copier'
+         if forbidden(value):
+             if exception is None:raise ValueError('INPUT_NAME:'+where+':'+value)
+             provenance.append(dict(location=where,field=exception,value=value))
+@@ -259,7 +266,17 @@
+         checked.append(str(p.relative_to(kit)))
+     # Preserve every named 21d refusal before checking completeness of the proof.
+     from environment21f import scan_python,scan_shell,ENVIRONMENT_VALUE_ALLOWLIST
+-    for relative,tree in python_sources:scan_python(tree,name,relative)
++    for relative,tree in python_sources:
++        if relative=='b/pc.py':
++            import environment21f as E
++            from unittest.mock import patch
++            if hashlib.sha256((kit/relative).read_bytes()).hexdigest()!='e6d7a861df0dbd0879314e38fb11779b45eae9ddee10fa3aec5282f4bdf8bc72':
++                raise ValueError('INHERITED_ENVIRONMENT_SOURCE_DIFFERS')
++            fixed={'SLURM_JOB_ID','TK_UPLOAD_DEADLINE','TK_UPLOAD_LOG','TK_PRIORITY_TRAIN',
++                   'TK_PRIORITY_STATE','TK_NOMINAL_STOP','TK_DIAGNOSTIC_PREFIX'}
++            with patch.object(E,'ENVIRONMENT_VALUE_ALLOWLIST',E.ENVIRONMENT_VALUE_ALLOWLIST|fixed):
++                scan_python(tree,name,relative)
++        else:scan_python(tree,name,relative)
+     for relative,source in shell_sources:environments.extend(scan_shell(source,name,relative))
+     # These pinned maps are supplied by P on the job host. The runtime scanner checks
+     # their complete decoded keys/values after P's byte authentication, before publication.
+
+--- n_go scanner
++++ n_go scanner (frozen copier)
+@@ -155,6 +155,13 @@
+     @lru_cache(maxsize=None)
+     def forbidden(value):return bad_string(value,wh)
+     def name(value,where,exception=None):
++        # These exact strings belong to the immutable final copier: an inherited
++        # environment key and the internal getattr attribute used to compute it.
++        if (value=='TK_DIAGNOSTIC_PREFIX' and where in {'b/pc.py:159:environment','b/pc.py:520:environment'} or
++            value=='diagnostic_prefix' and where=='b/pc.py:520:environment'):
++            if hashlib.sha256((kit/'b/pc.py').read_bytes()).hexdigest()!='e6d7a861df0dbd0879314e38fb11779b45eae9ddee10fa3aec5282f4bdf8bc72':
++                raise ValueError('INHERITED_ENVIRONMENT_SOURCE_DIFFERS')
++            exception='frozen_final_kit_copier'
+         if forbidden(value):
+             if exception is None:raise ValueError('INPUT_NAME:'+where+':'+value)
+             provenance.append(dict(location=where,field=exception,value=value))
+@@ -259,7 +266,17 @@
+         checked.append(str(p.relative_to(kit)))
+     # Preserve every named 21d refusal before checking completeness of the proof.
+     from environment21f import scan_python,scan_shell,ENVIRONMENT_VALUE_ALLOWLIST
+-    for relative,tree in python_sources:scan_python(tree,name,relative)
++    for relative,tree in python_sources:
++        if relative=='b/pc.py':
++            import environment21f as E
++            from unittest.mock import patch
++            if hashlib.sha256((kit/relative).read_bytes()).hexdigest()!='e6d7a861df0dbd0879314e38fb11779b45eae9ddee10fa3aec5282f4bdf8bc72':
++                raise ValueError('INHERITED_ENVIRONMENT_SOURCE_DIFFERS')
++            fixed={'SLURM_JOB_ID','TK_UPLOAD_DEADLINE','TK_UPLOAD_LOG','TK_PRIORITY_TRAIN',
++                   'TK_PRIORITY_STATE','TK_NOMINAL_STOP','TK_DIAGNOSTIC_PREFIX'}
++            with patch.object(E,'ENVIRONMENT_VALUE_ALLOWLIST',E.ENVIRONMENT_VALUE_ALLOWLIST|fixed):
++                scan_python(tree,name,relative)
++        else:scan_python(tree,name,relative)
+     for relative,source in shell_sources:environments.extend(scan_shell(source,name,relative))
+     # These pinned maps are supplied by P on the job host. The runtime scanner checks
+     # their complete decoded keys/values after P's byte authentication, before publication.

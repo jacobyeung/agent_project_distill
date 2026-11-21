@@ -71,7 +71,7 @@ def build():
     for name,h in f['sources'].items():
         assert digest((ROOT/name).read_bytes())==h
     data,mapping=inputs()
-    token='f68a2d7c903be'
+    token='87f4ae5c2f44f'
     package='/project/community/jjyeung/okh7/a15_cot_ap'+token
     base_inputs=json.loads((BASE/'package/a/1.json').read_text())
     # Geometry's dedicated archive is not needed. The shared environment archive
@@ -83,6 +83,7 @@ def build():
     assets={k:assets[k] for k in ('groups','bwrap_pin')}
     cfg=dict(token=token,package=package,frozen=digest(frozen),logical='/scratch/jjyeung/b01ec87a6f29b',
              inputs=ins,assets=assets,export=json.loads((BASE/'package/a/export.json').read_text()))
+    cfg['import_closure'] = json.loads((ROOT/'IMPORT_CLOSURE.json').read_text())
     # Group 0 mixes CPython with unrelated legacy assets; stream only CPython
     # before boot. Group 1 is the base venv; a4 is its real entry/overlay.
     cfg['boot'] = dict(runtime_groups=[1], input_archives=[2],
@@ -150,12 +151,14 @@ def build():
     out=ROOT/'out';out.mkdir(exist_ok=True)
     (out/'delivery.tgz').write_bytes(delivery)
     (ROOT/'PAIR_MAP.json').write_bytes(jd(mapping))
-    (ROOT/'BUILD.json').write_bytes(jd(dict(package=package,token=token,delivery=pin(delivery),
+    (ROOT/'BUILD.json').write_bytes(jd(dict(package=package,token=token,superseded_tokens=['f68a2d7c903be'],delivery=pin(delivery),
         boot=dict(cfg['boot'], code_archive_bytes=len(files['0.tgz']),
                   archive_and_code_bytes=cfg['boot']['archive_bytes']+len(files['0.tgz']),
                   pre_bulk_bytes=cfg['boot']['archive_bytes']+cfg['boot']['interpreter_file_bytes']+len(files['0.tgz']),
                   interpreter_source_bytes=sum(n for _,n,_ in assets['groups'][0]),
-                  production_seconds=None, receipt='execution.boot'),
+                  production_seconds=None, receipt='execution.boot',
+                  closure={k:v for k,v in cfg['import_closure'].items() if k not in ('required_modules','exclusions')},
+                  exclusions=cfg['import_closure']['exclusions']),
         interpreter_exposure=dict(opaque_roots=['c','v'],native_archives='Preserve all pinned interpreter and third-party package paths and bytes',audit='out/IMPORT_CHECKS.json'),
         project_budget=dict(limit_bytes=50000000,enforced_max_bytes=44000000,placement_bytes=20000000,metadata_and_ledger_bytes=2000000,returns_bytes=6000000,fetches_bytes=16000000,project_logs_bytes=0),
         gpu_memory=dict(request='200G',guarded_stop_bytes=180*1024**3,guard_formula='max(0, memory.current - min(active_file + inactive_file, max(0, file - shmem)))',guard_fallback='process-tree RSS when memory.stat/current is unavailable',expected_peak_bytes=187000000000,full_load_rss_bytes=96000000000,page_cache_bytes=71000000000,batch_and_overhead_bytes=20000000000,measured=False),
