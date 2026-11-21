@@ -1,0 +1,1 @@
+hostname -s; timeout 120 find /scratch/jjyeung -maxdepth 7 -type d \( -name 0658da5bc0 -o -name 5334a4164a \) 2>/dev/null | head; timeout 60 find /scratch/jjyeung -maxdepth 3 -type d -iname '*frame*' 2>/dev/null | head -20

@@ -23,3 +23,10 @@ Implementation (lane copies; originals untouched):
   reseal; the r1 kit's SHA256SUMS seals depth_format.py at 2c7db4f3..., which is the version the dump was written and read with, so the
   lane pin uses 2c7db4f3.
 - Inputs: dump lever1_c/r1/returned/0.gz (job 174135; receipt 4.json), bit-identical to 174200 and 174208.
+
+Integrity fix found at first run (before any cell was computed; the run raised and wrote nothing): the original population check
+`{join keys} != {funnel object keys}` fails on vsi590k_045785, whose JOIN_T1 row is item-level ("stage U, no recorded object call") while
+FUNNEL_T1 holds its two object keys. The original code never reached this line (it stopped at the parity STOP). The lane copy now
+requires: every object-level join key is a funnel key; the funnel keys missing from the join are exactly the objects of the item-level
+join rows; every item-level join row has stage U. Diff in relift.diff.
+Review: REVIEW_AMENDMENT.md GO (F1 explicit inputs applied; F2/F3 text fixed); REVIEW_FIX.md NO-GO pending one line, applied verbatim (fk-jk equals the item-level items' funnel objects).

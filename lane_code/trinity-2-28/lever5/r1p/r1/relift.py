@@ -289,7 +289,10 @@ def run(args):
     # No intervention is evaluated before the all-150 parity gate above.
     funnel=json.loads(args.funnel.read_text());fobjects={o['key']:o for o in funnel['objects']['t1']}
     joins=[json.loads(x) for x in args.join.read_text().splitlines()]
-    if {r['key'] for r in joins}!={o['key'] for o in fobjects.values()}:raise ValueError('join/funnel population mismatch')
+    jk={r['key'] for r in joins};fk={o['key'] for o in fobjects.values()};item_level={k for k in jk if ':' not in k}
+    # An item with no recorded object call joins at item level (vsi590k_045785); its funnel objects are exactly the remainder.
+    if not (jk-item_level)<=fk or fk-jk!={k for k in fk if k.split(':')[0] in item_level} or any(r['key'] in item_level and r.get('stage')!='U' for r in joins):
+        raise ValueError('join/funnel population mismatch')
     gt_paths={}
     for folder in args.gt_dirs:
         for path in folder.glob('*.npz'):

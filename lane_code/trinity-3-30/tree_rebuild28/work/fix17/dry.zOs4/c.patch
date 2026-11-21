@@ -1,0 +1,76 @@
+--- a/b/a.py
++++ b/b/a.py
+@@ -96,6 +96,13 @@
+     def restoring_admit(*args,**kwargs):
+      limit=resource.getrlimit(resource.RLIMIT_AS)
+      try:
++      # The proof runs under the namespace, where every reviewed path string was written. The frame root
++      # map may only name the job folder under /tmp/jjyeung, and the frame audit compares resolved paths,
++      # so admit() gets the request's frame roots under that second name (b/pf.py audit_roots: the same
++      # directories, or the job refuses by name).
++      from pf import audit_roots
++      if len(args)>2:args=(*args[:2],audit_roots(args[2]),*args[3:])
++      else:kwargs['roots']=audit_roots(kwargs['roots'])
+       with guard():return native_admit(*args,**kwargs)
+      except BaseException as error:tb_write('admit',error);raise
+      finally:resource.setrlimit(resource.RLIMIT_AS,limit)
+--- a/b/pf.py
++++ b/b/pf.py
+@@ -6,8 +6,40 @@
+ First, run the tree's own receipt predicates on the configured stream receipts, so that a receipt
+ the preparation would refuse is refused here, by name, before the long steps. After staging, frames()
+ checks one frame pin per stream source against the request's frame roots, and census() classifies the
+-first 100 rows of every stream source with the post-condition's classifier."""
++first 100 rows of every stream source with the post-condition's classifier. audit_roots() names the
++request's frame roots for the frame audit."""
+ from pathlib import Path
++
++
++def audit_roots(roots):
++    """The request's frame roots under the job folder's second name.
++
++    The job folder is bound at the namespace (k/p.json), where the plan and the proof run and every
++    reviewed path string is written, and at /tmp/jjyeung/<namespace without /tmp/>, the only name the
++    tree's frame root map may target (orchard_paths.resolve_read). The frame audit compares resolved
++    paths, so it gets each request root under the second name. A root that is not one real directory
++    under both names refuses here, by name."""
++    import os
++    from z import load
++    first = Path(load(Path(__file__).resolve().parents[1] / 'k/p.json')['namespace'])
++    if first.parts[:2] != ('/', 'tmp') or len(first.parts) != 3 or first.name in ('jjyeung', '.', '..'):
++        raise ValueError('E06')
++    second = Path('/tmp/jjyeung') / first.name
++    twins = []
++    for root in roots:
++        root = Path(root)
++        if '..' in root.parts or root == first or not root.is_relative_to(first):
++            raise ValueError('R1_FRAME_ROOT_NAME_REFUSED:' + str(root))
++        twin = second / root.relative_to(first)
++        try:
++            one, two = os.stat(root), os.stat(twin)
++        except OSError:
++            raise ValueError('R1_FRAME_ROOT_MISSING:' + str(root)) from None
++        if (not root.is_dir() or root.resolve() != root or twin.resolve() != twin
++                or (one.st_dev, one.st_ino) != (two.st_dev, two.st_ino)):
++            raise ValueError('R1_FRAME_ROOT_NAME_REFUSED:' + str(root))
++        twins.append(str(twin))
++    return twins
+ 
+ 
+ def receipts(cfg):
+@@ -47,12 +79,13 @@
+ def frames(cfg, roots):
+     """s1_admission.FrameAudit.keep on one frame pin per stream source, right after staging: the pin
+     resolves through the tree's resolve_read (the frame root map) to a file under one of the request's
+-    frame roots, or the job refuses here, by name, instead of in the frame audit after preparation."""
++    frame roots, named as the frame audit gets them (audit_roots), or the job refuses here, by name,
++    instead of in the frame audit after preparation."""
+     import json
+     import sqlite3
+     from student_pilot.orchard_paths import resolve_read
+     from student_pilot.r1_persisted import relocated
+-    resolved = [Path(root).resolve() for root in roots]
++    resolved = [Path(root).resolve() for root in audit_roots(roots)]
+     if not resolved or any(not root.is_dir() for root in resolved):
+         raise ValueError('R1_FRAME_ROOT_MISSING:' + ','.join(str(root) for root in resolved))
+     def read(pin):

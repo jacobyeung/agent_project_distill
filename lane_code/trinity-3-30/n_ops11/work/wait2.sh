@@ -13,6 +13,7 @@ while [ $(date +%s) -lt $end ]; do
   [ -n "$hit" ] && { why="NEW:$hit"; break; }
   st=$(tail -1 $M/hist.txt | grep -o '"state":"[A-Z]*"'); [ "$st" != "$st0" ] && { why="STATE $st0 -> $st"; break; }
   [ "$(cat $M/job)" != "$j0" ] && { why="MON/job $j0 -> $(cat $M/job)"; break; }
+  [ $(( $(date +%s) - $(stat -c %Y $M/hist.txt) )) -gt 300 ] && { why="WATCHER STALE"; break; }
   sleep 60
 done
 echo "END $why"; tail -1 $M/hist.txt | cut -c1-200

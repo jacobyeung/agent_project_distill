@@ -2,12 +2,12 @@
 # lever5 R0 check 2 stage b (option ii): governed vertex read on trinity-2-28. Root = stopped bash producer (never execs).
 set -u
 D=/scratch/jjyeung/orch_n30/lever5/r0chk; cd "$D"
-LANE=lever5_r0mesh_b; BYTES=3952900000
+LANE=lever5_r0mesh_b2; BYTES=3952900000
 log(){ echo "$(date -u +%FT%TZ) $*"; }
 (
   bash -c 'kill -STOP $$; /usr/bin/python3 -I -s -B "$0" "$1"; rc=$?; echo "SRC_RC=$rc" >&2; exit $rc' "$D/read_vertices.py" "$D/stage_b/plan.tsv" 2>>"$D/stage_b/src.err" \
   | /usr/bin/python3 -s /scratch/jjyeung/io_governor/ratelimit.py -q -L 1000 -B 65536 \
-  | /usr/bin/python3 -s -B "$D/consume_vertices.py" "$D/stage_b/samples" 2>>"$D/stage_b/consume.err"
+  | /scratch/jjyeung/envs/p1cpu/bin/python -s -B "$D/consume_vertices.py" "$D/stage_b/samples" 2>>"$D/stage_b/consume.err"
   echo "PIPE_RC=${PIPESTATUS[*]}" > "$D/stage_b/rc.txt"
 ) &
 SUB=$!

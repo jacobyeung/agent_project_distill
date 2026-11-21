@@ -1,8 +1,14 @@
 # tree_rebuild STATUS (successor resumes from this file alone)
-Updated: 2026-11-21T18:39Z by tree_rebuild28 (headless Claude Opus high; session trinity-3-30 /scratch/jjyeung/orch_n30/tree_rebuild28, work trinity-1-18 and 2-28; started 15:26Z; rotate by 01:00Z)
+Updated: 2026-11-21T19:38Z by tree_rebuild28 (headless Claude Opus high; session trinity-3-30 /scratch/jjyeung/orch_n30/tree_rebuild28, work trinity-1-18 and 2-28; started 15:26Z; rotate by 01:00Z)
 W = trinity-1-18:/scratch/jjyeung/orch_n30/tree_rebuild10_w (47 GB 01:21Z; 1-18 /scratch 124 GB free). Mirrors as below.
 
-## Running (18:39Z) — NEWEST FIRST
+## Running (19:38Z) — NEWEST FIRST
+- 19:38Z fix17 TEST kit W/w34/test1 seal 7e23bbdd, all tests pass; waiting SEAL after fix16 early steps.
+- 19:24Z fix17 (opus high) STARTED ~19:30Z: kit W/w34 from fix16 DIFF (seal on SEAL). ANSWER 1924Z relayed to fix16. STATUS Next rewritten.
+- 19:21Z QUESTION posted: fix16 candidate (root back to Q_NS, audit roots respelled under Q_NJ same inode); quick held-node test PASS; walk under candidate to selection check ~20:02Z.
+- 19:07Z Cause shown (fix16): k/j.json root $Q_NS/p -> $Q_NJ/p (frame fix) moved all plan paths under /tmp/jjyeung; selection digest covers paths. RESULT posted. fix16 on fix.
+- 18:55Z fix16 (fable max) STARTED ~18:58Z: debug R1_ROUTING_SELECTION_DIFFERS on held 174198 node; brief work/fix16/BRIEF.md.
+- 18:54Z 174198 HELD: R1_ROUTING_SELECTION_DIFFERS entry.py:288 at 18:51:51Z (T+60 min); hold until 21:53:13Z. BLOCKER posted. Starting debug subagent.
 - 18:39Z fix15 DONE: rehearsal ready (work/fix15/RUN.md; start s/o_start.sh at WAITING_REVIEW after gate verdict). RESULT posted.
 - 18:21Z 174198 18:20Z RUNNING 28 min, mode q started (scene receipts), no alarm/hold.
 - 18:02Z ORDER 1757Z: fix15 (opus high) STARTED ~18:04Z building training-start rehearsal (work/fix15, RUN.md), ready by 21:30Z. 174198 staging 18:01Z.
@@ -436,11 +442,11 @@ ORCH rulings binding: 0033Z (receipt in allocation, guards), 0034Z (b15 accepted
 
 - trinity-1-18 IO governor node agent restarted once 06:35:58Z per ORCH 0034Z item 3 (old pid 4114313 log silent since 2026-11-17T02:39Z, no stream on the node); new pid 2833402 in tmux iogov_agent, status file fresh. STATE.md keeps showing 1-18 "silent" until a stream registers there: the governor reads agent status only for hosts with records (serial_governor.py:653).
 
-## Next (in order; for a successor of tree_rebuild28; exact at 17:56Z)
-State: LAUNCH JOB 174198 (a15_cot_apb2edfac4, advanced 4 H100, orchard-community-3) RUNNING since ~17:51:51Z on X/jn7.sh 98edfd9e + X/n = merged kit 929ab213 (F1 + census 94d941e6 + frame 32c31d37 + room census 4768768f; tar W/w33n/s33n_n_go.tar b0c03db3, mirror 3-30 n30_mirror/tree_rebuild28/fix12/) + sessions 583129d6 (n_ops11). Old kit at X/a24m4z12/n_9e809db4. 174134 ended FAILED 1:0 17:51:57Z by RELEASE.
-Logger: work/wlong4.sh (pid in pgrep -f "bash wlong4.sh") -> work/watch.log, 1/min until GONE. Readers: work/loop9.sh (nine 1-min checks, exits on anomaly incl. hold=YES), work/m.sh. jn7 holds the node on any failure before training (HOLD.txt, tb.txt in X/o/174198); training start cannot be held.
-Forecast (from 174134 + walk): staging ~18:10Z; witness ~18:47Z; stream builds ~19:45Z; :540/:621 ~19:30-19:50Z; frame audit ~81 min single thread (~21:15Z); bind_prepared 20 min; forward 29 min; census publish 14 min; WAITING_REVIEW ~22:30-23:30Z; n_review1j gate; then training: rank-0 preparation check ~250 s after rank start (untested in scratch).
-1. Watch per RULING 1650Z item 4 (1-min around each old failure point and from the forward to first steps/first save; 10 min otherwise); read events/n_ops/N_WATCH_STATUS.md. Any HOLD -> BLOCKER with X/o/174198/tb.txt, debug on the held node via srun --overlap.
-2. First steps RESULT (losses per stream vs P medians, step time, forecast of first export and self-stop); first save + upload rate.
-3. Design records/card per RULING 1650Z item 5 (W1-W4 causes; P passed frame audit since launch_s1 has no begin_host; rule moves owed at first boundary: census into tree). Records: distill_design/N_174134_F1_KIT_20261121.md, N_SCENE_CENSUS_ROWKEY_20261121.md, N_KIT_ADMITTED_CENSUS_20261121.md, N_174134_FRAME_MAP_KIT_20261121.md, N_KIT_CENSUS_POSE_ROOMS_20261121.md, N_LAUNCH_174134_DIVISION_PIN_AND_WALK_20261121.md.
-4. REMOVAL_CANDIDATES: add W/w29f7, W/w30f1, W/w31cen, W/w32frm, W/w33n/test1, Orchard X/up33.tar, X/s33n, X/a24m4z12/n_9e809db4 (after run), node /tmp/a15_f8/f9/f10/f11/f13/dbg_174134 (gone with job), REMOVAL_CANDIDATES_fix13.txt items.
+## Next (in order; for a successor of tree_rebuild28; exact at 19:30Z)
+State: 174198 (kit 929ab213, jn7 98edfd9e) HELD on orchard-community-3 since 18:53:13Z, deadline 21:53:13Z: R1_ROUTING_SELECTION_DIFFERS entry.py:288 (cause: fix11's k/j.json moved the run root to /tmp/jjyeung/q_22c714e1/p; selection digest covers path strings). Release = touch X/o/174198/RELEASE (only per ANSWER 1924Z item 4).
+Rulings: ORDER 1857Z (walk mode q from the start under the candidate; item 4 rule for every kit change: show by a run from the proof's start, or name each earlier step reading what changed); ANSWER 1924Z (candidate accepted in shape; identity table owed; seal when walk passed host selection, direction_twins, training_components, witness, model build, :540, :621 and frame audit started keeping frames; RELEASE when those passed + kit GO by n_review1k + installed + bytes confirmed + new job held with sessions); ORDER 1757Z (training rehearsal at the new job's gate: work/fix15/RUN.md).
+Reviewer now n_review1k (inbox /scratch/jjyeung/orch_n30/n_review1k/inbox). Operator n_ops11 (SESS_JOB file).
+Subagents: fix16 (fable max; held-node debug + candidate walk; work/fix16/REPORT.md, DIFF.patch; writes "EARLY STEPS PASSED <time>"). fix17 (opus high; builds W/w34/n_go from fix16 DIFF, test seal; FINAL seal only when sent "SEAL"; packet events/tree_rebuild/n34_review, INSTALL.md).
+1. When fix16 reports EARLY STEPS PASSED + identity table: SendMessage fix17 "SEAL"; post RESULT (step list, identity table, digests 522a3be3/5e35c3ce) asking n_review1k for review.
+2. On GO: install per n34_review/INSTALL.md (pattern work/o1.sh: bundle upload, verify, move X/n to X/a24m4z12/n_929ab213, sbatch --hold X/jn7.sh), SESS_JOB, bytes confirm by n_review1k, sessions by n_ops11, then RELEASE 174198, wait until gone, scontrol release new job (pattern work/o2.sh). Retarget w3.sh J=, restart logger wlong4.sh after the old one ends.
+3. At the new job's WAITING_REVIEW: gate by n_review1k, then rehearsal (fix15/RUN.md), RESULT, ORCH answer, n_ops11 installs review.json. Then first steps RESULT.

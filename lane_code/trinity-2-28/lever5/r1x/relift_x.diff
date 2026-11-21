@@ -1,0 +1,27 @@
+6c6,10
+< parity of a(dump) against T1 are reported per dataset and do not gate. Nothing else differs from lever1_c/r1/relift.py."""
+---
+> parity of a(dump) against T1 are reported per dataset and do not gate.
+> 
+> Rank 5 extension (lever5, ORCH ANSWER 2026-11-21T19:02Z): the cell population adds the 21 NOGT captures that pass rank 5's
+> checks (GT NPZs built from raw scans; 41254810 excluded, it fails binding). For those captures FUNNEL_T1 holds no binding
+> (binding null, gt_available false), so the operand binding comes from the NPZ alone; every other check is unchanged."""
+27a32,35
+> NOGT_DIRS=[Path('/scratch/jjyeung/orch_n30/lever5/r1x/gt21/t1'),Path('/scratch/jjyeung/orch_n30/lever5/r1x/gt21/ark')]
+> NOGT_CAPTURES={(p.stem.replace('__','/') if '__' in p.stem else 'arkitscenes/'+p.stem) for d in NOGT_DIRS for p in d.glob('*.npz')}
+> EXPECTED_GT=38+21
+> assert len(NOGT_CAPTURES)==21 and 'arkitscenes/41254810' not in NOGT_CAPTURES
+301c309
+<     if len(gt_paths)!=38:raise ValueError('expected 38 GT captures')
+---
+>     if len(gt_paths)!=EXPECTED_GT:raise ValueError('expected %d GT captures'%EXPECTED_GT)
+322c330,332
+<                 if stage.get('binding',{}).get('instance_id')!=binding['instance_id']:raise ValueError('funnel binding differs')
+---
+>                 if cap in NOGT_CAPTURES:
+>                     if stage.get('binding') is not None or stage.get('gt_available'):raise ValueError('NOGT capture has a funnel binding: '+key)
+>                 elif (stage.get('binding') or {}).get('instance_id')!=binding['instance_id']:raise ValueError('funnel binding differs')
+367c377
+<     p.add_argument('--gt-dirs',type=Path,nargs='+',default=[BASE/'gt/t1_gt/gt',BASE/'gt/arkit_gt/gt'])
+---
+>     p.add_argument('--gt-dirs',type=Path,nargs='+',default=[BASE/'gt/t1_gt/gt',BASE/'gt/arkit_gt/gt']+NOGT_DIRS)

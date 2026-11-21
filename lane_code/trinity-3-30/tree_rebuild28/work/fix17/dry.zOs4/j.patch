@@ -1,0 +1,50 @@
+--- a/j.sh
++++ b/j.sh
+@@ -367,9 +367,11 @@
+     export PYTHONDONTWRITEBYTECODE=1 PYTHONNOUSERSITE=1 PYTHONPATH="$ANYHOST_JOBS/site_alias"
+     export Q_E1=1 Q_E2=orchard A_SITE_PROFILE="$X/b/profile.json"
+     export Q_E3="$X/models"
+-    # The job folder is also bound at Q_NJ, under the tree's owned node-local root /tmp/jjyeung, and the
+-    # kit's python steps run there. Frame reads then resolve to the kit's copy of the frame store inside
+-    # the job folder (q/f/<sha256 of the frame root>), the root the request names to the frame audit.
++    # The job folder is also bound at Q_NJ, under the tree's owned node-local root /tmp/jjyeung, the only
++    # place the frame root map may point besides the store. The kit's python steps run under Q_NS, where
++    # every reviewed path string was written. Frame reads resolve through Q_NJ to the kit's copy of the
++    # frame store inside the job folder (q/f/<sha256 of the frame root>), and the frame audit gets the
++    # request's frame roots under that name (b/pf.py audit_roots).
+     case "${Q_NS:-}" in /tmp/?*) ;; *) echo E06 >&2; exit 1 ;; esac
+     Q_NJ="/tmp/jjyeung/${Q_NS#/tmp/}"
+     export Q_E4="{\"/data2\": \"$Q_NJ/p/q/f/$(printf '%s' "$X/data2root" | sha256sum | cut -c1-64)\"}"
+@@ -416,7 +418,7 @@
+ "${BW[@]}" "$PILOT_VENV/bin/python" -B -s "$Q_KIT/b/g.py"
+ fi
+ set +e
+-"${BW[@]}" "$PILOT_VENV/bin/python" -B -s "$Q_KIT/b/a.py" "${Q_MODE:-q}" "$Q_NJ/p" "$Q_NJ/r.json" 2>&1 | /usr/bin/python3 -B "$Q_KIT/b/l.py" "$Q_KIT" > "$Q_ROOT/q.log"
++"${BW[@]}" "$PILOT_VENV/bin/python" -B -s "$Q_KIT/b/a.py" "${Q_MODE:-q}" "$Q_NS/p" "$Q_NS/r.json" 2>&1 | /usr/bin/python3 -B "$Q_KIT/b/l.py" "$Q_KIT" > "$Q_ROOT/q.log"
+ rc=${PIPESTATUS[0]}
+ if [[ "${Q_MODE:-q}" == r ]]; then
+     /usr/bin/python3 -B -I -s "$Q_KIT/b/rd.py" "$Q_ROOT" "${SLURM_JOB_ID:?}" "$rc"
+@@ -424,19 +426,19 @@
+     if [[ "$rc" == 0 ]]; then rc=$rp; fi
+     exit "$rc"
+ fi
+-"${BW[@]}" "$PILOT_VENV/bin/python" -B -s "$Q_KIT/b/d.py" "$Q_NJ/p/s" "$Q_NJ/r.json" "$Q_NJ/n.json" "$Q_NJ/rooms.json" 2>&1 | /usr/bin/python3 -B "$Q_KIT/b/l.py" "$Q_KIT" > "$Q_ROOT/rooms.log"
++"${BW[@]}" "$PILOT_VENV/bin/python" -B -s "$Q_KIT/b/d.py" "$Q_NS/p/s" "$Q_NS/r.json" "$Q_NS/n.json" "$Q_NS/rooms.json" 2>&1 | /usr/bin/python3 -B "$Q_KIT/b/l.py" "$Q_KIT" > "$Q_ROOT/rooms.log"
+ rr=${PIPESTATUS[0]}
+ if [[ "$rc" == 0 && "$rr" == 0 ]]; then
+-"${BW[@]}" "$PILOT_VENV/bin/python" -B -s "$Q_KIT/b/h.py" "$Q_NJ/p" "$Q_NJ/v.json" 2>&1 | /usr/bin/python3 -B "$Q_KIT/b/l.py" "$Q_KIT" > "$Q_ROOT/h.log"
++"${BW[@]}" "$PILOT_VENV/bin/python" -B -s "$Q_KIT/b/h.py" "$Q_NS/p" "$Q_NS/v.json" 2>&1 | /usr/bin/python3 -B "$Q_KIT/b/l.py" "$Q_KIT" > "$Q_ROOT/h.log"
+ rc=${PIPESTATUS[0]}
+ if [[ "$rc" == 0 ]]; then
+ export OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8
+-"${BW[@]}" nice -n 10 "$PILOT_VENV/bin/python" -B -s "$Q_KIT/b/rv.py" "$Q_NJ" "$Q_NJ/v.json" "${SLURM_JOB_ID:?}" 2>&1 | /usr/bin/python3 -B "$Q_KIT/b/l.py" "$Q_KIT" > "$Q_ROOT/rv.log"
++"${BW[@]}" nice -n 10 "$PILOT_VENV/bin/python" -B -s "$Q_KIT/b/rv.py" "$Q_NS" "$Q_NS/v.json" "${SLURM_JOB_ID:?}" 2>&1 | /usr/bin/python3 -B "$Q_KIT/b/l.py" "$Q_KIT" > "$Q_ROOT/rv.log"
+ rc=${PIPESTATUS[0]}
+ fi
+ if [[ "$rc" == 0 ]]; then
+ export OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8
+-"${BW[@]}" "$PILOT_VENV/bin/python" -B -s "$Q_KIT/b/t.py" "$Q_NJ/p" "$Q_NJ/v.json" 2>&1 | /usr/bin/python3 -B "$Q_KIT/b/l.py" "$Q_KIT" > "$Q_ROOT/t.log"
++"${BW[@]}" "$PILOT_VENV/bin/python" -B -s "$Q_KIT/b/t.py" "$Q_NS/p" "$Q_NS/v.json" 2>&1 | /usr/bin/python3 -B "$Q_KIT/b/l.py" "$Q_KIT" > "$Q_ROOT/t.log"
+ rc=${PIPESTATUS[0]}
+ fi
+ fi
