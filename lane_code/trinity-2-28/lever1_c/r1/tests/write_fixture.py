@@ -31,7 +31,24 @@ def configure(job,package,root,case):
         if case=='write_budget':
             pool=r/'wpool';pool.mkdir();(pool/(c['token']+'.0')).write_text('11999990')
     job.stage=stage
+    def unit_receipts():
+        # The operator's real-unit receipts, shaped as cpu_unit/g.w.run write them.
+        meta=J.physical(work,cfg['logical']+'/r/metadata')
+        names=['bind','first_model','load','prefill','record']
+        stages=[dict(name=n,seconds=1.,elapsed_s=float(i+1),peak_rss_bytes=1) for i,n in enumerate(names)]
+        stages[2].update(step=544,dtypes=['torch.bfloat16','torch.float32'],locations=['cpu'],parameters=1)
+        unit=dict(passed=True,status='complete',mode='cpu',failure=None,completed=1,stages=stages,
+                  checks=dict(clean=True,grid=dict(shape=[32,51,51],dtype='float16',finite=True),
+                              scale=dict(value=1.5,finite=True),K=dict(shape=[32,3,3],finite=True),prefills=1,decode_steps=0),
+                  admission=dict(reason='first_unit'),environment=dict(threads=16,cuda_visible=''),unit=dict(threads=16))
+        if case=='write_unit_fail':
+            unit.update(passed=False,status='failed',failure='E99:52756e74696d654572726f72',stages=stages[:1],
+                        error='RuntimeError: injected CPU unit failure')
+        common.write(meta/'33.json',unit)
+        common.write(meta/'34.json',dict(returncode=0 if case!='write_unit_fail' else 1,stopped=None,
+                     memory=dict(over=False,limit_bytes=1,guarded_bytes=0),action=3,phases=[]))
     def model(argv,**kw):
+        if argv[-1].endswith('/1.json'):unit_receipts()
         if argv[-1].endswith('/0.json'):
             evidence=work/'wpool'/cfg['token']/'.wtest'
             if case=='write_size':

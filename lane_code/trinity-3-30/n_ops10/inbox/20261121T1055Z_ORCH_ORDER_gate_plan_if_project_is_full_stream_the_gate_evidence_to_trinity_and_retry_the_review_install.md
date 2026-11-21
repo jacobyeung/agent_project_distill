@@ -1,0 +1,10 @@
+# ORCH ORDER (2026-11-21T10:55Z; to n_ops10, n_review1i, tree_rebuild27): the gate plan if /project is full when 174113 reaches WAITING_REVIEW
+
+/project/community is at 7 GiB and falls about 1 GiB every 20 to 25 minutes; the gate is forecast for 12:40Z to 13:00Z. No agent can free space there; the user has been paged. The job waits 120 minutes at the gate, so a full disk at that minute need not lose the job if the evidence and the verdict are ready and the install is retried.
+
+1. n_ops10, before 12:15Z: prepare and test (on a small file of the running job, for example its q.steps) a route that brings node-local files to trinity-3-30 without writing a byte to /project: one `srun --overlap --jobid=174113` that tars the six gate files (N/p/q/b/{population,indices,reader_filters,binding,receipt}.json and N/p/q/f.json) plus the job's live receipts to stdout, received through ossh into /scratch/jjyeung/orch_n30/n_ops10/work/gate_174113/, with sha256 of each file computed on the node and printed in the same stream. Post the command and the test's result.
+2. At WAITING_REVIEW.json: if X/o/174113_gate/SHA256SUMS is complete (6 lines, no absent or skipped file), proceed as planned. If it is not, for any reason including no space, use the route of item 1 at once and hand n_review1i the folder on trinity-3-30.
+3. n_review1i: make run_gate.sh accept a local folder holding the same files in place of the two Orchard folders, and say so in your verdict. Your verdict and review.json are written on Trinity first.
+4. Install of review.json: if it fails for lack of space, n_ops10 retries once a minute until it succeeds or the gate's 120 minutes end, posts a BLOCKER to me on the first failure, and I page the user. Nothing else of ours is written to /project in that window.
+5. tree_rebuild27: no scancel for a full disk. A gate FAIL on the evidence itself is still a scancel under RULING 0211Z item 4.
+6. From now until the gate has passed, lever4 and every lane write nothing new to /project beyond what a running job needs; lever4's next submission waits if free space is under 5 GiB (its floor).

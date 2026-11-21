@@ -1,0 +1,1176 @@
+{
+  "cases": [
+    {
+      "name": "admission",
+      "passed": true,
+      "first_need_s": 2003.75
+    },
+    {
+      "name": "deadline_kill",
+      "passed": true,
+      "pinned": false,
+      "work": "/scratch/jjyeung/orch_n30/lever1_c/r1_fixtures_old/u499181c2681b",
+      "seconds": 9.035002570017241,
+      "process": {
+        "returncode": 1,
+        "stopped": "deadline",
+        "seconds": 8.720079363003606,
+        "memory": {
+          "limit_bytes": 182536110080,
+          "source": "process_tree_rss",
+          "over": false,
+          "cgroup_max": null,
+          "guarded_bytes": 519217152,
+          "tree_rss_bytes": 519217152,
+          "cgroup_current_bytes": null,
+          "cgroup_peak_bytes": null
+        },
+        "address_space_bytes": 193273528320,
+        "phases": [
+          {
+            "phase": "1",
+            "status": "incomplete",
+            "seconds": 4.316910046007251,
+            "rss_peak_bytes": 520339456,
+            "process_rss_hwm_bytes": 520343552
+          }
+        ],
+        "action": 3
+      },
+      "unit": {
+        "passed": false,
+        "status": "failed",
+        "failure": "E99:546f7765724572726f72",
+        "error": "TowerError: run: e2e_artifact_refuses:write:/scratch/jjyeung/orch_n30/lever1_c/r1_fixtures_old/u499181c2681b/r/metadata/STOP",
+        "admission": {
+          "estimates": {
+            "first_model": {
+              "32": 10,
+              "64": 40
+            },
+            "load": 20,
+            "margin": 5,
+            "prefill": 10
+          },
+          "first_dense": 64,
+          "first_need_s": 92.5,
+          "need_s": 92.5,
+          "reason": "first_unit",
+          "remaining_s": 596.3095562458038,
+          "safety": 1.25
+        },
+        "capture_index": 0,
+        "stages": [
+          {
+            "dense": 64,
+            "elapsed_s": 0.6551995049812831,
+            "name": "bind",
+            "peak_rss_bytes": 506032128,
+            "seconds": 0.6027243159769569
+          }
+        ],
+        "checks": null,
+        "environment": {
+          "address_space_bytes": 193273528320,
+          "cuda_visible": "",
+          "python": "3.12.13",
+          "threads": 2,
+          "torch": "2.11.0+cpu",
+          "transformers": "5.12.1"
+        },
+        "parity": null,
+        "peak_rss_bytes": 520343552,
+        "seconds": 4.321919688984053
+      }
+    },
+    {
+      "name": "local_first_unit",
+      "passed": true,
+      "pinned": false,
+      "work": "/scratch/jjyeung/orch_n30/lever1_c/r1_fixtures_old/u907010fee2f9",
+      "seconds": 11.970222244999604,
+      "process": {
+        "returncode": 0,
+        "stopped": null,
+        "seconds": 11.556741714011878,
+        "memory": {
+          "limit_bytes": 182536110080,
+          "source": "process_tree_rss",
+          "over": false,
+          "cgroup_max": null,
+          "guarded_bytes": 608681984,
+          "tree_rss_bytes": 608681984,
+          "cgroup_current_bytes": null,
+          "cgroup_peak_bytes": null
+        },
+        "address_space_bytes": 193273528320,
+        "phases": [
+          {
+            "phase": "4",
+            "status": "written",
+            "seconds": 7.236914586974308,
+            "rss_peak_bytes": 623325184,
+            "process_rss_hwm_bytes": 648658944
+          }
+        ],
+        "action": 3
+      },
+      "unit": {
+        "passed": true,
+        "status": "complete",
+        "failure": null,
+        "error": null,
+        "admission": {
+          "estimates": {
+            "first_model": {
+              "32": 10,
+              "64": 40
+            },
+            "load": 20,
+            "margin": 5,
+            "prefill": 10
+          },
+          "first_dense": 64,
+          "first_need_s": 92.5,
+          "need_s": 92.5,
+          "reason": "first_unit",
+          "remaining_s": 896.3681573867798,
+          "safety": 1.25
+        },
+        "capture_index": 0,
+        "stages": [
+          {
+            "dense": 64,
+            "elapsed_s": 0.8840647120086942,
+            "name": "bind",
+            "peak_rss_bytes": 507314176,
+            "seconds": 0.6012916850158945
+          },
+          {
+            "elapsed_s": 6.708572653005831,
+            "name": "first_model",
+            "peak_rss_bytes": 552804352,
+            "remaining_s": 889.6601209640503,
+            "seconds": 5.822881706990302
+          },
+          {
+            "dtypes": [
+              "torch.bfloat16",
+              "torch.float32"
+            ],
+            "elapsed_s": 6.870317424996756,
+            "locations": [
+              "cpu"
+            ],
+            "name": "load",
+            "parameters": 358773,
+            "peak_rss_bytes": 566325248,
+            "remaining_s": 889.4993379116058,
+            "seconds": 0.16011687699938193,
+            "step": 544
+          },
+          {
+            "elapsed_s": 7.082906064984854,
+            "name": "prefill",
+            "peak_rss_bytes": 648658944,
+            "seconds": 0.21108838598593138,
+            "timings": {
+              "first_model_s": 5.822870461008279
+            }
+          },
+          {
+            "bytes": 637293,
+            "elapsed_s": 7.240772902005119,
+            "name": "record",
+            "peak_rss_bytes": 648658944,
+            "seconds": 0.14865135599393398
+          }
+        ],
+        "checks": {
+          "K": {
+            "finite": true,
+            "max": 468.5700334821428,
+            "mean": 166.32013134173746,
+            "median": 1.0,
+            "min": 0.0,
+            "shape": [
+              32,
+              3,
+              3
+            ]
+          },
+          "clean": true,
+          "decode_steps": 0,
+          "first_model": {
+            "indices": {
+              "dtype": "int64",
+              "finite": true,
+              "shape": [
+                64
+              ]
+            },
+            "pose9": {
+              "dtype": "float64",
+              "finite": true,
+              "shape": [
+                64,
+                9
+              ]
+            },
+            "slots": {
+              "dtype": "int64",
+              "finite": true,
+              "shape": [
+                32
+              ]
+            },
+            "uv": {
+              "dtype": "float32",
+              "finite": true,
+              "shape": [
+                51
+              ]
+            },
+            "xyz": {
+              "dtype": "float32",
+              "finite": true,
+              "shape": [
+                32,
+                51,
+                51,
+                3
+              ]
+            },
+            "z": {
+              "dtype": "float32",
+              "finite": true,
+              "shape": [
+                32,
+                51,
+                51
+              ]
+            },
+            "zc": {
+              "dtype": "float32",
+              "finite": true,
+              "shape": [
+                32,
+                51,
+                51
+              ]
+            }
+          },
+          "first_model_grid": {
+            "finite": true,
+            "max": 1.1424611806869507,
+            "mean": 1.0795380203916287,
+            "median": 1.0784300565719604,
+            "min": 1.0352126359939575
+          },
+          "grid": {
+            "dtype": "float16",
+            "finite": true,
+            "max": 2.111328125,
+            "mean": 1.9957385563657908,
+            "median": 1.994140625,
+            "min": 1.9140625,
+            "shape": [
+              32,
+              51,
+              51
+            ]
+          },
+          "grid_exact": {
+            "dtype": "float64",
+            "finite": true,
+            "max": 2.112069263633188,
+            "mean": 1.995743146757599,
+            "median": 1.9936948528038982,
+            "min": 1.9137987590027734,
+            "shape": [
+              32,
+              51,
+              51
+            ]
+          },
+          "prefills": 1,
+          "scale": {
+            "finite": true,
+            "value": 1.8487011194229126
+          },
+          "uv": {
+            "finite": true,
+            "max": 1000.0,
+            "mean": 500.0,
+            "median": 500.0,
+            "min": 0.0,
+            "shape": [
+              51
+            ]
+          }
+        },
+        "environment": {
+          "address_space_bytes": 193273528320,
+          "cuda_visible": "",
+          "python": "3.12.13",
+          "threads": 2,
+          "torch": "2.11.0+cpu",
+          "transformers": "5.12.1"
+        },
+        "parity": {
+          "bounds": {
+            "K": 0.15798443532821693,
+            "camera_to_world_metric": 0.003719304943947843,
+            "camera_to_world_unscaled": 0.0013606724294485811,
+            "canvas_to_source": 0.0,
+            "scale": 4.291534423828125e-05
+          },
+          "max_deviations": {
+            "K": 161.94513096498991,
+            "camera_to_world_metric": 3.284731813395795,
+            "camera_to_world_unscaled": 1.889292911256279,
+            "canvas_to_source": 0.0,
+            "scale": 0.8859134912490845
+          },
+          "trusted": false
+        },
+        "peak_rss_bytes": 648658944,
+        "seconds": 7.243167638982413
+      },
+      "transformers": "5.12.1",
+      "torch": "2.11.0+cpu"
+    },
+    {
+      "name": "local_time_guard",
+      "passed": true,
+      "pinned": false,
+      "work": "/scratch/jjyeung/orch_n30/lever1_c/r1_fixtures_old/u48f3d45d2be6",
+      "seconds": 9.407964432000881,
+      "process": {
+        "returncode": 0,
+        "stopped": null,
+        "seconds": 9.08779964200221,
+        "memory": {
+          "limit_bytes": 182536110080,
+          "source": "process_tree_rss",
+          "over": false,
+          "cgroup_max": null,
+          "guarded_bytes": 558301184,
+          "tree_rss_bytes": 558301184,
+          "cgroup_current_bytes": null,
+          "cgroup_peak_bytes": null
+        },
+        "address_space_bytes": 193273528320,
+        "phases": [
+          {
+            "phase": "4",
+            "status": "written",
+            "seconds": 4.647559784003533,
+            "rss_peak_bytes": 572936192,
+            "process_rss_hwm_bytes": 598196224
+          }
+        ],
+        "action": 3
+      },
+      "unit": {
+        "passed": true,
+        "status": "complete",
+        "failure": null,
+        "error": null,
+        "admission": {
+          "estimates": {
+            "first_model": {
+              "32": 10,
+              "64": 40
+            },
+            "load": 20,
+            "margin": 5,
+            "prefill": 10
+          },
+          "first_dense": 64,
+          "first_need_s": 92.5,
+          "need_s": 55.0,
+          "reason": "time_guard",
+          "remaining_s": 70.0290424823761,
+          "safety": 1.25
+        },
+        "capture_index": 30,
+        "stages": [
+          {
+            "dense": 32,
+            "elapsed_s": 0.3778636339993682,
+            "name": "bind",
+            "peak_rss_bytes": 465932288,
+            "seconds": 0.32406274499953724
+          },
+          {
+            "elapsed_s": 4.1383638179977424,
+            "name": "first_model",
+            "peak_rss_bytes": 502194176,
+            "remaining_s": 65.89121651649475,
+            "seconds": 3.75894672999857
+          },
+          {
+            "dtypes": [
+              "torch.bfloat16",
+              "torch.float32"
+            ],
+            "elapsed_s": 4.300241499004187,
+            "locations": [
+              "cpu"
+            ],
+            "name": "load",
+            "parameters": 358773,
+            "peak_rss_bytes": 515334144,
+            "remaining_s": 65.73025226593018,
+            "seconds": 0.160175645025447,
+            "step": 544
+          },
+          {
+            "elapsed_s": 4.497358019987587,
+            "name": "prefill",
+            "peak_rss_bytes": 598196224,
+            "seconds": 0.19558951701037586,
+            "timings": {
+              "first_model_s": 3.758929433999583
+            }
+          },
+          {
+            "bytes": 636018,
+            "elapsed_s": 4.651598761003697,
+            "name": "record",
+            "peak_rss_bytes": 598196224,
+            "seconds": 0.1450697260152083
+          }
+        ],
+        "checks": {
+          "K": {
+            "finite": true,
+            "max": 468.5740302244209,
+            "mean": 166.32437905873047,
+            "median": 1.0,
+            "min": 0.0,
+            "shape": [
+              32,
+              3,
+              3
+            ]
+          },
+          "clean": true,
+          "decode_steps": 0,
+          "first_model": {
+            "indices": {
+              "dtype": "int64",
+              "finite": true,
+              "shape": [
+                32
+              ]
+            },
+            "pose9": {
+              "dtype": "float64",
+              "finite": true,
+              "shape": [
+                32,
+                9
+              ]
+            },
+            "slots": {
+              "dtype": "int64",
+              "finite": true,
+              "shape": [
+                32
+              ]
+            },
+            "uv": {
+              "dtype": "float32",
+              "finite": true,
+              "shape": [
+                51
+              ]
+            },
+            "xyz": {
+              "dtype": "float32",
+              "finite": true,
+              "shape": [
+                32,
+                51,
+                51,
+                3
+              ]
+            },
+            "z": {
+              "dtype": "float32",
+              "finite": true,
+              "shape": [
+                32,
+                51,
+                51
+              ]
+            },
+            "zc": {
+              "dtype": "float32",
+              "finite": true,
+              "shape": [
+                32,
+                51,
+                51
+              ]
+            }
+          },
+          "first_model_grid": {
+            "finite": true,
+            "max": 1.1420570611953735,
+            "mean": 1.0798394225440384,
+            "median": 1.078791856765747,
+            "min": 1.0355643033981323
+          },
+          "grid": {
+            "dtype": "float16",
+            "finite": true,
+            "max": 2.111328125,
+            "mean": 1.9957023013421822,
+            "median": 1.994140625,
+            "min": 1.9140625,
+            "shape": [
+              32,
+              51,
+              51
+            ]
+          },
+          "grid_exact": {
+            "dtype": "float64",
+            "finite": true,
+            "max": 2.1106937276456534,
+            "mean": 1.995706145928113,
+            "median": 1.9937700863452221,
+            "min": 1.9138790468738733,
+            "shape": [
+              32,
+              51,
+              51
+            ]
+          },
+          "prefills": 1,
+          "scale": {
+            "finite": true,
+            "value": 1.8481508493423462
+          },
+          "uv": {
+            "finite": true,
+            "max": 1000.0,
+            "mean": 500.0,
+            "median": 500.0,
+            "min": 0.0,
+            "shape": [
+              51
+            ]
+          }
+        },
+        "environment": {
+          "address_space_bytes": 193273528320,
+          "cuda_visible": "",
+          "python": "3.12.13",
+          "threads": 2,
+          "torch": "2.11.0+cpu",
+          "transformers": "5.12.1"
+        },
+        "parity": {
+          "bounds": {
+            "K": 0.15798443532821693,
+            "camera_to_world_metric": 0.003719304943947843,
+            "camera_to_world_unscaled": 0.0013606724294485811,
+            "canvas_to_source": 0.0,
+            "scale": 4.291534423828125e-05
+          },
+          "max_deviations": {
+            "K": 142.6493499638031,
+            "camera_to_world_metric": 5.8001697266403776,
+            "camera_to_world_unscaled": 1.9101268011403159,
+            "canvas_to_source": 0.0,
+            "scale": 2.1032782793045044
+          },
+          "trusted": false
+        },
+        "peak_rss_bytes": 598196224,
+        "seconds": 4.6537859159871005
+      },
+      "transformers": "5.12.1",
+      "torch": "2.11.0+cpu"
+    },
+    {
+      "name": "memory_guard",
+      "passed": true,
+      "pinned": false,
+      "work": "/scratch/jjyeung/orch_n30/lever1_c/r1_fixtures_old/ucd9a90676452",
+      "seconds": 2.1400509550003335,
+      "process": {
+        "returncode": -9,
+        "stopped": "memory",
+        "seconds": 1.828278989996761,
+        "memory": {
+          "limit_bytes": 67108864,
+          "source": "process_tree_rss",
+          "over": true,
+          "cgroup_max": null,
+          "guarded_bytes": 249307136,
+          "tree_rss_bytes": 249307136,
+          "cgroup_current_bytes": null,
+          "cgroup_peak_bytes": null
+        },
+        "address_space_bytes": 193273528320,
+        "phases": [],
+        "action": 3
+      },
+      "unit": {
+        "passed": null,
+        "status": null,
+        "failure": null,
+        "error": null,
+        "admission": null,
+        "capture_index": null,
+        "stages": null,
+        "checks": null,
+        "environment": null,
+        "parity": null,
+        "peak_rss_bytes": null,
+        "seconds": null
+      }
+    },
+    {
+      "name": "page_cache_guard",
+      "passed": true
+    },
+    {
+      "name": "pinned_first_unit",
+      "passed": true,
+      "pinned": true,
+      "work": "/scratch/jjyeung/orch_n30/lever1_c/r1_fixtures_old/u60b1a1880adb",
+      "seconds": 19.8628114410094,
+      "process": {
+        "returncode": 0,
+        "stopped": null,
+        "seconds": 19.23633929400239,
+        "memory": {
+          "limit_bytes": 182536110080,
+          "source": "process_tree_rss",
+          "over": false,
+          "cgroup_max": null,
+          "guarded_bytes": 1043283968,
+          "tree_rss_bytes": 1043283968,
+          "cgroup_current_bytes": null,
+          "cgroup_peak_bytes": null
+        },
+        "address_space_bytes": 193273528320,
+        "phases": [
+          {
+            "phase": "4",
+            "status": "written",
+            "seconds": 7.386398834001739,
+            "rss_peak_bytes": 1055838208,
+            "process_rss_hwm_bytes": 1081606144
+          }
+        ],
+        "action": 3
+      },
+      "unit": {
+        "passed": true,
+        "status": "complete",
+        "failure": null,
+        "error": null,
+        "admission": {
+          "estimates": {
+            "first_model": {
+              "32": 10,
+              "64": 40
+            },
+            "load": 20,
+            "margin": 5,
+            "prefill": 10
+          },
+          "first_dense": 64,
+          "first_need_s": 92.5,
+          "need_s": 92.5,
+          "reason": "first_unit",
+          "remaining_s": 888.9945449829102,
+          "safety": 1.25
+        },
+        "capture_index": 0,
+        "stages": [
+          {
+            "dense": 64,
+            "elapsed_s": 0.6519362940161955,
+            "name": "bind",
+            "peak_rss_bytes": 927711232,
+            "seconds": 0.60723688401049
+          },
+          {
+            "elapsed_s": 6.679227286018431,
+            "name": "first_model",
+            "peak_rss_bytes": 973160448,
+            "remaining_s": 882.3158085346222,
+            "seconds": 6.025636336009484
+          },
+          {
+            "dtypes": [
+              "torch.bfloat16",
+              "torch.float32"
+            ],
+            "elapsed_s": 6.839471183018759,
+            "locations": [
+              "cpu"
+            ],
+            "name": "load",
+            "parameters": 358773,
+            "peak_rss_bytes": 986439680,
+            "remaining_s": 882.1564984321594,
+            "seconds": 0.15844031801680103,
+            "step": 544
+          },
+          {
+            "elapsed_s": 7.234321612020722,
+            "name": "prefill",
+            "peak_rss_bytes": 1081606144,
+            "seconds": 0.3933799299993552,
+            "timings": {
+              "first_model_s": 6.025630087999161
+            }
+          },
+          {
+            "bytes": 623982,
+            "elapsed_s": 7.3903659820207395,
+            "name": "record",
+            "peak_rss_bytes": 1081606144,
+            "seconds": 0.14574224600801244
+          }
+        ],
+        "checks": {
+          "K": {
+            "finite": true,
+            "max": 468.5700334821428,
+            "mean": 166.32013134173746,
+            "median": 1.0,
+            "min": 0.0,
+            "shape": [
+              32,
+              3,
+              3
+            ]
+          },
+          "clean": true,
+          "decode_steps": 0,
+          "first_model": {
+            "indices": {
+              "dtype": "int64",
+              "finite": true,
+              "shape": [
+                64
+              ]
+            },
+            "pose9": {
+              "dtype": "float64",
+              "finite": true,
+              "shape": [
+                64,
+                9
+              ]
+            },
+            "slots": {
+              "dtype": "int64",
+              "finite": true,
+              "shape": [
+                32
+              ]
+            },
+            "uv": {
+              "dtype": "float32",
+              "finite": true,
+              "shape": [
+                51
+              ]
+            },
+            "xyz": {
+              "dtype": "float32",
+              "finite": true,
+              "shape": [
+                32,
+                51,
+                51,
+                3
+              ]
+            },
+            "z": {
+              "dtype": "float32",
+              "finite": true,
+              "shape": [
+                32,
+                51,
+                51
+              ]
+            },
+            "zc": {
+              "dtype": "float32",
+              "finite": true,
+              "shape": [
+                32,
+                51,
+                51
+              ]
+            }
+          },
+          "first_model_grid": {
+            "finite": true,
+            "max": 1.1424611806869507,
+            "mean": 1.0795380203916287,
+            "median": 1.0784300565719604,
+            "min": 1.0352126359939575
+          },
+          "grid": {
+            "dtype": "float16",
+            "finite": true,
+            "max": 2.111328125,
+            "mean": 1.9958294872502462,
+            "median": 1.994140625,
+            "min": 1.9140625,
+            "shape": [
+              32,
+              51,
+              51
+            ]
+          },
+          "grid_exact": {
+            "dtype": "float64",
+            "finite": true,
+            "max": 2.112164734215156,
+            "mean": 1.9958333591208774,
+            "median": 1.993784972579391,
+            "min": 1.9138852672837459,
+            "shape": [
+              32,
+              51,
+              51
+            ]
+          },
+          "prefills": 1,
+          "scale": {
+            "finite": true,
+            "value": 1.8487846851348877
+          },
+          "uv": {
+            "finite": true,
+            "max": 1000.0,
+            "mean": 500.0,
+            "median": 500.0,
+            "min": 0.0,
+            "shape": [
+              51
+            ]
+          }
+        },
+        "environment": {
+          "address_space_bytes": 193273528320,
+          "cuda_visible": "",
+          "python": "3.12.13",
+          "threads": 2,
+          "torch": "2.13.0+cu130",
+          "transformers": "5.19.0"
+        },
+        "parity": {
+          "bounds": {
+            "K": 0.15798443532821693,
+            "camera_to_world_metric": 0.003719304943947843,
+            "camera_to_world_unscaled": 0.0013606724294485811,
+            "canvas_to_source": 0.0,
+            "scale": 4.291534423828125e-05
+          },
+          "max_deviations": {
+            "K": 161.94513096498991,
+            "camera_to_world_metric": 3.285070658631067,
+            "camera_to_world_unscaled": 1.876328819620142,
+            "canvas_to_source": 0.0,
+            "scale": 0.8858299255371094
+          },
+          "trusted": false
+        },
+        "peak_rss_bytes": 1081606144,
+        "seconds": 7.392717104026815
+      },
+      "transformers": "5.19.0",
+      "torch": "2.13.0+cu130"
+    },
+    {
+      "name": "pinned_time_guard",
+      "passed": true,
+      "pinned": true,
+      "work": "/scratch/jjyeung/orch_n30/lever1_c/r1_fixtures_old/u5c24dbd54ae0",
+      "seconds": 17.944089544005692,
+      "process": {
+        "returncode": 0,
+        "stopped": null,
+        "seconds": 17.313905843009707,
+        "memory": {
+          "limit_bytes": 182536110080,
+          "source": "process_tree_rss",
+          "over": false,
+          "cgroup_max": null,
+          "guarded_bytes": 987586560,
+          "tree_rss_bytes": 987586560,
+          "cgroup_current_bytes": null,
+          "cgroup_peak_bytes": null
+        },
+        "address_space_bytes": 193273528320,
+        "phases": [
+          {
+            "phase": "4",
+            "status": "written",
+            "seconds": 5.044494973990368,
+            "rss_peak_bytes": 1000951808,
+            "process_rss_hwm_bytes": 1026564096
+          }
+        ],
+        "action": 3
+      },
+      "unit": {
+        "passed": true,
+        "status": "complete",
+        "failure": null,
+        "error": null,
+        "admission": {
+          "estimates": {
+            "first_model": {
+              "32": 10,
+              "64": 40
+            },
+            "load": 20,
+            "margin": 5,
+            "prefill": 10
+          },
+          "first_dense": 64,
+          "first_need_s": 92.5,
+          "need_s": 55.0,
+          "reason": "time_guard",
+          "remaining_s": 62.37496995925903,
+          "safety": 1.25
+        },
+        "capture_index": 30,
+        "stages": [
+          {
+            "dense": 32,
+            "elapsed_s": 0.38571546800085343,
+            "name": "bind",
+            "peak_rss_bytes": 890241024,
+            "seconds": 0.33911080699181184
+          },
+          {
+            "elapsed_s": 4.34504481399199,
+            "name": "first_model",
+            "peak_rss_bytes": 925360128,
+            "remaining_s": 58.03064727783203,
+            "seconds": 3.957718677003868
+          },
+          {
+            "dtypes": [
+              "torch.bfloat16",
+              "torch.float32"
+            ],
+            "elapsed_s": 4.507778361003147,
+            "locations": [
+              "cpu"
+            ],
+            "name": "load",
+            "parameters": 358773,
+            "peak_rss_bytes": 938582016,
+            "remaining_s": 57.868860960006714,
+            "seconds": 0.16100272699259222,
+            "step": 544
+          },
+          {
+            "elapsed_s": 4.899236424011178,
+            "name": "prefill",
+            "peak_rss_bytes": 1026564096,
+            "seconds": 0.38981825998052955,
+            "timings": {
+              "first_model_s": 3.9577130590041634
+            }
+          },
+          {
+            "bytes": 609650,
+            "elapsed_s": 5.048683484987123,
+            "name": "record",
+            "peak_rss_bytes": 1026564096,
+            "seconds": 0.13849895700695924
+          }
+        ],
+        "checks": {
+          "K": {
+            "finite": true,
+            "max": 468.5740302244209,
+            "mean": 166.32437905873047,
+            "median": 1.0,
+            "min": 0.0,
+            "shape": [
+              32,
+              3,
+              3
+            ]
+          },
+          "clean": true,
+          "decode_steps": 0,
+          "first_model": {
+            "indices": {
+              "dtype": "int64",
+              "finite": true,
+              "shape": [
+                32
+              ]
+            },
+            "pose9": {
+              "dtype": "float64",
+              "finite": true,
+              "shape": [
+                32,
+                9
+              ]
+            },
+            "slots": {
+              "dtype": "int64",
+              "finite": true,
+              "shape": [
+                32
+              ]
+            },
+            "uv": {
+              "dtype": "float32",
+              "finite": true,
+              "shape": [
+                51
+              ]
+            },
+            "xyz": {
+              "dtype": "float32",
+              "finite": true,
+              "shape": [
+                32,
+                51,
+                51,
+                3
+              ]
+            },
+            "z": {
+              "dtype": "float32",
+              "finite": true,
+              "shape": [
+                32,
+                51,
+                51
+              ]
+            },
+            "zc": {
+              "dtype": "float32",
+              "finite": true,
+              "shape": [
+                32,
+                51,
+                51
+              ]
+            }
+          },
+          "first_model_grid": {
+            "finite": true,
+            "max": 1.1420570611953735,
+            "mean": 1.0798394225440384,
+            "median": 1.078791856765747,
+            "min": 1.0355643033981323
+          },
+          "grid": {
+            "dtype": "float16",
+            "finite": true,
+            "max": 2.111328125,
+            "mean": 1.9957891726026349,
+            "median": 1.994140625,
+            "min": 1.9140625,
+            "shape": [
+              32,
+              51,
+              51
+            ]
+          },
+          "grid_exact": {
+            "dtype": "float64",
+            "finite": true,
+            "max": 2.110786169293249,
+            "mean": 1.9957935514866882,
+            "median": 1.9938574071105677,
+            "min": 1.9139628686667152,
+            "shape": [
+              32,
+              51,
+              51
+            ]
+          },
+          "prefills": 1,
+          "scale": {
+            "finite": true,
+            "value": 1.8482317924499512
+          },
+          "uv": {
+            "finite": true,
+            "max": 1000.0,
+            "mean": 500.0,
+            "median": 500.0,
+            "min": 0.0,
+            "shape": [
+              51
+            ]
+          }
+        },
+        "environment": {
+          "address_space_bytes": 193273528320,
+          "cuda_visible": "",
+          "python": "3.12.13",
+          "threads": 2,
+          "torch": "2.13.0+cu130",
+          "transformers": "5.19.0"
+        },
+        "parity": {
+          "bounds": {
+            "K": 0.15798443532821693,
+            "camera_to_world_metric": 0.003719304943947843,
+            "camera_to_world_unscaled": 0.0013606724294485811,
+            "canvas_to_source": 0.0,
+            "scale": 4.291534423828125e-05
+          },
+          "max_deviations": {
+            "K": 142.6493499638031,
+            "camera_to_world_metric": 5.800004996674613,
+            "camera_to_world_unscaled": 1.8972003520088205,
+            "canvas_to_source": 0.0,
+            "scale": 2.1031973361968994
+          },
+          "trusted": false
+        },
+        "peak_rss_bytes": 1026564096,
+        "seconds": 5.050871240993729
+      },
+      "transformers": "5.19.0",
+      "torch": "2.13.0+cu130"
+    }
+  ],
+  "passed": true,
+  "delivery_sha256": "e6a001999854df0c351e5bcbee8992b8a33a6f803c8cc9b0adc338b1285b7755",
+  "scope": "CPU real unit: production worker path, time guard and memory guard, in p1cpu and the pinned env.  Each scenario runs the delivered operator's cpu_unit (the Orchard CPU check's step after rehearsal), which launches the delivered numeric entry (action 3, g.w.run) through the operator prefix seam with tests/cpu_unit_fixture.py doubles (tiny production-architecture carrier and G3T components; see that file). Served PNGs come from the authenticated local a2.tar through production stage_capture. The pinned scenarios run the pinned Orchard interpreter (transformers 5.19.0, torch 2.13.0) inside the production-shaped bwrap namespace of r1_fixtures_old/real_cl2opr5g. Writes out/CPU_UNIT_CHECKS.json.",
+  "limits": {
+    "address_space_bytes": 193273528320,
+    "guard_bytes": 182536110080,
+    "stop_before_end_s": 360,
+    "kill_before_end_s": 330
+  },
+  "estimates": {
+    "first_model": {
+      "32": 325,
+      "64": 985
+    },
+    "load": 420,
+    "prefill": 150,
+    "margin": 60
+  }
+}

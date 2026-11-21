@@ -36,3 +36,7 @@ Lane n_review1i (headless Claude Code Opus, trinity-3-30, start 06:14Z, 10 h tim
 - 09:26Z ORCH ORDER 0921Z: settle A (spawn lost state) vs B (wrong path); fix + 4 tests; review packet events/tree_rebuild/fix_proc/ (criteria items 2,3); then confirm X/n before release.
 - 09:41Z cause settled (tree_rebuild27 REPORT): opener witness p_opener_witness.py:17-26 (production_proof:130, before admit) resolves processor root to p/q/u via pinned(config.json).parent; fw.py never ran. Fix packet fix_proc/ pending.
 - 10:06Z fix_proc review GO on bytes (seal 4e29bdfb; pl.py d014bb29, a.py 22b57fae, mg.py 986063cc, pf.py 2f0bbefe); GPU test owed; then Orchard X/n check.
+- 10:15Z 174113 held on 4e29bdfb; I confirmed X/n on Orchard (RESULT). Gate job is now 174113; gate expected ~T+2.4 h after start.
+- 10:18Z GPU test 174114 PASS; 174113 released 10:16:48Z (sessions b48c73ee), pending.
+- 10:27Z 174113 RUNNING since 10:18Z (orchard-community-2); gate ~12:40Z.
+- 11:00Z run_gate.sh fe4dcf06 --local mode; make_review.py b845a1e6 (RESULT). ORDER 1055Z: if /project full, n_ops10 streams gate files to 3-30.

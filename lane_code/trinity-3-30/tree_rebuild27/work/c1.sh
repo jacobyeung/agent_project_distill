@@ -1,0 +1,1 @@
+W=/scratch/jjyeung/orch_n30/tree_rebuild10_w/w27fix; ls -la $W/s27fix_n_go.tar; sha256sum $W/s27fix_n_go.tar; tar tf $W/s27fix_n_go.tar | head -3; tar tf $W/s27fix_n_go.tar | wc -l; df -h /scratch | tail -1

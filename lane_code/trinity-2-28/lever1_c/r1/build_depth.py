@@ -143,12 +143,14 @@ def build(out=HERE/'out',scripts=HERE/'orchard'):
     guard=revision8.patch(nf,pf,B,HERE,token)
     import external_inputs
     input_proof=external_inputs.reshape(nf,pf,B)
+    # The operator's CPU real unit enters the audited boot closure.
+    import cpu_unit
+    cpu_unit.patch_operator(nf,B)
     import boot_order
     boot_manifest=boot_order.patch(nf,pf,B,HERE)
     import write_receipt
     write_receipt.patch(nf,B,HERE)
     # The CPU check runs the first real capture through the production worker.
-    import cpu_unit
     cpu_unit.patch(nf,pf,B,HERE)
     codec=(HERE/'runtime/j.py').read_bytes()
     # Standalone launchers run before the package import loader exists.

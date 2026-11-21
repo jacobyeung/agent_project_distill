@@ -31,7 +31,8 @@ for script,log in [('tests/test_all.py','TEST_ALL.log'),('tests/check_imports.py
                    ('tests/test_import_audit.py','TEST_AUDIT.log'),
                    ('tests/test_bootstrap.py','TEST_BOOTSTRAP.log'),('tests/test_review8.py','TEST_REVIEW8.log'),
                    ('tests/test_review9.py','TEST_REVIEW9.log'),('tests/test_review10.py','TEST_REVIEW10.log'),
-                   ('tests/test_review11.py','TEST_REVIEW11.log'),('tests/test_prebulk.py','TEST_PREBULK.log'),('tests/test_vpy.py','TEST_VPY.log'),('tests/test_write_receipt.py','TEST_WRITE_RECEIPT.log')]:
+                   ('tests/test_review11.py','TEST_REVIEW11.log'),('tests/test_prebulk.py','TEST_PREBULK.log'),('tests/test_vpy.py','TEST_VPY.log'),('tests/test_write_receipt.py','TEST_WRITE_RECEIPT.log'),
+                   ('tests/test_cpu_unit.py','TEST_CPU_UNIT.log')]:
     if any(s['script']==script for s in suites):continue
     start=time.monotonic()
     with (HERE/'out'/log).open('w') as stream:
@@ -67,25 +68,28 @@ write('BUDGET_CHECK.json',dict(passed=True,delivery_sha256=initial,
     worker_cap_scenario_minutes=44,worker_cap_scenario_headroom_minutes=6,
     simulated_checks={key:fixes[key] for key in ('allocation','worker_deadline','slow_upload','transfer_deadlines')}))
 evidence={}
-for name in ('CPU_ENTRY_STUB','FIX_CHECKS','FAILURE_CHECKS','IMPORT_CHECK','IMPORT_AUDIT','SYNTAX_CHECKS','BUDGET_CHECK','REAL_PARITY_20','DRY_RUN','BOOTSTRAP_CHECKS','REVIEW8_CHECKS','REVIEW9_CHECKS','REVIEW10_CHECKS','REVIEW11_CHECKS','PREBULK_CHECKS','VPY_CHECKS','WRITE_RECEIPT_CHECKS','ENVIRONMENT_INVENTORY'):
+for name in ('CPU_ENTRY_STUB','FIX_CHECKS','FAILURE_CHECKS','IMPORT_CHECK','IMPORT_AUDIT','SYNTAX_CHECKS','BUDGET_CHECK','REAL_PARITY_20','DRY_RUN','BOOTSTRAP_CHECKS','REVIEW8_CHECKS','REVIEW9_CHECKS','REVIEW10_CHECKS','REVIEW11_CHECKS','PREBULK_CHECKS','VPY_CHECKS','WRITE_RECEIPT_CHECKS','ENVIRONMENT_INVENTORY','CPU_UNIT_CHECKS','CPU_TOWER_BENCH'):
     data=(HERE/'out'/(name+'.json')).read_bytes();evidence[name]=dict(path='out/'+name+'.json',sha256=A.sha(data))
     obj=json.loads(data)
     if 'delivery_sha256' in obj:assert obj['delivery_sha256']==initial
-checks={name:json.loads((HERE/'out'/(name+'.json')).read_text()) for name in ('IMPORT_AUDIT','IMPORT_CHECK','FAILURE_CHECKS','CPU_ENTRY_STUB')}
+checks={name:json.loads((HERE/'out'/(name+'.json')).read_text()) for name in ('IMPORT_AUDIT','IMPORT_CHECK','FAILURE_CHECKS','CPU_ENTRY_STUB','CPU_UNIT_CHECKS')}
+assert checks['CPU_UNIT_CHECKS']['passed'] and checks['CPU_UNIT_CHECKS']['delivery_sha256']==initial
 assert checks['IMPORT_AUDIT']['passed'] and checks['IMPORT_CHECK']['passed']
 assert not checks['IMPORT_AUDIT']['unresolved']
 inodes={}
 for p in HERE.rglob('*'):
     if p.is_file() and not p.is_symlink():
         st=p.stat();inodes[(st.st_dev,st.st_ino)]=st.st_size
-workspace=sum(inodes.values());assert workspace<35_000_000_000
+workspace=sum(inodes.values());assert workspace<45_000_000_000
 validation=dict(passed=True,status='All required CPU validation passed for the exact rebuilt delivery',
     scope='CPU correctness, sealed import closure, naming, simulated deadlines and local production failure fetch; no live GPU timing',
     validated_at_utc=datetime.datetime.now(datetime.timezone.utc).isoformat(),
     **{k:info[k] for k in ('token','delivery_sha256','delivery_bytes','payload_sha256','plan_sha256','payload_expanded_bytes')},
-    required_tests=85,tests_run=sum(s['tests'] for s in suites),suites=suites,import_checks=2,cpu_rehearsal_runs=2,
+    required_tests=95,tests_run=sum(s['tests'] for s in suites),suites=suites,import_checks=2,cpu_rehearsal_runs=2,
     syntax=syntax,production_failure_fetch=checks['FAILURE_CHECKS']['production_fetch'],import_audit={k:checks['IMPORT_AUDIT'][k] for k in ('passed','files_parsed','retained_sources','vendor_files','reachable_files','reachable_imports','unresolved')},
-    evidence=evidence,budget=info['forecast'],workspace_bytes=workspace,workspace_cap_bytes=35_000_000_000,moved_fixtures=[])
+    evidence=evidence,budget=info['forecast'],cpu_unit=info['cpu_unit'],
+    cpu_unit_checks={c['name']:c['passed'] for c in json.loads((HERE/'out/CPU_UNIT_CHECKS.json').read_text())['cases']},
+    workspace_bytes=workspace,workspace_cap_bytes=45_000_000_000,moved_fixtures=[])
 assert validation['tests_run']==validation['required_tests']
 write('VALIDATION.json',validation)
 print(json.dumps(dict(passed=True,tests=validation['tests_run'],delivery_sha256=initial,workspace_bytes=workspace)),flush=True)

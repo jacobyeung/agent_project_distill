@@ -1,12 +1,10 @@
 # lever4 STATUS (trinity-2-28; started 06:19Z 11-21; 10 h timeout ~16:19Z; rotate event at ~15:19Z)
 Lane dir /scratch/jjyeung/orch_n30/lever4 (work/, out/, inbox/; lever3 copy in from330/lever3 incl. its /dev/shm scripts r1c/r4c). Kits: /scratch/jjyeung/orch_n30/lever1_c/{r4kit,r1,boxdev}. Ledger work/ORCHARD_LEDGER.jsonl. Carriers: Claude subagents only (ORCH 0619Z).
-## Orchard: host key accepted by USER (ORCH 0658Z); hold lifted. kex drops: wait 60 s, retry once.
+## Orchard: host key accepted by USER (ORCH 0658Z); hold lifted. kex drops: wait 60 s, retry once. (STATUS checked 10:11Z: rank 1 CPU real-unit build running)
 ## Rank 4: DONE 09:10Z
 - GPU read 174108 (token 2d1983684f183) COMPLETED: ORIG 100%, REVSI 100% (290/290 each), gate no change, arm D closed. RESULT 0914Z; plan record Rank 4 read entry written. Files events/lever/files/r4/, lever4/out/r4_gpu_174108, r4kit/out/*_174108*. Deaths fixed on the way: 173990 boot closure (causal_conv1d/fla absent), 174087 batch merge (transformers 5.19 dict states). Repeat on N's first export waits for that export.
-## Rank 1 (general free now)
-- Write-test fix DONE 09:31Z (Claude subagent finished the dead Codex run): token a4282fee306d6, delivery 3,726,280 B sha 6ca8812aa421fd7c1c6affefd4f2543e450a4dfc5f34f0c36ddca77066cd5378, validate 85/85. Cause: 128 KiB vs 4 MiB write-test constant (a/5.py:53, dispatch guard, a/9.py:23).
-- Real first unit needs step-544 weights (Orchard only) -> QUESTION 0935Z, default: run it inside the Orchard CPU check (rank 4 pattern). Build subagent running since 09:37Z (also audits for 5.19 cache dicts and absent fla/causal_conv1d).
-- Then: one fresh review of both changes; place (pattern lever4/from330/lever3/r1c: place_floor.sh, c2.sh, mon.sh with the new token); CPU check; GPU job (general, 1 H100, 50 min); o_fetch/o_get; depth pull (lever2 pull_tpl.sh pattern, governed, --io-weight 1); relift.py (parity gate first); cells a-g; boxdev.
+## Rank 1 (on general)
+- Token a4282fee306d6 (write-test fix + CPU real unit), delivery 3,727,220 B sha e6a001999854df0c351e5bcbee8992b8a33a6f803c8cc9b0adc338b1285b7755, validate 95/95, fresh review GO 10:50Z. Placed 10:51Z (verified). CPU check 174121 submitted 10:51:46Z (PENDING at 11:00Z). Scripts /dev/shm/lever4/r1 (o_*.sh with 5 GiB floor; mon.sh reads log /tmp/aa4282fee306d61.Ph4CShgU.log and a/4.txt). Next: on CPU pass (real_unit in CPU.json) o_sub_hand.sh (refuses while any jjyeung job is on general; 174110 jjy_allonv_dsi is not ours), monitor, o_fetch.sh, o_get.sh, depth pull (governed), relift.py (parity gate first), cells a-g, boxdev.
 ## Mirrors
 - Rank 4 delivery on Orchard okh7/ad2d1983684f183/0.tgz, sha dd819d503161c64c30870b17a502a4f857a425015386fe0ca5e4a274446b1a31. Returns on /data2 events/lever/files/r4 and on 2-28 lever4/out.
 ## Rulings in force

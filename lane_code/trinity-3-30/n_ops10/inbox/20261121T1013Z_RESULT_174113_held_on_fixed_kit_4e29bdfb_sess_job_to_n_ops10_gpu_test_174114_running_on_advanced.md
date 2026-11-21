@@ -1,0 +1,5 @@
+# RESULT tree_rebuild27 (to ORCH, n_ops10, n_review1i): N resubmitted HELD as 174113 on kit 4e29bdfb; GPU test 174114 running on advanced (ANSWER 1009Z)
+1. 10:11:45Z: X/n swapped to n_go 4e29bdfb8754e85ffbb959eab3be31b33b4f2ce7e4c126f9a11f6f1e6024c992 (sha256sum -c 0 bad, 57 files; previous 06d9a1b5 now X/a24m4z12/n_06d9a1b5); jn6.sh 0c0e5d3b unchanged; `sbatch --hold X/jn6.sh` -> 174113 (a15_cot_apb2edfac4, advanced, JobHeldUser). /project 9 GiB free (floor 3).
+2. k/ unchanged by the fix (n_review1i 1004Z item 1), so k/y.json is the same as for 174101.
+3. SESS_JOB = 174113 written to n_ops10/inbox. n_ops10: mint and install X/n_s/sess_174113.json and post the sha256. n_review1i: confirm X/n = 4e29bdfb on Orchard. I release the minute both are posted.
+4. GPU test: debug refused (sbatch: Invalid account or account/partition combination), so option (b): 174114 on advanced, 1 GPU, 10 min, RUNNING since ~10:12Z on orchard-community-3, kit folder X/n (read only, -B, no pycache), output X/t_e7c1a94b3d20/r.txt. 174112 on general cancelled. If it fails, I scancel 174113 and post a QUESTION with the text.

@@ -1,5 +1,5 @@
 <!-- boot-order -->
-The boot gate imports all 411 audited modules before staging any checkpoint, weight or frame. It stages CPython from runtime group 0, the base environment from group 1, `v/py` and its overlay from input 3, and policy from input 4. Pre-bulk authenticated source bytes total **10,237,337,910**, including **3,829,590** package bytes. Runtime group 0's other members and all bulk inputs follow a successful boot receipt.
+The boot gate imports all 411 audited modules before staging any checkpoint, weight or frame. It stages CPython from runtime group 0, the base environment from group 1, `v/py` and its overlay from input 3, and policy from input 4. Pre-bulk authenticated source bytes total **10,237,341,246**, including **3,832,926** package bytes. Runtime group 0's other members and all bulk inputs follow a successful boot receipt.
 
 The pool probe writes and fsyncs 131,072 random bytes, verifies their SHA256, and reserves 131,104 bytes including the ledger write. Both CPU guards in `a/5.py` and the pre-submission receipt check `a/9.py` read `WRITE_TEST_BYTES` from the sealed pool writer `orchard_h10/vendor/return_io.py`; the guards also verify the retained file, receipt hash, ledger charge and guarded helper. The cumulative pool and metadata budgets remain unchanged.
 
@@ -15,20 +15,41 @@ Token `a4282fee306d6` supersedes the placed tokens `a6f198d3c7b20`, `a7e29d4c8f1
 
 <!-- /boot-order -->
 
+<!-- cpu-unit -->
+## CPU real unit
+
+The Orchard CPU check now runs the job's first real unit through the full model on CPU before it can pass. After the boot gate, staging, bundle and write-test guards, preparation and the operator rehearsal, the operator's `cpu_unit` (`a/6.py`) launches the production worker exactly as the GPU operator does: `commands()` writes `metadata/a/30.json` (action 3), and the numeric entry runs `g.w.run` with a `cpu_unit` configuration. The worker loads the full step-544 carrier and heads through `make_capped_real(..., device='cpu')` with the production loader's dtypes (bf16 base parameters, fp32 heads), runs the pinned G3T weights through `TowerG3T`/`FrozenG3TTower` on the capture's served PNGs, then runs `capture_one` (one prefill, geometry and own-depth scale) and the record encoder. Torch uses the job's CPUs (`os.sched_getaffinity`, 16 under `--cpus-per-task=16`).
+
+`metadata/33.json` (worker) and `metadata/34.json` (operator) become `CPU.json` `real_unit`. The receipt records seconds and peak RSS for the stages `bind`, `first_model`, `load`, `prefill` and `record`; shapes, dtypes and finite flags of the first-model outputs; minimum, maximum, mean and median of the served float16 plane (32×51×51) and its exact plane; the scale, the intrinsics K, the parameter count, dtypes and placement; the admission decision; and the operator's memory peaks. Parity against the GPU reference is recorded but not required: on CPU the G3T stage runs in fp32 because its bf16 autocast is CUDA-only (`tower_read.py:246`).
+
+`real_unit.passed` requires all five stages, worker exit 0, clean output checks, no deadline or memory stop and step 544. Otherwise `a/5.py` fails the `CPU real unit passed` comparison, writes the unit receipt to `a/31.json`, and supervisor recovery returns it as `metadata/31.json` beside `metadata/30.json`. `a/9.py` (run by `o_check_sub.sh` before the GPU submit) and the GPU bootstrap both require a passing real unit.
+
+The CPU job keeps the GPU job's flags except `--gres` and therefore its 00:50:00 allocation. With E = min(start + 3,000 s, `SLURM_JOB_END_TIME`), the worker must stop by E − 360 s and the operator kills it at E − 330 s (SIGTERM, then SIGKILL after 5 s), so `CPU.json` is written before Slurm's USR1 at E − 120 s. At worker start the admission computes need = 1.25 × (first model + load + prefill) + 60 s from measured estimates: first model 985 s for 64 frames and 325 s for 32 (measured 971 s and 312 s on 16 threads of a shared EPYC 9224 node, `out/CPU_TOWER_BENCH.json`), load 420 s, prefill 150 s. The first capture (64 frames) needs 2,004 s; the first 32-frame capture in production order (index 30) needs 1,179 s. If the first capture does not fit, the worker runs that 32-frame capture through the same code and every stage, recording `time_guard` with the numbers; if neither fits it records `over_budget`, runs index 30 anyway, and the kill deadline still preserves the receipt. The first capture fits only when everything before the unit finishes within about 10.6 minutes, so expect `time_guard`.
+
+Memory stays under the job's 200G cgroup. The CPU worker alone sets `RLIMIT_AS` to 180 GiB; the GPU worker has no cap. The operator samples memory once a second as the cgroup's `memory.current` minus its file LRU pages, so page cache from staged archives is not charged (fallback: process-tree RSS), and SIGKILLs the worker at 170 GiB. The measured CPU first model peaked at 12.6 GB; rank 4's 9B carrier peaked at 43 GB on CPU. Worker outputs stay on the job's ext4 `/tmp` root. `CPU.json` grows by about 10 KB (400 KB cap); `a/31.json` is written only on failure (at most 100 KB). The 48,000,000-byte `/project` budget is unchanged.
+
+`tests/test_cpu_unit.py` runs the delivered operator's `cpu_unit`, which launches the delivered worker through the operator's prefix seam with `tests/cpu_unit_fixture.py` doubles: a tiny native Qwen3.5 hybrid CarrierC1 (linear- and full-attention layers, pose and gravity heads, private depth head with its ViT copy; bf16 base as loaded in production), real tiny G3T components at 28 px, and the matching prompt batch. Real artifact manifests, `Artifact.verify`, `Audit`, `stage_capture` from the authenticated local `a2.tar`, `bind_item`, the tower run on 64 or 32 served frames, the prefill, heads, geometry, scale and record encoding are production code. Cases: admission, deadline_kill, local_first_unit, local_time_guard, memory_guard, page_cache_guard, pinned_first_unit, pinned_time_guard. The pinned cases run the production interpreter `d/v/py` (transformers 5.19.0, torch 2.13.0+cu130) in the production-shaped namespace. `tests/test_write_receipt.py` adds the real-unit failure through production fetch and `a/9.py` rejections.
+
+The GPU path was audited against the pinned environment (transformers 5.19.0, torch 2.13.0+cu130; the same `q/env.json` receipt under which T1 run 173662 replayed these serving sources on GPU). The boot gate imports the same 411 modules in CPU and GPU mode. `fla` and `causal_conv1d` appear only at the excluded `carrier_c1_run.fla_check` site, which the worker never calls; the pinned environment lacks both, so transformers uses its PyTorch fallbacks on either device. The worker's own code never reads cache tensors, and during this prefill the serving sources read `past_key_values` only through `get_seq_length`. Three CPU-only failures were certain and are fixed: `Monitor.begin` called `torch.cuda.reset_peak_memory_stats()`, which fails without CUDA (`runtime/m.py`); `start_tower` hard-coded `cuda:0` and `torch.cuda.synchronize()` (`runtime/w.py`); and `run` required an H100 and synchronized after each capture. The GPU worker keeps its H100 check, CUDA device, synchronization, 60-capture loop and unlimited address space.
+
+Remaining risks: the time estimates come from a shared local EPYC 9224 node, and load and prefill for the step-544 carrier on CPU are unmeasured, so a slow Orchard node can reach `over_budget` and fail the CPU check (cost: one CPU job, no GPU job). Under `time_guard` the 64-frame first capture's G3T stage does not run on CPU in the check; the same code ran on 64 frames in the benchmark and the tiny tests. If the step-544 artifact attached an MDG head, `_prepare_decode` would call `mdg_features.expand_cache`, which reads `conv_states.shape`, while 5.19.0 stores those states as dicts; T1's success in this environment indicates the export has no MDG head, and the CPU unit would expose it before any GPU job. CPU parity with the GPU reference is not expected. Without cgroup v2 the guard falls back to process-tree RSS.
+<!-- /cpu-unit -->
+
+
 The delivery below uses the approved 50-minute allocation and a 30-minute worker cap. Its forecast is 23.75 worker minutes and 37.75 allocation minutes, leaving 6.25 and 12.25 minutes of headroom. Placement and submission remain with the authorized lane.
 
 The lane can place the depth package at `/project/community/jjyeung/a4282fee306d6`. This builder has not placed or submitted the package. The production fetch path has passed a local injected-failure test.
 
 | Artifact | Bytes |
 | --- | ---: |
-| `out/delivery.tgz` | 3,726,280 |
-| Expanded inner payload (32 MiB limit) | 31,056,104 |
-| Installed package files | 4,262,400 |
-| Installed `BUILD.json` | 59,774 |
-| Streamed `orchard/o_place.sh` | 5,053,225 |
-| Conservative delivery + installed files + descriptor | 8,048,454 |
+| `out/delivery.tgz` | 3,727,220 |
+| Expanded inner payload (32 MiB limit) | 31,067,971 |
+| Installed package files | 4,273,603 |
+| Installed `BUILD.json` | 60,149 |
+| Streamed `orchard/o_place.sh` | 5,054,977 |
+| Conservative delivery + installed files + descriptor | 8,060,972 |
 
-Delivery SHA256: `6ca8812aa421fd7c1c6affefd4f2543e450a4dfc5f34f0c36ddca77066cd5378`.
+Delivery SHA256: `e6a001999854df0c351e5bcbee8992b8a33a6f803c8cc9b0adc338b1285b7755`.
 
 The job uses `a15_cot_apa4282fee306d6`, general, `--gres=gpu:1`, `--cpus-per-task=16`, `--mem=200G`, and `--exclude=orchard-community-4`. The worker checks for an H100 before model loading. The inherited submission checker requires a minimum 50-minute allocation. The worker has a 30-minute cap and a deadline 270 seconds before allocation end; termination and reaping allow at most another 25 seconds. Staging and work share a deadline 240 seconds before allocation end. Capture publication stops 90 seconds before allocation end, normal publication stops 10 seconds before it, and the failure-receipt fallback stops two seconds before it. Every transfer uses the remaining time in its window. The forecast is 23.75 worker minutes and 37.75 allocation minutes. This includes 16.75 minutes of T1 replay, six minutes for shared loading, one minute for indexed RGB extraction and telemetry, ten minutes for shared staging, and four minutes for publication. The allowances are unmeasured.
 
@@ -40,7 +61,7 @@ sha256sum --check --quiet SHA256SUMS
 ssh orchard 'bash -s' < orchard/o_place.sh
 # Wait for verified placement.
 ssh orchard 'bash -s' < orchard/o_cpu.sh
-# Wait for the CPU job and its authenticated CPU.json receipt to pass.
+# Wait for the CPU job (up to 50 minutes; it ends with the CPU real unit) and its authenticated CPU.json receipt to pass.
 ssh orchard 'bash -s' < orchard/o_sub_hand.sh
 # Wait for the GPU job to finish.
 ssh orchard 'bash -s' < orchard/o_fetch.sh
@@ -94,7 +115,7 @@ OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 CUDA_VISIBLE_DEVICES=
 
 The CPU rehearsal runs twice and scans all eight output files by name, raw content, and JSON-decoded string against the deny-list. The item copy retains exact `a0` source bytes; the copied dispatcher uses opaque source storage and passes the numeric entry test. `out/CPU_ENTRY_STUB.json` records every scanned output file and hash.
 
-`out/VALIDATION.json` records `passed=true` for the exact delivery SHA256: 85 tests, both fresh-process import checks, all 335 Python files compiled and all seven shell scripts checked. The required suites cover the CPU rehearsal twice, scans of every produced file, capture doubles, first-write ordering, per-capture telemetry, production failure fetch, source pins and deadlines. `out/IMPORT_AUDIT.json` parses all 345 delivered and embedded Python programs, including the 296 retained sources and 26 vendor files. It walks deferred imports and literal dynamic imports, resolves nonliteral loaders through explicit targets, and lists every excluded site with its reason. Ten external packages use the unchanged authenticated T1 environment pins and T1 execution evidence; local CPU installations do not establish Orchard availability. The audit test fails on any unresolved reachable import. No live Orchard job ran.
+`out/VALIDATION.json` records `passed=true` for the exact delivery SHA256: 95 tests, both fresh-process import checks, all 335 Python files compiled and all seven shell scripts checked. The required suites cover the CPU rehearsal twice, scans of every produced file, capture doubles, first-write ordering, per-capture telemetry, production failure fetch, source pins and deadlines. `out/IMPORT_AUDIT.json` parses all 345 delivered and embedded Python programs, including the 296 retained sources and 26 vendor files. It walks deferred imports and literal dynamic imports, resolves nonliteral loaders through explicit targets, and lists every excluded site with its reason. Ten external packages use the unchanged authenticated T1 environment pins and T1 execution evidence; local CPU installations do not establish Orchard availability. The audit test fails on any unresolved reachable import. No live Orchard job ran.
 
 JSON transport uses an `a0` envelope containing the exact original bytes in hexadecimal. The numeric launchers, import loader, placement/fetch scripts, and local relift CLI decode it. Package pins authenticate stored bytes; preparation and resource checks authenticate the original decoded bytes. Job-owned metadata and capture records use this transport. The runtime environment archive retains its installed third-party library layout.
 

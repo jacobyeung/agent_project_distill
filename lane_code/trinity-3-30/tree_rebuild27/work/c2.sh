@@ -1,0 +1,1 @@
+cd /scratch/jjyeung/orch_n30/tree_rebuild10_w/w27fix && tar cf - s27fix_n_go.tar | timeout 120 ssh -o ConnectTimeout=20 trinity-2-28.ib 'mkdir -p /scratch/jjyeung/n30_mirror/tree_rebuild27 && cd /scratch/jjyeung/n30_mirror/tree_rebuild27 && tar xf - && sha256sum s27fix_n_go.tar'

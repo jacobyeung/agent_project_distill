@@ -1,6 +1,8 @@
 #!/bin/bash
 # Review-gate check of vehicle N's launch job, end to end (ORCH RULING 0211Z items 4-5). Run on trinity-3-30.
-# Usage: bash run_gate.sh <slurm job id> <fresh local out dir under /scratch/jjyeung/orch_n30/<your lane>/>
+# Usage: bash run_gate.sh <slurm job id> <fresh local out dir under /scratch/jjyeung/orch_n30/<your lane>/> [--local DIR]
+#   --local DIR: skip Orchard; DIR on trinity-3-30 holds the same files (any layout; the prepared receipt in a folder named b,
+#   gate or *_gate), e.g. the srun --overlap stream of ORCH ORDER 1055Z item 1.
 # 1. Orchard (one ossh call over the existing master; stops on any host-key line): tar of the named gate files in X/o/<job>/live
 #    (never the whole dir: the copier keeps up to 50 MB of logs there) and
 #    X/o/<job>_gate (jn6 copy; or the n_ops10 srun fallback) -> <out>/x/.
@@ -15,6 +17,10 @@ HERE=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 X=/project/community/jjyeung/okh7/x_22c714e1
 mkdir -p "$OUT" && [ -z "$(ls -A "$OUT")" ] || { echo "out dir must be new and empty"; exit 2; }
 cd "$OUT"
+LOCAL=""; [ "${3:-}" = "--local" ] && LOCAL=${4:?--local needs a folder}
+if [ -n "$LOCAL" ]; then
+  mkdir x && cp -r "$LOCAL"/. x/ && echo "NOTE local evidence from $LOCAL (no Orchard read)"; find x -type f | sort | xargs sha256sum > x_local.sha256
+else
 cat > o_fetch.sh <<EOF
 cd $X/o < /dev/null || exit 3
 ls -la ${JOB}_gate < /dev/null 1>&2
@@ -31,7 +37,8 @@ if grep -qi 'host identification\|host key\|man-in-the-middle' o_fetch.err; then
 mkdir x; if [ -s x.tar.b64 ]; then base64 -d x.tar.b64 > x.tar && tar xf x.tar -C x || { echo "fetch decode failed"; exit 5; }; else echo "NOTE no gate file on X for job $JOB"; : > x.tar; fi
 [ $(stat -c %s x.tar) -lt 20000000 ] || echo "NOTE fetch above 20 MB: next time register it with the IO governor"
 sha256sum x.tar; cat o_fetch.err
-V=x/$JOB/live/v.json; I=x/$JOB/live/identity.txt
+fi
+V=$(find x -name v.json -type f | head -1); I=$(find x -name identity.txt -type f | head -1)
 if [ -f "$V" ] && [ -f "$I" ]; then
   ST=$(date -u +%Y%m%dT%H%M%SZ); D=/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z14/work/gate_${JOB}_$ST
   { echo "set -u; mkdir -p $D/in"

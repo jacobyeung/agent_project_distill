@@ -188,7 +188,7 @@ def run(config,stop_at,*,clock=time.time):
     refs=load_rows();by_id={r['item_id']:r for r in refs}
     selected=[by_id[i] for i in reference['representatives']]
     unit=config.get('cpu_unit');device='cpu' if unit else 'cuda:0'
-    expected=1 if unit else 60
+    planned=1 if unit else 60
     writer=Writer(path);checks=[];timings=[];failure=None;monitor=None;record=None
     def stop(n,f):marker.write_text(str(n)+'\n')
     old={n:signal.signal(n,stop) for n in (signal.SIGTERM,signal.SIGUSR1,signal.SIGINT)}
@@ -210,7 +210,7 @@ def run(config,stop_at,*,clock=time.time):
                 address_space_bytes=resource.getrlimit(resource.RLIMIT_AS)[0],cuda_visible=os.environ.get('CUDA_VISIBLE_DEVICES'))
             index,admission=admit_unit(selected,stop_at-clock(),unit['estimates'])
             record.value['admission']=admission
-            # Production order up to and including the admitted capture.
+            # Only the admitted capture runs: the first in production order that fits.
             selected=[selected[index]]
             record.value['capture_index']=index
         elif 'H100' not in torch.cuda.get_device_name(0):raise ValueError('E03')
@@ -296,13 +296,13 @@ def run(config,stop_at,*,clock=time.time):
             monitor.close();timings=monitor.rows
         writer.close()
         maxima={k:max((v['max_deviations'][k] for x in checks for v in x['items']),default=None) for k in reference['bounds']}
-        receipt=dict(trusted=len(checks)==expected and all(x['trusted'] for x in checks) and failure is None,
-            expected=expected,items=len(checks),bounds=reference['bounds'],bound_rule='twice maximum T1 repeat absolute deviation',
+        receipt=dict(trusted=len(checks)==planned and all(x['trusted'] for x in checks) and failure is None,
+            expected=planned,items=len(checks),bounds=reference['bounds'],bound_rule='twice maximum T1 repeat absolute deviation',
             max_deviations=maxima,captures=checks,gap_atol_m=reference['gap_atol_m'],
             capture_sha256=sha(path),capture_bytes=path.stat().st_size,capture_records=writer.items,failure=failure)
         write(meta/'PARITY.json',receipt);write(meta/'5.json',timings)
-        result=dict(completed=len(checks),expected=expected,repeat_completed=0,repeat_expected=0,
-                    complete=len(checks)==expected and failure is None,failure=failure)
+        result=dict(completed=len(checks),expected=planned,repeat_completed=0,repeat_expected=0,
+                    complete=len(checks)==planned and failure is None,failure=failure)
         write(meta/'6.json',result)
         if record:
             done=[x['name'] for x in record.value['stages']]

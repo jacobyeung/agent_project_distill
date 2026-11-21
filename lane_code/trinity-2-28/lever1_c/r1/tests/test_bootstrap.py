@@ -46,7 +46,8 @@ class BootstrapTests(unittest.TestCase):
         proof=dict(passed=True,bundle_guard_passed=True,entry_sequence_passed=True,
                    payload=pub['payload_sha256'],plan=pub['plan_sha256'],inputs=sha(p/'a/1.json'),
                    operator_sha256=hashlib.sha256(operator).hexdigest(),
-                   memory=dict(basis='fixed_g3t_shapes',perception_memo_modules=['g3t'],sam_measurement_required=False,fits=True))
+                   memory=dict(basis='fixed_g3t_shapes',perception_memo_modules=['g3t'],sam_measurement_required=False,fits=True),
+                   real_unit_passed=True,real_unit=dict(passed=True))
         (p/'a/c').mkdir();(p/'a/c/CPU.json').write_text(json.dumps(proof))
         cpu=dict(passed=True,plan=pub['plan_sha256'],inputs=sha(p/'a/1.json'),package=sha(p/'PACKAGE.json'),gpus=1,time='00:50:00')
         (p/'2.json').write_text(json.dumps(cpu))

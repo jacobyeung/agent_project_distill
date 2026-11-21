@@ -1,0 +1,124 @@
+{
+  "passed": true,
+  "scope": "Production FrozenG3TTower.run on CPU (fp32: autocast is CUDA-only in tower_read.py:246) with the pinned G3T weights (sha256 d460957b..., 5,627,166,200 B) and served PNGs from the authenticated a2.tar, 16 torch threads, pinned interpreter (torch 2.13.0+cu130) in the production-shaped namespace on trinity-2-28 (AMD EPYC 9224). Dense/anchor indices synthetic (timing only). Node shared with other jobs (load averages recorded); times are conservative.",
+  "command": "T=16 nice -n 10 tests/bench_ns.sh /x/b/bench_first_model.py 16 [32]",
+  "frames64": {
+    "rows": [
+      {
+        "read_s": 0.6003393569844775,
+        "load_s": 10.27015044100699,
+        "loadavg": [
+          84.87,
+          104.44,
+          71.86
+        ]
+      },
+      {
+        "aggregator_s": 950.8700164579786,
+        "loadavg": [
+          27.07,
+          31.07,
+          43.6
+        ]
+      },
+      {
+        "head_chunk_s": 1.6435154649952892
+      },
+      {
+        "head_chunk_s": 1.5624174149997998
+      },
+      {
+        "head_chunk_s": 1.6808204569970258
+      },
+      {
+        "head_chunk_s": 1.7333660909789614
+      },
+      {
+        "threads": 16,
+        "frames": 64,
+        "hw": [
+          480,
+          640
+        ],
+        "read_s": 0.6003393569844775,
+        "load_s": 10.27015044100699,
+        "run_s": 971.0742753850063,
+        "depth": [
+          32,
+          51,
+          51
+        ],
+        "finite": true,
+        "torch": "2.13.0+cu130",
+        "loadavg": [
+          27.15,
+          30.91,
+          43.34
+        ],
+        "peak_rss_gb": 12.643646240234375
+      }
+    ],
+    "capture": "first capture in production order (index 0)"
+  },
+  "frames32": {
+    "rows": [
+      {
+        "capture_index": 30
+      },
+      {
+        "read_s": 0.37476458799210377,
+        "load_s": 10.095174201007467,
+        "loadavg": [
+          14.97,
+          25.21,
+          39.82
+        ]
+      },
+      {
+        "aggregator_s": 294.12053598300554,
+        "loadavg": [
+          26.71,
+          26.62,
+          36.38
+        ]
+      },
+      {
+        "head_chunk_s": 1.7106470799772069
+      },
+      {
+        "head_chunk_s": 1.6169007699936628
+      },
+      {
+        "head_chunk_s": 1.6496136559871957
+      },
+      {
+        "head_chunk_s": 1.678768667014083
+      },
+      {
+        "threads": 16,
+        "frames": 32,
+        "hw": [
+          480,
+          640
+        ],
+        "read_s": 0.37476458799210377,
+        "load_s": 10.095174201007467,
+        "run_s": 311.7913922299922,
+        "depth": [
+          32,
+          51,
+          51
+        ],
+        "finite": true,
+        "torch": "2.13.0+cu130",
+        "loadavg": [
+          26.88,
+          26.66,
+          36.29
+        ],
+        "peak_rss_gb": 11.032493591308594
+      }
+    ],
+    "capture": "first 32-frame capture in production order (index 30)"
+  }
+}

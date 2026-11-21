@@ -31,12 +31,13 @@ def sha(path):
     with open(path, 'rb') as f:return hashlib.file_digest(f, 'sha256').hexdigest()
 
 
-def build(logical, p, archive):
+def build(logical, p, archive, env_roots=''):
     """Create logical/d exactly as preparation would, with tiny artifact files."""
+    p, archive = Path(p), Path(archive)
     sys.path[:0] = [str(p/'b'), str(p/'tree'), str(p)]
     import l
     l.install(p)
-    from orchard_h10.common import write
+    from orchard_h10.common import write, sha as stored_sha
     from parity_kit.build_manifest import build as manifest_build
     logical = Path(logical); d = logical/'d'; export = d/'e'; g = d/'g'
     for path, raw in [(export/'full_weights/0.bin', b'0'), (export/'full_weights/0.json', b'{}'),
@@ -50,7 +51,7 @@ def build(logical, p, archive):
     code = dict(reader=p/'b'/'e2e_reader', heads=p/'b'/'heads', tree=p/'tree', evaluator=p/'h1eval', runner=p/'b'/'parity_kit')
     manifest = manifest_build(logical, export, g, code_roots=code)
     write(d/'manifest.json', manifest)
-    write(d/'binding.json', dict(root=str(logical), name='d/manifest.json', sha256=sha(d/'manifest.json'),
+    write(d/'binding.json', dict(root=str(logical), name='d/manifest.json', sha256=stored_sha(d/'manifest.json'),
                                  code_roots={k: str(v) for k, v in code.items()}))
     captures = json.loads(l.install(p).Path(p/'g/2.json').read_text())
     wanted = {m['path'] for c in captures['captures'].values() for m in c}
@@ -60,7 +61,8 @@ def build(logical, p, archive):
             if member.name in wanted:index[member.name] = dict(archive=str(archive), offset=member.offset_data, bytes=member.size)
     write(d/'9.json', dict(index=index, **captures))
     settings = dict(export_dir=str(export), artifact_manifest=str(d/'binding.json'), tree=str(p/'tree'),
-                    config=str(d/'0.json'), frames_root=str(d/'f'), capture_index=str(d/'9.json'), env_roots=[],
+                    config=str(d/'0.json'), frames_root=str(d/'f'), capture_index=str(d/'9.json'),
+                    env_roots=[r for r in env_roots.split(':') if r],
                     arm='own_depth', stage1_select_rule='null_argmax', save_own_depth=False, perception_memo='off',
                     perception_memo_modules=['g3t'], perception_memo_verify_ids=[])
     write(d/'settings.json', settings)
@@ -110,13 +112,16 @@ def tiny_carrier():
                            vision_start_token_id=62, vision_end_token_id=63)
     for item in (config, config.text_config, config.vision_config):
         item._attn_implementation = 'sdpa'
-    base = Qwen3_5ForConditionalGeneration(config).to(torch.bfloat16)
+    base = Qwen3_5ForConditionalGeneration(config).to(torch.bfloat16)  # production from_pretrained dtype
     camera = dict(embed_dim=64, num_heads=4, trunk_depth=4, refine_iterations=4,
                   weight_gravity=.05, weight_scale=.02, supervision={'path': '/fixture', 'sha256': 'a'*64})
     depth = dict(weight=.05, d_proj=16, mlp_hidden=16, num_heads=4, context_depth=1, vit_layers=[1, 2, 3])
     placement = 'append_after_temporal_group_video_tokens_v1'
     model = CarrierC1(base, camera, depth, 5, placement, 'final', True, RECIPE, depth_fov_source='pose_head')
-    model.trace_program_version = '3.14'
+    # carrier_c1_run.load_artifact: base parameters bf16, attached heads as built (fp32).
+    from student_pilot import full_ft
+    for _, parameter in full_ft.base_parameters(model):
+        parameter.data = parameter.data.to(torch.bfloat16)
     groups = 16
     ids = torch.tensor([[2]+[v for _ in range(groups) for v in (62, 61, 63)]+[10, 11]])
     batch = dict(input_ids=ids, attention_mask=torch.ones_like(ids), mm_token_type_ids=torch.where(ids == 61, 2, 0),
@@ -208,7 +213,9 @@ def install():
         w.start_tower = slow
 
 
-if __name__ == '__main__':
+if __name__ == '__main__' and sys.argv[1] == 'build':
+    build(*sys.argv[2:])
+elif __name__ == '__main__':
     # argv: <python> -B -I 5.py 30.json (the production worker command)
     entry, config = sys.argv[-2:]
     cfg = json.loads(Path(config).read_text()) if not Path(config).read_text().startswith('{"a0"') else None

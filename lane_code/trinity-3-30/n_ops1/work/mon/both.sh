@@ -1,5 +1,5 @@
-# n_ops1 batched Orchard check (read-only). Placeholders: 174101 (job id or 0), - (cached metrics path or -)
-export TZ=UTC; J=174101; MP='-'; X=/project/community/jjyeung/okh7/x_22c714e1
+# n_ops1 batched Orchard check (read-only). Placeholders: 174113 (job id or 0), - (cached metrics path or -)
+export TZ=UTC; J=174113; MP='-'; X=/project/community/jjyeung/okh7/x_22c714e1
 echo "@@NOW $(date -u +%FT%TZ)"
 echo "@@SQ"; squeue -u $USER -h -o "%i|%j|%P|%T|%M|%l|%L|%R|%N|%S"
 echo "@@NEWEST $(ls $X/j/ 2>/dev/null | grep -E '^[0-9]+\.out$' | sort -n | tail -1)"
@@ -20,7 +20,7 @@ if [[ $J != 0 ]]; then
  if squeue -j $J -h -o %T 2>/dev/null | grep -q RUNNING; then
   echo "@@NODE"
   timeout 150 srun --overlap --jobid $J -n1 -N1 timeout 120 nice -n 19 bash -s <<'INNER' 2>&1 | cut -c1-600
-J=174101; MP='-'
+J=174113; MP='-'
 Q=/tmp/q_22c714e1_$J; [[ -d $Q ]] || Q=${SLURM_TMPDIR:-/tmp}/q_22c714e1_$J
 echo "@@Q $Q $(test -d $Q && echo present || echo absent)"
 echo "@@TMPDF $(df -BG --output=avail /tmp | tail -1 | tr -d ' G')"

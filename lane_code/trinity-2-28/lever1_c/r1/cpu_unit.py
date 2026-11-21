@@ -17,9 +17,15 @@ UNIT_KILL_S = 330
 # page-cache-aware guard (cgroup charge minus file LRU) for the 200G job.
 ADDRESS_SPACE = 180*1024**3
 GUARD_BYTES = 170*1024**3
-# Seconds on 16 EPYC 9224 threads in the pinned environment (tmp/bench, see
-# REPORT.md); the worker multiplies the sum by UNIT_SAFETY and adds the margin.
-ESTIMATES = dict(first_model={'32': 400, '64': 1200}, load=420, prefill=150, margin=60)
+# Seconds on 16 threads in the pinned environment. first_model: production
+# FrozenG3TTower on CPU (fp32; its bf16 autocast is CUDA-only) with the pinned
+# weights and served PNGs, measured on trinity-2-28 (EPYC 9224, shared node):
+# 971 s for 64 frames, 312 s for 32 (out/CPU_TOWER_BENCH.json), plus weight
+# load. load: artifact hashing, base/full-weight restore and heads (the GPU
+# plan allows 360 s). prefill: rank 4 measured 52 s for this 9B carrier on 16
+# threads; tripled for the private depth ViT and heads. The worker multiplies
+# the sum by UNIT_SAFETY (1.25) and adds the margin.
+ESTIMATES = dict(first_model={'32': 325, '64': 985}, load=420, prefill=150, margin=60)
 
 HELPERS = '''
 
@@ -48,7 +54,7 @@ def collect_unit(root, cfg, package):
                             and process.get('stopped') is None and process.get('memory',{}).get('over') is False)
     except Exception as error:
         unit=dict(passed=False,status='unreadable',error=(type(error).__name__+': '+str(error))[:2048])
-    if not unit['passed']:
+    if not unit['passed'] and unit.get('status')!='absent':
         try:
             raw=json.dumps(unit)
             if len(raw)>100_000:unit={k:unit.get(k) for k in ('passed','status','failure','error','stages','admission','process','unit')};raw=json.dumps(unit)[:100_000]
@@ -101,13 +107,18 @@ def cpu_unit(config):
 '''
 
 
-def patch(nf, pf, B, here):
+def patch_operator(nf, B):
+    """Before the boot manifest is derived: the operator gains cpu_unit (and its g.m import)."""
     op = nf['a/6.py'].decode()
     op = B.once(op, "\n\ndef main():\n", OPERATOR + "\n\ndef main():\n")
     op = B.once(op, "        if cfg['config'].get('measure_memory'): memory_probe(cfg['config'])\n",
                 "        if cfg['config'].get('measure_memory'): memory_probe(cfg['config'])\n"
                 "        if cfg['config'].get('cpu_unit'): cpu_unit(cfg['config'])\n")
     nf['a/6.py'] = op.encode()
+
+
+def patch(nf, pf, B, here):
+    """After write_receipt: the CPU entry runs and requires the unit; a/9.py checks it."""
     s = nf['a/5.py'].decode()
     s = B.once(s, "\n\ndef main():\n", HELPERS + "\ndef main():\n")
     s = B.once(s, "    write(dispatch/'1.json',dict(action=1,package=run_cfg['package'],config=run_cfg,rehearsal=True))\n",

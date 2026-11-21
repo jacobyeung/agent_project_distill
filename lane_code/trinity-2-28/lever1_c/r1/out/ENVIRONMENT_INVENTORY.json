@@ -1,6 +1,6 @@
 {
   "passed": true,
-  "delivery_sha256": "6ca8812aa421fd7c1c6affefd4f2543e450a4dfc5f34f0c36ddca77066cd5378",
+  "delivery_sha256": "e6a001999854df0c351e5bcbee8992b8a33a6f803c8cc9b0adc338b1285b7755",
   "scope": "Conservative superset: every delivered Python source, including retained serving modules, deferred branches, embedded bootstrap and recovery. External library implementation internals belong to the pinned environment, not this source inventory.",
   "files_parsed": 384,
   "reads": [
@@ -549,7 +549,7 @@
       ],
       "file": "bundle/7.py",
       "source": "bundle/7.py",
-      "line": 180,
+      "line": 221,
       "key": "CUDA_VISIBLE_DEVICES",
       "expression": "os.environ['CUDA_VISIBLE_DEVICES']",
       "provided_by": "Slurm GPU assignment; CPU allocation absent/empty; preparation explicitly empty"
@@ -560,7 +560,7 @@
       ],
       "file": "bundle/7.py",
       "source": "bundle/7.py",
-      "line": 180,
+      "line": 221,
       "key": "*",
       "expression": "os.environ",
       "provided_by": "Filtered inherited environment; allowed keys and defaults are explicit in the source expression"
@@ -575,7 +575,7 @@
       ],
       "file": "g/w.py",
       "source": "g/w.py",
-      "line": 32,
+      "line": 33,
       "key": "k",
       "expression": "os.environ[k]",
       "provided_by": "Filtered inherited environment; allowed keys and defaults are explicit in the source expression"
@@ -590,7 +590,7 @@
       ],
       "file": "g/w.py",
       "source": "g/w.py",
-      "line": 32,
+      "line": 33,
       "key": "*",
       "expression": "os.environ",
       "provided_by": "Filtered inherited environment; allowed keys and defaults are explicit in the source expression"
@@ -605,7 +605,7 @@
       ],
       "file": "g/w.py",
       "source": "g/w.py",
-      "line": 33,
+      "line": 34,
       "key": "k",
       "expression": "os.environ.get(k)",
       "provided_by": "Filtered inherited environment; allowed keys and defaults are explicit in the source expression"
@@ -620,7 +620,41 @@
       ],
       "file": "g/w.py",
       "source": "g/w.py",
-      "line": 33,
+      "line": 34,
+      "key": "*",
+      "expression": "os.environ",
+      "provided_by": "Filtered inherited environment; allowed keys and defaults are explicit in the source expression"
+    },
+    {
+      "enclosing_environment_keys": [
+        "CUDA_VISIBLE_DEVICES",
+        "E03",
+        "E04",
+        "E05",
+        "E06",
+        "E07",
+        "H100"
+      ],
+      "file": "g/w.py",
+      "source": "g/w.py",
+      "line": 210,
+      "key": "CUDA_VISIBLE_DEVICES",
+      "expression": "os.environ.get('CUDA_VISIBLE_DEVICES')",
+      "provided_by": "Slurm GPU assignment; CPU allocation absent/empty; preparation explicitly empty"
+    },
+    {
+      "enclosing_environment_keys": [
+        "CUDA_VISIBLE_DEVICES",
+        "E03",
+        "E04",
+        "E05",
+        "E06",
+        "E07",
+        "H100"
+      ],
+      "file": "g/w.py",
+      "source": "g/w.py",
+      "line": 210,
       "key": "*",
       "expression": "os.environ",
       "provided_by": "Filtered inherited environment; allowed keys and defaults are explicit in the source expression"
@@ -1802,7 +1836,7 @@
       ],
       "file": "outer/a/29.py:1.py",
       "source": "outer/a/29.py:1.py",
-      "line": 150,
+      "line": 154,
       "key": "*",
       "expression": "os.environ",
       "provided_by": "Filtered inherited environment; allowed keys and defaults are explicit in the source expression"
@@ -1831,26 +1865,78 @@
     },
     {
       "enclosing_environment_keys": [
-        "E73",
-        "SLURM_JOB_ID",
-        "USER"
+        "SLURM_CPUS_PER_TASK",
+        "SLURM_JOB_END_TIME",
+        "SLURM_JOB_START_TIME"
       ],
       "file": "outer/a/5.py",
       "source": "outer/a/5.py",
-      "line": 143,
-      "key": "SLURM_JOB_ID",
-      "expression": "os.environ.get('SLURM_JOB_ID', '')",
+      "line": 139,
+      "key": "SLURM_JOB_START_TIME",
+      "expression": "os.environ.get('SLURM_JOB_START_TIME', time.time())",
       "provided_by": "Slurm scheduler; read-site default applies when get() is used"
     },
     {
       "enclosing_environment_keys": [
-        "E73",
-        "SLURM_JOB_ID",
-        "USER"
+        "SLURM_CPUS_PER_TASK",
+        "SLURM_JOB_END_TIME",
+        "SLURM_JOB_START_TIME"
       ],
       "file": "outer/a/5.py",
       "source": "outer/a/5.py",
-      "line": 143,
+      "line": 139,
+      "key": "*",
+      "expression": "os.environ",
+      "provided_by": "Filtered inherited environment; allowed keys and defaults are explicit in the source expression"
+    },
+    {
+      "enclosing_environment_keys": [
+        "SLURM_CPUS_PER_TASK",
+        "SLURM_JOB_END_TIME",
+        "SLURM_JOB_START_TIME"
+      ],
+      "file": "outer/a/5.py",
+      "source": "outer/a/5.py",
+      "line": 141,
+      "key": "SLURM_JOB_END_TIME",
+      "expression": "os.environ.get('SLURM_JOB_END_TIME', start + seconds)",
+      "provided_by": "Slurm scheduler; read-site default applies when get() is used"
+    },
+    {
+      "enclosing_environment_keys": [
+        "SLURM_CPUS_PER_TASK",
+        "SLURM_JOB_END_TIME",
+        "SLURM_JOB_START_TIME"
+      ],
+      "file": "outer/a/5.py",
+      "source": "outer/a/5.py",
+      "line": 141,
+      "key": "*",
+      "expression": "os.environ",
+      "provided_by": "Filtered inherited environment; allowed keys and defaults are explicit in the source expression"
+    },
+    {
+      "enclosing_environment_keys": [
+        "SLURM_CPUS_PER_TASK",
+        "SLURM_JOB_END_TIME",
+        "SLURM_JOB_START_TIME"
+      ],
+      "file": "outer/a/5.py",
+      "source": "outer/a/5.py",
+      "line": 144,
+      "key": "SLURM_CPUS_PER_TASK",
+      "expression": "os.environ.get('SLURM_CPUS_PER_TASK')",
+      "provided_by": "Slurm scheduler; read-site default applies when get() is used"
+    },
+    {
+      "enclosing_environment_keys": [
+        "SLURM_CPUS_PER_TASK",
+        "SLURM_JOB_END_TIME",
+        "SLURM_JOB_START_TIME"
+      ],
+      "file": "outer/a/5.py",
+      "source": "outer/a/5.py",
+      "line": 144,
       "key": "*",
       "expression": "os.environ",
       "provided_by": "Filtered inherited environment; allowed keys and defaults are explicit in the source expression"
@@ -1863,7 +1949,33 @@
       ],
       "file": "outer/a/5.py",
       "source": "outer/a/5.py",
-      "line": 145,
+      "line": 177,
+      "key": "SLURM_JOB_ID",
+      "expression": "os.environ.get('SLURM_JOB_ID', '')",
+      "provided_by": "Slurm scheduler; read-site default applies when get() is used"
+    },
+    {
+      "enclosing_environment_keys": [
+        "E73",
+        "SLURM_JOB_ID",
+        "USER"
+      ],
+      "file": "outer/a/5.py",
+      "source": "outer/a/5.py",
+      "line": 177,
+      "key": "*",
+      "expression": "os.environ",
+      "provided_by": "Filtered inherited environment; allowed keys and defaults are explicit in the source expression"
+    },
+    {
+      "enclosing_environment_keys": [
+        "E73",
+        "SLURM_JOB_ID",
+        "USER"
+      ],
+      "file": "outer/a/5.py",
+      "source": "outer/a/5.py",
+      "line": 179,
       "key": "USER",
       "expression": "os.environ.get('USER')",
       "provided_by": "Slurm login environment; required; missing value is a tested failure"
@@ -1876,7 +1988,7 @@
       ],
       "file": "outer/a/5.py",
       "source": "outer/a/5.py",
-      "line": 145,
+      "line": 179,
       "key": "*",
       "expression": "os.environ",
       "provided_by": "Filtered inherited environment; allowed keys and defaults are explicit in the source expression"
@@ -1884,12 +1996,15 @@
     {
       "enclosing_environment_keys": [
         "E73",
+        "SLURM_CPUS_PER_TASK",
+        "SLURM_JOB_END_TIME",
         "SLURM_JOB_ID",
+        "SLURM_JOB_START_TIME",
         "USER"
       ],
       "file": "outer/a/5.py",
       "source": "outer/a/5.py",
-      "line": 220,
+      "line": 259,
       "key": "SLURM_JOB_ID",
       "expression": "os.environ.get('SLURM_JOB_ID', '')",
       "provided_by": "Slurm scheduler; read-site default applies when get() is used"
@@ -1897,12 +2012,15 @@
     {
       "enclosing_environment_keys": [
         "E73",
+        "SLURM_CPUS_PER_TASK",
+        "SLURM_JOB_END_TIME",
         "SLURM_JOB_ID",
+        "SLURM_JOB_START_TIME",
         "USER"
       ],
       "file": "outer/a/5.py",
       "source": "outer/a/5.py",
-      "line": 220,
+      "line": 259,
       "key": "*",
       "expression": "os.environ",
       "provided_by": "Filtered inherited environment; allowed keys and defaults are explicit in the source expression"
@@ -1913,7 +2031,7 @@
       ],
       "file": "outer/a/6.py",
       "source": "outer/a/6.py",
-      "line": 180,
+      "line": 221,
       "key": "CUDA_VISIBLE_DEVICES",
       "expression": "os.environ['CUDA_VISIBLE_DEVICES']",
       "provided_by": "Slurm GPU assignment; CPU allocation absent/empty; preparation explicitly empty"
@@ -1924,7 +2042,7 @@
       ],
       "file": "outer/a/6.py",
       "source": "outer/a/6.py",
-      "line": 180,
+      "line": 221,
       "key": "*",
       "expression": "os.environ",
       "provided_by": "Filtered inherited environment; allowed keys and defaults are explicit in the source expression"

@@ -100,6 +100,13 @@ class WriteReceiptTests(unittest.TestCase):
                 self.assertEqual(value['expected'],value['found'])
                 self.assertIn('injected post-guard',value['error'])
                 self.assertIsNone(value['failed_check']);self.assertIn('passed',value['comparison_status'])
+            elif case=='write_unit_fail':
+                # The CPU real unit's own receipt returns beside the comparison.
+                self.assertEqual(value['failed_check'],'CPU real unit passed')
+                self.assertEqual((value['expected'],value['found']),(True,False))
+                unit=B.decoded(archive.extractfile('metadata/31.json').read())
+                self.assertFalse(unit['passed']);self.assertIn('injected CPU unit failure',unit['error'])
+                self.assertEqual([x['name'] for x in unit['stages']],['bind']);self.assertEqual(unit['process']['returncode'],1)
             elif case=='write_budget':
                 self.assertEqual(value['failed_check'],'Pool subprocess exit status')
                 self.assertEqual(value['expected'],dict(returncode=0));self.assertNotEqual(value['found']['returncode'],0)
@@ -111,6 +118,25 @@ class WriteReceiptTests(unittest.TestCase):
             self.assertTrue(B.decoded(archive.extractfile('metadata/25.json').read())['passed'])
         self.assertEqual(B.decoded((p/'a/f/EXIT.json').read_bytes())['status'],'FAILED')
         entry.update(passed=True,production_fetch=True,diagnostic=value)
+
+    def test_cpu_unit_failure_returns_receipt(self):self.failure('write_unit_fail')
+
+    def test_receipt_check_requires_real_unit(self):
+        root,p,pub,env,result,entry=self.run_case('write_success','174003',True)
+        self.assertEqual(result.returncode,0)
+        cpu=B.decoded((p/'a/c/CPU.json').read_bytes())
+        self.assertTrue(cpu['real_unit_passed'] and cpu['real_unit']['passed'])
+        self.assertEqual(cpu['real_unit']['process']['action'],3)
+        rejected=[]
+        for name,change in [('passed',lambda u:u.update(passed=False)),('stages',lambda u:u['stages'].pop()),
+                            ('grid',lambda u:u['checks']['grid'].update(dtype='float32')),
+                            ('killed',lambda u:u['process'].update(stopped='deadline')),
+                            ('absent',lambda u:u.clear())]:
+            value=json.loads(json.dumps(cpu));change(value['real_unit'])
+            (p/'a/c/CPU.json').write_text(json.dumps(value))
+            checked=self.receipt_check(p,env)
+            self.assertEqual(checked.returncode,1,name);rejected.append(name)
+        entry.update(passed=True,receipt_check_rejects=rejected)
 
     def test_receipt_tamper(self):self.failure('write_receipt')
     def test_evidence_size_tamper(self):self.failure('write_size')
