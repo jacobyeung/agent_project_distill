@@ -27,6 +27,6 @@ fi
 say "gate copy"
 mkdir -p xr/o/174134
 [[ -e xr/o/174134/live ]] || ln -s "$D/live" xr/o/174134/live
-python3 -B -I -s /tmp/q_22c714e1_174134/j6.py "$KIT" "$D/$SRC" "$D/xr" 174134 $$ 120 once gate; say "gate copy rc=$?"
+python3 -B -I -s /tmp/q_22c714e1_174134/j6.py "$KIT" "$D/$DST" "$D/xr" 174134 $$ 120 once gate; say "gate copy rc=$?"
 ls -la live xr/o/174134_gate 2>&1
 say "end"

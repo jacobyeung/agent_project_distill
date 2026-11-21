@@ -1,0 +1,14 @@
+--- a/pl.py
++++ b/pl.py
+@@ -278,8 +278,9 @@
+             live.mkdir(mode=0o700,exist_ok=True)
+         else:
+             live,_=location(kit,root.parent,os.environ['SLURM_JOB_ID'])
+-        put(live/'s0.json',(scene/'2.json').read_bytes())
+-        put(live/'s1.json',(scene/'0.json').read_bytes())
++        put(live/'s0.json',(scene/'3.json').read_bytes())
++        put(live/'s1.json',(scene/'a.json').read_bytes())
++        put(live/'s4.json',(scene/'o.json').read_bytes())
+         effective.update(r2_scene_rebuild=cfg['r2_scene_rebuild'],scene_coverage=cfg['scene_coverage'],s1_routing=cfg['s1_routing'])
+         with scope(sources):
+             source_record=census_sources(effective)

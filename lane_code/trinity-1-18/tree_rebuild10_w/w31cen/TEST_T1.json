@@ -1,0 +1,57 @@
+{
+ "old_seal": "489f7f0fbfb9913066d0840bde40d01fc30927d2d127709e41bb479e554e2e90",
+ "test_seal": "5a86c766c07c80abaf72c1f4a6f3db7a8cf0d8970e61b0bfcbe9fb945a3542e8",
+ "verify_kit_tree": true,
+ "changed": [
+  "BUILD.json",
+  "SHA256SUMS.txt",
+  "b/cn.py",
+  "b/pl.py",
+  "b/sc.py"
+ ],
+ "sha256": {
+  "BUILD.json": "c358f4f931ddb822d7879b2659fcea8053db19a416b017fad2120f57dd5e70b5",
+  "SHA256SUMS.txt": "5a86c766c07c80abaf72c1f4a6f3db7a8cf0d8970e61b0bfcbe9fb945a3542e8",
+  "b/cn.py": "90b3ca6cfa75b13eabb22f8a2c49c6ece0cf1b62156aea3f52e6aba8bf637d0d",
+  "b/pl.py": "f8f429557b4722e9e5cf3df8a9ddc6be4fbcb8f234c42f739a0c571d79728d50",
+  "b/sc.py": "43d4cc263bf19de840860714719ac0ab0921a6a836e02b518f5fb2aa220bf274"
+ },
+ "diff_sha256": "94d941e6135336c7dfac1e3bc0cebe88dc937287837687a73e151618f0716166",
+ "T1_view_equivalent": true,
+ "T2_whole_eq_admitted_plus_outside": {
+  "whole": [
+   1200,
+   600
+  ],
+  "admitted": [
+   800,
+   400
+  ],
+  "outside": [
+   400,
+   200
+  ],
+  "ok": true
+ },
+ "T3_admitted_census": "PASS {\"pose\": [800, 400, 800, 400]}",
+ "T4_whole_store_census_control": "REFUSE ValueError: Filter differs from independent scene census: pose",
+ "T5_leak_control": {
+  "planted_row": 0,
+  "census": [
+   801,
+   400
+  ],
+  "result": "REFUSE ValueError: Filter differs from independent scene census: pose"
+ },
+ "T6_pool_count_equals_plain_count": {
+  "pool": [
+   360,
+   180
+  ],
+  "plain": [
+   360,
+   180
+  ],
+  "ok": true
+ }
+}

@@ -1,4 +1,4 @@
-# fix7 REPORT (lane tree_rebuild27; work on trinity-1-18 W/w29f7, W=/scratch/jjyeung/orch_n30/tree_rebuild10_w)
+# fix7 REPORT (lane tree_rebuild27; work on trinity-1-18 W/w29f7, W=/scratch/jjyeung/orch_n30/tree_rebuild10_w). STATUS 15:52Z: items 1-4 DONE; fix6 confirmed the candidate on the held node at 15:34Z. Design record: distill_design/N_174134_VQA_RECEIPT_A3V2_REBUILD_20261121.md
 Context: n_review1j's QUESTION 1524Z recommends F1 (only division.path rewritten to P's e84d901c path) over the ruling's a3v2 pin, and its default is that fix7 follows ruling 1523Z as written. I follow the ruling. F1's candidate from fix6 (a7682dae, 724 B) remains the alternative.
 
 ## Item 2: rebuilt receipt, CPU check PASS (15:30Z)
@@ -10,3 +10,57 @@ Context: n_review1j's QUESTION 1524Z recommends F1 (only division.path rewritten
   For comparison, against 0d28: 203,812 train, 601 outside (474 in scenes a3v2 added, all d1; 127 in neither), 0 held-out.
 - Tree check on CPU on 1-18 (tree tar 5f2d77c4, carrier_c1_run.py be11454e, c1_pose_mix.py aaf0d293; verbatim division_admits, ancestor_admits and _division taken from the tree by AST; the line 539-541 expression is evaluated as written): the candidate passes all five sub-checks (schema, stream, division_admits True by exact dict equality, heldout_overlap 0, gt_masks n/a). Old e3ee51da still refuses on division only; pointing 93b21a3a and routing ca0616db pass. The lines 548-551 count check passes (204,413, 0, 204,412), and r1_training.store_parameter accepts the candidate. Evidence: fix7/rd/v1.out, script fix7/s/v1.py.
 - Does the tree demand that every row lie in a train scene of the pinned division? Line 540 does not: it compares pins only. carrier_c1_data.build_stream does, and the job runs it in s1_admission prepare_phase (`build_stream(before['vqa'], vqa['division'], ...)`) on the rows that survive the scene filter and remove_files; it raises on any kept row outside train or in held-out. With the candidate this holds. The REMOVE list 02315a74 alone drops exactly the 601 out-of-0d28 rows, including all 127, and leaves 203,812 rows with 0 violations under a3v2. All 7,971 direction-twin rows (7b3d696d) lie in a3v2 train. With 0d28 it held too, since 174134 got past build_stream to line 540.
+
+## Item 3: the 127 rows outside a3v2: no reason against them; 0 rows leave the store (15:40Z)
+- What they are: 127 rows in 18 ARKitScenes scenes (dataset d3; 16 venues), all from v6's base. By pool: vsti_rel_v4 (vstirel_*, VSTI relative camera-object distance and object-object position) 58; b12_cntapp_gt_v1 (b12cs/b12ct counting, b12fs first-seen frame) 69. Per scene (d3 token, native video, venue, rows):
+  v630cd91d8070 42447216 venue423511 24 | v0d0ff5239074 42447221 venue423511 26 | v77bce2e08bbc 41159362 venue381626 20 | vce37d31fc5d0 47331169 venue471427 10 | ve7c5313aff2b 47331211 venue471383 8 | v1ff9e9ffb907 47332503 venue472308 8 | v512d55c8f189 47330996 venue470350 6 | va7d6eb28508c 47331362 venue470536 4 | vcaedbd3880a8 42899950 venue435663 4 | vff2676b38dd9 42899053 venue434626 4 | v05957e87b7f0 47332505 venue472308 3 | v56c14e1d0b2a 44358599 venue464241 3 | v636d9b27e234 47332653 venue472574 2 | v1b137156393b 47332645 venue472576 1 | v3242b8e28c0c 42898977 venue434970 1 | v86c73ccfcbea 41007581 venue380031 1 | vc9f7c7970dc7 47115258 venue470039 1 | vfd814bfd0fc5 42898712 venue426131 1.
+  The d3 tokens equal 'v'+sha256('rung1 scene arkitscenes/<video>')[:12] for all 18 (alias_of rule). Full row list: 1-18 W/w29f7/out601.json (cls NEITHER) and fix7/rd/a2.out (Q lines: index, dataset, scene, qid, type, answer).
+- Why they are outside a3v2: they never entered the pose population. 0d28 holds "all eligible recordings" of A1; a3v2 adds "every scene of [A3's] rows" and holds out its readout bank. These 18 scenes are in neither split: not train, and not among a3v2's 150 held-out scenes (a scene dropped as held-out or test would sit in held-out; A3's receipt 1e7b491b reports test_scene_hits_in_rows 0). So they have no A1 or A3 pose rows. A3's receipt names two ways a recording gets no rows: it is absent from the A3 video set, or it was deferred (few_valid 78, up_dot 1). I could not tell which applies: A3's build inputs (f02f16ad/z/v3.json, in3/held_a3b.json) and A1's b1/b2/inherited lists sit on /lustre paths that do not exist on Orchard (fix7/rd/o3.out) and are not in X/u. Neither cause is a label defect in these rows' answers. The REMOVE list 02315a74 gives the reason as outside_native_training_division.
+- Exclusion lists the kit applies, checked with the tree's own functions on 1-18 (fix7/rd/v2.out, v3.out): 0 of 127 hit any of them.
+  dev + benchmark scene filter (s1_exclusions.Exclusions a1869ae2 + 3119aa4a): 0. excluded_row with exclusions dafa4a9c, pose_exclusions 600ef69d, report_exclusions 99e6eed6, benchmark 3119aa4a, and the R0 reserve: 0. exclude_qids[vqa] 66c427e2: 0. Benchmark venue groups, scenes and rung-1 tokens by venue: 0. K1 and R0 by r1_rooms.Rooms (room authority ae633f72): all 127 'ok' (not K1 held-out, not R0). K1 lists 1c7c930d (v7 K1 union), 43853165, d2fd6208, 6add0ad5, d21e374f by canonical: 0. A raw substring scan of all 25 kit lists plus the extent receipt c072905b, on X/u for the 18 tokens, 18 native ids and 127 qids, hits only 02315a74 (fix7/rd/o2.out).
+- Label defects: the ScanNet++ v1 half-extent defect does not touch them. They are ARKitScenes rows; gt_audit (EVAL_GT_HALF_EXTENT_AUDIT_20261117) finds ARKitScenes boxes 431 full, 0 half, and VSI-590K ARKitScenes labels match the stored distance. The b12 rows use visibility rasters, not box extents. The extent-defect REMOVE lists (62113ff3, 4701e195, 8a97fcc4) do not match them.
+- REMOVE lists: the tree's Removals over all 13 remove_files matches each of the 127 rows only to 02315a74, and that list holds exactly the 601 rows (474 + 127) outside 0d28 train. N's remove_files carries it, so these rows leave the trained set at preparation, as they did for P.
+- Count that leaves the store under ruling item 3: 0. No scene is on a list and no defect touches these answers, so all 204,413 rows stay in the store. The trained set loses them through 02315a74 anyway; the rebuilt receipt does not change that.
+
+## Item 4: price of the change (e3ee51da -> bf2e7ebb). Nothing sealed or uploaded (15:50Z)
+Pins that change (kit n_go 9e809db4, decoded and cross-referenced on 3-30 from fix6/kit/n_go):
+1. Pool object: a new u/bf2e7ebb... (729 B) goes into Orchard X/u. u/e3ee51da stays in place.
+2. k/c.json: streams.vqa and r1_training.store_parameter (path u/<sha> and sha256, 4 strings). Payload 6d6fda1b and file a1fd8b40 both change. store_hashes.vqa (210b2534) and every other key stay the same.
+3. k/n.json: the same two pins change. Payload 7af04167 and file 2786173e change.
+4. k/p.json: pin_paths[<sha>] (key and value /tmp/q_22c714e1/u/<sha>) and uploads[202] (opaque_name, sha256, bytes 712->729) change. Payload 232fbcdd and file 42fd2f98 change.
+5. SHA256SUMS.txt changes, so the kit seal 9e809db4 changes. BUILD.json changes config_sha256 (a1fd8b40) and kit_sha256 (payload db39392f).
+Unchanged:
+- Tree tar 5f2d77c4 (source seal 9d2bbb8a).
+- k/a, h, r, j, l, c0, s, 7, 8, g.json, job.sh and b/*. None of them names the receipt or the config hash.
+- k/y.json (sessions): its object names use run id 469ddece, which is fixed in the config. A new job needs its own sess_<job> anyway.
+- jn7.sh 98edfd9e: it names X/n by path and pins no seal.
+- Routing selection u/a49f117f (mode r regeneration, b/rg.py): the selection reads pointing, routing, s1_routing and the model, and no vqa field. It records digest(cfg) in inputs_pinned.config_sha256, but pl.py checks only routing_base and routing_database. So mode r does not need to rerun.
+Derived at run time, which follows automatically and needs no build step: the q20 resolved plan (z.py; kit_sha256 = the new seal, and pl.py:55 refuses a stale one), the runtime config p/q/c.json, the twins receipt p/q/twins/receipt.json (r1_direction_twins.augment copies the new division pin), the rebuilt prepare_*/vqa receipt, the preparation receipts and the admission request.
+- 174134's prepare products cannot be reused: s1_admission refuses a resume whose request (config pin) differs.
+Records that go stale: n_review1i's GO on 9e809db4. n_review1j reviews the new seal (ruling item 6).
+
+Rebuild steps, with time and proof:
+a. Receipt: done. Proof is CPU on 1-18 (fix7/rd/v1.out) and fix6's confirmation on the held node (fix6/REPORT.md 15:34Z: PASS with the tree's prepare predicates and row rule, 189,069 rows admitted).
+b. Kit, about 25-30 min on 1-18, following w28fix (07:25->07:50Z including its CPU sim):
+   - Copy n_go.
+   - Swap the pins in the c.json and n.json payloads and the three p.json fields, re-envelope (base64-json plus payload sha256), and regenerate SHA256SUMS.
+   - Update BUILD.json. w28fix/src/bfix.py replaces only kit_sha256, so it needs config_sha256 added.
+   - Tar, then verify the round trip with build.verify.
+   Proof:
+   - A decoded diff of the k files shows only those fields.
+   - Tree tar 5f2d77c4 is unchanged.
+   - The d3.py-style preflight runs the 536-541 predicate on every non-pose receipt of the built config (seconds).
+   - pl.plan_payload on the built kit shows that u/bf2e7ebb is in the upload closure (about 5 min).
+   arm_launch.sh (W/w24z11b/out) cannot do this. It hard-codes the origin kit seals (SOURCE_SEALS, overlay n 797255ae) and allows changes only to k/h, r, p, a, BUILD and SHA256SUMS (plus n.json when the stop is not 3600), so a c.json change fails R1_ARM_UNEXPECTED_CHANGE.
+c. Review by n_review1j against its criteria: about 15-30 min (today the GO to install took 12:50->13:03Z).
+d. Stage: u/bf2e7ebb (729 B) and the kit tar (about 5.9 MB; each is a single file under 20 MB) to Orchard, then install as X/n through n_ops. About 10 min.
+e. Fresh job on jn7.sh: queue wait, then closure verify (about 16 s), then prepare (about 14 min on the node per fix6's walk: streams linked 15:23:41Z, vqa check at 15:37:03Z) before the forward.
+From a go to a fresh job submitted: about 1-1.5 h. None of it touches rows or the tree.
+
+## Final summary (appended by tree_rebuild27 from fix7's closing message, ~15:53Z)
+- Candidate receipt bf2e7ebb4cc94db032004c914fa00563c93a2acb4df11c8e15e31aea9971c2b2 (729 B) = e3ee51da with only `division` set to pose spec 8957d119's a3v2 pin (f41d15aa, its /lustre .../f02f16ad/s/a3v2/division.json path). Counts vs a3v2: 204,286 rows in train scenes (2,948 scenes), 127 outside (18 scenes), 0 held-out; heldout_overlap 0, scenes 2,966. Tree functions on CPU (tree tar 5f2d77c4): all five sub-checks of 539-541 pass, the 548-551 count check and store_parameter accept it; e3ee51da still refuses. fix6 confirmed the same bytes on the held node at 15:34Z with the tree's prepare.
+- Ruling question: line 540 compares pins only; build_stream requires train-scene rows only after removal files; REMOVE list 02315a74 drops all 601 rows outside 0d28 train (incl. the 127) -> 203,812 rows, 0 violations; all 7,971 twin rows in a3v2 train.
+- 127 rows: 18 ARKitScenes scenes (16 venues), 58 VSTI relative-distance + 69 counting/first-seen rows; outside a3v2 because they never entered the pose population (no A1/A3 pose rows; exact reason not determinable, A3 build inputs on /lustre absent from Orchard). No kit list, room check, K1, R0 reserve, exclude_qids or benchmark venue group names them; ScanNet++ v1 half-extent defect does not apply (ARKitScenes, all full boxes). 0 leave the store.
+- Price: new pool object u/bf2e7ebb; two pins each in k/c.json and k/n.json; three fields in k/p.json (pin_paths, uploads[202]); SHA256SUMS -> new seal; BUILD.json config_sha256/kit_sha256. Unchanged: tree tar, other k files, job.sh, b/*, k/y.json (sessions), jn7.sh, selection a49f117f (mode r need not rerun). Twins receipt/plan/runtime config rebuild at job start; 174134's preparation cannot be resumed. arm_launch.sh cannot do it (hard-coded seals); hand-patch like w28fix. Time ~25-30 min build+proof, 15-30 min review, ~10 min stage/install, ~14 min node prep: ~1-1.5 h from GO.
+- Open decision for ORCH: a3v2 pin (ruling as written; this candidate) vs F1 (division.path -> P's e84d901c path, candidate a7682dae; n_review1j 1524Z recommended F1 and withdrew its caveat because 02315a74 already removes all 601 rows). Both pass with the tree unchanged.
+- Files: fix7/CANDIDATE.txt, fix7/cand/bf2e7ebb....json, fix7/rd/v1-v3.out; 1-18 W/w29f7/ship/bf2e7ebb....json. Design record + INDEX line written in distill_design/.

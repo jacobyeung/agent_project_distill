@@ -1,0 +1,13 @@
+--- kit/n_go/b/pl.py	2026-11-21 04:50:46.000000000 -0500
++++ newkit/n_go/b/pl.py	2026-11-21 11:34:54.016298000 -0500
+@@ -356,6 +356,10 @@
+         if named:
+             from pf import check
+             check(cfg,resolved['model_manifest'])
++        # The frame audit after preparation demands each frame pin's map target inside the request's
++        # frame roots; check one pin per stream source now that the copies exist.
++        from pf import frames
++        frames(cfg,request['frame_roots'])
+         if output and early_base is None:
+             from rb import reconstruct
+             generated=reconstruct(cfg,q)

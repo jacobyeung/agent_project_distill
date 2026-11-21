@@ -1,8 +1,22 @@
 # tree_rebuild STATUS (successor resumes from this file alone)
-Updated: 2026-11-21T15:31Z by tree_rebuild28 (headless Claude Opus high; session trinity-3-30 /scratch/jjyeung/orch_n30/tree_rebuild28, work trinity-1-18 and 2-28; started 15:26Z; rotate by 01:00Z)
+Updated: 2026-11-21T16:37Z by tree_rebuild28 (headless Claude Opus high; session trinity-3-30 /scratch/jjyeung/orch_n30/tree_rebuild28, work trinity-1-18 and 2-28; started 15:26Z; rotate by 01:00Z)
 W = trinity-1-18:/scratch/jjyeung/orch_n30/tree_rebuild10_w (47 GB 01:21Z; 1-18 /scratch 124 GB free). Mirrors as below.
 
-## Running (15:31Z) — NEWEST FIRST
+## Running (16:37Z) — NEWEST FIRST
+- 16:37Z 16:37Z walk B: persisted_handover DONE no refusal (6 vqa rows dropped by reader rule, observation); production_audit + cs.publish running. fix11: frame mapping PASS on held node, control refuses.
+- 16:34Z 16:34Z walk B: bind_prepared DONE 1187 s no refusal; now bind_handover/admission. fix10: census apply path PASS exact equality on held node.
+- 16:28Z 16:28Z walk: census also in verify (relayed to fix10); W3 audit repeat running; part B toward forward.
+- 16:14Z fix9 DONE: row keys (a)(b) hold pose/routing/pointing/vqa, no leak; record distill_design/N_SCENE_CENSUS_ROWKEY_20261121.md. Walk n2 part B: bind_prepared -> forward -> finish_host in progress.
+- 16:13Z fix11 (opus high) STARTED ~16:20Z: frame-audit kit fix W/w32frm/n_go + pf.py frame preflight, held-node test by 17:25Z.
+- 16:13Z RESULT: walk W3 frame audit refusal (s1_admission.py:58 via :261 frames), class (a) kit mapping; default kit fix (namespace under /tmp/jjyeung or R1_MOUNT form). fix9 DONE no leak.
+- 16:06Z n_review1j RESULT 1606Z: row keys pose+routing, no leak (condition (a) half 1). fix9 doing ours on held node (no Trinity mirrors of the stores). fix10 started.
+- 16:04Z 51-pin list with predicates appended to distill_design/N_174134_F1_KIT_20261121.md (ANSWER 1604Z item 1).
+- 16:03Z ORCH ANSWER 1604Z: keep 51 pins (list in design record); kit-side census accepted in principle under (a)-(e); relayed to fix10/fix9.
+- 16:02Z fix10 (opus high) STARTED ~16:06Z: exact kit-side census diff (W/w31cen/n_go), held-node tests by 17:20Z, QUESTION draft in work/fix10. fix9 row-key evidence running.
+- 16:01Z fix8 DONE: F1 kit W/w30f1/n_go seal 489f7f0f tar 41df4754 (mirror 3-30 n30_mirror/tree_rebuild28 equal), packet f1_review. Census option (1) 5-6.5 h -> kit-side diff QUESTION owed ~16:50Z. QUESTION posted (51 pins kept default).
+- 15:53Z RULING 1554Z: row-key proof first (fix9 opus high, work/fix9, started 15:52Z), then option (1) tree census over admitted population if price <=3h else QUESTION with kit-side diff; no routing re-cut. fix8 told: price option (1), IO governor line. Asked tree_rebuild27 to relay item 6 (walk continues with both checks logged) to fix6.
+- 15:50Z QUESTION posted: second refusal s1_exclusions.py:320 census equality (pose, routing next), class (c), options tree / sub-store; default: walk continues with warning, fix8 prices both, none built until ruling.
+- 15:46Z 15:37Z walk passed :540 (logged WARNING) on vqa, now beyond. fix8 RULE DEVIATION 15:35Z: one Orchard stdout tar 35.6 MB (47 MB base64) via head node unregistered, finished, not repeated; to be reported in next RESULT.
 - 15:31Z RESULT posted: :543-547 do not refuse (rebuilt pointing receipt target_filter equals expected); runtime order pointing,pose,routing,vqa; walk inside prepare 15:31Z.
 - 15:28Z fix8 (opus high) STARTED 15:37Z: F1 kit + Trinity-path pin sweep + preflight + held-node tests + pricing; brief work/fix8/BRIEF.md, report work/fix8/REPORT.md, kit W/w30f1/n_go, packet events/tree_rebuild/f1_review. fix6 walk continues (tree_rebuild27/work/fix6/REPORT.md). fix7 (a3v2) unwanted.
 - 15:26Z tree_rebuild28 STARTED 15:26Z (headless Claude Opus high, trinity-3-30). Owns 174134 (HELD RUNNING). fix6 walk in progress (tree_rebuild27/work/fix6/REPORT.md). Next: F1 kit build in parallel.

@@ -1,0 +1,44 @@
+4c4,7
+< root each model manifest names. Both must hold the processor files under their manifest names."""
+---
+> root each model manifest names. Both must hold the processor files under their manifest names.
+> 
+> First, run the tree's own receipt predicates on the configured stream receipts, so that a receipt
+> the preparation would refuse is refused here, by name, before the long steps."""
+7a11,44
+> def receipts(cfg):
+>     """carrier_c1_run.prepare lines 536-541 on every non-pose stream receipt, against the run
+>     division (the pose mix division, or the pose preparation's inputs.division), and
+>     s1_routing._build line 229 (the routing receipt against the pointing receipt's division).
+>     Lines 543-547 read the pointing receipt that preparation rebuilds, not the configured one."""
+>     from student_pilot.p3_provenance import load, pinned
+>     from student_pilot.carrier_c1_run import division_admits
+>     from student_pilot.carrier_c1_routing import ROUTING_SCHEMA
+>     streams = cfg['streams']
+>     pose = load(pinned(streams['pose']))
+>     division = pose.get('division') if pose.get('schema') == 'c1-pose-mix-v1' else pose['inputs']['division']
+>     if division is None:
+>         raise ValueError('R1_STREAM_RECEIPT_REFUSED:pose(division_unknown)')
+>     failed = []
+>     for name, pin in streams.items():
+>         if name in ('pose', 'mdg'):
+>             continue
+>         receipt = load(pinned(pin))
+>         schema = ROUTING_SCHEMA if name == 'routing' else 'c1-stream-v1'
+>         parts = dict(schema=receipt.get('schema') != schema, stream=receipt.get('stream') != name,
+>                      division=not division_admits(receipt['division'], division),
+>                      heldout_overlap=receipt.get('heldout_overlap') != 0,
+>                      gt_masks_only=name == 'pointing' and receipt.get('gt_masks_only') is not True)
+>         bad = [k for k, v in parts.items() if v]
+>         if bad:
+>             failed.append(name + '(' + ','.join(bad) + ')')
+>     if 'routing' in streams and 'pointing' in streams:
+>         legacy = load(pinned(streams['routing']))
+>         if not division_admits(legacy['division'], load(pinned(streams['pointing']))['division']):
+>             failed.append('routing(s1_routing_division)')
+>     if failed:
+>         raise ValueError('R1_STREAM_RECEIPT_REFUSED:' + ';'.join(failed))
+> 
+> 
+8a46
+>     receipts(cfg)

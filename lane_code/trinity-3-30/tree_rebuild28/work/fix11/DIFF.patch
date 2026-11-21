@@ -1,0 +1,180 @@
+# fix11 DIFF vs W/w30f1/n_go (seal 489f7f0f) -> W/w32frm/n_go (seal 33c91db2), test build, not sealed for install
+# changed members (sha256 old -> new):
+#   k/j.json 8ef6838e81a221bd5bcfc9119e518a2c19d4f1eaa5d19c5ee7e163258ef1e4a1 -> b718d5d93ee50516927903654f26081eaeb1c1581b0407b75e823133207cc5a9
+#   b/pf.py 1d1d5fe3605faa6eb1d9bc8479f5331994a66ac20af40ecf0e2e2aaa8256b3f6 -> 5760c7dfdcd8db490f8303efc869961f6d9bff71049088b6893e89439e367ea3
+#   b/pl.py d014bb296ba4f84f976f8aee7706c62768ea430b18f35bd39542b13466c4c31d -> 7b3055918a2b52b38b3a8e0c299c11e5b1bc17ceea3621d6c8a21829c093a360
+#   BUILD.json c97e38dde3d52c19fda82b961974bd7315398a699b7e1d217849ddb21af3d1c7 -> 7036c3b13475cd9d3960aef52b48153877fd2c7d1df7a5ff90e1cc6509c40e49
+#   SHA256SUMS.txt 489f7f0fbfb9913066d0840bde40d01fc30927d2d127709e41bb479e554e2e90 -> 33c91db2da59a32963b20f22d14fe537ff18ced5587af56017cce412c4c9a439
+# unchanged: every other member, incl. k/t_e047002134f979bd.tar, k/c.json, k/n.json, k/p.json, k/c0.json; BUILD.json config_sha256 76de3706 unchanged
+# k/j.json is a base64 capsule of the kit's inner job shell; its decoded diff follows, then b/pf.py, b/pl.py, BUILD.json decoded, SHA256SUMS.txt.
+--- a/k/j.json:decoded
++++ b/k/j.json:decoded
+@@ -367,7 +367,12 @@
+     export PYTHONDONTWRITEBYTECODE=1 PYTHONNOUSERSITE=1 PYTHONPATH="$ANYHOST_JOBS/site_alias"
+     export Q_E1=1 Q_E2=orchard A_SITE_PROFILE="$X/b/profile.json"
+     export Q_E3="$X/models"
+-    export Q_E4="{\"/data2\": \"$X/data2root\"}"
++    # The job folder is also bound at Q_NJ, under the tree's owned node-local root /tmp/jjyeung, and the
++    # kit's python steps run there. Frame reads then resolve to the kit's copy of the frame store inside
++    # the job folder (q/f/<sha256 of the frame root>), the root the request names to the frame audit.
++    case "${Q_NS:-}" in /tmp/?*) ;; *) echo E06 >&2; exit 1 ;; esac
++    Q_NJ="/tmp/jjyeung/${Q_NS#/tmp/}"
++    export Q_E4="{\"/data2\": \"$Q_NJ/p/q/f/$(printf '%s' "$X/data2root" | sha256sum | cut -c1-64)\"}"
+     export C1_INIT_LOCAL="$P/init"
+     export HF_HOME="$TK_JOBDIR/cache/hf" HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 HF_HUB_DISABLE_TELEMETRY=1
+     export OMP_NUM_THREADS=48 MKL_NUM_THREADS=48 OPENBLAS_NUM_THREADS=48 TOKENIZERS_PARALLELISM=false WANDB_DISABLED=true
+@@ -400,7 +405,7 @@
+ tk_pythonpath c
+ tk_bwrap
+ export PATH="$(dirname "${BW[0]}"):$PATH"
+-BW+=(--bind "$Q_ROOT" "$Q_NS" --setenv TK_JOB_START "${TK_JOB_START:?}")
++BW+=(--bind "$Q_ROOT" "$Q_NS" --bind "$Q_ROOT" "$Q_NJ" --setenv TK_JOB_START "${TK_JOB_START:?}")
+ Q_LIVE=$(/usr/bin/python3 -B -I -s "$Q_KIT/b/rv.py" --live "$Q_ROOT" "${SLURM_JOB_ID:?}")
+ BW+=(--bind "$Q_LIVE" "$Q_LIVE")
+ if [[ "${Q_CAPTURE:-0}" == 1 ]]; then
+@@ -411,7 +416,7 @@
+ "${BW[@]}" "$PILOT_VENV/bin/python" -B -s "$Q_KIT/b/g.py"
+ fi
+ set +e
+-"${BW[@]}" "$PILOT_VENV/bin/python" -B -s "$Q_KIT/b/a.py" "${Q_MODE:-q}" "$Q_NS/p" "$Q_NS/r.json" 2>&1 | /usr/bin/python3 -B "$Q_KIT/b/l.py" "$Q_KIT" > "$Q_ROOT/q.log"
++"${BW[@]}" "$PILOT_VENV/bin/python" -B -s "$Q_KIT/b/a.py" "${Q_MODE:-q}" "$Q_NJ/p" "$Q_NJ/r.json" 2>&1 | /usr/bin/python3 -B "$Q_KIT/b/l.py" "$Q_KIT" > "$Q_ROOT/q.log"
+ rc=${PIPESTATUS[0]}
+ if [[ "${Q_MODE:-q}" == r ]]; then
+     /usr/bin/python3 -B -I -s "$Q_KIT/b/rd.py" "$Q_ROOT" "${SLURM_JOB_ID:?}" "$rc"
+@@ -419,19 +424,19 @@
+     if [[ "$rc" == 0 ]]; then rc=$rp; fi
+     exit "$rc"
+ fi
+-"${BW[@]}" "$PILOT_VENV/bin/python" -B -s "$Q_KIT/b/d.py" "$Q_NS/p/s" "$Q_NS/r.json" "$Q_NS/n.json" "$Q_NS/rooms.json" 2>&1 | /usr/bin/python3 -B "$Q_KIT/b/l.py" "$Q_KIT" > "$Q_ROOT/rooms.log"
++"${BW[@]}" "$PILOT_VENV/bin/python" -B -s "$Q_KIT/b/d.py" "$Q_NJ/p/s" "$Q_NJ/r.json" "$Q_NJ/n.json" "$Q_NJ/rooms.json" 2>&1 | /usr/bin/python3 -B "$Q_KIT/b/l.py" "$Q_KIT" > "$Q_ROOT/rooms.log"
+ rr=${PIPESTATUS[0]}
+ if [[ "$rc" == 0 && "$rr" == 0 ]]; then
+-"${BW[@]}" "$PILOT_VENV/bin/python" -B -s "$Q_KIT/b/h.py" "$Q_NS/p" "$Q_NS/v.json" 2>&1 | /usr/bin/python3 -B "$Q_KIT/b/l.py" "$Q_KIT" > "$Q_ROOT/h.log"
++"${BW[@]}" "$PILOT_VENV/bin/python" -B -s "$Q_KIT/b/h.py" "$Q_NJ/p" "$Q_NJ/v.json" 2>&1 | /usr/bin/python3 -B "$Q_KIT/b/l.py" "$Q_KIT" > "$Q_ROOT/h.log"
+ rc=${PIPESTATUS[0]}
+ if [[ "$rc" == 0 ]]; then
+ export OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8
+-"${BW[@]}" nice -n 10 "$PILOT_VENV/bin/python" -B -s "$Q_KIT/b/rv.py" "$Q_NS" "$Q_NS/v.json" "${SLURM_JOB_ID:?}" 2>&1 | /usr/bin/python3 -B "$Q_KIT/b/l.py" "$Q_KIT" > "$Q_ROOT/rv.log"
++"${BW[@]}" nice -n 10 "$PILOT_VENV/bin/python" -B -s "$Q_KIT/b/rv.py" "$Q_NJ" "$Q_NJ/v.json" "${SLURM_JOB_ID:?}" 2>&1 | /usr/bin/python3 -B "$Q_KIT/b/l.py" "$Q_KIT" > "$Q_ROOT/rv.log"
+ rc=${PIPESTATUS[0]}
+ fi
+ if [[ "$rc" == 0 ]]; then
+ export OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8
+-"${BW[@]}" "$PILOT_VENV/bin/python" -B -s "$Q_KIT/b/t.py" "$Q_NS/p" "$Q_NS/v.json" 2>&1 | /usr/bin/python3 -B "$Q_KIT/b/l.py" "$Q_KIT" > "$Q_ROOT/t.log"
++"${BW[@]}" "$PILOT_VENV/bin/python" -B -s "$Q_KIT/b/t.py" "$Q_NJ/p" "$Q_NJ/v.json" 2>&1 | /usr/bin/python3 -B "$Q_KIT/b/l.py" "$Q_KIT" > "$Q_ROOT/t.log"
+ rc=${PIPESTATUS[0]}
+ fi
+ fi
+--- a/b/pf.py
++++ b/b/pf.py
+@@ -4,7 +4,8 @@
+ root each model manifest names. Both must hold the processor files under their manifest names.
+ 
+ First, run the tree's own receipt predicates on the configured stream receipts, so that a receipt
+-the preparation would refuse is refused here, by name, before the long steps."""
++the preparation would refuse is refused here, by name, before the long steps. After staging, frames()
++checks one frame pin per stream source against the request's frame roots."""
+ from pathlib import Path
+ 
+ 
+@@ -42,6 +43,54 @@
+         raise ValueError('R1_STREAM_RECEIPT_REFUSED:' + ';'.join(failed))
+ 
+ 
++def frames(cfg, roots):
++    """s1_admission.FrameAudit.keep on one frame pin per stream source, right after staging: the pin
++    resolves through the tree's resolve_read (the frame root map) to a file under one of the request's
++    frame roots, or the job refuses here, by name, instead of in the frame audit after preparation."""
++    import json
++    import sqlite3
++    from student_pilot.orchard_paths import resolve_read
++    from student_pilot.r1_persisted import relocated
++    resolved = [Path(root).resolve() for root in roots]
++    if not resolved or any(not root.is_dir() for root in resolved):
++        raise ValueError('R1_FRAME_ROOT_MISSING:' + ','.join(str(root) for root in resolved))
++    def read(pin):
++        return json.loads(Path(relocated(pin)).read_text())
++    sources = []
++    for name, pin in sorted(cfg['streams'].items()):
++        if name == 'mdg':
++            continue
++        value = read(pin)
++        if value.get('schema') == 'c1-pose-mix-v1':
++            # The mix keeps only rows whose frames all start with the source's frame_prefix
++            # (c1_pose_mix._row_selected), so the sample row is taken from those.
++            sources += [(name + '/' + str(i), part['receipt'], part.get('frame_prefix'))
++                        for i, part in enumerate(value['sources']) if part.get('kind') == 'rows']
++        else:
++            sources.append((name, pin, None))
++    checked = {}
++    for label, pin, prefix in sources:
++        database = Path(relocated(read(pin)['database']))
++        if not database.is_file():
++            raise ValueError('R1_FRAME_PREFLIGHT_DATABASE_MISSING:' + label)
++        pins = None
++        with sqlite3.connect(database.as_uri() + '?mode=ro', uri=True) as connection:
++            for (text,) in connection.execute('SELECT row FROM rows ORDER BY i LIMIT 50000'):
++                found = json.loads(text).get('student_input', {}).get('frames')
++                if (isinstance(found, list) and found and all(isinstance(f, dict) and isinstance(f.get('path'), str)
++                                                             for f in found)
++                        and (prefix is None or all(f['path'].startswith(prefix) for f in found))):
++                    pins = found
++                    break
++        if not pins:
++            raise ValueError('R1_FRAME_PIN_MISSING:' + label)
++        path = resolve_read(pins[0]['path']).resolve()
++        if not any(path.is_relative_to(root) for root in resolved) or not path.is_file():
++            raise ValueError('R1_FRAME_ROOT_REFUSED:%s:%s' % (label, path))
++        checked[label] = str(path)
++    return checked
++
++
+ def check(cfg, manifest_pin):
+     receipts(cfg)
+     from student_pilot.p3_provenance import load, pinned, sha256
+--- a/b/pl.py
++++ b/b/pl.py
+@@ -356,6 +356,10 @@
+         if named:
+             from pf import check
+             check(cfg,resolved['model_manifest'])
++        # The frame audit after preparation demands each frame pin's map target inside the request's
++        # frame roots; check one pin per stream source now that the copies exist.
++        from pf import frames
++        frames(cfg,request['frame_roots'])
+         if output and early_base is None:
+             from rb import reconstruct
+             generated=reconstruct(cfg,q)
+--- a/BUILD.json:decoded
++++ b/BUILD.json:decoded
+@@ -1,7 +1,7 @@
+ {
+  "GO": true,
+  "config_sha256": "76de3706b8eba5b8e0c6317f96a48d432f597358dfcda94bf1445589c6199bd7",
+- "kit_sha256": "489f7f0fbfb9913066d0840bde40d01fc30927d2d127709e41bb479e554e2e90",
++ "kit_sha256": "33c91db2da59a32963b20f22d14fe537ff18ced5587af56017cce412c4c9a439",
+  "resource_request": {
+   "cpus": 48,
+   "gpus": 4,
+--- a/SHA256SUMS.txt
++++ b/SHA256SUMS.txt
+@@ -15,8 +15,8 @@
+ 977268cd8e59f956ac3383acd7d55f68ef19a276b042cdfcb75169ab6a3254ec  b/o.py
+ 000c23a44265764abfc845a6b18f2b17186efde8628fde146340770d3972d6a6  b/pc.py
+ 3fb410443e0e4ad3082290045b619d9107f06822d0e891c001b6e2bb3eb8ebab  b/pc.sh
+-1d1d5fe3605faa6eb1d9bc8479f5331994a66ac20af40ecf0e2e2aaa8256b3f6  b/pf.py
+-d014bb296ba4f84f976f8aee7706c62768ea430b18f35bd39542b13466c4c31d  b/pl.py
++5760c7dfdcd8db490f8303efc869961f6d9bff71049088b6893e89439e367ea3  b/pf.py
++7b3055918a2b52b38b3a8e0c299c11e5b1bc17ceea3621d6c8a21829c093a360  b/pl.py
+ 880c2cd84c31e226a8f2c24c74f96f424ef68455e6205920b56b9ea07e811ddb  b/px.py
+ 985c3c63e512771656ebd9829d961376afe6ee505f29d8c0780b3dee19593551  b/q.sh
+ 985c3c63e512771656ebd9829d961376afe6ee505f29d8c0780b3dee19593551  b/q1.sh
+@@ -44,7 +44,7 @@
+ 9c0593cf6b302c2fda48a6c1659f24510819802bff216ddba7e3e0f8288c1120  k/c0.json
+ 9fa1f7f921d8388a77473ffdfb3b501d4e654b888858dfce1134bb0086f20010  k/g.json
+ e693876efa3dea18d717d948db5bdd43111f128560e47a1c17822675343231fe  k/h.json
+-8ef6838e81a221bd5bcfc9119e518a2c19d4f1eaa5d19c5ee7e163258ef1e4a1  k/j.json
++b718d5d93ee50516927903654f26081eaeb1c1581b0407b75e823133207cc5a9  k/j.json
+ 363ca0d32eff84911d399612d506435400e9f0049e3dc7a1d604ddc2d413819c  k/l.json
+ 4b8b9533eb12434186a9f42a06b44962574c3dedd51f9b8405d1f7e33d2504b9  k/n.json
+ 77525f28cdbc24b8b1ce918460c91878708e200ebc05c7a17725a10787712694  k/p.json

@@ -1,0 +1,1 @@
+timeout 100 srun --overlap --jobid 174134 -N1 -n1 bash -c 'grep -n "PILOT_VENV=\|^ *P=\|S=" /tmp/q_22c714e1_174134/j.sh | head -8; ls -d /tmp/q_22c714e1_174134/*/ /tmp/q_22c714e1_174134/p/*/ 2>/dev/null | head -30; ls /tmp/q_22c714e1_174134/np226 /tmp/q_22c714e1_174134/p/np226 2>&1 | head -3' < /dev/null 2>&1 | cut -c1-250

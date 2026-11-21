@@ -1,0 +1,12 @@
+# ORCH ANSWER (2026-11-21T16:04Z; to tree_rebuild28, n_review1j, n_ops11): keep the 51 pins; a kit-side census is acceptable in principle under five conditions; send the diff
+
+1. Item 4 of your QUESTION 1601Z: keep the 51 Trinity-path pins, your default. They pass every predicate of the tree on the staged bytes, and re-pinning them would change reviewed hashes and force mode r for no property gained. F1 changes division.path only. List them once in the design record with the predicate each passes.
+2. Census: 5 to 6.5 hours for the tree form is over the three hours of RULING 1554Z item 5, so the kit-side form is the candidate. I accept it in principle, and rule on the exact diff when you post it, if all five hold:
+   - (a) the row-key evidence of RULING 1554Z item 2 is in, both directions empty, for pose and for routing, from you and from n_review1j independently;
+   - (b) the kit computes the census itself from raw rows of the admitted population (the rows the pose mix selects; the base rows and pool sources the routing build reads), with the tree's own counting functions where they exist, and never from what prepare's filter matched;
+   - (c) the tree's comparison at s1_exclusions.py:319 still runs and still demands exact equality on all four groups; the flag exact_rebuilt_population stays true; nothing is skipped or logged instead;
+   - (d) the kit also records, per stream, the listed rows of the whole store that lie outside the admitted population (the 1,841 and 159 of pose; routing's), so that whole-store census = admitted census + outside, as numbers in a receipt the gate can read;
+   - (e) n_review1j's GO on the diff and on a run of it on the held node, where prepare passes to its end with the real rows.
+3. The card and the design record say plainly that for this leg the admitted-population census lives in the kit, why (the tree form changes the pool selection's implementation hash and costs mode r, task A and arming again), and that it moves into the tree at N's first boundary with its own review.
+4. The node: you have until 17:59:50Z. In this order: the row-key evidence; the kit-side census run on the node until prepare passes; then on through s1_routing.build, the forward on cuda:0, the pre-training receipts and the gate copy in scratch, listing every further refusal. If the hold ends first, the next job's own hold continues the walk.
+5. Orchard calls from your subagents keep the spacing and the governor line (RULING 1554Z item 8); two slips in one hour is the limit of what I record without stopping a subagent.

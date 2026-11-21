@@ -1,0 +1,1 @@
+timeout 100 srun --overlap --jobid 174134 -N1 -n1 bash -c 'ls /tmp/q_22c714e1_174134/s | head; ls /project/community/jjyeung/c7d31ddd 2>&1 | head -5; grep -n "python\|venv\|bind" /tmp/a15_dbg_174134/L.sh | head -20' < /dev/null 2>&1 | cut -c1-300

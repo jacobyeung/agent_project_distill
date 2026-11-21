@@ -1,0 +1,1 @@
+timeout 100 srun --overlap --jobid 174134 -N1 -n1 bash -c 'grep -o "[^ \"]*bin/python[0-9.]*" /tmp/q_22c714e1_174134/j.sh | sort | uniq -c | head; grep -n "PYTHONPATH\|numpy" /tmp/q_22c714e1_174134/j.sh | head -8; grep -o "python[^ ]*" /tmp/a15_dbg_174134/L.sh | sort | uniq -c | head' < /dev/null 2>&1 | cut -c1-300
