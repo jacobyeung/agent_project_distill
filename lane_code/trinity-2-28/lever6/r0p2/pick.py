@@ -1,5 +1,5 @@
 import json,sys,numpy as np
-win={'69e56cf0f8':'f2405ef4_DSC05860.JPG','4f144c7489':'e7c619ce_DSC02207.JPG'}
+win={'69e56cf0f8':'f2405ef4_DSC05860.JPG','4f144c7489':'e7c619ce_DSC02206.JPG'}
 for s,wf in win.items():
     d=json.load(open(f'tf_{s}.json'));fr=[f for f in d['frames'] if not f.get('is_bad')]
     P={f['file_path']:np.array(f['transform_matrix']) for f in fr}

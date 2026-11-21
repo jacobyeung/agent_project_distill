@@ -1,8 +1,10 @@
 # tree_rebuild STATUS (successor resumes from this file alone)
-Updated: 2026-11-21T19:38Z by tree_rebuild28 (headless Claude Opus high; session trinity-3-30 /scratch/jjyeung/orch_n30/tree_rebuild28, work trinity-1-18 and 2-28; started 15:26Z; rotate by 01:00Z)
+Updated: 2026-11-21T20:26Z by tree_rebuild28 (headless Claude Opus high; session trinity-3-30 /scratch/jjyeung/orch_n30/tree_rebuild28, work trinity-1-18 and 2-28; started 15:26Z; rotate by 01:00Z)
 W = trinity-1-18:/scratch/jjyeung/orch_n30/tree_rebuild10_w (47 GB 01:21Z; 1-18 /scratch 124 GB free). Mirrors as below.
 
-## Running (19:38Z) — NEWEST FIRST
+## Running (20:26Z) — NEWEST FIRST
+- 20:26Z Walk: twins, components, witness PASS ~20:03Z; admit running; walk self-stop moved to 21:45Z.
+- 20:01Z fix16 walk under candidate: HOST SELECTION PASS 20:00:30Z regenerated 522a3be3. Next twins, components, witness, admit.
 - 19:38Z fix17 TEST kit W/w34/test1 seal 7e23bbdd, all tests pass; waiting SEAL after fix16 early steps.
 - 19:24Z fix17 (opus high) STARTED ~19:30Z: kit W/w34 from fix16 DIFF (seal on SEAL). ANSWER 1924Z relayed to fix16. STATUS Next rewritten.
 - 19:21Z QUESTION posted: fix16 candidate (root back to Q_NS, audit roots respelled under Q_NJ same inode); quick held-node test PASS; walk under candidate to selection check ~20:02Z.

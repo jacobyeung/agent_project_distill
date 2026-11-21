@@ -1,12 +1,11 @@
 # lever6 STATUS (trinity-2-28; started 19:53Z 11-21; successor of lever5). Successor resumes from this file alone.
-Lane dir /scratch/jjyeung/orch_n30/lever6. lever5 material stays in /scratch/jjyeung/orch_n30/lever5 (kits, ledger lever5/work/ORCHARD_LEDGER.jsonl). Orchard: tools/ossh.sh; general one job of ours at most; never advanced; /project floor 5 GiB.
-## Now
-- 19:53Z RESULT started posted.
-- K5 fresh review running (Claude opus high; brief lever6/k5rev/BRIEF_REVIEW.md; report -> lever6/k5rev/REVIEW_K5.md).
-## OWED (in order; detail in lever5's STATUS copy below, unchanged)
-1. K5: review -> RESULT -> place -> CPU check -> job0 -> job1 -> score -> RESULT per dataset. Kit lever5/k5/kit (REPORT_K5.md lane commands).
-2. Noise floor option B step 2 (ANSWER 1902Z rule).
-3. RULING 1939Z A: register in plan record + review, then run on a Trinity 49 GB card.
-4. RULING 1939Z B: R0 pair 2.
-5. Plan record current.
-Nothing of ours runs on Orchard. No stream open.
+Lane dir /scratch/jjyeung/orch_n30/lever6. lever5 material in /scratch/jjyeung/orch_n30/lever5. Ledger lever6/work/ORCHARD_LEDGER.jsonl (older: lever5/work/). Orchard: tools/ossh.sh; general one job of ours at most; never advanced; /project floor 5 GiB (184 GiB free at 20:04Z).
+## Done
+- R0 pair 2: different rooms (fixed fittings), R0 record updated, R0-dev keeps 98 rooms (RESULT 1959Z). Files lever6/r0p2.
+- K5 review GO (lever6/k5rev/REVIEW_K5.md; RESULT 2001Z). Placed token a51f1ee88f0c9; CPU check 174236 FAILED 3:56 on community-2: the bwrap bind dirs sj/fsw/m/ap are never created (reproduced: lever6/work/k5fix/nstest.py). QUESTION 2014Z, RESULT 2015Z (cause found, proceeding under ANSWER 0720Z item 3).
+- NF replay harness built (lever6/nf/kit, REPORT_NF.md, 8/8 tests). It covers the camera types only; distance and room are UNMEASURED (K5 returns depth hashes only). Run command in REPORT_NF.md once K5 returns.
+## Running
+- K5 fix build (Claude opus high; brief lever6/k5b/BRIEF_FIX.md -> lever6/k5b/kit, FIX_NOTES.md, new token). Then: fresh review -> place -> CPU check -> job0 (o_sub0) -> fetch -> job1 (o_sub1) -> fetch -> score_k5.py -> RESULT per dataset (lead with default_orders, A1 vs A2) -> NF replay -> RESULT with the ANSWER 1902Z rule.
+- GTC kit BUILT (lever6/gtc/kit/REPORT_GTC.md; frames local, 1,472 PNGs, 397 MB, no stream; forecast 6.3 GPU min). Registration in the plan record (section 'Rank 1 follow-up (GTC)', plan lines ~219-231; copy lever6/gtc/REGISTRATION.md; t seeds at >= 1 px with a registered >= 200 px seed-size guard). Fresh review RUNNING (brief lever6/gtcrev/BRIEF_REVIEW.md -> REVIEW_GTC.md).
+- GPU: at 20:27Z all 8 cards on 2-28 were busy (35 GB, 100%; not ours). trinity-0-13 had 7 empty cards at 20:28Z and 20:28:39Z. Inputs copied to 0-13 over IB at 20:29Z (lever6/xfer/list.txt, same paths); env on 0-13 matches. Plan: on GO, launch in tmux on 0-13 with `bash /scratch/jjyeung/orch_n30/lever6/gtc/kit/launch_gpu.sh` (it takes two readings 300 s apart; no vnice on 0-13), then copy out/track back to 2-28 by IB tar pipe, then relift_t.py on 2-28.
+## Removal candidates: lever6/REMOVAL_CANDIDATES.md; lever6/nf/REMOVAL_CANDIDATES_NF.txt.

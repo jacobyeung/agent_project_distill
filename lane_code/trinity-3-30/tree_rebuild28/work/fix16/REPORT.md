@@ -1,6 +1,6 @@
-STATUS 19:27Z: cause shown (1); candidate accepted in shape by ORCH ANSWER 1924Z; DIFF.patch written (sha256 6dd5ffcc..., section 5) and unchanged since 19:23Z; quick held-node test PASS with controls (4a); walk w1 of mode q from the start of a.py under the candidate runs on the node since 19:19:22Z (4b, step list filled as steps land); identity table (2) in progress.
-EARLY STEPS: not yet (walk is in the plan's scene rebuild at 19:27Z).
-QUESTION 1921Z answered by ORCH ANSWER 1924Z: the naming is accepted (same directory by device and inode, frame audit only).
+STATUS 20:02Z: HOST SELECTION PASSES under the candidate in the from-start walk (20:00:30Z): digest 522a3be3..., rows.sqlite 5e35c3ce..., materialization 6faab9cc..., source 74640a29..., receipt.json byte-identical to the reviewed one (38c52f00...). Cause shown (1); identity table (2); candidate accepted in shape by ORCH ANSWER 1924Z (3); DIFF.patch sha256 6dd5ffcc..., unchanged since 19:23Z (5). Walk w1 continues into twins, components, witness, admit.
+QUESTION 20:24Z answered by the coordinator (20:25Z): the walk's self-stop is now 21:45:00Z. Done at 20:25:59Z: the walk's timeout process is stopped (state T) and a watchdog step (node/wd.sh, pid 3710953) runs node/stop.sh at 21:45:00Z; proof of the stop goes to w1/log/stop.log and into section 4c by 21:50Z.
+EARLY STEPS: not yet (20:54Z). Passed so far, in order: plan, begin_host, staging with the candidate preflight, host scene, HOST SELECTION 20:00:30Z, direction_twins 20:01:23Z, training_components, witness 20:03:02Z; admit entered 20:03:33Z with the frame roots under the second name. Stream builds inside admit passed (pointing 20:08:33Z, vqa 20:49:03Z, routing 20:51:31Z with rows.sqlite 5e35c3ce = N_DB, bind_target 20:52:02Z). Running since 20:52:02Z: carrier_c1_run.prepare (:540, :621). Still owed: prepare :540 and :621, frame audit start.
 
 # fix16 REPORT: 174198 refusal R1_ROUTING_SELECTION_DIFFERS
 
@@ -86,7 +86,17 @@ Step list (path order; filled as steps land; raw polls rd/p*.out):
 |---|---|---|---|
 | plan (pl.py: refresh, census, scene rebuild 577 s, frame hashes) | PASS | 19:19:23-19:42:00Z | p/plan.json 568,417,853 bytes = the refused run's 578,203,613 minus 8 bytes x 1,223,220 path strings |
 | begin_host (fresh job_tmp, confinement of cfg and request) | PASS | 19:43:22Z | p/q created |
-| staging (kit hook: payload, 1.1M frame copies, preflight frames() with audit_roots) | running | 19:43:22Z- | |
+| check_host_runtime, stage_host: staging plan checks, kit hook (payload, 1.1M frame copies, y), preflight frames() with audit_roots, census preflight | PASS | 19:43:22-19:57:31Z | p/q/n.json 33,808 bytes, 0 second-name strings, 134 first-name; s1_routing.selection sha256 74640a29... (the reviewed source) |
+| check_host_scene | PASS | before 19:58:03Z | the selection build started |
+| HOST SELECTION (entry.py:277-288 through the kit's guarded_selection) | PASS | 19:58:03-20:00:30Z | log line {"A15_SELECTION": "PASS", "root": "/tmp/q_22c714e1/p/q", "regenerated_sha256": "522a3be39b90d6fd8ec4dd599d89e1d5762c3a1a150e198c0c0bbb70f931ba39", "assertion": true}; selection/receipt.json file sha256 38c52f008d131a8554d3d18974f4d2de1e77bdf092c747132df477db8ff08398 = the reviewed regenerated_receipt pin; rows.sqlite sha256 5e35c3ce600a867be194911642caccb23098035b4bf08909e519a170a1c243df (849,543,168 bytes) = N_DB; materialization.json sha256 6faab9cc...; source 74640a29...; count 43,101; 0 second-name strings, 104 first-name (raw rd/p14.out) |
+| direction_twins (augment, census, verify_audit, check_host_scene) | PASS | 20:00:30-20:01:23Z | twins/rows.sqlite, receipt.json, augmentation.json 20:00:46Z; twins/room_audit.json 20:01:23Z (0 second-name strings, 22 first-name) |
+| persisted closure (r1_persisted.verify), training_components | PASS | before 20:03:02Z | the witness that follows was written |
+| witness (p_opener_witness) and bind_target | PASS | 20:03:02-20:03:33Z | v.json 485 bytes, m.json 1,116 bytes, c.json 29,680 bytes (0 second-name strings, 137 first-name) |
+| admit entered through the candidate's wrapper | started | 20:03:33Z | p/request.json: frame_roots = the two /tmp/jjyeung/q_22c714e1/p/q/f/... names, frame_root_map the same target; config pin under the first name |
+| admit prepare phase: parent grounding, pointing stream, vqa stream | PASS | 20:03:34-20:49:03Z | parent_grounding.json 20:03:34Z; pointing/receipt.json 20:08:33Z; vqa/receipt.json 20:49:03Z (rows.sqlite 1,670,574,080 bytes) |
+| admit prepare phase: routing build (the tree's s1_routing.build again, with its processor build) | PASS | 20:49:03-20:51:31Z | p/prepare_9bfb0f3b.../routing/rows.sqlite sha256 5e35c3ce600a867be194911642caccb23098035b4bf08909e519a170a1c243df = N_DB (the gate's d_population pin); routing/receipt.json 0 second-name strings, 104 first-name |
+| admit prepare phase: bind_target | PASS | 20:52:02Z | handover.json 1,116 bytes |
+| admit prepare phase: carrier_c1_run.prepare (pose mix, :540 receipts and division, row loops, :621 scene apply, verify, receipt) | running | 20:52:02Z- | first walk: 21 min |
 
 ## 5. DIFF.patch (work/fix16/DIFF.patch, sha256 6dd5ffccc6f10c21c053ce5ca98db386dec19e4dabf61c709c34c312609b4af9, written 19:23Z, against W/w33n/n_go seal 929ab213)
 - Base check: the local copy fix15/kit2/n_go passes sha256sum -c on all 55 members and sha256(SHA256SUMS.txt) = 929ab213...; the node's X/n/SHA256SUMS.txt has the same sha256 (walk log).

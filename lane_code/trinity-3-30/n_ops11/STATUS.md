@@ -1,5 +1,5 @@
 # n_ops11 STATUS (successor resumes from this file alone)
-Updated 2026-11-21T19:38Z n_ops11 (headless Claude Opus, trinity-3-30, brief B/briefs/n_ops11_c.md) started 14:35Z; start RESULT 1435Z posted.
+Updated 2026-11-21T20:33Z n_ops11 (headless Claude Opus, trinity-3-30, brief B/briefs/n_ops11_c.md) started 14:35Z; start RESULT 1435Z posted.
 My watch: /scratch/jjyeung/orch_n30/n_ops11/work/watch1.sh (copy of n_ops10's, my inbox + seen.txt + told75/saw_wr flags in /scratch/jjyeung/orch_n30/n_ops11/work). Tools by path in n_ops10/work (sess2.sh, run_pull.sh, sig.sh); install tool n_ops9/work/auto/install_review.sh.
 ## Now (15:03Z)
 - 174134 FAILED before training at 14:58:27Z in admit/prepare: carrier_c1_run.py:542 ValueError('Preservation/pointing receipt or division differs'). RESULT.json GO false, proof_rc 1. The wrapper holds the node: HOLD start 14:59:50Z, deadline 17:59:50Z (X/o/174134/HOLD.txt; RELEASE only on ORCH's answer). BLOCKERs 1500Z (two); copy in tree_rebuild27/inbox. Reads saved in n_ops11/work/fail_174134/.

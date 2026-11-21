@@ -1,0 +1,7 @@
+#!/bin/bash
+cd "/scratch/jjyeung/orch_n30/lever6/gtc/kit"
+export CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=1 PYTHONNOUSERSITE=1 PYTHONDONTWRITEBYTECODE=1
+export OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 NUMEXPR_NUM_THREADS=8
+export XDG_CACHE_HOME=/scratch/jjyeung/orch_n30/lever6/gtc/work/gpu_cache/xdg HF_HOME=/scratch/jjyeung/orch_n30/lever6/gtc/work/gpu_cache/hf TORCH_HOME=/scratch/jjyeung/orch_n30/lever6/gtc/work/gpu_cache/torch TRITON_CACHE_DIR=/scratch/jjyeung/orch_n30/lever6/gtc/work/gpu_cache/triton TORCHINDUCTOR_CACHE_DIR=/scratch/jjyeung/orch_n30/lever6/gtc/work/gpu_cache/inductor
+export CUDA_CACHE_PATH=/scratch/jjyeung/orch_n30/lever6/gtc/work/gpu_cache/nv MPLCONFIGDIR=/scratch/jjyeung/orch_n30/lever6/gtc/work/gpu_cache/mpl TMPDIR=/scratch/jjyeung/orch_n30/lever6/gtc/work/gpu_cache/tmp HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1
+exec timeout -k 30 3600 /scratch/jjyeung/envs/sam3_capretry_native_v1/bin/python -B track.py --device cuda --arms t,s --out /scratch/jjyeung/orch_n30/lever6/gtc/work/dry_launch --hard-stop 3480

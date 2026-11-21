@@ -1,0 +1,2 @@
+#!/bin/bash
+grep -v '^{"remove_list\|^{"source\|^{"pool_rows\|^{"admitted_census' "$1" | cut -c1-${2:-300} | grep -v "^total\|^d.* \.$\|^d.* \.\.$\| e$\|e.json$\| f$\|n.json$\| sc$\|source_code.json\|ss.json\|t.tar\| u$\| w$\| y$\|scene rebuild seconds\|A15_SELECTION\|fast path is not available\| c.json$\| m.json$\| v.json$\| selection$\| twins$\|request\.\|admission request\|attempt_\|SHA256SUMS\|a.py q /tmp"
