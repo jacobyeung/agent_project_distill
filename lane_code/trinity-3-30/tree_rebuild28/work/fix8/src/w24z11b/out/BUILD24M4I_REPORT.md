@@ -1,0 +1,13 @@
+CASE b; q 682bec8e0f9e9bce4753cea1763e4b52ff95b274589722f326b46e4371b50952; n a20f35c92b319be34f9b46db698b89b13224e62b0610311e67ba589dd8f80c41; n_go f9a1d6edadd11e0393ced208144c7634ba3f420f0aa00ccb32e0ea0121b986cc; qd b867fd0ee440cea700c95718f73a02ed67281fec09625f316050f34c1f24b933; kit_n_go k/c.json decoded payload sha256 cc148db079c0ae3dad25c4925cfdd61880c64a15af8ce42298918263305b3776; identity e0b9e4af8bb01f0b1cb060ca3adf5c97c69634d1210a146f99aa3b8757ad245b.
+The zero room draw persisted for the whole job: r1_mix.py:24/35/90 fixes allocation; r1_population.py:202 binds indices; r1_loader.py:51/62 only audits. out/CASE_24M4I.md gives full file:line paths.
+ORCH 0511Z sets room_size and room_rows_per_step from 0 to 1.70 and direction from 36.866 to 35.166, preserving 128 VQA rows/step; all other card values are unchanged.
+Tree C remains 0c7614c8eff74201db275489af9c3fa11f3b418693a0239b793e6322685298de; every b/ file is unchanged; EXACT_CONFIG_DELTA.json verifies only draw entries and dependent identities/seals.
+kit_n_go config identity f35c13f54089228ef73167cf36656b5d0ab1e9e181ba751be7b7d15edd564b88 -> e0b9e4af8bb01f0b1cb060ca3adf5c97c69634d1210a146f99aa3b8757ad245b; CONFIG_IDENTITIES.json records before/after identities and payload hashes for all four kits.
+DRAW_TABLE_24M4I.md/.json report 31 plan families over 200 steps: P=N=340 room rows (1.70/step); N counting −0.175 and direction +0.175 follow K1 and the repeat cap.
+N routing_base supplies 64 rows/step; its underlying native type split remains unknown. Unexplained routing allocation differences and the six-row relative-distance census gap are marked UNATTRIBUTED.
+P uses authenticated native populations; N uses configured ceiling counts and explicit synthetic offsets. No production admission, native N population, frame loading or training is claimed.
+All 16 scan, kit, naming, resolver, guard and arming suites pass; native arm_routing checks and seven refusals pass on the new seals. ARM_ROUTING_USAGE.md uses the local runner and updated scanners.
+UPLOADS_24M4I.json/.list contain 24 files (683275 bytes), exactly against 24m4h Orchard kit state; UPLOADS_24M4I_GO.json is separate; GO is false except out/kit_n_go.
+FAILURES.json retains exact failure output; the resolver fixture omission is resolved. All tests mount the host read-only with only w24i writable and block imports from superseded workspaces.
+The inert room_rule annotation remains unchanged to honor the draw-only delta; executable draw entries govern. No SSH, network, Orchard, GPU, Git, scheduler, other agents, upload or launch ran.
+DELIVERY_24M4I.json and PACKAGE_CHECK.json record the full archive, checksum, member verification and storage below 25 GB.

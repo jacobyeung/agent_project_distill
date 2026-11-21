@@ -1,0 +1,3 @@
+export TZ=UTC; date -u +%TZ
+timeout 60 srun --overlap --jobid 174134 -N1 -n1 bash -c 'cd /tmp/a15_dbg_174134; N=${A15_N:-n1}; L=${A15_L:-c1}; echo "ev lines: $(grep -c . $N/ev.jsonl)  log bytes: $(stat -c %s log/$L.log)"; grep -v "\"kind\": \"START\"" $N/ev.jsonl | tail -n 12 | cut -c1-1800; echo "-- log tail"; tail -c 1500 log/$L.log | grep -v "^EV " | tail -15; echo "-- procs"; ps -u $(id -un) -o pid,etime,pcpu,rss,nlwp,args --width 150 | grep -E "c\.py|post|h\.py|rv\.py" | grep -v grep | head -5; nvidia-smi --query-gpu=index,memory.used,utilization.gpu --format=csv,noheader | tr "\n" ";"; echo; ls $N/p/q $N/p/q/p 2>/dev/null | tr "\n" " "; echo; df -h /tmp | tail -1'
+squeue -j 174134 -h -o "%i %T %M %N"

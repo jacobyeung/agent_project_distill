@@ -1,0 +1,135 @@
+launch_s1/b/g.py:19:    if not isinstance(pin, dict) or set(pin) != {"file", "sha256"}:
+student_pilot/r1_rooms.py:98:               != [{k:v for k,v in p.items() if k!='path'} for p in cfg['remove_files']]
+student_pilot/r1_rooms.py:106:        if (pin_values(report['source'])!=pin_values(sources[kind]['source']) or report['unresolved']!=0
+student_pilot/r1_rooms.py:114:    if (pin_values(store['database'])!=pin_values(actual) or pin_values(store['certification'])!=pin_values(audit['authority']['build'])
+student_pilot/r1_rooms.py:133:                or pin_values(store.get('k1_removal')) != pin_values(pin)):
+launch_r2/distributed.py:87:    return train(cfg,resume_pin=cfg.get('resume') if mode=='u' else None)
+launch_r1/p_handover_receipt.py:53:        if stream['receipt'] != pin:
+launch_r1/p_handover_receipt.py:80:            or receipt.get('step') != load(pinned(artifact_pin)).get('step')
+launch_s1/b/d.py:57:        if not isinstance(pin, dict) or set(pin) != {"path", "sha256"}:
+student_pilot/r2_policy.py:106:    if catalog_pin is not None and catalog_pin != policy.get('catalog'):
+student_pilot/orchard_media.py:50:    if not group or group['manifest'] != manifest_pin:
+student_pilot/mdg_runtime.py:49:    if {k: v['receipt'] for k, v in receipt.get('streams', {}).items()} != native.get('streams', {}):
+launch_s1/build.py:71:    if bindings.get("code_seal") and load(pinned(bindings["code_seal"])) != code:
+launch_s1/b/sa/prestage_hooks.py:182:            if str(path) == target and state.unchanged(target, pin):
+launch_s1/b/w.py:153:        if (previous['database']!=pins['database'] or previous['model']!=pins['model']
+launch_s1/b/w.py:182:        run.train(cfg,smoke_steps=3 if mode=='s' else None,resume_pin=pick(auth,'resume',arm) if mode in ('u','x') else None,
+student_pilot/r1_handover.py:69:        if (not isinstance(pin, dict) or set(pin) != {'path', 'sha256'}
+student_pilot/r1_handover.py:303:    if tables['source'] != tables['target']:
+student_pilot/r1_handover.py:315:            if artifact != load(pinned(cfg['init_artifact']['artifact'])):
+student_pilot/r1_handover.py:371:        if stream.get('receipt') != receipt_pin:
+launch_r1/p_export_receipt.py:61:        if stream['receipt'] != pin:
+student_pilot/c1_pose_mix.py:94:    if division_pin == ancestor_pin:
+student_pilot/c1_pose_mix.py:105:            if parent_pin == ancestor_pin:
+student_pilot/c1_pose_mix.py:182:            elif ((run is None and receipt['inputs']['division'] != settings['inputs']['division'])
+student_pilot/clean_source.py:686:    if membership_pin["availability"] == "verified":
+student_pilot/clean_source.py:719:        require(frozen_pin["sha256"] == value["sha256"], "Attempt authority changed while freezing")
+student_pilot/clean_conversion.py:426:        require(verdict.get("decision") == decision_pin and verdict.get("verdict") in ("accept", "reject"), "Independent decision is not bound to this exact example")
+student_pilot/r1_routing.py:120:        if sources.get(kind) != source_pin:
+student_pilot/mdg_eval.py:282:    if load(pinned(bundle)).get('schema') != 'mdg-t0-bundle-v1':
+student_pilot/c1r_clips.py:877:        if report.get('schema') != ('c1r-worker-v2' if data['schema'] == 'c1r-clip-plan-v2' else 'c1r-worker-v1') or report['plan'] != plan_pin or report['a1_plan'] != a1_plan:
+student_pilot/recording_pose.py:785:        if receipt['schema'] != 'recording-pose-staged-v1' or receipt['plan'] != plan_pin:
+student_pilot/ddp_admission.py:174:                or part.get("request") != request_pin or part.get("protocol_sha256") != request["protocol_sha256"]
+student_pilot/s1_route_policy.py:22:    if authenticate and load(pinned(table)) != cfg.get("route_table"):
+student_pilot/p3_provenance.py:45:    if not isinstance(pin, dict) or set(pin) != {'path', 'sha256'}:
+student_pilot/carrier_c1_routing.py:1070:                   database=file_pin(out / 'rows.sqlite'), heldout_overlap=0 if scene_role == 'train' else None,
+student_pilot/carrier_c1_run.py:209:            or gate.get('artifact')!=file_pin(Path(cfg['output'])/'m400/artifact.json')):
+student_pilot/carrier_c1_run.py:229:            or pose.get('contiguous_clips') != clip_pin
+student_pilot/carrier_c1_run.py:268:            or parent['database'] != receipt['source_database']
+student_pilot/carrier_c1_run.py:270:            or stream['receipt'] != receipt['parent'] or stream['database'] != parent['database']
+student_pilot/carrier_c1_run.py:486:    receipts = {name: load(pinned(pin)) for name, pin in cfg['streams'].items() if name != 'mdg'}
+student_pilot/carrier_c1_run.py:540:                or not division_admits(receipt['division'], division) or receipt.get('heldout_overlap') != 0
+student_pilot/carrier_c1_run.py:727:            or {k: v['receipt'] for k, v in receipt['streams'].items()} != cfg['streams']
+student_pilot/carrier_c1_run.py:754:        if (source.get('schema') not in ROWS_ONLY_SCHEMAS or source['database'] != value['database']
+student_pilot/carrier_c1_run.py:775:        if source['database'] != value['database'] or source['count'] != value.get('source_count', value['count']):
+student_pilot/carrier_c1_run.py:1812:        if record['config'].get('code') != record['previous_config'].get('code') and (
+student_pilot/carrier_c1_run.py:1814:                record.get('code') != record['config'].get('code')):
+student_pilot/carrier_c1_run.py:2190:        if meta['base_artifact'] != file_pin(directory/'artifact.json'):
+student_pilot/carrier_c1_run.py:2548:            valid = isinstance(receipt['config'], dict) and identity(receipt['config']) == expected_binding['config_sha256']
+student_pilot/carrier_c1_run.py:2859:    if smoke_steps is not None and (type(smoke_steps)!=int or not 1<=smoke_steps<=10 or resume_pin):
+student_pilot/carrier_c1_run.py:2933:    if resume_pin == 'latest':
+student_pilot/conversion.py:91:    if Path(packet_pin["path"]).resolve() != audit_directory / "review_packets.json":
+student_pilot/run_live_parity.py:99:    if sha(manifest['source'])!=manifest['source_sha256']:
+student_pilot/r1_components.py:118:    if not pin or normalize(load(pinned(pin)).get('component_evidence', {})) != status:
+student_pilot/r1_persisted.py:156:        if stream['receipt'] != cfg['streams'][name] or pins.get(label) != stream['receipt']:
+student_pilot/grounding_head.py:242:    if 'config' in meta and meta['config'] != asdict(head.cfg):
+student_pilot/s1_exclusions.py:356:            receipt.get("benchmark_scene_exclusions") != benchmark_pin):
+student_pilot/s1_exclusions.py:370:        if load(pinned(value[key])) != selected:
+student_pilot/auxiliary_config.py:51:        if not isinstance(pin, dict) or set(pin) != {'path', 'sha256'} or not isinstance(pin['path'], str) or not pin['path']:
+student_pilot/full_ft.py:711:    if sha256_file(directory / index_pin["name"]) != index_pin["sha256"]:
+student_pilot/camera_config.py:161:        if not isinstance(pin, dict) or set(pin) != {'path', 'sha256'} or not isinstance(pin['path'], str) or not pin['path']:
+student_pilot/c1r_data.py:126:                or binding.get('teacher') != load(pinned(cfg['teacher']))
+student_pilot/c1r_data.py:148:                if file_pin(path) != pin:
+student_pilot/mask_grounding_head.py:401:    if 'config' in meta and meta['config'] != asdict(head.cfg):
+student_pilot/r2_contract.py:92:        if load(pinned(cfg['code'])).get('tree_sha256') != spec['code_sha256']:
+student_pilot/provisional_eval.py:61:    if Path(manifest_pin["path"]).resolve() != root / "SHA256_MANIFEST.json":
+student_pilot/provisional_eval.py:73:    if Path(result_pin["path"]).resolve() != root / "training_result.json":
+student_pilot/s1_admission.py:53:            if (not isinstance(pin, dict) or set(pin) != {"path", "sha256"}
+evalpath/pointing_candidates.py:14:    if (not isinstance(pin, dict) or set(pin) != {'path', 'sha256'} or
+student_pilot/mdg_rasters.py:237:    if split_pins != {key: file_pin(path) for key, path in paths.items()} or file_pin(meta_path) != meta_pin:
+student_pilot/republish.py:51:    if Path(manifest_pin["path"]).resolve() != source / "SHA256_MANIFEST.json":
+student_pilot/r2_openers.py:59:            or cfg.get('streams') != {k:v['receipt'] for k,v in receipt.get('streams',{}).items()}):
+student_pilot/startup_receipt.py:156:    if manifest_pin != receipt['inputs']['training.json']:
+student_pilot/startup_receipt.py:162:            or inventory.get('manifest') != manifest_pin
+student_pilot/r1_coverage.py:66:                    if pin_values(pin) != pin_values((cfg or {}).get('streams', {}).get('routing')):
+student_pilot/r1_coverage.py:234:    if read_list(pin)!=expected:raise ValueError('R1_K1_UNION_CONTENT')
+student_pilot/provisional.py:246:        if target_path != (Path(row_pin["path"]) if row_pin else None) and payload not in (row["target"].encode(), (row["target"] + "\n").encode()):
+student_pilot/benchmark_eval/score.py:271:    if header['core']['config'] != config:
+student_pilot/benchmark_eval/generate.py:104:            or preflight.get('manifest') != manifest_pin or preflight.get('model_name') != model_name
+student_pilot/benchmark_eval/generate.py:111:    if preflight.get('variant') != variant or preflight.get('adapter') != adapter_pin:
+student_pilot/warmstart.py:200:        if (not isinstance(pin, dict) or set(pin) != {"sha256"} or not isinstance(pin["sha256"], str)
+student_pilot/benchmark_eval/frames.py:243:                  if model_pin['generation_config_source'] == 'generation_config.json'
+student_pilot/benchmark_eval/contracts.py:444:            or offsets[-1][1] != weight_pin['size_bytes'] - 8 - header_size):
+student_pilot/benchmark_eval/contracts.py:474:                or v_offsets[-1][1] != vision_pin['size_bytes'] - 8 - v_header_size):
+student_pilot/redecision.py:98:        if attempts and attempt["provider"]["sha256"] != provider_pin["sha256"]:
+student_pilot/orchard_eval/generate.py:399:            or preflight.get('manifest') != manifest_pin or preflight.get('model_name') != model_name
+student_pilot/orchard_eval/generate.py:402:            or preflight.get('thinking_mode', 'pinned') != thinking or preflight.get('items_file') != items_pin
+student_pilot/orchard_eval/generate.py:413:    if preflight.get('variant') != variant or preflight.get('adapter') != adapter_pin:
+student_pilot/orchard_eval/generate.py:631:                if insert and audit['carrier_token_id'] != adapter_pin['carriers']['token_id']:
+student_pilot/orchard_eval/frames.py:308:                  if model_pin['generation_config_source'] == 'generation_config.json'
+student_pilot/orchard_eval/frames.py:321:            if insert and audit['carrier_token_id'] != adapter_pin['carriers']['token_id']:
+student_pilot/ddp_training.py:425:    if receipt.get("schema") != "student-frame-staging-v1" or digest_json(receipt) != receipt_pin["sha256"]:
+student_pilot/orchard_eval/score.py:278:    if header['core']['config'] != config:
+student_pilot/orchard_eval/contracts.py:562:            or offsets[-1][1] != weight_pin['size_bytes'] - 8 - header_size):
+student_pilot/orchard_eval/contracts.py:592:                or v_offsets[-1][1] != vision_pin['size_bytes'] - 8 - v_header_size):
+student_pilot/s1_routing.py:229:    if not division_admits(legacy["division"], division_pin) or legacy.get("scene_role", "train") != "train":
+scripts/tracecold_export.py:31:    require(ready_pin == pin(args.rows_ready), 'Row authority changed during export')
+student_pilot/orchard_eval/sharding.py:53:                or load_json(verify_pin(previous['manifest'])) != value or previous['work_id'] != work):
+evalpath/heldout_loss.py:153:        if (receipt['database'] == training_receipt.get('database')
+scripts/sam3_validate.py:255:    assert provenance['source'] == 'same-run-reference-b1'
+scripts/tracecold_transport.py:215:    require(inspect_publication(model['source']) == model, 'The native model publication changed')
+scripts/tracecold_token_proof.py:61:    require(ready_pin == pin(args.rows_ready) and not torch.cuda.is_initialized(), 'The source changed or CPU proof touched CUDA')
+scripts/gpu_native_selector.py:54:  if live['call_mode']!=a.call_mode or live['bundle']!=file_pin(a.bundle):raise ValueError('Scripted inputs differ from loaded bundle')
+scripts/tracecold_step0_prepare.py:145:    require(source_pin == pin(SOURCE_READY) and not torch.cuda.is_initialized(), 'Source readiness changed or CPU preparation initialized CUDA')
+headcall/rows.py:60:    if (not isinstance(pin, dict) or set(pin) != {"path", "sha256"} or not isinstance(pin["path"], str) or not pin["path"]
+tests/test_r2_models.py:36:                cfg=C.configure(parent_cfg,connector,dense_manifest=dp if connector=='gf1' else None,stage=stage, init_pin=INIT_PIN)
+tests/test_r1_build13.py:199:            receipt=dict(database=file_pin(p),count=n+(stream=='vqa'))
+scripts/tracecold_configure.py:54:    require(ready_pin == pin(source), 'The prototype row authority changed')
+scripts/tracecold_read_native.py:67:    require(raw_pin == pin(path), 'The native generations changed during the readout')
+scripts/tracecold_read_native.py:109:    require(registry_pin == pin(registry_path), 'The registered cells changed during analysis')
+scripts/tracecold_bare_prepare.py:74:    io.require(source_pin == io.pin(helper.SOURCE_READY) and not torch.cuda.is_initialized(), 'Source readiness changed or CUDA initialized')
+tests/test_r2_build3.py:229:        packet={key:([pin] if key=='manifests' else pin) for key in ('manifests','configuration','pose_template','real_proof','counts')}
+tests/test_r2_build3.py:248:                           dense_manifest=dp if connector=='gf1' else None, init_pin=INIT_PIN)
+scripts/tracecold_prepare.py:61:    require(protocol['division']['train_candidate_qids'] == expected and protocol['division']['heldout_qids'] == sorted(ready['heldout_order'])
+tests/test_r2_build3b.py:75:        entry.update(files={('rows' if name == 'ROUTE_direct' else 'packed'):{**file_pin(path), 'rows':len(rows), 'bytes':path.stat().st_size}},
+tests/test_r2_build3b.py:202:        self.assertTrue(all(load(p)['frame_map']==file_pin(root/'frame_map.json') for p in paths))
+tests/test_r2_build3b.py:254:                if change=='pairs_ok':self.assertEqual(load(pinned(idx))['cells']['facing_pairs'],[[0,1]])
+tests/test_r2_build3b.py:346:                    if change == 'pool':result_bad['pool_selection'] = file_pin(META/'pool_selection.json')
+tests/test_r2_build.py:38:            result=B.build(base, kit, connector=connector, records=inputs(),dense_manifest=dp if connector=='gf1' else None, init_pin=INIT_PIN)
+tests/test_r2_native_config.py:18:                cfg=C.configure(parent,connector,stage=stage,dense_manifest=manifest if connector=='gf1' else None, init_pin=INIT_PIN)
+tests/version_pin.py:9:PIN = re.search(r'^transformers==(\S+)$', (Path(__file__).resolve().parents[1] / 'requirements.txt').read_text(), re.M).group(1)
+tests/version_pin.py:21:    return installed() == PIN
+tests/version_pin.py:24:REASON = f'runs the student forward, which needs the trainer pin transformers=={PIN}'
+tests/test_conversion_v2_integration.py:137:            with self.subTest(changes=changes), patch.object(conversion, "verified_run", return_value=(job, [(item, context, record, pin)])), patch.object(conversion, "binding", return_v
+tests/test_r2_final_kits.py:15:                dense_manifest=dp if name=='gf1' else None, init_pin=INIT_PIN)
+tests/test_carrier_c1_single_image.py:225:                 mock.patch.object(run, 'connect', side_effect=lambda pin: conn if pin['path'] == 'pose-db' else connect(pin)), \
+tests/test_division_inheritance_protocol.py:109:            if mutation == "missing_pin":
+tests/test_division_inheritance_protocol.py:111:            elif mutation == "null_pin":
+tests/test_stageb_mdg.py:124:            assert meta['base_artifact'] == file_pin(Path(directory)/'m3/artifact.json')
+tests/test_gx_carrier.py:567:                encoder.load_pinned(bad, change == 'sha')
+tests/test_rg2p_policy.py:274:        if phase in ("external_pin", "orchard_signal") and step == 3:
+tests/test_rg2p_policy.py:276:            run = root / "external_pin_link" if phase == "external_pin" else root / "project/runs" / orchard
+tests/test_rg2p_policy.py:565:        tool = [event["tool"] for event in self.outcome("external_pin")["events"] if event["event"] == "external_pin"]
+tests/test_r1_build20.py:52:            if change=='source':bad['sources'][0]['receipt']=dict(child,sha256='d'*64)
+tests/test_r1_build20.py:56:            if change=='division':bad['division']=None
+tests/test_r1_build20.py:96:            if change=='absent_pin':bad.pop('component_preparation')

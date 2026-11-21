@@ -1,0 +1,25 @@
+HOLD job=174134 node=orchard-community-3 status=1 step=child
+start_utc 2026-11-21T14:59:50Z deadline_utc 2026-11-21T17:59:50Z hold_seconds 10800
+The job failed before training; the wrapper keeps the node and the node directory until the deadline,
+until /project/community/jjyeung/okh7/x_22c714e1/o/174134/RELEASE exists, or until TERM/USR1 (scancel). It then exits with status 1.
+release: touch /project/community/jjyeung/okh7/x_22c714e1/o/174134/RELEASE (seen within about 25 s)
+enter:   srun --overlap --jobid 174134 --pty bash
+sandbox: /tmp/q_22c714e1 inside the job sandbox is the node directory below
+node-local paths:
+node directory         /tmp/q_22c714e1_174134  dir
+prepared root p        /tmp/q_22c714e1_174134/p  dir
+prepared q p/q         /tmp/q_22c714e1_174134/p/q  dir
+proof result           /tmp/q_22c714e1_174134/p/q/RESULT.json  60312 bytes
+traceback tb.txt       /tmp/q_22c714e1_174134/tb.txt  1604 bytes
+kit shell j.sh         /tmp/q_22c714e1_174134/j.sh  19771 bytes
+request r.json         /tmp/q_22c714e1_174134/r.json  120134 bytes
+log j2.log             /tmp/q_22c714e1_174134/j2.log  6837 bytes
+log j2.err             /tmp/q_22c714e1_174134/j2.err  381 bytes
+log q.log              /tmp/q_22c714e1_174134/q.log  226858 bytes
+log rooms.log          /tmp/q_22c714e1_174134/rooms.log  0 bytes
+log h.log              /tmp/q_22c714e1_174134/h.log  absent
+log rv.log             /tmp/q_22c714e1_174134/rv.log  absent
+log 174134.steps       /tmp/q_22c714e1_174134/174134.steps  3563 bytes
+slurm log              /tmp/q_22c714e1_174134.log  absent
+slurm err              /tmp/q_22c714e1_174134.err  absent
+training markers (absent, else no hold): /tmp/q_22c714e1_174134/t.log /tmp/q_22c714e1_174134/p/rv.json
