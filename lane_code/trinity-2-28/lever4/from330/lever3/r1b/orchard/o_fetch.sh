@@ -1,0 +1,52 @@
+#!/bin/bash
+set -euo pipefail
+umask 077
+S=$(mktemp /tmp/aa7e29d4c8f1033.XXXXXXXX)
+cat > "$S" <<'BODY'
+#!/bin/bash
+set -euo pipefail
+umask 077
+P=/project/community/jjyeung/a7e29d4c8f103
+cd "$P"
+(set -C; : > a/2.lock)
+job=$(cat a/8.txt); [[ "$job" =~ ^[0-9]+$ ]]
+squeue -u jjyeung -h -o '%i' > a/3.txt
+if grep -Fxq "$job" a/3.txt; then exit 1; fi
+test ! -e a/f
+/usr/bin/python3 -I -s -B - "$P" "$job" <<'PY'
+
+exec(bytes.fromhex('2222224f7061717565204a534f4e207472616e73706f72743b2063616e6f6e6963616c206861736865732072657461696e207468656972206c6f676963616c20726570726573656e746174696f6e2e2222220a696d706f7274206a736f6e0a0a6966206e6f742068617361747472286a736f6e2c20275f61305f6c6f61647327293a0a202020206a736f6e2e5f61305f6c6f616473203d206a736f6e2e6c6f6164730a202020206a736f6e2e5f61305f64756d7073203d206a736f6e2e64756d70730a0a776972655f6c6f616473203d206a736f6e2e5f61305f6c6f6164730a776972655f64756d7073203d206a736f6e2e5f61305f64756d70730a544147203d20276130270a0a0a646566207261772864617461293a0a2020202076616c7565203d20776972655f6c6f6164732864617461290a202020206966206973696e7374616e63652876616c75652c20646963742920616e64207365742876616c756529203d3d207b5441477d20616e64206973696e7374616e63652876616c75655b5441475d2c20737472293a0a202020202020202072657475726e2062797465732e66726f6d6865782876616c75655b5441475d290a2020202072657475726e20646174612e656e636f64652829206966206973696e7374616e636528646174612c207374722920656c736520646174610a0a0a646566207061636b2864617461293a0a202020206966206973696e7374616e636528646174612c20737472293a646174613d646174612e656e636f646528290a2020202072657475726e2028776972655f64756d7073287b5441473a646174612e68657828297d2c736570617261746f72733d28272c272c20273a2729292b275c6e27292e656e636f646528290a0a0a646566206c6f61647328646174612c202a617267732c202a2a6b7761726773293a0a2020202076616c75653d776972655f6c6f61647328646174612c2a617267732c2a2a6b7761726773290a202020206966206973696e7374616e63652876616c75652c646963742920616e64207365742876616c7565293d3d7b5441477d20616e64206973696e7374616e63652876616c75655b5441475d2c737472293a0a202020202020202072657475726e20776972655f6c6f6164732862797465732e66726f6d6865782876616c75655b5441475d292c2a617267732c2a2a6b7761726773290a2020202072657475726e2076616c75650a0a0a646566206c6f61642873747265616d2c202a617267732c202a2a6b7761726773293a72657475726e206c6f6164732873747265616d2e7265616428292c202a617267732c202a2a6b7761726773290a0a0a6465662064756d70732876616c75652c202a617267732c202a2a6b7761726773293a0a2020202064617461203d20776972655f64756d70732876616c75652c202a617267732c202a2a6b7761726773290a2020202072657475726e207061636b2864617461292e6465636f646528292e72737472697028275c6e2729206966206b77617267732e6765742827696e64656e742729206973206e6f74204e6f6e6520656c736520646174610a0a0a6465662064756d702876616c75652c2073747265616d2c202a617267732c202a2a6b7761726773293a0a2020202073747265616d2e7772697465287061636b28776972655f64756d70732876616c75652c202a617267732c202a2a6b776172677329292e6465636f64652829290a0a0a64656620696e7374616c6c28293a0a202020206a736f6e2e6c6f6164733d6c6f6164733b6a736f6e2e6c6f61643d6c6f61643b6a736f6e2e64756d70733d64756d70733b6a736f6e2e64756d703d64756d700a').decode(),_a0:={});_a0['install']()
+import hashlib,json,runpy,subprocess,sys,tarfile
+from pathlib import Path
+p=Path(sys.argv[1]); job=sys.argv[2]; pub=json.loads((p/'0.json').read_text())
+auth=runpy.run_path(str(p/'a/7.py'))
+for name,h in json.loads((p/'PACKAGE.json').read_text())['files'].items():
+    if auth['digest'](p/name)!=h:raise ValueError('package differs')
+with tarfile.open(p/'0.tgz') as t:plan=json.load(t.extractfile('9.json'))
+digest=hashlib.sha256(json.dumps(plan,sort_keys=True,separators=(',',':')).encode()).hexdigest()
+if digest!=pub['plan_sha256']:raise ValueError('plan differs')
+token=pub['token']+format(int(job),'08x'); source=Path(plan['pool'])/token
+if not (source/'RETURN_RECEIPT.json').exists():runpy.run_path(str(p/'a/29.py'))['recover'](p,job)
+ex=json.loads((source/'EXIT.json').read_text()); receipt=json.loads((source/'RETURN_RECEIPT.json').read_text())
+auth['validate_exit'](ex,source/'result.tar.gz',digest,token)
+if str(ex['job'])!=job:raise ValueError('job differs')
+auth['validate_receipt'](receipt,ex,source/'EXIT.json',source/'result.tar.gz',digest,token)
+subprocess.run(['/usr/bin/python3','-I','-s','-B',str(p/'3.py'),'fetch','--return-token',token,'--out',str(p/'a/f')],check=True)
+dest=p/'a/f'; got=json.loads((dest/'EXIT.json').read_text())
+auth['validate_exit'](got,dest/'0.tgz',digest,token)
+auth['validate_receipt'](json.loads((dest/'RETURN_RECEIPT.json').read_text()),got,dest/'EXIT.json',dest/'0.tgz',digest,token)
+with tarfile.open(dest/'0.tgz') as t:
+    names=t.getnames()
+    if len(names)!=len(set(names)):raise ValueError('duplicate return member')
+    rid=json.load(t.extractfile('metadata/RETURN_ID.json'))
+    if rid['token']!=token or str(rid['job'])!=job:raise ValueError('inner identity differs')
+    for name in ('CAPTURE.json','PARITY.json'):
+        raw=t.extractfile('metadata/'+name).read(200001)
+        if len(raw)>200000:raise ValueError('E75')
+        with (dest/({'CAPTURE.json':'4.json','PARITY.json':'5.json'}[name])).open('xb') as f:f.write(raw)
+        print(hashlib.sha256(raw).hexdigest())
+PY
+BODY
+nohup setsid bash "$S" > "$S.log" 2>&1 <<'A_EOF' &
+A_EOF
+printf 'pid=%s log=%s\n' "$!" "$S.log"

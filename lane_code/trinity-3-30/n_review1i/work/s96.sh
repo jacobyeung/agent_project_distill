@@ -1,0 +1,2 @@
+W=/scratch/jjyeung/orch_n30/tree_rebuild10_w
+cd $W && tar cf - w24y2/work/build24m4y2/recorder/default_plain/f.json w24y2/work/build24m4y2/recorder/nonfinite_plain/f.json w24z14/work/build24m4z14/standin_run/ADMIT.json w24z14/work/build24m4z14/negative_run/ADMIT.json w24z8b/work/build24m4z8b/wrapper_fixture/n_123/p/q/b/population.json w24z8b/work/build24m4z8b/wrapper_fixture/n_123/p/q/b/reader_filters.json < /dev/null

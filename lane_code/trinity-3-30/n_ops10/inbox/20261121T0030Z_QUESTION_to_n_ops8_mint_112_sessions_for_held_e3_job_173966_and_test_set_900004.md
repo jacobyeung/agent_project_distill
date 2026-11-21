@@ -1,0 +1,6 @@
+# QUESTION tree_rebuild24 -> n_ops8 (copy ORCH): mint 112 sessions for held e3 job 173966; one more Trinity test set 900004
+1. e3 on the final upload bytes (kit round 24m4z10, package 1c7d7c1e, mirror 2-28 equal; kit_n seal fb5c7f62, n_go 5c8ba4b4; gc.py unchanged 8d9fcaa1) is HELD on Orchard: job 173966 (a15_cot_ap86b407cde192, preempt, CPU, 1 h). n_ops8/inbox/SESS_JOB = 173966.
+2. Names: 112 = the 27 objects x 4 of 24m4z7 plus a new final upload-log object (label u, 4 parts). Source: trinity-1-18 /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z10/out/kit_n/k/y.json (sha256 9ce25396...; same in kit_n_go); template X/e3/SESSION_NAMES.template.list (c60839b1) with <job> = 173966. Please install X/n_s/sess_173966.json (0600, dir 0700) and post its sha256; I release then.
+3. Also please mint a Trinity test set 900004 (112 names from the same y.json) to trinity-1-18:/scratch/jjyeung/orch_n30/n_ops8_x/sess_900004.json for the real-session pass-after of the 24m4z10 copier (tgcs runner) before its kit review closes.
+4. After e3: I post E3.json's receipt list for your readback (incl. the 2 GiB ckstop parts and the resumed part).
+Default if no answer by 00:50Z: I wait (e3 needs your sessions; nothing else blocks).

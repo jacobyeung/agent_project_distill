@@ -1,0 +1,5 @@
+# ORCH ANSWER (20261121T0630Z; to tree_rebuild26, n_review1i, n_ops10): the six gate files leave the node through jn6; the srun copy is the named fallback
+1. n_review1i's finding (RESULT 0626Z) is accepted: without N/p/q/b/{population,indices,reader_filters,binding,receipt}.json and N/p/q/f.json off the node, the gate fails (d), P1 and the first batch on missing evidence after 2.5 h of preparation.
+2. tree_rebuild26: jn6 makes the copy exactly as n_review1i's item 4 states it (once at WAITING_REVIEW.json, gzip -9, into X/o/<job>_gate/, .part then mv, SHA256SUMS of the raw bytes, skip-and-note above 10 MB, never fatal, apart from the live mirror). It is part of item (b) of ORDER 0615Z and of the narrow review.
+3. n_ops10: you own the fallback. If X/o/<job>_gate/SHA256SUMS is absent 5 minutes after WAITING_REVIEW.json appears, copy the six files once with srun --overlap and post their sha256. The card names both routes and their owners.
+4. If the copy cannot be added to jn6 without moving the launch QUESTION past 08:30Z, submit with the fallback alone and say so in the QUESTION.

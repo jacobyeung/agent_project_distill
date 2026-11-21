@@ -9,17 +9,17 @@ public={k:v for k,v in b.items() if k not in ('layout','external_inputs','foreca
 descriptor=len(B.B.jd(public))
 paragraph=f"""The boot gate imports all {len(b['boot_closure']['modules'])} audited modules before staging any checkpoint, weight or frame. It stages CPython from runtime group 0, the base environment from group 1, `v/py` and its overlay from input 3, and policy from input 4. Pre-bulk authenticated source bytes total **{boot['pre_bulk_bytes']:,}**, including **{boot['package_archive_bytes']:,}** package bytes. Runtime group 0's other members and all bulk inputs follow a successful boot receipt.
 
-The pool probe writes and fsyncs 131,072 random bytes, verifies their SHA256, and reserves 131,104 bytes including the ledger write. Both CPU guards read `WRITE_TEST_BYTES` from the sealed pool writer and verify the retained file, receipt, ledger and guarded helper. The cumulative pool and metadata budgets remain unchanged.
+The pool probe writes and fsyncs 131,072 random bytes, verifies their SHA256, and reserves 131,104 bytes including the ledger write. Both CPU guards in `a/5.py` and the pre-submission receipt check `a/9.py` read `WRITE_TEST_BYTES` from the sealed pool writer `orchard_h10/vendor/return_io.py`; the guards also verify the retained file, receipt hash, ledger charge and guarded helper. The cumulative pool and metadata budgets remain unchanged.
 
-`out/WT_OLD_5.py:53` and `:77` preserve the two stale 4 MiB expectations from the placed CPU entry. `revision8.py:49` had reduced the writer to 128 KiB. The first comparison failed deterministically after staging; no job ID, node, time, token or previous placement changed its expected size. The CPU check creates its own fresh `root/wpool/token/.wtest` through `orchard_results.write_test`, the guarded subprocess and `return_io.operate('test')`. It does not compare against a placement-time receipt. Existing tests invoked the operator directly or stopped at boot, so they never exercised this pair of guards.
+The CPU check of `a38bd627f901e` failed because the build changed only one side of a constant. The previous `revision8.py:49` replaced `4*1024**2` with `131072` in `return_io.py`, so the guarded write test wrote 128 KiB, while `a/5.py:53` (`out/WT_OLD_5.py:53`, from `inspect/a_5.py:49`) still required 4 MiB and raised at line 54. The mismatch was deterministic; no job ID, node, time, path, token or sibling placement entered it. The receipt is not written by placement: each CPU check creates a fresh `wpool/<token>/.wtest` under its own job-local temporary root through `orchard_results.write_test` and the guarded `return_io.py test` subprocess, then compares it at once. The second guard (`out/WT_OLD_5.py:77`) and `a/9.py:23`, which `o_check_sub.sh` runs on `CPU.json` before the GPU submit, pinned the same stale 4 MiB and would have failed next. Local tests missed all three because they called the operator directly, stopped at boot, or fed `a/9.py` no real CPU receipt.
 
-`tests/test_write_receipt.py` runs the delivered BATCH CPU route and both guards with different job IDs, fresh state and three spent sibling placements. Remote staging and model execution use tiny fixtures; the pool writer, reservation ledger, guarded subprocess, bootstrap dispatch and authenticated fetch are real. The old entry reproduces the mismatch. Wrong receipt sizes, changed evidence sizes or hashes, exhausted budgets, changed settings and later preparation failures all fail with bounded diagnostics.
+`tests/test_write_receipt.py` runs the delivered `BATCH.sh` CPU route with job IDs that differ from 173995, a fresh pool, and three spent sibling placements, then runs `a/9.py` on the resulting `CPU.json` as `o_check_sub.sh` does. Remote staging and model execution use tiny fixtures; the pool writer, reservation ledger, guarded subprocess, bootstrap dispatch, receipt check and authenticated fetch are real. The old `a/5.py` and the old `a/9.py` line both reject the new receipt. Wrong receipt sizes, changed evidence sizes or hashes, exhausted budgets, changed settings and later preparation failures all fail with bounded diagnostics.
 
-`a/30.json` records the CPU failure and up to 16 comparisons, with each expected/found value bounded to 2,048 characters. Supervisor recovery returns the matching job/plan record as `metadata/30.json`, alongside boot status and the traceback. A later CPU failure retains the successful write-test comparison. A failed pool subprocess records its expected and actual exit status and bounded stderr.
+`a/30.json` records the CPU failure, the failed check's name, and up to 16 comparisons, with each expected/found value bounded to 2,048 characters. Supervisor recovery returns the matching job/plan record as `metadata/30.json`, alongside boot status and the traceback. When the exception follows a passed comparison, `failed_check` is null and `comparison_status` says so. A failed pool subprocess records its expected and actual exit status and bounded stderr. A failed `a/9.py` size check prints the expected and found sizes.
 
 `tests/test_vpy.py` separately checks all 411 imports through the real pinned archives, production capture and namespace argv. The host bwrap executable, scratch bindings and sleeping watcher helper are substituted. New fixtures remain in the approved sibling directory; no files are deleted.
 
-Token `{b['token']}` supersedes the placed tokens `a6f198d3c7b20`, `a7e29d4c8f103` and `a38bd627f901e`; placement and submission use fresh paths and one-use locks.
+Token `{b['token']}` supersedes the placed tokens `a6f198d3c7b20`, `a7e29d4c8f103` and `a38bd627f901e` and the unplaced interim build `ad07f53341bc0`; placement and submission use fresh paths and one-use locks.
 
 """
 proof_path=HERE/'out/VPY_CHECKS.json'
@@ -35,8 +35,8 @@ for name in ('PLACE.md','REPORT.md'):
  p=HERE/name;s=p.read_text()
  marker='<!-- boot-order -->';end='<!-- /boot-order -->'
  if marker in s:s=s[:s.index(marker)]+s[s.index(end)+len(end):].lstrip('\n')
- s=s.replace('a38bd627f901e',b['token'])
- s=re.sub(r'\b(?:73|75|76) tests\b','84 tests',s)
+ for previous in ('a38bd627f901e','ad07f53341bc0'):s=s.replace(previous,b['token'])
+ s=re.sub(r'\b(?:73|75|76|84) tests\b','85 tests',s)
  s=re.sub(r'Delivery SHA256: `[0-9a-f]{64}`\.', 'Delivery SHA256: `'+b['delivery_sha256']+'`.',s)
  s=re.sub(r'Token: `[^`]+`\. Delivery: `out/delivery.tgz`, \*\*[\d,]+ bytes\*\*\.\nSHA256: `[0-9a-f]{64}`\.',f"Token: `{b['token']}`. Delivery: `out/delivery.tgz`, **{b['delivery_bytes']:,} bytes**.\nSHA256: `{b['delivery_sha256']}`.",s)
  for key,value in rows.items():s=re.sub(r'\| '+re.escape(key)+r' \| [\d,]+ \|','| '+key+' | '+format(value,',')+' |',s)

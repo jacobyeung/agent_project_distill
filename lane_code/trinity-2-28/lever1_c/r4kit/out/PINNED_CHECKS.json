@@ -1,9 +1,9 @@
 {
   "passed": true,
-  "tests": 1,
+  "tests": 2,
   "delivery": {
-    "bytes": 4309485,
-    "sha256": "3998032470651ac870851f39990f638ead7efc6647e2a9c607508ecbe1400cbd"
+    "bytes": 4310812,
+    "sha256": "210bab49e44f3390265bce1900749af87fb93cd586c73b693d5d942af376c763"
   },
   "receipt": {
     "baseline_modules": 1167,
@@ -130,7 +130,7 @@
       "brotli": "Unsuccessful optional import probe; the real CPU worker completed without this module.",
       "brotlicffi": "Unsuccessful optional import probe; the real CPU worker completed without this module.",
       "builder": "Trace harness alias; production executes its own entry/storage/batch modules by file path.",
-      "causal_conv1d": "CUDA backend cannot execute on this CPU host; GPU boot must import it before bulk.",
+      "causal_conv1d": "Optional CUDA kernel (causal-conv1d); absent from the pinned environment, so Transformers uses its PyTorch reference implementation as in D400. GPU boot records find_spec presence and origin; CPU boot excludes it.",
       "charset_normalizer": "Unsuccessful optional import probe; the real CPU worker completed without this module.",
       "colorama": "Unsuccessful optional import probe; the real CPU worker completed without this module.",
       "ctl": "Trace harness alias; production executes its own entry/storage/batch modules by file path.",
@@ -139,7 +139,7 @@
       "defusedxml": "Unsuccessful optional import probe; the real CPU worker completed without this module.",
       "defusedxml.ElementTree": "Unsuccessful optional import probe; the real CPU worker completed without this module.",
       "envwrap": "Unsuccessful optional import probe; the real CPU worker completed without this module.",
-      "fla": "CUDA backend cannot execute on this CPU host; GPU boot must import it before bulk.",
+      "fla": "Optional CUDA kernel (flash-linear-attention); absent from the pinned environment, so Transformers uses its PyTorch reference implementation as in D400. GPU boot records find_spec presence and origin; CPU boot excludes it.",
       "flint": "Unsuccessful optional import probe; the real CPU worker completed without this module.",
       "gmpy": "Unsuccessful optional import probe; the real CPU worker completed without this module.",
       "gmpy2": "Unsuccessful optional import probe; the real CPU worker completed without this module.",
@@ -190,7 +190,7 @@
       "transformers.generation.continuous_batching.cache_manager": "Local-environment entry absent from pinned base and a4 overlay: ModuleNotFoundError: No module named 'transformers.generation.continuous_batching.cache_manager'. Normal pinned imports do not require this optional or version-specific module.",
       "transformers.utils.chat_parsing_utils": "Local-environment entry absent from pinned base and a4 overlay: ModuleNotFoundError: No module named 'transformers.utils.chat_parsing_utils'. Normal pinned imports do not require this optional or version-specific module.",
       "trio": "Unsuccessful optional import probe; the real CPU worker completed without this module.",
-      "triton": "CUDA backend cannot execute on this CPU host; GPU boot must import it before bulk.",
+      "triton": "CUDA backend cannot execute on this CPU host; GPU boot must import it before bulk (pinned runtime group 1 ships triton 3.7.1).",
       "winreg": "Unsuccessful optional import probe; the real CPU worker completed without this module.",
       "zstandard": "Unsuccessful optional import probe; the real CPU worker completed without this module."
     },
@@ -198,6 +198,7 @@
     "method": "sys.addaudithook(import) plus successful sys.modules inventory; delivered runtime.run(g) on CPU; union with tests/import_baseline.json; normal-name replay in authenticated pinned Orchard pre-bulk environment; no source import scanning",
     "mode": "c",
     "modules": 3228,
+    "optional_modules": {},
     "passed": true,
     "required_modules": [
       "PIL",
@@ -3429,12 +3430,44 @@
       "zipimport",
       "zlib"
     ],
-    "seconds": 13.403049756991095,
+    "seconds": 9.069884352997178,
     "trace": "out/WORKER_IMPORT_TRACE.json",
     "traced_modules": 3325
   },
-  "seconds": 14.916898969997419,
+  "seconds": 10.255859283002792,
   "returncode": 0,
+  "gpu_mode": {
+    "passed": true,
+    "returncode": 0,
+    "seconds": 9.965100686007645,
+    "bulk_bytes": 0,
+    "optional_modules": {
+      "causal_conv1d": {
+        "fallback": "PyTorch reference implementation",
+        "fallback_expected": true,
+        "find_spec": false,
+        "loaded": false,
+        "origin": null,
+        "present": false
+      },
+      "fla": {
+        "fallback": "PyTorch reference implementation",
+        "fallback_expected": true,
+        "find_spec": false,
+        "loaded": false,
+        "origin": null,
+        "present": false
+      }
+    },
+    "gpu_only": [
+      "triton"
+    ],
+    "modules": 3229,
+    "closure_entry": null,
+    "exception_message": null,
+    "package": "tmp/pinned/p9ba95fcec3cc48b59f8cd57be4f78ca6",
+    "cuda_visible_devices": ""
+  },
   "environment": {
     "archives": "out/PINNED_ARCHIVES.json",
     "package_doubles": [],
@@ -3526,7 +3559,7 @@
       "extracted_bytes": 143782645
     }
   ],
-  "package": "tmp/pinned/pab1aee4fb0ac4111b49c1b3ee8b81856",
+  "package": "tmp/pinned/p7be74ddcf6ca4d7b9dc4ad59ce3e710e",
   "namespace": "production constructor; system bwrap; extracted pinned archives only",
   "cuda_visible_devices": "",
   "bulk_bytes": 0,

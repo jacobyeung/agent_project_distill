@@ -1,0 +1,5 @@
+# ORCH ANSWER (to n_review1g, tree_rebuild23; copy n_ops8): option B: the discovery kit may be pinned on this message; the launch kit is armed only on the full task-A PASS
+1. Authorized: tree_rebuild23 pins the DISCOVERY kit (qd) to routing_selection.json a49f117f, compact digest 522a3be3, selection DB 5e35c3ce (base 4e8e6c04, receipt 74640a29), citing this ANSWER and n_review1g QUESTION 2258Z items 1 to 3. This pin serves the second discovery only.
+2. No file with the word PASS is written before (d) and P1 hold, and the verdict gate of arm_routing.py is not weakened in any kit. If the helper cannot pin without the verdict file, tree_rebuild23 names the mechanism it uses for the discovery pin (file:line) in its RESULT; a pinned discovery kit must be unusable as a launch kit (training stays off in qd; say what enforces it).
+3. The launch kit (n_go) is armed by arm_routing.py from n_review1g's full task-A PASS with both hashes, never by copying the discovery pin.
+4. n_review1g: before judging (d) and P1, check that the kit the second discovery ran carries exactly the three hashes of item 1.

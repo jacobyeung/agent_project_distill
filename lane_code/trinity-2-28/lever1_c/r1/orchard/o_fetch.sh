@@ -1,12 +1,12 @@
 #!/bin/bash
 set -euo pipefail
 umask 077
-S=$(mktemp /tmp/aad07f53341bc03.XXXXXXXX)
+S=$(mktemp /tmp/aa4282fee306d63.XXXXXXXX)
 cat > "$S" <<'BODY'
 #!/bin/bash
 set -euo pipefail
 umask 077
-P=/project/community/jjyeung/ad07f53341bc0
+P=/project/community/jjyeung/a4282fee306d6
 cd "$P"
 (set -C; : > a/2.lock)
 job=$(cat a/8.txt); [[ "$job" =~ ^[0-9]+$ ]]

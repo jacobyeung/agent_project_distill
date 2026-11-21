@@ -1,0 +1,2 @@
+D=/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z13b/work/build24m4z13b; cd $D
+wc -l test_jn5.py test_extra.py test_fallback_bound.py validate.py tree.py; grep -n "jn5\|jn4\|argv\|/out/\|ROOT\|def main\|__main__" test_jn5.py test_extra.py test_fallback_bound.py validate.py | cut -c1-200 | head -50; head -30 tests.log | cut -c1-200; tail -5 tests.log | cut -c1-200; cat bin/python3 bin/timeout bin/nvidia-smi | head -30

@@ -31,13 +31,17 @@ assert trace['passed'] and trace['source_delivery']==build['delivery']
 assert closure['generator_sha256']==B.digest((ROOT/'tests/trace_worker.py').read_bytes())
 assert set(closure['required_modules']) == (set(read('tests/import_baseline.json')['modules']) | set(trace['modules'])) - set(closure['exclusions']) - set(closure['gpu_only'])
 assert closure['closure_sha256']==imports['closure']['closure_sha256']
-assert all(c['bulk_bytes']==0 for c in boots['cases'] if c['missing'])
+assert all(c['bulk_bytes']==0 for c in boots['cases'] if c['expected_failure'])
 for case in boots['cases']:
-    if not case['missing']:
+    if not case['expected_failure']:
         expected=set(closure['required_modules']) | (set(closure['gpu_only']) if case['mode']=='g' else set())
         assert set(case['boot']['required_modules'])==expected
         assert case['boot']['closure_sha256']==closure['closure_sha256']
-build['boot']['local_pre_bulk_seconds']=[min(c['boot']['pre_bulk_seconds'] for c in boots['cases'] if not c['missing']),max(c['boot']['pre_bulk_seconds'] for c in boots['cases'] if not c['missing'])]
+        assert set(case['boot']['optional_modules'])==(set(closure['gpu_optional']) if case['mode']=='g' else set())
+assert any(c['mode']=='g' and c['missing']=='optional' and not c['expected_failure'] for c in boots['cases'])
+assert any(c['mode']=='g' and c['missing']=='triton' and c['expected_failure'] and c['boot']['closure_entry']=='triton' for c in boots['cases'])
+assert pinned['gpu_mode']['passed'] and all(not v['present'] for v in pinned['gpu_mode']['optional_modules'].values())
+build['boot']['local_pre_bulk_seconds']=[min(c['boot']['pre_bulk_seconds'] for c in boots['cases'] if not c['expected_failure']),max(c['boot']['pre_bulk_seconds'] for c in boots['cases'] if not c['expected_failure'])]
 build['boot']['pinned_replay']={k:pinned[k] for k in ('passed','seconds','environment','bulk_bytes','returncode')}
 save('BUILD.json',build)
 test_count=tests['tests']+checks['tests']+imports['tests']+boots['tests']+pinned['tests']+1
@@ -144,7 +148,7 @@ sha=build['delivery']['sha256'];size=build['delivery']['bytes'];token=build['tok
 dest='/project/community/jjyeung/okh7/ad'+token+'/0.tgz';ret='/project/community/jjyeung/okh7/af'+token
 place=f'''The delivery preserves the frozen 580 prompts, greedy decoding, 64-token cap and first-call-opening stop. No tool response is served. The checkpoint is step 400, artifact `5083243cfedd2a389dfca579c5452e7d0c73b03a58e1cb7d204292ddd10e67cd`.
 
-Token: `{token}`. Superseded token: `f68a2d7c903be` (placed destination exists; CPU submission marker spent). Job: `a15_cot_ap{token}`.
+Token: `{token}`. Superseded tokens: `f68a2d7c903be` (placed destination exists; CPU submission marker spent) and `87f4ae5c2f44f` (placed destination exists; CPU submission marker spent; GPU marker used by job 173990). Job: `a15_cot_ap{token}`.
 Delivery: **{size:,} bytes**, SHA-256 `{sha}`.
 Frozen SHA-256: `{frozen}`.
 
@@ -302,19 +306,19 @@ Both CPU and GPU jobs follow this order: authenticate and materialize the packag
 
 Pre-bulk bytes: {build['boot']['interpreter_file_bytes']:,} CPython file bytes; {build['boot']['archive_bytes']:,} environment/overlay archives plus bwrap; {build['boot']['code_archive_bytes']:,} package archive bytes; total **{build['boot']['pre_bulk_bytes']:,} bytes** copied or selectively materialized. Authentication also reads the {build['boot']['interpreter_source_bytes']:,}-byte mixed interpreter archive without staging its other members. The environment and overlay expand to another {build['boot']['environment_expanded_bytes']+build['boot']['overlay_expanded_bytes']:,} file bytes; the package expands to {build['expanded_payload_bytes']:,} bytes plus materialized private sources. These are separate source-transfer and expansion counts, not a measured disk high-water.
 
-Local successful pre-bulk checks took {min(c['boot']['pre_bulk_seconds'] for c in boots['cases'] if not c['missing']):.3f}–{max(c['boot']['pre_bulk_seconds'] for c in boots['cases'] if not c['missing']):.3f} seconds with tiny staging fixtures and read-only local runtime binds. The superseded package reached the Orchard boot gate in 164.381 seconds with zero bulk bytes; successful revised production staging time remains unmeasured. Each return records its timing in `execution.boot.pre_bulk_seconds`, alongside bytes, mode, interpreter, cwd, closure digest and import duration. Boot uses the existing 600-second staging deadline. The overall forecast retains its existing staging allowance. The revised CPU replay time measures boot after local extraction.
+Local successful pre-bulk checks took {min(c['boot']['pre_bulk_seconds'] for c in boots['cases'] if not c['expected_failure']):.3f}–{max(c['boot']['pre_bulk_seconds'] for c in boots['cases'] if not c['expected_failure']):.3f} seconds with tiny staging fixtures and read-only local runtime binds. The superseded package reached the Orchard boot gate in 164.381 seconds with zero bulk bytes; successful revised production staging time remains unmeasured. Each return records its timing in `execution.boot.pre_bulk_seconds`, alongside bytes, mode, interpreter, cwd, closure digest and import duration. Boot uses the existing 600-second staging deadline. The overall forecast retains its existing staging allowance. The revised CPU replay time measures boot after local extraction.
 
 The recorded closure contains **{closure['cpu_modules']:,} CPU modules** and **{closure['gpu_modules']:,} GPU modules**, compared with {closure['baseline_modules']:,} importable modules in the prior {closure['baseline_raw_modules']:,}-entry inventory. `tests/trace_worker.py` runs the delivered `runtime.run` on CPU with `sys.addaudithook('import')`, through real restore/meta shape checking, processor construction, model loading with tiny native weights, routed prompt preparation and the first eight-row batch. `tests/record_import_closure.py` unions the successful runtime inventory with `tests/import_baseline.json` and applies the per-entry exclusions in `tests/pinned_exclusions.json`; `IMPORT_CLOSURE.json` records every module, digest and exclusion. `src/runtime.py:113` imports every required module before bulk staging. No AST/source scan derives this closure.
 
-CPU replay excludes `fla`, `triton` and `causal_conv1d`; GPU replay requires all three before bulk. Trace harness aliases, local test modules, generated Cython/PyTorch runtime helpers and unsuccessful optional import probes are listed individually with reasons in `IMPORT_CLOSURE.json:exclusions`. Native aliases are imported after their canonical modules. The trace uses tiny tokenizer/RGB/checkpoint boundaries; full-checkpoint GPU execution remains unmeasured.
+CPU replay excludes `fla`, `triton` and `causal_conv1d`. GPU replay requires `triton` before bulk. `fla` and `causal_conv1d` are optional GPU kernels (`IMPORT_CLOSURE.json:gpu_optional`): GPU boot records each one's `find_spec` result, origin and expected PyTorch fallback in `optional_modules` and never fails on its absence. Neither ships in the pinned environment, and base read D400 ran with both fallbacks. Trace harness aliases, local test modules, generated Cython/PyTorch runtime helpers and unsuccessful optional import probes are listed individually with reasons in `IMPORT_CLOSURE.json:exclusions`. Native aliases are imported after their canonical modules. The trace uses tiny tokenizer/RGB/checkpoint boundaries; full-checkpoint GPU execution remains unmeasured.
 
-The five boot tests use the delivered worker, the exact pinned `v/py` and `v/boot.py`, both production supervisors, the production namespace constructor with local runtime fixture binds, and real finalization/fetch. In both modes, omitting the lazy `student_pilot.carrier_c1_canary` module fails with **zero bulk bytes staged**, and its traceback survives authenticated fetch. `out/BOOT_CHECKS.json` pins these checks to this delivery. These fetch tests use local p1cpu libraries. The pinned-environment CPU boot also passes; full-checkpoint GPU execution remains unmeasured.
+The seven boot tests use the delivered worker, the exact pinned `v/py` and `v/boot.py`, both production supervisors, the production namespace constructor with local runtime fixture binds, and real finalization/fetch. In both modes, omitting the lazy `student_pilot.carrier_c1_canary` module fails with **zero bulk bytes staged**, and its traceback survives authenticated fetch. A GPU-mode boot without `fla` and `causal_conv1d` passes and records both as absent; a GPU-mode boot without `triton` fails at boot naming `triton`, with zero bulk bytes. `out/BOOT_CHECKS.json` pins these checks to this delivery. These fetch tests use local p1cpu libraries. The pinned-environment CPU boot also passes; full-checkpoint GPU execution remains unmeasured.
 """
 place += boot_text
 (ROOT/'PLACE.md').write_text(place)
 report=f"""The delivery passes **{test_count} local CPU tests**, including staged-interpreter imports and forced early failures in both modes through real authenticated fetch. No placement, submission, network access or GPU execution occurred.
 
-Token: `{token}`. Superseded token: `f68a2d7c903be` (placed destination exists; CPU submission marker spent). Job: `a15_cot_ap{token}`.
+Token: `{token}`. Superseded tokens: `f68a2d7c903be` (placed destination exists; CPU submission marker spent) and `87f4ae5c2f44f` (placed destination exists; CPU submission marker spent; GPU marker used by job 173990). Job: `a15_cot_ap{token}`.
 Delivery: **{size:,} bytes**. SHA-256: `{sha}`.
 Frozen SHA-256: `{frozen}`. FROZEN.json and the checkpoint pin remain unchanged.
 
@@ -332,11 +336,13 @@ Evidence: `out/test_probe.log`, `out/test_fixes.log`, `out/FIX_CHECKS.json`, `ou
 """
 report += contract+import_contract
 pinned_text=f"""
-The pinned CPU boot passes all {closure['cpu_modules']:,} required imports in {pinned['seconds']:.3f} seconds with zero bulk bytes and no package doubles. The pre-bulk archives were authenticated and extracted under `tmp/pinned/`; `out/PINNED_ARCHIVES.json` records their pins. The environment uses Pillow 13.0.0, NumPy 2.3.5 and Torch 2.13.0+cu130. `out/PINNED_CHECKS.json` pins the successful replay to this delivery.
+The pinned CPU boot passes all {closure['cpu_modules']:,} required imports in {pinned['seconds']:.3f} seconds with zero bulk bytes and no package doubles. The pinned GPU-mode boot, with CUDA hidden, imports those modules plus `triton` in {pinned['gpu_mode']['seconds']:.3f} seconds and records `fla` and `causal_conv1d` as absent with the PyTorch fallback expected. The pre-bulk archives were authenticated and extracted under `tmp/pinned/`; `out/PINNED_ARCHIVES.json` records their pins. The environment uses Pillow 13.0.0, NumPy 2.3.5 and Torch 2.13.0+cu130. `out/PINNED_CHECKS.json` pins the successful replay to this delivery.
 
 The failed entry was `PIL._typing`: the pinned `PIL/_typing.py:8` imports `numbers._IntegralLike` unconditionally, while `PIL/Image.py:207–214` places that helper inside a disabled `if TYPE_CHECKING` branch. The local copy guards the numbers import. Every dropped entry and its pinned-environment reason is recorded in `tests/pinned_exclusions.json` and `IMPORT_CLOSURE.json:pinned_drops`: {len(closure['pinned_drops'])} drops reduce the CPU closure from {closure['previous_cpu_modules']:,} to {closure['cpu_modules']:,} and the GPU closure from {closure['previous_gpu_modules']:,} to {closure['gpu_modules']:,}. The three CUDA-only exclusions are unchanged. Imports use normal module names with runtime typing semantics; no library or interpreter bytes are patched.
 
-Closure failures retain the entry and full exception in both the worker diagnostic and boot receipt. The typing-helper regression verifies that an exception longer than 120 characters survives authenticated fetch, with zero bulk staging. Token `f68a2d7c903be` is superseded by `{token}` because placement cannot overwrite its destination and its CPU submission marker is spent.
+Closure failures retain the entry and full exception in both the worker diagnostic and boot receipt. The typing-helper regression verifies that an exception longer than 120 characters survives authenticated fetch, with zero bulk staging. Tokens `f68a2d7c903be` and `87f4ae5c2f44f` are superseded by `{token}` because placement cannot overwrite their destinations and their submission markers are spent.
+
+GPU job 173990 (token `87f4ae5c2f44f`) failed at the boot gate on `causal_conv1d` with zero bulk bytes. `build.py` serializes `2.json` with sorted keys, so the worker tried `causal_conv1d` before `fla` and `triton`; neither of those was attempted. `fla` would also have failed: no `fla` package exists in runtime group 1, a4, a2 or a3 (only `cudnn/fla` and `vllm/third_party/flash_linear_attention` subpackages), and D400's `worker.log` lines 6–9 report the `flash-linear-attention` and `causal_conv1d` fallbacks. Transformers 5.19 resolves both kernels when `modeling_qwen3_5` is imported (`integrations/hub_kernels.py:984–1014`) and otherwise uses its PyTorch reference implementation; `kernels` is not installed, so no hub download is attempted.
 """
 place += pinned_text
 (ROOT/'PLACE.md').write_text(place)

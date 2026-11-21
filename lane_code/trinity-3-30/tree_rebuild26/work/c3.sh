@@ -1,0 +1,2 @@
+W=/scratch/jjyeung/orch_n30/tree_rebuild10_w; echo ===jn5; cat $W/w24z13b/out/jn5.sh; echo ===T_JN5; cat $W/w24z13b/out/T_JN5_USAGE.md; echo ===jd8; cat $W/w24z15/out/jd8.sh
+A=$W/w24z11b/a_zffhb1q8; echo ===ARMED; cat $A/UPLOADS_ARMED.list; echo ---; cat $A/UPLOADS_ARMED_GO.list; echo ---; head -c 1200 $A/UPLOADS_ARMED.json; echo; head -c 600 $A/UPLOADS_ARMED_GO.json; echo; ls $A/armed $A/armed/*; cat $A/SUMMARY.json | head -c 1500

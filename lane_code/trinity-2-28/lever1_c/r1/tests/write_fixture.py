@@ -24,7 +24,10 @@ def configure(job,package,root,case):
         common.write(d/'READY.json',dict(fixture=True))
         common.write(d/'settings.json',dict(stage1_select_rule='null_argmax',perception_memo='off',
                      perception_memo_modules=['g3t'],perception_memo_verify_ids=[]))
-        common.write(metadata/'MEMORY.json',dict(fits=True,fixture=True))
+        # The operator's own bound, as the measured model run would record it.
+        import runpy
+        memory=runpy.run_path(str(package/'a/6.py'),run_name='write_fixture')['memory_bound']()
+        common.write(metadata/'MEMORY.json',memory)
         if case=='write_budget':
             pool=r/'wpool';pool.mkdir();(pool/(c['token']+'.0')).write_text('11999990')
     job.stage=stage

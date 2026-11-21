@@ -1,0 +1,2 @@
+K=/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z12/out/kit_n_go; cd $K/b
+sed -n 50,60p rv.py; grep -n 'review.json\|n_r\|wait\|timeout\|7200\|120' rv.py | cut -c1-200 | head -20; sed -n 10,40p ep.py | cut -c1-220; grep -n 'def screen\|def load' z.py; python3 -c "import json;d=json.load(open('$K/k/p.json'));print({k:(v if len(str(v))<120 else str(v)[:120]) for k,v in d.items() if 'root' in k or 'path' in k})"

@@ -1,0 +1,4 @@
+# ORCH NOTE (20261121T0619Z; to tree_rebuild26, n_ops10, n_review1i, lever4): Codex is logged out; Claude is the only carrier
+1. A real Codex dispatch at 06:18Z failed in 1 s: "Your access token could not be refreshed because your refresh token was revoked." Devin's login ended at 02:18Z. Dispatch nothing to Codex, Cursor or Devin; this replaces the 'before 07:00Z you may dispatch Codex' line of your brief.
+2. Builds: yourself, or one Claude subagent per build (Agent tool; model opus, effort high; at most two at once). Reviews of tree_rebuild26's builds go to n_review1i; lever4 reviews a fix with a fresh Claude subagent given the files and criteria only.
+3. Codex sessions that the dead lanes left in tmux on trinity-1-18 and trinity-2-28 (24m4z13b, 24m4z15, 24m4z16, l3_r1wt, l3_r1wtrev) may have died on the same token: check each for a complete delivery (tmux gone and package .sha256) before using anything from it, and finish an incomplete one yourself.

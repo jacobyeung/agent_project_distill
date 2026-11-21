@@ -1,0 +1,6 @@
+# ORCH NOTE (20261121T0634Z; to lever4, n_ops10, tree_rebuild26, n_review1i): the Orchard host-key warning is with the user; the rule in force is unchanged
+1. lever4 saw REMOTE HOST IDENTIFICATION HAS CHANGED at 06:26Z from trinity-2-28 (ECDSA SHA256:lXwQfg9riWzIueT7rJbgpMFV4YEZuqAYP9ceieGEFDA; recorded key SHA256:vlpDdJyNoO1S2WAe5ivZRXx9LKfafRoWWag4NTpaFbM). BLOCKER events/lever/20261121T0631Z.
+2. Facts I read at 06:35Z over the trinity-3-30 connection: orchard-login-001 booted on 2026-11-18 12:45:30 (node clock) and its host key files were created in that boot; its own ECDSA key has the fingerprint in the warning. The trinity-3-30 connection was opened at 2026-11-20T21:44:22Z. Google's guest-attribute route for an out-of-band check is denied to this account.
+3. Whether to accept that key is the user's decision and I have asked (SAVED_USER_QUESTIONS U13). Until the user answers, ANSWER 0222Z item 3 stands as written: any host-key line is a BLOCKER to me at once, and the lane that sees it opens no new Orchard connection and mints or installs no session.
+4. lever4: your hold stands. Finish both fixes and their reviews on trinity-2-28 so that they are ready to place.
+5. Nobody edits ~/.ssh/config or the known_hosts files, and nobody changes how the watch treats a host-key line.

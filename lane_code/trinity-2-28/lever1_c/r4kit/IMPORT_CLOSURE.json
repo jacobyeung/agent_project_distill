@@ -3373,7 +3373,7 @@
     "_ni_label": "scipy.ndimage._ni_label"
   },
   "cpu_modules": 3228,
-  "gpu_modules": 3231,
+  "gpu_modules": 3229,
   "exclusions": {
     "__main__": "Trace harness alias; production executes its own entry/storage/batch modules by file path.",
     "__mp_main__": "Trace harness alias; production executes its own entry/storage/batch modules by file path.",
@@ -3556,9 +3556,11 @@
     "transformers.utils.chat_parsing_utils": "Local-environment entry absent from pinned base and a4 overlay: ModuleNotFoundError: No module named 'transformers.utils.chat_parsing_utils'. Normal pinned imports do not require this optional or version-specific module."
   },
   "gpu_only": {
-    "fla": "CUDA backend cannot execute on this CPU host; GPU boot must import it before bulk.",
-    "triton": "CUDA backend cannot execute on this CPU host; GPU boot must import it before bulk.",
-    "causal_conv1d": "CUDA backend cannot execute on this CPU host; GPU boot must import it before bulk."
+    "triton": "CUDA backend cannot execute on this CPU host; GPU boot must import it before bulk (pinned runtime group 1 ships triton 3.7.1)."
+  },
+  "gpu_optional": {
+    "fla": "Optional CUDA kernel (flash-linear-attention); absent from the pinned environment, so Transformers uses its PyTorch reference implementation as in D400. GPU boot records find_spec presence and origin; CPU boot excludes it.",
+    "causal_conv1d": "Optional CUDA kernel (causal-conv1d); absent from the pinned environment, so Transformers uses its PyTorch reference implementation as in D400. GPU boot records find_spec presence and origin; CPU boot excludes it."
   },
   "closure_sha256": "6a482096cacf9d488d5dd94d7322ca58b0824396c64da7cc3d6a9d1b882cf11a"
 }

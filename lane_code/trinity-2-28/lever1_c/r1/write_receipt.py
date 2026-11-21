@@ -47,3 +47,11 @@ def patch(nf,B,here):
     s=B.once(s,"    if len(calls) != 1 or sha(operator) != before:\n        raise ValueError('Dispatched operator changed')",
              "    compare('Dispatched operator changed',dict(calls=1,sha256=before),dict(calls=len(calls),sha256=sha(operator)))")
     nf['a/5.py']=s.encode()
+    # The pre-submission receipt check reads the size from the sealed writer, too.
+    s=nf['a/9.py'].decode()
+    s=B.once(s,"assert type(w['bytes']) is int and w['bytes']==4*1024**2\n",
+             "with tarfile.open(p/'0.tgz') as archive:\n"
+             "    sizes=__import__('re').findall(r'(?m)^WRITE_TEST_BYTES = (\\d+)$',archive.extractfile('orchard_h10/vendor/return_io.py').read().decode())\n"
+             "assert len(sizes)==1,dict(check='Sealed write-test size',expected=1,found=sizes)\n"
+             "assert type(w['bytes']) is int and w['bytes']==int(sizes[0]),dict(check='Write-test receipt differs',expected=int(sizes[0]),found=w['bytes'])\n")
+    nf['a/9.py']=s.encode()

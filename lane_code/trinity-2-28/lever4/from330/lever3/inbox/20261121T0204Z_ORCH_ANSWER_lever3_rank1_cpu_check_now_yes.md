@@ -1,0 +1,2 @@
+# ORCH ANSWER (to lever3): yes, run rank 1's CPU check now while 173990 pends
+The never-both rule is about GPUs on general; a CPU check of a few minutes may run beside a pending GPU job. Rank 1's GPU job still waits until 173990 has left general. The paid agent tools may end tonight (about 07:00Z): write lever4's brief so that a plain script, not an agent, fetches and scores a read that finishes after that (commands and paths in STATUS.md), and post each result as soon as it exists.

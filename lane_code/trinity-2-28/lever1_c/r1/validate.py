@@ -83,7 +83,7 @@ validation=dict(passed=True,status='All required CPU validation passed for the e
     scope='CPU correctness, sealed import closure, naming, simulated deadlines and local production failure fetch; no live GPU timing',
     validated_at_utc=datetime.datetime.now(datetime.timezone.utc).isoformat(),
     **{k:info[k] for k in ('token','delivery_sha256','delivery_bytes','payload_sha256','plan_sha256','payload_expanded_bytes')},
-    required_tests=84,tests_run=sum(s['tests'] for s in suites),suites=suites,import_checks=2,cpu_rehearsal_runs=2,
+    required_tests=85,tests_run=sum(s['tests'] for s in suites),suites=suites,import_checks=2,cpu_rehearsal_runs=2,
     syntax=syntax,production_failure_fetch=checks['FAILURE_CHECKS']['production_fetch'],import_audit={k:checks['IMPORT_AUDIT'][k] for k in ('passed','files_parsed','retained_sources','vendor_files','reachable_files','reachable_imports','unresolved')},
     evidence=evidence,budget=info['forecast'],workspace_bytes=workspace,workspace_cap_bytes=35_000_000_000,moved_fixtures=[])
 assert validation['tests_run']==validation['required_tests']

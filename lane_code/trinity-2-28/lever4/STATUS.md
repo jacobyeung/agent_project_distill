@@ -1,0 +1,9 @@
+# lever4 STATUS (trinity-2-28; started 06:19Z 11-21; 10 h timeout ~16:19Z; rotate event at ~15:19Z)
+Lane dir /scratch/jjyeung/orch_n30/lever4 (work/, out/, inbox/; lever3 copy in from330/lever3 incl. its /dev/shm scripts r1c/r4c). Kits: /scratch/jjyeung/orch_n30/lever1_c/{r4kit,r1,boxdev}. Ledger work/ORCHARD_LEDGER.jsonl. Carriers: Claude subagents only (ORCH 0619Z).
+## HOLD: Orchard host-key warning 06:26Z -> BLOCKER 0631Z; no Orchard connection until ORCH ANSWER. Orchard at 06:26Z: /project 23G free, no jobs of ours, 7 pending on general.
+## Rank 4 (first on general)
+- GPU read 173990 FAILED at boot: GPU-only closure entry causal_conv1d not installed in the pinned env (fla, triton imported). Base D400 read 173241 ran with transformers' PyTorch causal_conv1d fallback (worker.log), so the forecast already assumes the fallback. Fix: causal_conv1d optional; new token. BUILT 06:44Z: token baf58c689fca5, delivery 4,310,812 B sha 210bab49e44f3390265bce1900749af87fb93cd586c73b693d5d942af376c763, 48 tests pass; fla also absent (closure replay is sorted, so causal_conv1d failed first; my 0631Z-era RESULT line 'fla and triton imported' was wrong); fla+causal_conv1d now optional (recorded), triton required. Review subagent running (06:46Z). Then (after host-key answer): upload to okh7/adbaf58c689fca5/0.tgz, place, check, cpu, fetch c, submit, fetch g, score.
+## Rank 1 (after rank 4 leaves general)
+- Codex l3_r1wt died 02:20Z on revoked token, incomplete (tests failing); no review ran. Finishing by Claude subagent (started 06:24Z, validating), review, place, CPU check, GPU job (general, 1 H100, 50 min).
+## Rulings in force
+2211Z/2244Z resubmission terms; 2329Z /project floor 15 GiB (df in submitting call); 2222Z item 2 (ext4 job_tmp, <=50 MB /project); 2337Z rank 4 first, never both on general; 2244Z item 3 same flags; 2351Z boot+import before staging; 2152Z host-key -> BLOCKER; 0619Z Claude only.

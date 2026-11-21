@@ -1,6 +1,6 @@
 {
   "boot": {
-    "archive_and_code_bytes": 8614225092,
+    "archive_and_code_bytes": 8614225632,
     "archive_bytes": 8612076000,
     "closure": {
       "aliases": {
@@ -19,11 +19,13 @@
       "cpu_modules": 3228,
       "generator": "tests/trace_worker.py",
       "generator_sha256": "4a760a017ae76a5428a3ef1ba77261a338e6aa201be54fdb8ca2a0830c2d067c",
-      "gpu_modules": 3231,
+      "gpu_modules": 3229,
       "gpu_only": {
-        "causal_conv1d": "CUDA backend cannot execute on this CPU host; GPU boot must import it before bulk.",
-        "fla": "CUDA backend cannot execute on this CPU host; GPU boot must import it before bulk.",
-        "triton": "CUDA backend cannot execute on this CPU host; GPU boot must import it before bulk."
+        "triton": "CUDA backend cannot execute on this CPU host; GPU boot must import it before bulk (pinned runtime group 1 ships triton 3.7.1)."
+      },
+      "gpu_optional": {
+        "causal_conv1d": "Optional CUDA kernel (causal-conv1d); absent from the pinned environment, so Transformers uses its PyTorch reference implementation as in D400. GPU boot records find_spec presence and origin; CPU boot excludes it.",
+        "fla": "Optional CUDA kernel (flash-linear-attention); absent from the pinned environment, so Transformers uses its PyTorch reference implementation as in D400. GPU boot records find_spec presence and origin; CPU boot excludes it."
       },
       "method": "sys.addaudithook(import) plus successful sys.modules inventory; delivered runtime.run(g) on CPU; union with tests/import_baseline.json; normal-name replay in authenticated pinned Orchard pre-bulk environment; no source import scanning",
       "pinned_drops": {
@@ -155,7 +157,7 @@
       "trace": "out/WORKER_IMPORT_TRACE.json",
       "traced_modules": 3325
     },
-    "code_archive_bytes": 2149092,
+    "code_archive_bytes": 2149632,
     "environment_expanded_bytes": 8386282204,
     "exclusions": {
       "PIL._typing": "Typing-only PIL helper: pinned PIL/_typing.py:8 unconditionally imports numbers._IntegralLike, which is absent at runtime. PIL/Image.py:207-214 and ImageFont.py:45-52 guard this helper with TYPE_CHECKING=False; local Pillow guards the numbers import instead.",
@@ -346,8 +348,8 @@
     "interpreter_prefix": "sj/uv-python/cpython-3.12.13-linux-x86_64-gnu",
     "interpreter_source_bytes": 1621422080,
     "local_pre_bulk_seconds": [
-      5.705772335990332,
-      6.133778321993304
+      4.1176687619881704,
+      4.581225213012658
     ],
     "overlay_expanded_bytes": 143782645,
     "pinned_replay": {
@@ -366,9 +368,9 @@
       },
       "passed": true,
       "returncode": 0,
-      "seconds": 14.916898969997419
+      "seconds": 10.255859283002792
     },
-    "pre_bulk_bytes": 8719174654,
+    "pre_bulk_bytes": 8719175194,
     "production_seconds": null,
     "receipt": "execution.boot",
     "runtime_groups": [
@@ -380,11 +382,11 @@
     "sha256": "01c77435b7daf9fca122bc6325a176c8566170ef07eb947b7aafda9d76027af4"
   },
   "delivery": {
-    "bytes": 4309485,
-    "sha256": "3998032470651ac870851f39990f638ead7efc6647e2a9c607508ecbe1400cbd"
+    "bytes": 4310812,
+    "sha256": "210bab49e44f3390265bce1900749af87fb93cd586c73b693d5d942af376c763"
   },
-  "expanded_delivery_bytes": 15612646,
-  "expanded_payload_bytes": 13410502,
+  "expanded_delivery_bytes": 15615772,
+  "expanded_payload_bytes": 13413088,
   "frozen": "3743891f778115529710461333ad09a9588b8075e2173a74fac0065dc5d0382d",
   "gpu_memory": {
     "batch_and_overhead_bytes": 20000000000,
@@ -415,8 +417,8 @@
       "sha256": "cdd53fddf8c1b6bc6718eeeb52787efe1683c93a61d56bec135eee77d08a94ba"
     },
     "src/runtime.py": {
-      "bytes": 14873,
-      "sha256": "25468440411b9f419eecb434481fdf6984128a50648a056087220b27a9a49f26"
+      "bytes": 15834,
+      "sha256": "f567fe47ac2e5722f1f64a5bd66d494ec2ede7a22333a7822d5c07e17990df5f"
     },
     "src/storage.py": {
       "bytes": 9321,
@@ -431,10 +433,10 @@
       "v"
     ]
   },
-  "package": "/project/community/jjyeung/okh7/a15_cot_ap87f4ae5c2f44f",
+  "package": "/project/community/jjyeung/okh7/a15_cot_apbaf58c689fca5",
   "payload": {
-    "bytes": 2149092,
-    "sha256": "eeac8adea70632ff4fa6e43a4bfd5a98ea23327a7c32f8f2b0c20807e1ef828c"
+    "bytes": 2149632,
+    "sha256": "74b8a6d1d49fe7bac99d8366472641f35dfa4594416ac5da2063c2719260825a"
   },
   "private_source_bytes": 5635326,
   "project_budget": {
@@ -928,7 +930,8 @@
     "v/trace_runtime.py": "faec481ff5b445fdeb885a0ee70e1f83beaff05afb115dd3073fa6ce1934237d"
   },
   "superseded_tokens": [
-    "f68a2d7c903be"
+    "f68a2d7c903be",
+    "87f4ae5c2f44f"
   ],
-  "token": "87f4ae5c2f44f"
+  "token": "baf58c689fca5"
 }

@@ -30,7 +30,10 @@ EVIDENCE = []
 
 
 class Boot(unittest.TestCase):
-    def exercise(self, mode, missing):
+    def exercise(self, mode, missing, doubles=('fla', 'triton', 'causal_conv1d')):
+        # 'optional' omits only optional GPU kernels and must pass; every other
+        # missing value names a required entry and must fail before bulk.
+        fails = bool(missing) and missing != 'optional'
         base = ROOT/'out'/('b'+uuid.uuid4().hex); base.mkdir()
         p = base/'p'; p.mkdir(); root = base/'j'
         files = dict(FILES)
@@ -72,7 +75,7 @@ class Boot(unittest.TestCase):
             closure['required_modules'] = sorted(closure['required_modules'] + ['boot_type_only'])
             closure['closure_sha256'] = B.digest('\n'.join(closure['required_modules']).encode())
             files['8.bin'] = C.pack(B.jd(sources))
-        elif missing:
+        elif missing is True:
             sources.pop('c/tree/student_pilot/carrier_c1_canary.py')
             files['8.bin'] = C.pack(B.jd(sources))
         # The CPU-only environment cannot import CUDA extensions. Successful
@@ -86,13 +89,14 @@ class Boot(unittest.TestCase):
 _vision_fixture = torch.library.Library('torchvision', 'DEF')
 _vision_fixture.define('nms(Tensor dets, Tensor scores, float iou_threshold) -> Tensor')
 '''
-        if mode == 'g' and not missing:
+        doubles = tuple(doubles) if mode == 'g' and missing in (False, 'optional', 'triton') else ()
+        if doubles:
             probe_source += b'''\nimport transformers.models.qwen3_5.modeling_qwen3_5
 import types
 import sys
-for _name in ('fla', 'triton', 'causal_conv1d'):
+for _name in %r:
     sys.modules[_name] = types.ModuleType(_name)
-'''
+''' % (doubles,)
         files['7.py'] = B.wrap(probe_source)
         files['2.json'] = C.pack(B.jd(cfg))
         payload = members(files['0.tgz'])
@@ -137,7 +141,7 @@ for _name in ('fla', 'triton', 'causal_conv1d'):
              patch.object(J,'namespace',side_effect=namespace), \
              patch.object(S,'extract_stream',side_effect=extract), \
              patch.object(S,'copy_parts',side_effect=copying):
-            if missing:
+            if fails:
                 self.assertEqual(ctl.work(p,root),1)
             else:
                 root.mkdir()
@@ -147,10 +151,10 @@ for _name in ('fla', 'triton', 'causal_conv1d'):
         with patch('builtins.print'): ctl.fetch(p,base/'f',mode)
         returned = members((base/'f/0.tgz').read_bytes())
         summary = C.loads(returned['1.json']); receipt = summary['execution']['boot']
-        self.assertEqual(receipt['passed'],not missing)
+        self.assertEqual(receipt['passed'],not fails)
         bulk_paths = {str(root/'a/0'), str(root/'a/2'), str(root/'a/a0')}
         bulk_bytes = sum(n for target,n in copied if target in bulk_paths)
-        if missing:
+        if fails:
             self.assertFalse(summary['passed'])
             self.assertEqual(bulk_bytes,0)
             self.assertFalse((root/'sj/1').exists())
@@ -163,6 +167,11 @@ for _name in ('fla', 'triton', 'causal_conv1d'):
                 self.assertGreater(len(failure['exception_message']), 120)
                 self.assertIn(failure['exception_message'], trace)
                 self.assertEqual(receipt['exception_message'], failure['exception_message'])
+            elif missing == 'triton':
+                failure = C.loads(returned['4.json'])
+                self.assertEqual(failure['closure_entry'], 'triton')
+                self.assertEqual(receipt['closure_entry'], 'triton')
+                self.assertIn("No module named 'triton'", failure['exception_message'])
             else:
                 self.assertIn('carrier_c1_canary',trace)
                 self.assertIn("No module named 'student_pilot.carrier_c1_canary'",trace)
@@ -173,14 +182,25 @@ for _name in ('fla', 'triton', 'causal_conv1d'):
             self.assertEqual((root/'sj/1').read_bytes(),b'bulk-zero')
             self.assertGreater(receipt['modules'],1000)
             self.assertIn('student_pilot.carrier_c1_canary',receipt['required_modules'])
-            for name in ('fla', 'triton', 'causal_conv1d'):
-                self.assertIn(name, receipt['required_modules'] if mode == 'g' else receipt['exclusions'])
+            self.assertIn('triton', receipt['required_modules'] if mode == 'g' else receipt['exclusions'])
+            for name in ('fla', 'causal_conv1d'):
+                self.assertNotIn(name, receipt['required_modules'])
+                if mode == 'g':
+                    found = receipt['optional_modules'][name]
+                    self.assertEqual(found['present'], name in doubles)
+                    self.assertEqual(found['fallback_expected'], name not in doubles)
+                    if name not in doubles:
+                        self.assertFalse(found['find_spec']); self.assertIsNone(found['origin'])
+                        self.assertEqual(found['fallback'], 'PyTorch reference implementation')
+                else:
+                    self.assertIn(name, receipt['exclusions'])
+                    self.assertEqual(receipt['optional_modules'], {})
             self.assertTrue((root/'18.log').exists())
             self.assertTrue((root/'p/a/18.log').exists())
-        EVIDENCE.append(dict(mode=mode,missing=missing,bulk_bytes=bulk_bytes,boot=receipt,
+        EVIDENCE.append(dict(mode=mode,missing=missing,expected_failure=fails,bulk_bytes=bulk_bytes,boot=receipt,
             seconds=time.monotonic()-started,real_fetch=True,real_launch=True,
-            missing_module=('boot_type_only' if missing == 'typing' else 'student_pilot.carrier_c1_canary') if missing else None,
-            cuda_extension_doubles=['fla','triton','causal_conv1d'] if mode == 'g' and not missing else [],
+            missing_module={'typing':'boot_type_only','triton':'triton','optional':'fla, causal_conv1d (optional)',True:'student_pilot.carrier_c1_canary'}.get(missing) if missing else None,
+            cuda_extension_doubles=list(doubles),
             namespace='production constructor with read-only local interpreter/package fixture binds'))
 
     def test_type_only_import_failure(self): self.exercise('c','typing')
@@ -189,6 +209,10 @@ for _name in ('fla', 'triton', 'causal_conv1d'):
     def test_gpu_success(self): self.exercise('g',False)
     def test_cpu_missing_module(self): self.exercise('c',True)
     def test_gpu_missing_module(self): self.exercise('g',True)
+    # Pinned Orchard environment: no fla or causal_conv1d. Boot passes and records absence.
+    def test_gpu_optional_kernels_absent(self): self.exercise('g','optional',doubles=('triton',))
+    # A required GPU entry still fails at boot, naming it, with zero bulk bytes.
+    def test_gpu_required_triton_absent(self): self.exercise('g','triton',doubles=('fla','causal_conv1d'))
 
 
 if __name__ == '__main__':

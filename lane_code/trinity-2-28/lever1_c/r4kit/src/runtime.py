@@ -110,6 +110,19 @@ class ClosureImportError(ImportError):
         super().__init__(f'Closure entry {entry}: {self.exception_message}')
 
 
+def presence(name):
+    module = sys.modules.get(name)
+    try:
+        spec = importlib.util.find_spec(name)
+    except (ImportError, ValueError):
+        spec = None
+    origin = getattr(spec, 'origin', None) if spec is not None else getattr(module, '__file__', None)
+    present = spec is not None or module is not None
+    return dict(present=present, find_spec=spec is not None, origin=origin,
+                loaded=module is not None, fallback_expected=not present,
+                fallback='PyTorch reference implementation' if not present else None)
+
+
 def import_closure(p, mode='c'):
     """Replay the recorded CPU worker trace plus the prior import inventory."""
     import importlib
@@ -137,7 +150,16 @@ def import_closure(p, mode='c'):
             imported.append(name)
         else:
             excluded[name] = reason
+    # Optional kernels: Transformers binds them at import or uses its PyTorch
+    # reference path. GPU boot records presence and never fails on absence.
+    optional = {}
+    for name, reason in inventory.get('gpu_optional', {}).items():
+        if mode == 'g':
+            optional[name] = presence(name)
+        else:
+            excluded[name] = reason
     return dict(modules=len(imported), required_modules=imported,
+                optional_modules=optional,
                 exclusions=excluded, closure_sha256=digest,
                 method=inventory['method'], trace=inventory['trace'],
                 baseline_modules=inventory['baseline_modules'],

@@ -22,11 +22,14 @@ def cpu_failure(error):
     value=dict(job=job,plan=public['plan_sha256'],passed=False,
                error=(type(error).__name__+': '+str(error))[:2048],
                comparisons=_comparisons,expected=None,found=None)
-    if _comparisons:
-        value.update(expected=_comparisons[-1]['expected'],found=_comparisons[-1]['found'])
-    else:
-        value['comparison_status']='No comparison reached; inspect the exception'
+    last=_comparisons[-1] if _comparisons else None
+    if last:value.update(expected=last['expected'],found=last['found'])
+    value['failed_check']=last['check'] if last and not last['passed'] else None
+    if not last:value['comparison_status']='No comparison reached; inspect the exception'
+    elif last['passed']:value['comparison_status']='Last comparison passed; the exception came later'
     if isinstance(error,subprocess.CalledProcessError):
-        value.update(expected=dict(returncode=0),found=dict(returncode=error.returncode,
+        value.update(failed_check='Pool subprocess exit status',comparison_status='Subprocess failed',
+                     expected=dict(returncode=0),found=dict(returncode=error.returncode,
                      stderr=str(error.stderr)[-2048:],stdout=str(error.stdout)[-2048:]))
-    with (package/'a/30.json').open('w') as stream:json.dump(value,stream)
+    # One write keeps the metadata ledger to a single charge.
+    with (package/'a/30.json').open('w') as stream:stream.write(json.dumps(value))

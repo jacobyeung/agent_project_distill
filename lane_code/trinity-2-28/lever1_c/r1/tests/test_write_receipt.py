@@ -49,7 +49,30 @@ class WriteReceiptTests(unittest.TestCase):
             self.assertEqual(Path(guard['pool']).joinpath(guard['token'],'.wtest').stat().st_size,131072)
             self.assertEqual(int(Path(guard['pool']).joinpath(guard['token']+'.0').read_text()),131104)
             self.assertEqual(proof['entry_sequence']['events'],['guard_installed','write_test','operator_dispatch'])
-            entry.update(passed=True,proof=proof)
+            # o_check_sub.sh runs the sealed receipt check on this CPU.json before the GPU submit.
+            checked=self.receipt_check(p,env)
+            self.assertEqual((checked.returncode,checked.stdout.strip()),(0,'All CPU receipt checks passed'),checked.stderr)
+            # The placed a/9.py pinned 4 MiB and would reject this receipt.
+            old=(p/'a/9.py').read_text();start=old.index("with tarfile.open(p/'0.tgz') as archive:\n    sizes=")
+            end=old.index('\n',old.index("found=w['bytes'])",start))+1
+            (p/'a/9.py').write_text(old[:start]+"assert type(w['bytes']) is int and w['bytes']==4*1024**2\n"+old[end:])
+            stale=self.receipt_check(p,env);(p/'a/9.py').write_text(old)
+            self.assertEqual(stale.returncode,1);self.assertIn('AssertionError',stale.stderr)
+            entry.update(passed=True,proof=proof,receipt_check=checked.stdout.strip(),old_receipt_check_rejects=True)
+
+    def receipt_check(self,p,env):
+        return subprocess.run([sys.executable,'-I','-s','-B','a/9.py',str(p)],cwd=p,env=env,capture_output=True,text=True)
+
+    def test_receipt_check_reports_values(self):
+        root,p,pub,env,result,entry=self.run_case('write_success','174002',True)
+        self.assertEqual(result.returncode,0)
+        cpu=B.decoded((p/'a/c/CPU.json').read_bytes())
+        for key in ('bundle_guard','entry_sequence'):cpu[key]['write_test']['bytes']=4*1024**2
+        (p/'a/c/CPU.json').write_text(json.dumps(cpu))
+        checked=self.receipt_check(p,env)
+        self.assertEqual(checked.returncode,1)
+        self.assertIn("'expected': 131072",checked.stderr);self.assertIn("'found': 4194304",checked.stderr)
+        entry.update(passed=True,receipt_check_failure=checked.stderr.strip().splitlines()[-1][:2048])
 
     def test_old_cpu_guard_reproduces(self):
         root,p,pub,env,result,entry=self.run_case('write_old','173995',True)
@@ -76,7 +99,15 @@ class WriteReceiptTests(unittest.TestCase):
             if case=='write_late':
                 self.assertEqual(value['expected'],value['found'])
                 self.assertIn('injected post-guard',value['error'])
-            else:self.assertNotEqual(value['expected'],value['found'])
+                self.assertIsNone(value['failed_check']);self.assertIn('passed',value['comparison_status'])
+            elif case=='write_budget':
+                self.assertEqual(value['failed_check'],'Pool subprocess exit status')
+                self.assertEqual(value['expected'],dict(returncode=0));self.assertNotEqual(value['found']['returncode'],0)
+                self.assertIn('E72',value['found']['stderr'])
+            else:
+                self.assertNotEqual(value['expected'],value['found'])
+                self.assertEqual(value['failed_check'],value['comparisons'][-1]['check'])
+                self.assertFalse(value['comparisons'][-1]['passed'])
             self.assertTrue(B.decoded(archive.extractfile('metadata/25.json').read())['passed'])
         self.assertEqual(B.decoded((p/'a/f/EXIT.json').read_bytes())['status'],'FAILED')
         entry.update(passed=True,production_fetch=True,diagnostic=value)
