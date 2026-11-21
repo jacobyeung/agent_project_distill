@@ -71,7 +71,7 @@ def build():
     for name,h in f['sources'].items():
         assert digest((ROOT/name).read_bytes())==h
     data,mapping=inputs()
-    token='e71c940a6b283'
+    token='f68a2d7c903be'
     package='/project/community/jjyeung/okh7/a15_cot_ap'+token
     base_inputs=json.loads((BASE/'package/a/1.json').read_text())
     # Geometry's dedicated archive is not needed. The shared environment archive
@@ -83,6 +83,14 @@ def build():
     assets={k:assets[k] for k in ('groups','bwrap_pin')}
     cfg=dict(token=token,package=package,frozen=digest(frozen),logical='/scratch/jjyeung/b01ec87a6f29b',
              inputs=ins,assets=assets,export=json.loads((BASE/'package/a/export.json').read_text()))
+    # Group 0 mixes CPython with unrelated legacy assets; stream only CPython
+    # before boot. Group 1 is the base venv; a4 is its real entry/overlay.
+    cfg['boot'] = dict(runtime_groups=[1], input_archives=[2],
+        interpreter_group=0, interpreter_prefix='sj/uv-python/cpython-3.12.13-linux-x86_64-gnu',
+        interpreter_file_bytes=104949562, environment_expanded_bytes=8386282204,
+        overlay_expanded_bytes=ins['archives'][2]['expanded_bytes'],
+        archive_bytes=sum(n for _,n,_ in assets['groups'][1])+
+            sum(p['bytes'] for p in ins['archives'][2]['parts'])+assets['bwrap_pin']['bytes'])
     # Only source code travels. No task files, fixture rows, result journals,
     # source item manifests, preparation receipts or answer banks are bundled.
     sources={}
@@ -101,9 +109,9 @@ def build():
     # Authenticate full archives, but materialize only admitted inputs. Native
     # third-party runtime/model assets retain their required wire representation.
     n='v/orchard_stage.py'
-    text=sources[n].replace('strip=0, overlay=False):', 'strip=0, overlay=False, retain_roots=None):')
+    text=sources[n].replace('strip=0, overlay=False):', 'strip=0, overlay=False, retain_roots=None, retain_prefix=None, exclude_prefix=None):')
     text=text.replace('            target = destination/str(path)',
-        "            if retain_roots is not None and path.parts[0] not in retain_roots:\n                continue\n            target = destination/str(path)")
+        "            if retain_roots is not None and path.parts[0] not in retain_roots:\n                continue\n            if retain_prefix is not None and str(path) != retain_prefix and not str(path).startswith(retain_prefix+'/'):\n                continue\n            if exclude_prefix is not None and (str(path) == exclude_prefix or str(path).startswith(exclude_prefix+'/')):\n                continue\n            target = destination/str(path)")
     text=text.replace("with archive.extractfile(item) as source, target.open('wb' if overlay else 'xb') as output:",
         "with archive.extractfile(item) as source, _output(target, 'wb' if overlay else 'xb', retain_roots is not None and path.parts[0] in ('p0','m400') and target.suffix=='.json' and 'full_weights' not in path.parts) as output:")
     text += "\n@contextmanager\ndef _output(path, mode, encode):\n    if not encode:\n        with path.open(mode) as f: yield f\n    else:\n        import io\n        with io.BytesIO() as f:\n            yield f\n            path.write_text(json.dumps({'a0':f.getvalue().hex()})+'\\n')\n"
@@ -143,8 +151,14 @@ def build():
     (out/'delivery.tgz').write_bytes(delivery)
     (ROOT/'PAIR_MAP.json').write_bytes(jd(mapping))
     (ROOT/'BUILD.json').write_bytes(jd(dict(package=package,token=token,delivery=pin(delivery),
+        boot=dict(cfg['boot'], code_archive_bytes=len(files['0.tgz']),
+                  archive_and_code_bytes=cfg['boot']['archive_bytes']+len(files['0.tgz']),
+                  pre_bulk_bytes=cfg['boot']['archive_bytes']+cfg['boot']['interpreter_file_bytes']+len(files['0.tgz']),
+                  interpreter_source_bytes=sum(n for _,n,_ in assets['groups'][0]),
+                  production_seconds=None, receipt='execution.boot'),
+        interpreter_exposure=dict(opaque_roots=['c','v'],native_archives='Preserve all pinned interpreter and third-party package paths and bytes',audit='out/IMPORT_CHECKS.json'),
         project_budget=dict(limit_bytes=50000000,enforced_max_bytes=44000000,placement_bytes=20000000,metadata_and_ledger_bytes=2000000,returns_bytes=6000000,fetches_bytes=16000000,project_logs_bytes=0),
-        gpu_memory=dict(request='200G',charged_stop_bytes=180*1024**3,expected_peak_bytes=187000000000,full_load_rss_bytes=96000000000,page_cache_bytes=71000000000,batch_and_overhead_bytes=20000000000,measured=False),
+        gpu_memory=dict(request='200G',guarded_stop_bytes=180*1024**3,guard_formula='max(0, memory.current - min(active_file + inactive_file, max(0, file - shmem)))',guard_fallback='process-tree RSS when memory.stat/current is unavailable',expected_peak_bytes=187000000000,full_load_rss_bytes=96000000000,page_cache_bytes=71000000000,batch_and_overhead_bytes=20000000000,measured=False),
         payload=pin(files['0.tgz']),expanded_delivery_bytes=sum(map(len,files.values())),
         expanded_payload_bytes=sum(map(len,payload.values())),private_source_bytes=sum(len(v.encode()) for v in sources.values()),
         frozen=digest(frozen),data=pin(payload['1.json']),source_blob=pin(source_blob),

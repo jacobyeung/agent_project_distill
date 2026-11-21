@@ -1,0 +1,6 @@
+- Order: interpreter/environment + code → real worker import closure and receipt → bulk staging, in [control.py:273](/scratch/jjyeung/orch_n30/lever1_c/r4kit/src/control.py:273).
+- Pre-bulk: **8,719,147,211 bytes**; local fixture boots **2.263–2.269 s**. Production timing remains unmeasured.
+- **42 tests passed**, including missing-module failures in both modes: zero bulk bytes and traceback through production fetch.
+- Documents agree; FROZEN.json unchanged. Token: `f68a2d7c903be`.
+- Delivery: **4,255,483 bytes**, validated SHA-256 `233ee0816bc9a6e39c999519cbe0944a1b024518c1c0e61a7925b043254dbd66`.
+- Workspace: **21,880,713,216 bytes (21.88 GB)**, below 35 GB. Nothing deleted.

@@ -194,12 +194,14 @@ class Fixes(unittest.TestCase):
                 # Reach archive failures without materializing unapproved external inputs.
                 if case in ('copy','unpack'):
                     cfg['assets']['groups']=[[['/tmp/0',0,'0']]]
+                    cfg['boot'].update(runtime_groups=[0], interpreter_group=-1)
                     C.store(p/'2.json',cfg)
                     C.store(p/'2.json',cfg)
                 try:
                     with patch.dict(os.environ,{'A_M':mode,'SLURM_JOB_ID':'123'}), \
                          patch.object(ctl,'check',side_effect=failed if case=='check' else lambda p:current), \
                          patch.object(ctl,'materialize',side_effect=failed if case=='materialize' else lambda *a:(S,J)), \
+                         patch.object(ctl,'interpreter_stream',return_value=0), \
                          patch.object(ctl,'prepare',side_effect=prepare),patch.object(ctl,'launch',side_effect=launch):
                         self.assertEqual(ctl.work(p,root),1)
                 finally:
@@ -211,6 +213,10 @@ class Fixes(unittest.TestCase):
                 receipt=ctl.read(dest/'1.json');self.assertFalse(receipt['passed'])
                 returned=members((dest/'0.tgz').read_bytes())
                 self.assertIn('1.json',returned)
+                execution=C.loads(returned['1.json'])['execution']
+                for key in ('peak_tree_rss_bytes','peak_cgroup_current_bytes',
+                            'cgroup_memory_peak_bytes','peak_guarded_bytes'):
+                    self.assertIn(key,execution)
                 if case in ('launch','worker','timeout','alarm'):
                     self.assertEqual(len(returned['0.jsonl'].splitlines()),2)
                 if case != 'worker':
@@ -593,7 +599,8 @@ os.write(2,b'x'*30000+b'ground stderr sentinel\\n')
         M=mod('guard_monitor',ROOT/'src/monitor.py');evidence=[]
         for mode in ('c','g'):
             p,cfg,_=package();records=p/'z/p/a';records.mkdir(parents=True)
-            counter={'memory.current':str(M.memory_limit(mode)+1),'memory.max':str(200*1024**3)}
+            counter={'memory.current':str(M.memory_limit(mode)+1),'memory.max':str(200*1024**3),
+                     'memory.stat':'active_file 0\ninactive_file 0\nfile 0\nshmem 0\n'}
             with patch.object(M,'cgroup_memory',return_value=counter):
                 code=M.supervise([sys.executable,'-I','-s','-B','-c','import time; time.sleep(10)'],dict(os.environ,A_M=mode),records,C,time.time()+20)
             self.assertEqual(code,-9)
@@ -605,8 +612,50 @@ os.write(2,b'x'*30000+b'ground stderr sentinel\\n')
             self.assertLess(M.memory_limit(mode),200*1024**3)
             evidence.append(dict(mode=mode,execution=execution,real_fetch=True))
         with patch.object(M,'cgroup_memory',return_value={}):
-            with self.assertRaises(MemoryError):M.memory_over('g',strict=True)
+            with patch.object(M,'tree_rss',return_value=M.memory_limit('g')):
+                self.assertTrue(M.memory_over('g',strict=True))
         EVIDENCE['memory_guard']=evidence
+
+    def test_22_reclaimable_cache_guard_and_return_peaks(self):
+        M=mod('cache_guard_monitor',ROOT/'src/monitor.py');gib=1024**3;evidence=[]
+        for mode in ('c','g'):
+            limit=M.memory_limit(mode)
+            for anon, trip in ((96*gib,False),(limit,True)):
+                file=120*gib;shmem=4*gib
+                counter={'memory.current':str(anon+file),
+                         'memory.peak':str(anon+file+gib),
+                         'memory.stat':f'anon {anon}\nfile {file}\nshmem {shmem}\nactive_file {40*gib}\ninactive_file {80*gib-shmem}\n'}
+                with patch.object(M,'cgroup_memory',return_value=counter), \
+                     patch.object(M,'tree_rss',return_value=anon):
+                    self.assertEqual(M.memory_over(mode),trip)
+                    self.assertEqual(M.guarded_memory(counter,0),(anon+shmem,'cgroup'))
+                    # Include shmem in synthetic file LRUs: it must be added back once.
+                    overlap=dict(counter,**{'memory.stat':counter['memory.stat'].replace(str(80*gib-shmem),str(80*gib))})
+                    self.assertEqual(M.guarded_memory(overlap,0),(anon+shmem,'cgroup'))
+                    p,cfg,_=package();records=p/'z/p/a';records.mkdir(parents=True)
+                    C.store(records/'6.json',dict(M.MEMORY_PEAKS))
+                    C.store(records/'1.json',dict(passed=not trip,records=0))
+                    ctl.finalize(p,records,cfg,mode,'123',time.time(),int(trip))
+                    ctl.fetch(p,p/'f',mode)
+                    execution=C.loads(members((p/'f/0.tgz').read_bytes())['1.json'])['execution']
+                    for key in M.MEMORY_PEAKS:
+                        self.assertGreaterEqual(execution[key],M.MEMORY_PEAKS[key])
+                    evidence.append(dict(mode=mode,anon=anon,trips=trip,execution=execution))
+        for values in ({},{'memory.current':str(300*gib)},
+                       {'memory.current':str(300*gib),'memory.stat':'anon 1\n'}):
+            with patch.object(M,'cgroup_memory',return_value=values),patch.object(M,'tree_rss',return_value=96*gib):
+                self.assertFalse(M.memory_over('c',strict=True))
+                self.assertEqual(M.guarded_memory(values,96*gib),(96*gib,'process_tree_rss'))
+        EVIDENCE['reclaimable_memory_guard']=evidence
+
+    def test_23_process_tree_resident_sum(self):
+        M=mod('tree_monitor',ROOT/'src/monitor.py');proc=fresh()
+        for pid,rss,children in ((1,10,'2 3'),(2,20,'4'),(3,30,''),(4,40,'')):
+            task=proc/str(pid)/'task'/str(pid);task.mkdir(parents=True)
+            (proc/str(pid)/'status').write_text(f'VmRSS: {rss} kB\nVmHWM: 999 kB\n')
+            (task/'children').write_text(children)
+        task=proc/'1/task/10';task.mkdir();(task/'children').write_text('4 999')
+        self.assertEqual(M.tree_rss(1,proc),100*1024)
 
     def test_17_memory_telemetry_batches_and_end(self):
         runtime=mod('memory_runtime',ROOT/'src/runtime.py');runtime.C=C
@@ -680,5 +729,6 @@ os.write(2,b'x'*30000+b'ground stderr sentinel\\n')
 ORIGINAL_MATERIALIZE=C.materialize
 if __name__=='__main__':
     result=unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.loadTestsFromTestCase(Fixes))
-    (ROOT/'out/FIX_CHECKS.json').write_text(json.dumps(dict(passed=result.wasSuccessful(),tests=result.testsRun,evidence=EVIDENCE),indent=2)+'\n')
+    (ROOT/'out/FIX_CHECKS.json').write_text(json.dumps(dict(passed=result.wasSuccessful(),tests=result.testsRun,
+        delivery=B.pin((ROOT/'out/delivery.tgz').read_bytes()),evidence=EVIDENCE),indent=2)+'\n')
     raise SystemExit(not result.wasSuccessful())

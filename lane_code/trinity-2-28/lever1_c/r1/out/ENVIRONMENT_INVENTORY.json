@@ -1,8 +1,8 @@
 {
   "passed": true,
-  "delivery_sha256": "bb5315a268af467e2015a590f9fbe383e604e22c9accb1f40cc5e0b81fb0f2a4",
+  "delivery_sha256": "8326c8ee3c46967f9b9228057b18681e33bed984220274105a0399c54cbf7de9",
   "scope": "Conservative superset: every delivered Python source, including retained serving modules, deferred branches, embedded bootstrap and recovery. External library implementation internals belong to the pinned environment, not this source inventory.",
-  "files_parsed": 379,
+  "files_parsed": 384,
   "reads": [
     {
       "enclosing_environment_keys": [
@@ -62,7 +62,7 @@
       ],
       "file": "BATCH.py",
       "source": "BATCH.py",
-      "line": 5,
+      "line": 3,
       "key": "SLURM_JOB_ID",
       "expression": "os.environ.get('SLURM_JOB_ID', '')",
       "provided_by": "Slurm scheduler; read-site default applies when get() is used"
@@ -73,7 +73,7 @@
       ],
       "file": "BATCH.py",
       "source": "BATCH.py",
-      "line": 5,
+      "line": 3,
       "key": "*",
       "expression": "os.environ",
       "provided_by": "Filtered inherited environment; allowed keys and defaults are explicit in the source expression"
@@ -86,12 +86,13 @@
         "E65",
         "E66",
         "E67",
+        "FAILED",
         "SLURM_JOB_END_TIME",
         "SLURM_JOB_ID"
       ],
-      "file": "BATCH.py:9.py",
-      "source": "BATCH.py:9.py",
-      "line": 63,
+      "file": "BATCH.py:7.py",
+      "source": "BATCH.py:7.py",
+      "line": 76,
       "key": "SLURM_JOB_END_TIME",
       "expression": "os.environ.get('SLURM_JOB_END_TIME', time.time() + 62)",
       "provided_by": "Slurm scheduler; read-site default applies when get() is used"
@@ -104,12 +105,13 @@
         "E65",
         "E66",
         "E67",
+        "FAILED",
         "SLURM_JOB_END_TIME",
         "SLURM_JOB_ID"
       ],
-      "file": "BATCH.py:9.py",
-      "source": "BATCH.py:9.py",
-      "line": 63,
+      "file": "BATCH.py:7.py",
+      "source": "BATCH.py:7.py",
+      "line": 76,
       "key": "*",
       "expression": "os.environ",
       "provided_by": "Filtered inherited environment; allowed keys and defaults are explicit in the source expression"
@@ -122,12 +124,13 @@
         "E65",
         "E66",
         "E67",
+        "FAILED",
         "SLURM_JOB_END_TIME",
         "SLURM_JOB_ID"
       ],
-      "file": "BATCH.py:9.py",
-      "source": "BATCH.py:9.py",
-      "line": 67,
+      "file": "BATCH.py:7.py",
+      "source": "BATCH.py:7.py",
+      "line": 80,
       "key": "SLURM_JOB_ID",
       "expression": "os.environ['SLURM_JOB_ID']",
       "provided_by": "Slurm scheduler; read-site default applies when get() is used"
@@ -140,12 +143,13 @@
         "E65",
         "E66",
         "E67",
+        "FAILED",
         "SLURM_JOB_END_TIME",
         "SLURM_JOB_ID"
       ],
-      "file": "BATCH.py:9.py",
-      "source": "BATCH.py:9.py",
-      "line": 67,
+      "file": "BATCH.py:7.py",
+      "source": "BATCH.py:7.py",
+      "line": 80,
       "key": "*",
       "expression": "os.environ",
       "provided_by": "Filtered inherited environment; allowed keys and defaults are explicit in the source expression"
@@ -623,6 +627,76 @@
     },
     {
       "enclosing_environment_keys": [
+        "CUDA_VISIBLE_DEVICES"
+      ],
+      "file": "orchard_h10/boot.py",
+      "source": "orchard_h10/boot.py",
+      "line": 54,
+      "key": "CUDA_VISIBLE_DEVICES",
+      "expression": "os.environ.get('CUDA_VISIBLE_DEVICES', '')",
+      "provided_by": "Slurm GPU assignment; CPU allocation absent/empty; preparation explicitly empty"
+    },
+    {
+      "enclosing_environment_keys": [
+        "CUDA_VISIBLE_DEVICES"
+      ],
+      "file": "orchard_h10/boot.py",
+      "source": "orchard_h10/boot.py",
+      "line": 54,
+      "key": "*",
+      "expression": "os.environ",
+      "provided_by": "Filtered inherited environment; allowed keys and defaults are explicit in the source expression"
+    },
+    {
+      "enclosing_environment_keys": [
+        "E84",
+        "SLURM_JOB_ID"
+      ],
+      "file": "orchard_h10/boot.py",
+      "source": "orchard_h10/boot.py",
+      "line": 65,
+      "key": "SLURM_JOB_ID",
+      "expression": "os.environ['SLURM_JOB_ID']",
+      "provided_by": "Slurm scheduler; read-site default applies when get() is used"
+    },
+    {
+      "enclosing_environment_keys": [
+        "E84",
+        "SLURM_JOB_ID"
+      ],
+      "file": "orchard_h10/boot.py",
+      "source": "orchard_h10/boot.py",
+      "line": 65,
+      "key": "*",
+      "expression": "os.environ",
+      "provided_by": "Filtered inherited environment; allowed keys and defaults are explicit in the source expression"
+    },
+    {
+      "enclosing_environment_keys": [
+        "E84",
+        "SLURM_JOB_ID"
+      ],
+      "file": "orchard_h10/boot.py",
+      "source": "orchard_h10/boot.py",
+      "line": 74,
+      "key": "SLURM_JOB_ID",
+      "expression": "os.environ['SLURM_JOB_ID']",
+      "provided_by": "Slurm scheduler; read-site default applies when get() is used"
+    },
+    {
+      "enclosing_environment_keys": [
+        "E84",
+        "SLURM_JOB_ID"
+      ],
+      "file": "orchard_h10/boot.py",
+      "source": "orchard_h10/boot.py",
+      "line": 74,
+      "key": "*",
+      "expression": "os.environ",
+      "provided_by": "Filtered inherited environment; allowed keys and defaults are explicit in the source expression"
+    },
+    {
+      "enclosing_environment_keys": [
         "CUDA_VISIBLE_DEVICES",
         "HOME",
         "PATH",
@@ -685,7 +759,7 @@
       ],
       "file": "orchard_h10/job.py",
       "source": "orchard_h10/job.py",
-      "line": 162,
+      "line": 171,
       "key": "*",
       "expression": "os.environ.items()",
       "provided_by": "Filtered inherited environment; allowed keys and defaults are explicit in the source expression"
@@ -700,7 +774,7 @@
       ],
       "file": "orchard_h10/job.py",
       "source": "orchard_h10/job.py",
-      "line": 162,
+      "line": 171,
       "key": "*",
       "expression": "os.environ",
       "provided_by": "Filtered inherited environment; allowed keys and defaults are explicit in the source expression"
@@ -718,7 +792,7 @@
       ],
       "file": "orchard_h10/job.py",
       "source": "orchard_h10/job.py",
-      "line": 192,
+      "line": 201,
       "key": "SLURM_JOB_ID",
       "expression": "os.environ['SLURM_JOB_ID']",
       "provided_by": "Slurm scheduler; read-site default applies when get() is used"
@@ -736,7 +810,7 @@
       ],
       "file": "orchard_h10/job.py",
       "source": "orchard_h10/job.py",
-      "line": 192,
+      "line": 201,
       "key": "*",
       "expression": "os.environ",
       "provided_by": "Filtered inherited environment; allowed keys and defaults are explicit in the source expression"
@@ -754,7 +828,7 @@
       ],
       "file": "orchard_h10/job.py",
       "source": "orchard_h10/job.py",
-      "line": 193,
+      "line": 202,
       "key": "A_N",
       "expression": "os.environ['A_N']",
       "provided_by": "runtime/a.py: validated one-GPU receipt"
@@ -772,7 +846,7 @@
       ],
       "file": "orchard_h10/job.py",
       "source": "orchard_h10/job.py",
-      "line": 193,
+      "line": 202,
       "key": "A_T",
       "expression": "os.environ['A_T']",
       "provided_by": "runtime/a.py: validated 3000-second receipt"
@@ -790,7 +864,7 @@
       ],
       "file": "orchard_h10/job.py",
       "source": "orchard_h10/job.py",
-      "line": 193,
+      "line": 202,
       "key": "*",
       "expression": "os.environ",
       "provided_by": "Filtered inherited environment; allowed keys and defaults are explicit in the source expression"
@@ -808,7 +882,7 @@
       ],
       "file": "orchard_h10/job.py",
       "source": "orchard_h10/job.py",
-      "line": 193,
+      "line": 202,
       "key": "*",
       "expression": "os.environ",
       "provided_by": "Filtered inherited environment; allowed keys and defaults are explicit in the source expression"
@@ -826,7 +900,7 @@
       ],
       "file": "orchard_h10/job.py",
       "source": "orchard_h10/job.py",
-      "line": 194,
+      "line": 203,
       "key": "SLURM_JOB_START_TIME",
       "expression": "os.environ.get('SLURM_JOB_START_TIME', time.time())",
       "provided_by": "Slurm scheduler; read-site default applies when get() is used"
@@ -844,7 +918,7 @@
       ],
       "file": "orchard_h10/job.py",
       "source": "orchard_h10/job.py",
-      "line": 194,
+      "line": 203,
       "key": "*",
       "expression": "os.environ",
       "provided_by": "Filtered inherited environment; allowed keys and defaults are explicit in the source expression"
@@ -862,7 +936,7 @@
       ],
       "file": "orchard_h10/job.py",
       "source": "orchard_h10/job.py",
-      "line": 195,
+      "line": 204,
       "key": "SLURM_JOB_END_TIME",
       "expression": "os.environ.get('SLURM_JOB_END_TIME', start + seconds)",
       "provided_by": "Slurm scheduler; read-site default applies when get() is used"
@@ -880,7 +954,7 @@
       ],
       "file": "orchard_h10/job.py",
       "source": "orchard_h10/job.py",
-      "line": 195,
+      "line": 204,
       "key": "*",
       "expression": "os.environ",
       "provided_by": "Filtered inherited environment; allowed keys and defaults are explicit in the source expression"
@@ -898,7 +972,7 @@
       ],
       "file": "orchard_h10/job.py",
       "source": "orchard_h10/job.py",
-      "line": 213,
+      "line": 222,
       "key": "A_I",
       "expression": "os.environ['A_I']",
       "provided_by": "runtime/a.py: authenticated inputs digest"
@@ -916,7 +990,7 @@
       ],
       "file": "orchard_h10/job.py",
       "source": "orchard_h10/job.py",
-      "line": 213,
+      "line": 222,
       "key": "A_C",
       "expression": "os.environ['A_C']",
       "provided_by": "runtime/a.py: authenticated CPU receipt digest"
@@ -934,7 +1008,7 @@
       ],
       "file": "orchard_h10/job.py",
       "source": "orchard_h10/job.py",
-      "line": 213,
+      "line": 222,
       "key": "*",
       "expression": "os.environ",
       "provided_by": "Filtered inherited environment; allowed keys and defaults are explicit in the source expression"
@@ -952,7 +1026,7 @@
       ],
       "file": "orchard_h10/job.py",
       "source": "orchard_h10/job.py",
-      "line": 213,
+      "line": 222,
       "key": "*",
       "expression": "os.environ",
       "provided_by": "Filtered inherited environment; allowed keys and defaults are explicit in the source expression"
@@ -970,7 +1044,7 @@
       ],
       "file": "orchard_h10/job.py",
       "source": "orchard_h10/job.py",
-      "line": 217,
+      "line": 226,
       "key": "A_I",
       "expression": "os.environ['A_I']",
       "provided_by": "runtime/a.py: authenticated inputs digest"
@@ -988,7 +1062,7 @@
       ],
       "file": "orchard_h10/job.py",
       "source": "orchard_h10/job.py",
-      "line": 217,
+      "line": 226,
       "key": "*",
       "expression": "os.environ",
       "provided_by": "Filtered inherited environment; allowed keys and defaults are explicit in the source expression"
@@ -1006,7 +1080,7 @@
       ],
       "file": "orchard_h10/job.py",
       "source": "orchard_h10/job.py",
-      "line": 249,
+      "line": 258,
       "key": "CUDA_VISIBLE_DEVICES",
       "expression": "os.environ.get('CUDA_VISIBLE_DEVICES', '')",
       "provided_by": "Slurm GPU assignment; CPU allocation absent/empty; preparation explicitly empty"
@@ -1024,7 +1098,7 @@
       ],
       "file": "orchard_h10/job.py",
       "source": "orchard_h10/job.py",
-      "line": 249,
+      "line": 258,
       "key": "*",
       "expression": "os.environ",
       "provided_by": "Filtered inherited environment; allowed keys and defaults are explicit in the source expression"
@@ -1647,6 +1721,94 @@
     },
     {
       "enclosing_environment_keys": [
+        "E62",
+        "E63",
+        "E64",
+        "E65",
+        "E66",
+        "E67",
+        "FAILED",
+        "SLURM_JOB_END_TIME",
+        "SLURM_JOB_ID"
+      ],
+      "file": "outer/a/29.py:1.py",
+      "source": "outer/a/29.py:1.py",
+      "line": 76,
+      "key": "SLURM_JOB_END_TIME",
+      "expression": "os.environ.get('SLURM_JOB_END_TIME', time.time() + 62)",
+      "provided_by": "Slurm scheduler; read-site default applies when get() is used"
+    },
+    {
+      "enclosing_environment_keys": [
+        "E62",
+        "E63",
+        "E64",
+        "E65",
+        "E66",
+        "E67",
+        "FAILED",
+        "SLURM_JOB_END_TIME",
+        "SLURM_JOB_ID"
+      ],
+      "file": "outer/a/29.py:1.py",
+      "source": "outer/a/29.py:1.py",
+      "line": 76,
+      "key": "*",
+      "expression": "os.environ",
+      "provided_by": "Filtered inherited environment; allowed keys and defaults are explicit in the source expression"
+    },
+    {
+      "enclosing_environment_keys": [
+        "E62",
+        "E63",
+        "E64",
+        "E65",
+        "E66",
+        "E67",
+        "FAILED",
+        "SLURM_JOB_END_TIME",
+        "SLURM_JOB_ID"
+      ],
+      "file": "outer/a/29.py:1.py",
+      "source": "outer/a/29.py:1.py",
+      "line": 80,
+      "key": "SLURM_JOB_ID",
+      "expression": "os.environ['SLURM_JOB_ID']",
+      "provided_by": "Slurm scheduler; read-site default applies when get() is used"
+    },
+    {
+      "enclosing_environment_keys": [
+        "E62",
+        "E63",
+        "E64",
+        "E65",
+        "E66",
+        "E67",
+        "FAILED",
+        "SLURM_JOB_END_TIME",
+        "SLURM_JOB_ID"
+      ],
+      "file": "outer/a/29.py:1.py",
+      "source": "outer/a/29.py:1.py",
+      "line": 80,
+      "key": "*",
+      "expression": "os.environ",
+      "provided_by": "Filtered inherited environment; allowed keys and defaults are explicit in the source expression"
+    },
+    {
+      "enclosing_environment_keys": [
+        "E81",
+        "SLURM_JOB_ID"
+      ],
+      "file": "outer/a/29.py:1.py",
+      "source": "outer/a/29.py:1.py",
+      "line": 144,
+      "key": "*",
+      "expression": "os.environ",
+      "provided_by": "Filtered inherited environment; allowed keys and defaults are explicit in the source expression"
+    },
+    {
+      "enclosing_environment_keys": [
         "E73",
         "SLURM_JOB_ID",
         "USER"
@@ -1693,6 +1855,32 @@
       "file": "outer/a/5.py",
       "source": "outer/a/5.py",
       "line": 108,
+      "key": "*",
+      "expression": "os.environ",
+      "provided_by": "Filtered inherited environment; allowed keys and defaults are explicit in the source expression"
+    },
+    {
+      "enclosing_environment_keys": [
+        "E73",
+        "SLURM_JOB_ID",
+        "USER"
+      ],
+      "file": "outer/a/5.py",
+      "source": "outer/a/5.py",
+      "line": 180,
+      "key": "SLURM_JOB_ID",
+      "expression": "os.environ.get('SLURM_JOB_ID', '')",
+      "provided_by": "Slurm scheduler; read-site default applies when get() is used"
+    },
+    {
+      "enclosing_environment_keys": [
+        "E73",
+        "SLURM_JOB_ID",
+        "USER"
+      ],
+      "file": "outer/a/5.py",
+      "source": "outer/a/5.py",
+      "line": 180,
       "key": "*",
       "expression": "os.environ",
       "provided_by": "Filtered inherited environment; allowed keys and defaults are explicit in the source expression"

@@ -1,16 +1,18 @@
 {
   "artifact": "5083243cfedd2a389dfca579c5452e7d0c73b03a58e1cb7d204292ddd10e67cd",
   "delivery": {
-    "bytes": 4250122,
-    "sha256": "3ca1fd77d3cd021210bae2ef31d0c323bd3d8bd0d1cf3e2b5df12410c91232af"
+    "bytes": 4255483,
+    "sha256": "233ee0816bc9a6e39c999519cbe0944a1b024518c1c0e61a7925b043254dbd66"
   },
   "forecast_seconds": 1367.1526441374722,
   "frozen": "3743891f778115529710461333ad09a9588b8075e2173a74fac0065dc5d0382d",
   "gpu_memory": {
     "batch_and_overhead_bytes": 20000000000,
-    "charged_stop_bytes": 193273528320,
     "expected_peak_bytes": 187000000000,
     "full_load_rss_bytes": 96000000000,
+    "guard_fallback": "process-tree RSS when memory.stat/current is unavailable",
+    "guard_formula": "max(0, memory.current - min(active_file + inactive_file, max(0, file - shmem)))",
+    "guarded_stop_bytes": 193273528320,
     "measured": false,
     "page_cache_bytes": 71000000000,
     "request": "200G"
@@ -26,6 +28,6 @@
     "project_logs_bytes": 0,
     "returns_bytes": 6000000
   },
-  "tests": 35,
-  "token": "e71c940a6b283"
+  "tests": 42,
+  "token": "f68a2d7c903be"
 }

@@ -15,11 +15,11 @@ import traceback
 import types
 
 
-def supervise(root, blob):
+def supervise(root, blob, failure=None):
     public=PUBLIC
     shared=Path('/project/community/jjyeung')/public['token']
     path=shared/'a/14.json'
-    rc=1;loaded={};diag=None
+    rc=1;loaded={};diag=None;supervisor_failed=False
     try:
         # Module loading is protected by the shell log/traps and this handler.
         for name,raw in RECOVERY.items():
@@ -30,6 +30,7 @@ def supervise(root, blob):
         codec=loaded['j'];codec.install()
         diag=loaded['e'];results=loaded['orchard_results'];transport=loaded['return_io']
         loaded['q'].install()
+        if failure is not None:raise RuntimeError(failure)
         root.mkdir(mode=0o700)
         with tarfile.open(fileobj=io.BytesIO(blob)) as archive:
             for entry in archive:
@@ -53,11 +54,17 @@ def supervise(root, blob):
             finally:
                 for number,handler in old.items():signal.signal(number,handler)
     except Exception as error:
+        rc=1;supervisor_failed=True
+        failure_lines=collections.deque(maxlen=200)
+        for block in traceback.TracebackException.from_exception(error).format(chain=True):
+            failure_lines.extend(line[-2048:] for line in block.splitlines())
         if diag is not None:
             try:diag.exception(path,error)
-            except OSError:
-                root.mkdir(mode=0o700,exist_ok=True)
-                path=root/'14.json';diag.exception(path,error)
+            except Exception:
+                try:
+                    root.mkdir(mode=0o700,exist_ok=True)
+                    path=root/'14.json';diag.exception(path,error)
+                except Exception:pass
         else:
             traceback.print_exc()
             return rc
@@ -76,7 +83,7 @@ def supervise(root, blob):
                 auth.validate_exit(ex,dest/'result.tar.gz',public['plan_sha256'],token)
                 auth.validate_receipt(receipt,ex,dest/'EXIT.json',dest/'result.tar.gz',public['plan_sha256'],token)
                 if str(ex['job'])!=job:raise ValueError('E64')
-                return rc
+                if not supervisor_failed and ex['status']=='FAILED' and ex['returncode']!=0:return rc
             except (ValueError,KeyError,OSError):pass
         if not dest.exists():transport.operate('test',pool,token)
         root.mkdir(mode=0o700,exist_ok=True)
@@ -88,7 +95,16 @@ def supervise(root, blob):
         write('metadata/RETURN_ID.json',dict(token=token,job=job))
         write('metadata/CAPTURE.json',dict(verified=False,uploaded=False,items=0,error='E65'))
         write('metadata/PARITY.json',dict(trusted=False,items=0,expected=60,failure='E65'))
-        if path.exists():(out/'metadata/14.json').write_bytes(path.read_bytes())
+        boot=shared/'a/25.json'
+        if boot.exists():
+            value=json.loads(boot.read_bytes())
+            if value.get('job')==job and value.get('plan')==public['plan_sha256']:
+                write('metadata/25.json',value)
+        if supervisor_failed:
+            value=dict(lines=list(failure_lines),limit=200,width=2048)
+            while len(codec.pack(codec.wire_dumps(value)))>262144:value['lines']=value['lines'][1:]
+            write('metadata/14.json',value)
+        elif path.exists():(out/'metadata/14.json').write_bytes(path.read_bytes())
         else:write('metadata/14.json',dict(lines=['E65'],limit=200,width=2048))
         results.pool_operation=lambda action,pool,token,local=None,**kw:transport.operate(action,pool,token,local)
         def no_cloud(*args,**kwargs):raise RuntimeError('E66')

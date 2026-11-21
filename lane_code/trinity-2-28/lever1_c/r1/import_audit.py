@@ -197,6 +197,11 @@ def audit(delivery=None, overrides=None):
                 edge.update(status='resolved_loader_map',reason='Targets come only from sealed l.json; every map entry checked, demanded targets walked transitively')
                 for target, package, namespace in mapping.values():
                     if not namespace and target not in files:unresolved.append(dict(file=path,target=target,reason='missing loader target'))
+            elif item['source']=='orchard_h10/boot.py' and row['scope']=='check' and row['kind']=='dynamic':
+                manifest=decode(files['g/3.json'])
+                edge['resolutions']=[resolve(n,path,row) for n in manifest['modules']]
+                edge['status']='resolved_dynamic'
+                if any(r['status']=='unresolved' for r in edge['resolutions']):unresolved.append(edge)
             elif row['kind'] in ('dynamic','file_dynamic'):
                 targets=DYNAMIC.get((item['source'],row['scope'],row['name']))
                 if targets is None:edge.update(status='unresolved',reason='nonliteral module or file loader needs explicit target proof');unresolved.append(edge)

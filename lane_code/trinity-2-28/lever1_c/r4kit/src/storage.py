@@ -107,8 +107,14 @@ def install(root, source=None, outputs=()):
 
     def translate(value):
         p = pathlib.Path(value)
-        try: return root/mapped(str(p.relative_to(root)))
+        try: rel = p.relative_to(root)
         except ValueError: return p
+        # Only authored sources have opaque names. Native runtime archives are
+        # pinned external inputs: changing keyword.py (or any package filename)
+        # breaks Python's import ABI before our source loader can even start.
+        if rel.parts and rel.parts[0] in ('c', 'v'):
+            return root/mapped(str(rel))
+        return p
 
     def writable_json(p):
         return p.suffix in ('.json', '.jsonl') and any(p.is_relative_to(q) for q in output_roots) and '/base/' not in str(p) and '/full_weights/' not in str(p)
@@ -121,7 +127,7 @@ def install(root, source=None, outputs=()):
             if sys.version_info >= (3, 12): super().__init__(str(translate(pathlib.Path(*args))))
         def __truediv__(self, other): return Path(pathlib.Path(str(self))/other)
         def joinpath(self, *parts): return Path(pathlib.Path(str(self)).joinpath(*parts))
-        def with_name(self, name): return Path(pathlib.Path(str(self)).with_name(segment(name)))
+        def with_name(self, name): return Path(pathlib.Path(str(self)).with_name(name))
         def open(self, mode='r', *args, **kwargs):
             p = pathlib.Path(str(self))
             if mode in ('r', 'rb'):

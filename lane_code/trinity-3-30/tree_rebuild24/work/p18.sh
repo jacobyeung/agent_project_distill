@@ -1,0 +1,1 @@
+W=/scratch/jjyeung/orch_n30/tree_rebuild10_w; date -u +%TZ; tmux ls | grep tr2; ls -lt $W/w24z8b/out | head -8; ls $W/w24z8b/out/*z8b*.sha256 2>/dev/null && cat $W/w24z8b/out/BUILD24M4Z8B_REPORT.md && head -c 1500 $W/w24z8b/out/UPLOADS_24M4Z8B.json && echo && head -60 $W/w24z8b/out/UPLOADS_24M4Z8B.list

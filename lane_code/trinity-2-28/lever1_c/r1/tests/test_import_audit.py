@@ -18,7 +18,7 @@ class ImportAuditTests(unittest.TestCase):
         self.assertTrue(self.result['passed'], self.result['unresolved'])
         self.assertEqual(self.result['retained_sources'],296)
         self.assertEqual(self.result['vendor_files'],26)
-        self.assertEqual(self.result['files_parsed'],342)
+        self.assertEqual(self.result['files_parsed'],345)
         self.assertTrue(any(r['scope'] for r in self.result['edges']))
         self.assertTrue(any(r['kind']=='literal_dynamic' for r in self.result['edges']))
         self.assertTrue(any('embedded_sha256' in r for r in self.result['edges']))

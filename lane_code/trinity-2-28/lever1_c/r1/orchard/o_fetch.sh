@@ -26,6 +26,7 @@ with tarfile.open(p/'0.tgz') as t:plan=json.load(t.extractfile('9.json'))
 digest=hashlib.sha256(json.dumps(plan,sort_keys=True,separators=(',',':')).encode()).hexdigest()
 if digest!=pub['plan_sha256']:raise ValueError('plan differs')
 token=pub['token']+format(int(job),'08x'); source=Path(plan['pool'])/token
+if not (source/'RETURN_RECEIPT.json').exists():runpy.run_path(str(p/'a/29.py'))['recover'](p,job)
 ex=json.loads((source/'EXIT.json').read_text()); receipt=json.loads((source/'RETURN_RECEIPT.json').read_text())
 auth['validate_exit'](ex,source/'result.tar.gz',digest,token)
 if str(ex['job'])!=job:raise ValueError('job differs')

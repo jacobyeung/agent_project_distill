@@ -1,0 +1,72 @@
+{
+  "local_suites": "PASS",
+  "training_gate": "NO-GO",
+  "resolved": [
+    {
+      "name": "current fixture",
+      "status": "resolved",
+      "log": "work/build24m4z7/current.log",
+      "output_excerpt": "test_allocation_names_and_slot_limit (__main__.Current.test_allocation_names_and_slot_limit) ... ok\ntest_empty_stop_safe (__main__.Current.test_empty_stop_safe) ... ok\ntest_gc_rejects_wrong_digest (__main__.Current.test_gc_rejects_wrong_digest) ... gcsput: q9/x attempt 0: OSError: GCS size/md5 mismatch for q9/x: 128 wrong\nok\ntest_listing_budget (__main__.Current.test_listing_budget) ... ok\ntest_missing_and_incomplete (__main__.Current.test_missing_and_incomplete) ... ok\ntest_private_modes_and_symlinks (__main__.Current.test_private_modes_and_symlinks) ... ok\ntest_retry_idempotence_and_local_state (__main__.Current.test_retry_idempotence_and_local_state) ... UPLOAD_NO_RECEIPTS q9/22c714e1/469ddece_m100.tar.j41 rc=1\nFAIL\ntest_stop_uses_dedicated_object (__main__.Current.test_stop_uses_dedicated_object) ... ok\n\n======================================================================\nFAIL: test_retry_idempotence_and_local_state (__main__.Current.test_retry_idempotence_and_local_state)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z7/work/build24m4z7/current_tests.py\", line 32, in test_retry_idempotence_and_local_state\n    self.assertEqual(stamp,done.stat().st_mtime_ns);self.assertEqual(before,list(sink.iterdir()));self.assertFalse(c.live.exists())\n                                                                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
+      "resolution": "The no-live-files assertion now checks the required live no-receipts marker; current_release.log passes."
+    },
+    {
+      "name": "ENOSPC fixture",
+      "status": "resolved",
+      "log": "work/build24m4z7/enospc.log",
+      "output_excerpt": "{\"name\": \"prepare_missing\", \"status\": \"PASS\", \"result\": {\"returncode\": 1, \"training_started\": false, \"error\": \"file missing\"}, \"log\": \"work/enospc7/logs/prepare_missing.log\"}\n{\"name\": \"prepare_incomplete\", \"status\": \"PASS\", \"result\": {\"returncode\": 1, \"training_started\": false, \"error\": \"E101\"}, \"log\": \"work/enospc7/logs/prepare_incomplete.log\"}\n{\"name\": \"full\", \"status\": \"PASS\", \"result\": {\"free_bytes\": 0}, \"log\": \"work/enospc7/logs/full.log\"}\n{\"name\": \"wrapper_local_logs\", \"status\": \"PASS\", \"result\": {\"child_rc\": 0, \"logger_rc\": 0, \"local_checkpoint_bytes\": 4096, \"project_free\": 0}, \"log\": \"work/enospc7/logs/wrapper_local_logs.log\"}\n{\"name\": \"nonfatal_launch_finalizer\", \"status\": \"PASS\", \"result\": {\"returncode\": 0, \"training_started\": true, \"local_archive_bytes\": 1414, \"archive_retry\": \"{\\\"time\\\": 1795214798, \\\"action\\\": \\\"small\\\", \\\"error\\\": \\\"OSError(28, 'No space left on device')\\\", \\\"errno\\\": 28}\\n{\\\"time\\\": 1795214800, \\\"action\\\": \\\"small\\\", \\\"error\\\": \\\"OSError(28, 'No space left on device')\\\", \\\"errno\\\": 28}\\n{\\\"time\\\": 1795214801, \\\"action\\\": \\\"small\\\", \\\"error\\\": \\\"OSError(28, 'No space left on device')\\\", \\\"errno\\\n{\"name\": \"full_exports_and_stop\", \"status\": \"PASS\", \"result\": {\"done\": [\"gcs_checkpoint_7.done\", \"gcs_checkpoint_7_stop.done\", \"gcs_m100.done\", \"gcs_o.done\"], \"parts\": 16, \"bytes_sha256_match\": true, \"project_free\": 0, \"receipts\": [{\"bytes\": 527360, \"crc32c\": \"fixture\", \"file\": \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z7/work/enospc7/node/live_spool/e0c5aedfef8895ac6ec4ec5b0e4bcc421476ed0c6305a9188f66d5c0ac265468.tar\", \"finished_at\": 1795214799.057143, \"generation\": \"1\", \"md5\": \"9vHx3Fdto9\n{\"name\": \"exit_archive_full_sink\", \"status\": \"PASS\", \"result\": {\"project_free\": 0, \"bytes\": 1414, \"sha256\": \"413686b6f5226aefd89d8b3fbcebd8526153834fb01ef30d0967dababfcd795b\", \"parts\": 4, \"RESULT_inside\": true, \"final_order\": [\"exports\", \"checkpoints\", \"exports\", \"checkpoints\", \"exports\", \"checkpoints\", \"exports\", \"checkpoints\", \"exports\", \"checkpoints\", \"exports\", \"checkpoints\", \"exports\", \"checkpoints\", \"exports\", \"checkpoints\", \"exports\", \"checkpoints\", \"exports\", \"checkpoints\", \"exports\", \"c\n{\"name\": \"pretraining_full_refusal\", \"status\": \"PASS\", \"result\": {\"refused\": true, \"errno\": 28, \"accepted\": false}, \"log\": \"work/enospc7/logs/pretraining_full_refusal.log\"}\n{\"name\": \"full_automatic_retries\", \"status\": \"FAIL\", \"error\": \"AssertionError\", \"message\": \"\", \"log\": \"work/enospc7/logs/full_automatic_retries.log\"}\n{\"name\": \"automatic_recovery\", \"status\": \"FAIL\", \"error\": \"AssertionError\", \"message\": \"\", \"log\": \"work/enospc7/logs/automatic_recovery.log\"}\nCOMPLETE\nTraceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z7/work/enospc7/retest.py\", line 127, in <module>\n    assert all(r['status']=='PASS' for r in results),results\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: [{'name': 'prepare_missing', 'status': 'PASS', 'result': {'returncode': 1, 'training_started': False, 'error': 'file missing'}, 'log': 'work/enospc7/logs/prepare_missing.log'}, {'name': 'prepare_incomplete', 'status': 'PASS', 'result': {'returncode': 1, 'training_started': False, 'error': 'E101'}, 'log': 'work/enospc7/logs/prepare_incomplete.log'}, {'name': 'full', 'status': 'PASS', 'result': {'free_bytes': 0}, 'log': 'work/enospc7/logs/full.log'}, {'name': 'wrapper_local_logs', ",
+      "resolution": "The publisher adapter path and Exception log assertion were corrected; enospc_release.log passes."
+    },
+    {
+      "name": "wrapper fixture",
+      "status": "resolved",
+      "log": "work/build24m4z7/wrapper.log",
+      "output_excerpt": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z7/work/enospc7/wrapper_prefix2.py\", line 33, in <module>\n    assert p.poll() is None and (N/'c.local').stat().st_size==4096\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError",
+      "resolution": "The Python shim now supports the new startup free-space -c invocation; wrapper_release.log passes."
+    },
+    {
+      "name": "E3 seal setup",
+      "status": "resolved",
+      "log": "work/build24m4z7/e3_a.log",
+      "output_excerpt": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z7/work/build24m4z7/e3_local.py\", line 19, in <module>\n    m.stage(D,N,X,job);shutil.copyfile(N/'observe.py',N/'observe_actual.py')\n    ^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z7/out/e3/e3.py\", line 42, in stage\n    if load(k/'BUILD.json')['kit_sha256']!=sha(k/'SHA256SUMS.txt'):raise ValueError('E06')\n                                                                   ^^^^^^^^^^^^^^^^^^^^^^^\nValueError: E06",
+      "resolution": "BUILD is encoded JSON; resealing updates its decoded payload and digest. Native and own checks now agree."
+    },
+    {
+      "name": "E3 phase assertion",
+      "status": "resolved",
+      "log": "work/build24m4z7/e3_b.log",
+      "output_excerpt": "E3_STAGE_PASS\nE3_FAIL\nTraceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z7/work/build24m4z7/e3_local.py\", line 54, in <module>\n    assert report['status']=='PASS',report\n           ^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: {'SLURM_TMPDIR': '/tmp', 'archive': {'bytes': 691, 'cap_bytes': 50000000, 'free_bytes': 0, 'local': True, 'objects': ['q9/22c714e1/469ddece_o.tar.j24057.part00-of-04', 'q9/22c714e1/469ddece_o.tar.j24057.part01-of-04', 'q9/22c714e1/469ddece_o.tar.j24057.part02-of-04', 'q9/22c714e1/469ddece_o.tar.j24057.part03-of-04'], 'result_inside': True, 'sha256': '342900f4a3fc0dc00f46e07cde3fafe6d741d2cfceb32f2adba5423ffb938bef'}, 'checks': {'archive_after_recovery': 'PASS', 'archive_while_ful",
+      "resolution": "Live phases are distinguished from final phases; the E3 check validates the actual final order. All 16 release checks pass."
+    },
+    {
+      "name": "native checker before resealing",
+      "status": "resolved",
+      "output": "ValueError: R1_KIT_CONTENT_DIFFERS at launch_r1/build.py:16",
+      "resolution": "The final reseal and all native/own checks pass in FINAL_SEALS.json."
+    }
+  ],
+  "unresolved": [
+    {
+      "name": "real_GCS_173911",
+      "reason": "Saved evidence discarded HTTP errors and cannot identify the zero-byte cause. The network runner requires lane execution; no real GCS claim is made."
+    },
+    {
+      "name": "early_stop_identity",
+      "file": "work/tree_r1c/student_pilot/carrier_c1_run.py:2448",
+      "reason": "A stopping marker is needed before checkpoint completion. The sealed trainer is outside scope."
+    },
+    {
+      "name": "stop_window",
+      "file": "out/kit_n/k/n.json:1",
+      "reason": "The sealed 3600-second margin is under twice the checkpoint-only conservative forecast. The setting and its N_GO copy are outside scope."
+    },
+    {
+      "name": "post_freeze_diagnostics",
+      "reason": "An immutable archive cannot contain future own-upload or resumed-upload events. Those events remain live/local; a separate diagnostic object/session contract is required for complete durable coverage."
+    },
+    {
+      "name": "real_throughput",
+      "reason": "The prepared E3 job must measure 2 GiB/four-part GCS throughput. Offline runs use 3 MiB and do not measure real MB/s."
+    }
+  ],
+  "expected_before_failures": "core_guard/RESULT.json, exit_guard/RESULT.json, wrapper_signals_a/RESULT.json"
+}

@@ -1,0 +1,20 @@
+[
+  {
+    "test": "namespace_probe_bwrap",
+    "output": "bwrap: Can't mkdir /project: Read-only file system\n",
+    "resolution": "Use unshare with an explicitly sized private root."
+  },
+  {
+    "test": "observer_fixture_initial",
+    "output": {
+      "before": "NameError(\"name 'example' is not defined\")\n",
+      "after": "NameError(\"name 'example' is not defined\")\n"
+    },
+    "resolution": "Repair shell quoting in fixture; corrected comparison in observer_v2/RESULT.json."
+  },
+  {
+    "test": "trinity_initial",
+    "output": "mount: /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z9/work/trinity_offline/root/scratch: wrong fs type, bad option, bad superblock on /scratch, missing codepage or helper program, or other error.\n",
+    "resolution": "Recursive binds preserve sandbox nested mounts; trinity_offline_v2 passes."
+  }
+]

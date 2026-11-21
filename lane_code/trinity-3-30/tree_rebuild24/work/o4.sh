@@ -1,0 +1,1 @@
+K=/project/community/jjyeung/okh7; cd $K; f=x_ee227714/runs/6ed2c7aa/metrics_172660.jsonl; head -1 $f | head -c 1500; echo; grep -o '"[a-z_]*checkpoint[a-z_]*": *[0-9.e+-]*' $f | sort | uniq -c | sort -rn | head -20

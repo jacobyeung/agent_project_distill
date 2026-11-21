@@ -1,4 +1,5 @@
 """Run unchanged production fetch code with only the pool filesystem relocated."""
+import json
 import pathlib
 import runpy
 import subprocess
@@ -6,6 +7,7 @@ import sys
 
 mode, package, pool, local_pool, job, script = sys.argv[1:]
 OriginalPath = pathlib.PosixPath
+shared=OriginalPath('/project/community/jjyeung')/json.loads((OriginalPath(package)/'0.json').read_text())['token']
 
 
 class LocalPath(pathlib.PosixPath):
@@ -16,6 +18,7 @@ class LocalPath(pathlib.PosixPath):
         path = OriginalPath(*parts)
         if path == OriginalPath(pool) or OriginalPath(pool) in path.parents:
             path = OriginalPath(local_pool) / path.relative_to(pool)
+        if path==shared or shared in path.parents:path=OriginalPath(package)/path.relative_to(shared)
         super().__init__(path)
 
 
@@ -25,6 +28,9 @@ if mode == 'child':
                 job, '--out', str(LocalPath(package)/'a/f')]
     runpy.run_path(sys.argv[0], run_name='__main__')
 else:
+    import tempfile
+    original_temp=tempfile.mkdtemp
+    tempfile.mkdtemp=lambda **kw:original_temp(dir=OriginalPath(package).parent,**kw)
     original_run = subprocess.run
 
     def local_child(argv, **kwargs):

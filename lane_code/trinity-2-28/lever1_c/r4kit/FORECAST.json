@@ -14,30 +14,58 @@
   "batch_timing_return": "3.jsonl: packed per-batch preparation, prefill, slowest synchronized token-step, total seconds, completed pairs, admission estimate, remaining time, host peak RSS and GPU max allocated bytes",
   "batches": 73,
   "batching_assumption": "An eight-row token forward costs twice a serial token forward. This GPU estimate is unmeasured; CPU timing is not used as a GPU speed estimate.",
+  "boot": {
+    "archive_and_code_bytes": 8614197649,
+    "archive_bytes": 8612076000,
+    "code_archive_bytes": 2121649,
+    "environment_expanded_bytes": 8386282204,
+    "input_archives": [
+      2
+    ],
+    "interpreter_file_bytes": 104949562,
+    "interpreter_group": 0,
+    "interpreter_prefix": "sj/uv-python/cpython-3.12.13-linux-x86_64-gnu",
+    "interpreter_source_bytes": 1621422080,
+    "overlay_expanded_bytes": 143782645,
+    "pre_bulk_bytes": 8719147211,
+    "production_seconds": null,
+    "receipt": "execution.boot",
+    "runtime_groups": [
+      1
+    ]
+  },
   "caveat": "Full-checkpoint GPU numerical parity, batch memory use, speed and ext4 sync/supervisor overhead are unmeasured. Slow openings/staging can still yield a partial return with no gate verdict.",
   "code_pins": {
     "src/batch.py": {
       "bytes": 4131,
       "sha256": "715d494e6d840796eddcbf8c75bee96ea98d2fe5ba2c2e9ef5c63edd5c00155c"
     },
+    "src/control.py": {
+      "bytes": 25800,
+      "sha256": "754008aa74672b53261d2733debe3a31dc0cfeb32034720a0e963f2d4003eab1"
+    },
+    "src/monitor.py": {
+      "bytes": 10024,
+      "sha256": "1c914c666c1a8d1a15f6772844c45d7a24a7671008c1fd154d961e1de77f46cb"
+    },
     "src/runtime.py": {
-      "bytes": 12700,
-      "sha256": "d229cfec6647002a69d8b66c0bbd1787147c9c1f901aa5a4bc11f24401f51148"
+      "bytes": 14552,
+      "sha256": "372201280adc66c2235214818431c26de0acd2995242a5bd7a67c8e91598f664"
     }
   },
   "controller_subprocess_cutoff_s": 1730,
   "cpu_parity_evidence": "out/FIX_CHECKS.json:evidence.native_cpu_parity",
   "cpu_preflight": {
-    "charged_memory_stop_bytes": 118111600640,
     "diagnostic": "DEBUG.md",
+    "guarded_memory_stop_bytes": 118111600640,
     "production_measured": false,
     "staging_filesystem": "ext4",
     "tensors": "meta shapes only; processor and two CPU prompt batches",
     "worker_address_space_limit_bytes": 34359738368
   },
   "delivery": {
-    "bytes": 4250122,
-    "sha256": "3ca1fd77d3cd021210bae2ef31d0c323bd3d8bd0d1cf3e2b5df12410c91232af"
+    "bytes": 4255483,
+    "sha256": "233ee0816bc9a6e39c999519cbe0944a1b024518c1c0e61a7925b043254dbd66"
   },
   "effective_worker_cutoff_from_controller_start_s": 1720,
   "evidence": {
@@ -48,9 +76,11 @@
   "formula": "base overhead + model load + 580*(per-item other + serial prefill) + sum(batch maximum opening tokens)*2*serial token seconds",
   "gpu_memory": {
     "batch_and_overhead_bytes": 20000000000,
-    "charged_stop_bytes": 193273528320,
     "expected_peak_bytes": 187000000000,
     "full_load_rss_bytes": 96000000000,
+    "guard_fallback": "process-tree RSS when memory.stat/current is unavailable",
+    "guard_formula": "max(0, memory.current - min(active_file + inactive_file, max(0, file - shmem)))",
+    "guarded_stop_bytes": 193273528320,
     "measured": false,
     "page_cache_bytes": 71000000000,
     "request": "200G"
@@ -64,6 +94,26 @@
     18,
     22
   ],
+  "interpreter_exposure": {
+    "audit": "out/IMPORT_CHECKS.json",
+    "native_archives": "Preserve all pinned interpreter and third-party package paths and bytes",
+    "opaque_roots": [
+      "c",
+      "v"
+    ]
+  },
+  "memory_guard": {
+    "cpu_stop_bytes": 118111600640,
+    "fallback": "process-tree RSS when memory.stat/current is unavailable",
+    "formula": "max(0, memory.current - min(active_file + inactive_file, max(0, file - shmem)))",
+    "gpu_stop_bytes": 193273528320,
+    "return_fields": [
+      "peak_tree_rss_bytes",
+      "peak_cgroup_current_bytes",
+      "cgroup_memory_peak_bytes",
+      "peak_guarded_bytes"
+    ]
+  },
   "model_load_s": 77.85915365000255,
   "ordering": "ORIG, REVSI for each item; four consecutive complete pairs per batch; final batch has two pairs",
   "per_item_other_mean_s": 0.6759511826631155,
@@ -92,7 +142,7 @@
     "output": "/tmp/<opaque job name>-%j.8.log and .9.log",
     "time": "00:30:00 in both modes"
   },
-  "token": "e71c940a6b283",
+  "token": "f68a2d7c903be",
   "tool_free_decode_s_per_token": 0.04883935931269989,
   "tool_free_tokens": 35622,
   "worker_headroom_fraction": 0.3519176427583548,

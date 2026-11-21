@@ -1,0 +1,5 @@
+export TZ=UTC; date -u +%TZ; X=/project/community/jjyeung/okh7/x_22c714e1; cd $X
+F=$(df -BG --output=avail /project/community | tail -1 | tr -dc 0-9); echo FREE_GIB $F; [ "$F" -ge 25 ] || { echo BELOW_FLOOR_25; exit 1; }
+squeue -u $USER -h -o "%i %P %j %T" | grep -E "0fd6c118b37d|advanced" && { echo QUEUED_OR_ADVANCED_BUSY; exit 1; }
+[ "$(sha256sum qp_11386117/SHA256SUMS.txt | cut -c1-16)" = 1138611744d623dc ] && [ "$(cd qp_11386117 && sha256sum -c SHA256SUMS.txt 2>&1 | grep -vc ': OK$')" = 0 ] && [ -z "$(find qp_11386117 -name __pycache__)" ] && [ "$(sha256sum jd7.sh | cut -c1-16)" = c53e13bd541f4002 ] && [ "$(sha256sum j7.py | cut -c1-16)" = 04282dc177a25ab3 ] && [ "$(sha256sum dbb3.py | cut -c1-16)" = 4ca1926a44148f22 ] && [ "$(sha256sum rdiff.py | cut -c1-16)" = bc2db7747322d4c3 ] && test -s u/5e35c3ce600a867be194911642caccb23098035b4bf08909e519a170a1c243df && sbatch -p advanced $X/jd7.sh; sleep 20
+squeue -u $USER -o "%.10i %.10P %.24j %.8T %.10M %.12b %R"; squeue -p advanced -h -o "%u %T %b" | sort | uniq -c | head; df -h /project/community | tail -1

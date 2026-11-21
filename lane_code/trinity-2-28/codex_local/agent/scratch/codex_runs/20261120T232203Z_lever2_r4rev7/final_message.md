@@ -1,0 +1,14 @@
+**GO.** The cache fix satisfies BRIEF_R4FIX5; no blocking regression found.
+
+- **Cache containment:** CPU/GPU launches reset cache and temporary paths to opaque directories inside the ext4 job root. Inherited overrides are discarded; unnecessary caches are disabled. The worker namespace excludes `/project`. The recorded clean CPU rehearsal lists only budgeted package/return/fetch files outside the job directory, with no unexpected writes. Native cache internals retain the brief’s ephemeral-directory exception; production GPU caches remain untested.
+- **CPU preflight:** Head tensors load on `meta`. The worker loads libraries, tokenizer/processor, pixels and two prompt batches, then exits before resident full-model loading. Its **32 GiB address-space cap**, conservative staged-file allowance of approximately **111 GB total before overhead**, and **110 GiB charged-memory stop** leave substantial room below 200G. Production peak remains unmeasured.
+- **Failure diagnostics:** Both modes preserve code/signal, last stage, peak RSS and **16,000-byte hex-packed stream tails** through real fetch in recorded failure tests. No `/dev/null` redirection remains in the reviewed execution path. Controller/node death cannot guarantee finalization.
+- **Staging and budget:** Both modes require the active **ext4 job_tmp** mount before bulk staging, including the GPU’s approximately **71 GB** workload. PLACE/REPORT document the **44,000,000-byte cumulative `/project` ceiling**, below 50 MB, with reservations before writes.
+- **GPU memory:** Staging passes. Host-memory safety remains conditional: the forecast is **187 GB / 174.2 GiB**, with a **180 GiB stop polled every 50 ms** under 200G. This is a guarded planning estimate, not measured production safety; rapid spikes can outrun polling.
+- **Scientific constraints:** Independently verified FROZEN `3743891f…`, checkpoint pin `5083243c…`, and all **290 pairs** differing only by the specified phrase. Greedy decoding, 64-token cap, unserved tools, scorer acceptance of `3.jsonl`/`4.json`, and complete-pair admission/retention remain intact.
+- **Naming and consistency:** Delivery scan passes; delivered implementations match source. Argument/environment guards and encoded outputs remain intact, subject to documented external-asset and ephemeral-cache exceptions. PLACE, REPORT, BUILD and FORECAST agree. Forecast remains **1367.2 seconds**, with GPU throughput unmeasured.
+
+Token: `e71c940a6b283`. Delivery: **4,250,122 bytes**.  
+SHA-256: `3ca1fd77d3cd021210bae2ef31d0c323bd3d8bd0d1cf3e2b5df12410c91232af`.
+
+Read-only inspection and independent hash/content checks completed. Existing evidence records **35 passing tests**; tests were not rerun.

@@ -69,7 +69,7 @@ class ReviewTests(unittest.TestCase):
         self.assertLessEqual(mirror.stat().st_size,131072)
         self.assertLessEqual(path.with_suffix('.0').stat().st_size,131072)
         batch=(self.package/'BATCH.sh').read_text();header=batch.split('/usr/bin/python3 -I -s -B - ',1)[0]
-        self.assertTrue(header.splitlines()[1].startswith('exec > >('))
+        self.assertEqual(header.splitlines()[1],'ulimit -S -f 512')
         # Execute the real header and an early shell failure, with only its path mapped.
         (root/'27.py').write_bytes((self.package/'a/27.py').read_bytes())
         shell=header.replace('/project/community/jjyeung/'+self.info['token']+'/a/',str(root)+'/')+'false\n'

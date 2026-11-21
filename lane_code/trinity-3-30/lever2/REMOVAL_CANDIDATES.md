@@ -1,0 +1,3 @@
+# lever2 removal candidates (agents delete nothing; for the user)
+- Orchard /project (superseded lever packages, ~40 MB total): /project/community/jjyeung/a99a83187be42 (3.8 MB), /project/community/jjyeung/a784b94c2e6af (4.0 MB), okh7/a15_cot_apd93a17be024f5 (15.2 MB), okh7/add93a17be024f5 (4.2 MB), okh7/afd93a17be024f5c (4 KB), okh7/a15_cot_ape71c940a6b283 (~15 MB), okh7/ade71c940a6b283 (4.3 MB), okh7/afe71c940a6b283c (small). Keep the failure returns' copies on Trinity (lever1_c/r1/returned_fail1, returned_fail2, r4kit/returned_fail1, returned_fail2).
+- trinity-3-30 /scratch/jjyeung/orch_n30/lever1/work/r6in.tar (8 GB, accidental; already in lever1's list).

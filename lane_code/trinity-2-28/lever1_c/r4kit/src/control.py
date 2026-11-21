@@ -79,9 +79,14 @@ def codec(p):
     return m
 
 
+_MONITORS = {}
+
+
 def monitor(p):
+    if p in _MONITORS: return _MONITORS[p]
     spec = importlib.util.spec_from_file_location('a_monitor', p/'11.py')
     m = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
+    _MONITORS[p] = m
     return m
 
 
@@ -198,7 +203,36 @@ def materialize(p, root):
     return S, J
 
 
+def interpreter_stream(S, root, group, prefix):
+    # Authenticate every source byte without staging the mixed archive or its
+    # unrelated assets. Only the complete native interpreter is materialized.
+    def chunks():
+        for path, size, expected in group:
+            h = hashlib.sha256(); count = 0
+            with Path(path).open('rb') as source:
+                for block in iter(lambda:source.read(1024**2), b''):
+                    count += len(block); h.update(block)
+                    if count > size: raise ValueError('Runtime part exceeds pin')
+                    yield block
+            if count != size or h.hexdigest() != expected:
+                raise ValueError('Runtime part differs from pin')
+    class Stream:
+        def __init__(self): self.parts = iter(chunks()); self.pending = b''
+        def read(self, n):
+            while len(self.pending) < n:
+                block = next(self.parts, b'')
+                if not block: break
+                self.pending += block
+            value, self.pending = self.pending[:n], self.pending[n:]
+            return value
+    stream = Stream()
+    inventory = S.extract_stream(stream, root, None, 40*1024**3, links=True, retain_prefix=prefix)
+    while stream.read(1024**2): pass  # Verify tar padding and every remaining part.
+    return sum(row['bytes'] for row in inventory.values())
+
+
 def prepare(p, root, cfg, job, end):
+    entered = time.monotonic()
     with bounded(end):
         S, J = materialize(p, root)
     with bounded(end):
@@ -213,16 +247,20 @@ def prepare(p, root, cfg, job, end):
         with (p/'0.tgz').open('rb') as f:
             S.extract_stream(f, local, None, 32*1024**2)
         codec(p).materialize(local, codec(p).loads((local/'8.bin').read_bytes()))
-    for i, group in enumerate(cfg['assets']['groups']):
+    def runtime_archive(i):
+        group = cfg['assets']['groups'][i]
         phase(p, root, 'runtime_archive', index=i)
         parts = [dict(path=path, bytes=n, sha256=h) for path,n,h in group]
         target = stage/str(i)
         with bounded(end): S.copy_parts(parts, target, lambda x:Path(x['path']).open('rb'))
-        with bounded(end): S.unpack(target, root, links=True)
-    with bounded(end):
-        S.copy_parts([cfg['assets']['bwrap_pin']], root/'bwrap', lambda x:Path(x['path']).open('rb'))
-        (root/'bwrap').chmod(0o700)
-    for i, archive in enumerate(cfg['inputs']['archives']):
+        with bounded(end):
+            if i == cfg['boot']['interpreter_group']:
+                with target.open('rb') as f:
+                    S.extract_stream(f, root, None, 40*1024**3, links=True,
+                                     exclude_prefix=cfg['boot']['interpreter_prefix'])
+            else: S.unpack(target, root, links=True)
+    def input_archive(i):
+        archive = cfg['inputs']['archives'][i]
         phase(p, root, 'input_archive', index=i)
         target = stage/('a'+str(i))
         with bounded(end):
@@ -232,6 +270,39 @@ def prepare(p, root, cfg, job, end):
             with target.open('rb') as f:
                 S.extract_stream(f, root/archive['destination'], None, archive['expanded_bytes'], links=True,
                                  retain_roots=None if archive['destination'].endswith('/f') else ('m400','p0','b','o','f','v'))
+    plan = cfg['boot']
+    with bounded(end):
+        interpreter_bytes = interpreter_stream(S, root,
+            cfg['assets']['groups'][plan['interpreter_group']], plan['interpreter_prefix'])
+    for i in plan['runtime_groups']: runtime_archive(i)
+    for i in plan['input_archives']: input_archive(i)
+    with bounded(end):
+        S.copy_parts([cfg['assets']['bwrap_pin']], root/'bwrap', lambda x:Path(x['path']).open('rb'))
+        (root/'bwrap').chmod(0o700)
+    phase(p, root, 'boot')
+    receipt_path = local/'a/10.json'
+    code = 1
+    try:
+        code = launch(root, local, cfg, os.environ.get('A_M', 'g'), end, J, boot=True)
+    finally:
+        try: receipt = read(receipt_path)
+        except (OSError, ValueError): receipt = dict(passed=False, reason='boot_receipt_missing')
+        receipt.update(pre_bulk_bytes=plan['archive_bytes']+interpreter_bytes+(p/'0.tgz').stat().st_size,
+                       interpreter_bytes=interpreter_bytes,
+                       pre_bulk_seconds=time.monotonic()-entered, bulk_bytes=0, returncode=code)
+        receipt['passed'] = code == 0 and receipt.get('passed') is True
+        write(receipt_path, receipt)
+    if not receipt['passed']: raise RuntimeError('Worker boot failed before bulk staging')
+    # Each production supervisor exclusively creates its journals. Preserve the
+    # boot journals before the second invocation uses the same launch path.
+    for directory in (root, local/'a'):
+        for name in ('8.log', '9.log'):
+            if (directory/name).exists(): (directory/name).rename(directory/('1'+name))
+    phase(p, root, 'boot_complete')
+    for i in range(len(cfg['assets']['groups'])):
+        if i not in plan['runtime_groups']: runtime_archive(i)
+    for i in range(len(cfg['inputs']['archives'])):
+        if i not in plan['input_archives']: input_archive(i)
     phase(p, root, 'input_pins')
     for f in cfg['inputs']['files'].values():
         with bounded(end):
@@ -241,7 +312,7 @@ def prepare(p, root, cfg, job, end):
     return J, local
 
 
-def launch(root, local, cfg, mode, end, J):
+def launch(root, local, cfg, mode, end, J, boot=False):
     for name in ('sj','fsw','m/ap'): (root/name).mkdir(parents=True, exist_ok=True)
     env = codec(local).job_environment(root, J.environment(root))
     env.pop('VLLM_USE_FLASHINFER_SAMPLER', None)
@@ -260,6 +331,7 @@ def launch(root, local, cfg, mode, end, J):
     if remaining <= 10: raise Deadline('E02')
     # The inner supervisor sees the Python status before bubblewrap can translate it.
     env['A_M'] = mode
+    if boot: env['A_B'] = '1'
     if os.environ.get('A_G') == '1': env['A_G'] = '1'
     return monitor(p=local).supervise(argv, env, root, codec(local), end)
 
@@ -319,9 +391,20 @@ def finalize(p, records, cfg, mode, job, started, code, error=None):
     # Expose controller output as the primary tails if no child launched.
     if 'launcher' not in outcome and not has_worker:
         outcome.update(outcome['controller'])
+    M = monitor(p)
+    metrics, _ = M.sample_memory()
+    for key in M.MEMORY_PEAKS:
+        values = [v for v in (metrics.get(key), outcome.get(key),
+                  outcome.get('launcher', {}).get(key)) if v is not None]
+        outcome[key] = max(values) if values else None
+    outcome['guarded_memory_stop_bytes'] = M.memory_limit(mode)
+    outcome.setdefault('guard_source', metrics['guard_source'])
     if budget_failure:
         code = 1; summary.update(passed=False, status='project_budget')
     summary['execution'] = outcome
+    try: outcome['boot'] = read(records/'10.json')
+    except (OSError, ValueError):
+        outcome['boot'] = dict(passed=False, reason='boot_not_reached', bulk_bytes=0)
     if code or error is not None:
         try: diagnostic = C.loads((records/'4.json').read_bytes())
         except (OSError, ValueError): diagnostic = dict(passed=False)

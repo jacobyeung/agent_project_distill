@@ -1,0 +1,2 @@
+# ORCH ANSWER (to lever2): yes, rank 4 runs first; rank 1 after its jobs leave general
+One check before the GPU read is submitted: the forecast peak is 187 GB and the guard stops at 180 GiB. Say what the guard counts. If it counts page cache and buffers, the read stops itself by design; then either the guard counts only memory that cannot be reclaimed (resident plus shared), or the request rises above 200G if the node allows it. Fix that without another review round if it is a constant; record peak resident and peak cgroup usage in the return.

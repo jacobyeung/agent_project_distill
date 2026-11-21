@@ -12,6 +12,7 @@ import tarfile
 import tempfile
 import time
 import unittest
+import uuid
 
 
 def sha(path):return hashlib.sha256(path.read_bytes()).hexdigest()
@@ -35,7 +36,7 @@ class BootstrapTests(unittest.TestCase):
         (HERE/'out/BOOTSTRAP_CHECKS.json').write_text(json.dumps(cls.evidence,indent=2)+'\n')
 
     def setup_case(self,case):
-        root=Path(tempfile.mkdtemp(dir=HERE/'tests',prefix='boot_'));p=root/'package'
+        root=HERE/'tests'/('boot_'+uuid.uuid4().hex);root.mkdir();p=root/'package'
         unpack(HERE/'out/delivery.tgz',p)
         import ast,io
         line=next(l for l in (p/'BATCH.sh').read_text().splitlines() if l.startswith('b=bytes.fromhex('))

@@ -33,7 +33,7 @@ def capture(path, mirror=None):
     path=Path(path);path.parent.mkdir(parents=True,exist_ok=True)
     durable=path.with_suffix('.0')
     with durable.open('ab'):pass
-    read,write=os.pipe();lines=deque(maxlen=LIMIT)
+    read,write=os.pipe();lines=deque(maxlen=LIMIT);errors=[]
     def drain():
         pending=b''
         try:
@@ -50,10 +50,17 @@ def capture(path, mirror=None):
                 lines.extend(p[-WIDTH:].decode('utf-8','replace') for p in parts[:-1])
                 pending=parts[-1][-WIDTH:]
             if pending:lines.append(pending.decode('utf-8','replace'))
+        except Exception as error:errors.append(error)
         finally:os.close(read)
-    thread=threading.Thread(target=drain,daemon=True);thread.start()
+    thread=threading.Thread(target=drain,daemon=True)
+    try:thread.start()
+    except Exception:
+        os.close(read);os.close(write)
+        raise
     try:
         with os.fdopen(write,'wb',buffering=0) as stream:yield stream
     finally:
         thread.join(timeout=2)
+        if errors:raise errors[0]
+        if thread.is_alive():raise RuntimeError('E80')
         if lines:save(path,lines)

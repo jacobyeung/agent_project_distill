@@ -40,7 +40,7 @@ def reshape(pf, B, here):
     request='b/work/n13/ret/native/paired/request.json'
     pf[request]=b'{}\n'
     assets={n for n in pf if n.startswith('b/work/meta/') and n.endswith(('FRAMES.json','DENSE_MANIFEST.json','config.json','s1_receipt.json','data_receipt.json'))}
-    assets.update([request,'items/devs1_routed.json','g/0.json','g/1.json','g/2.json','g/8.json','tree/student_pilot/tower_scale_rule.json'])
+    assets.update([request,'items/devs1_routed.json','g/0.json','g/1.json','g/2.json','g/3.json','g/8.json','tree/student_pilot/tower_scale_rule.json'])
     assets.update(n for n in pf if n.startswith('tree/student_pilot/assets/') or n.startswith('orchard_h10/vendor/') and n.endswith('.json'))
     # Keep the transitive static import graph, including imports inside functions.
     candidates={n:d for n,d in pf.items() if n.endswith('.py') and not n.startswith(('tree/tests/','tree/scripts/','tree/tools/','h1eval/reader_core/'))}

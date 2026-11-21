@@ -55,14 +55,18 @@ class FixTests(unittest.TestCase):
         assets=dict(groups=[],bwrap_pin=dict(path=str(source),bytes=1,sha256=BD.B.sha(b'0')),
                     vnice_sha256=BD.B.sha(b'0'),terminator_sha256=BD.B.sha(b'0'))
         cfg=json.loads(self.files['9.json']);cfg.update(json.loads((self.package/'0.json').read_text()));cfg['logical']=logical
-        inputs=dict(archives=[],files={'0':dict(path=logical+'/d/3.json',bytes=(d/'3.json').stat().st_size,sha256=job.sha(d/'3.json'))},policy=policy,policy_receipt='0')
+        empty=root/'5'
+        with tarfile.open(empty,'w'):pass
+        spec=dict(parts=[dict(path=str(empty),bytes=empty.stat().st_size,sha256=BD.B.sha(empty.read_bytes()))],sha256=BD.B.sha(empty.read_bytes()),destination='sj/b0/d',expanded_bytes=10240)
+        inputs=dict(archives=[spec]*5,retain_roots=['v','q'],files={'0':dict(path=logical+'/d/3.json',bytes=(d/'3.json').stat().st_size,sha256=job.sha(d/'3.json'))},policy=policy,policy_receipt='0')
         assets_text=(Path(job.__file__).parent/'vendor/ORCHARD_ASSETS.json').read_text()
         loads=json.loads;copy=S.copy_parts
         def copying(parts,dest,opener,**kw):
             if dest.name=='c':opener=lambda p:(self.package/'0.tgz').open('rb')
             return copy(parts,dest,opener,**kw)
-        with patch('orchard_h10.s.materialize'),patch.object(job.json,'loads',side_effect=lambda s,*a,**kw:assets if s==assets_text else loads(s,*a,**kw)),patch.object(S,'copy_parts',side_effect=copying),patch.object(S,'room'):
+        with patch('orchard_h10.boot.launch') as boot_launch,patch('orchard_h10.s.materialize'),patch.object(job.json,'loads',side_effect=lambda s,*a,**kw:assets if s==assets_text else loads(s,*a,**kw)),patch.object(S,'copy_parts',side_effect=copying),patch.object(S,'room'):
             receipt=job.stage(root,cfg,inputs,S,J)
+            boot_launch.assert_called_once()
         installed=J.physical(root,logical+'/p')
         for n,h in self.info['payload_files'].items():self.assertEqual(BD.B.sha(Path(str(installed/n)).read_bytes()),h)
         total=sum(map(len,self.files.values()));self.assertLess(total,32*1024**2)
@@ -447,7 +451,8 @@ class FixTests(unittest.TestCase):
         forecast=self.info['forecast']
         self.assertEqual(forecast['deadline_offsets_s'],dict(worker_latest_stop=2730,staging_stop=2760,capture_publication_stop=2910,normal_publication_stop=2990,failure_receipt_stop=2998))
         self.assertEqual((budget.WORK_RESERVE,budget.RECEIPT_RESERVE,budget.FINAL_RESERVE),(240,90,10))
-        self.assertGreater(forecast['allocation_margin_s'],734)
+        self.assertEqual(forecast['scheduler_collector_start_allowance_s'],0)
+        self.assertGreater(forecast['allocation_margin_s'],674)
         self.assertGreater(forecast['worker_margin_s'],374)
         self.evidence['allocation']=dict(passed=True,seconds=3000,worker_cap=1800,windows=forecast['deadline_offsets_s'])
 

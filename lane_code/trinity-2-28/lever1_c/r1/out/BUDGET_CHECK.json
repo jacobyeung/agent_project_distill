@@ -1,6 +1,6 @@
 {
   "passed": true,
-  "delivery_sha256": "bb5315a268af467e2015a590f9fbe383e604e22c9accb1f40cc5e0b81fb0f2a4",
+  "delivery_sha256": "8326c8ee3c46967f9b9228057b18681e33bed984220274105a0399c54cbf7de9",
   "allocation_seconds": 3000,
   "worker_cap_seconds": 1800,
   "forecast": {
@@ -8,6 +8,26 @@
     "allocation_planning_minutes": 37.7502241289995,
     "allocation_s": 3000,
     "allowances_measured": false,
+    "boot": {
+      "bwrap_bytes": 72160,
+      "environment_policy_stream_bytes": 5257379840,
+      "mixed_archive": "Authenticate input 2 once without storing its bulk members; copy it for the remaining inputs only after boot succeeds",
+      "order": [
+        "package",
+        "runtime_archives",
+        "environment_and_policy_only",
+        "real_worker_import_closure",
+        "boot_receipt",
+        "bulk_staging"
+      ],
+      "package_archive_bytes": 3828818,
+      "pre_bulk_bytes": 15758714418,
+      "pre_bulk_seconds": null,
+      "production_timing_measured": false,
+      "receipt": "metadata/25.json",
+      "runtime_archive_bytes": 10497433600,
+      "timing_allowance": "Included in the existing unmeasured 600-second staging allowance; no first-seconds claim before runtime provisioning"
+    },
     "captures": 60,
     "caveat": "T1 replay is 16.75 min, including SAM/linking. Add 6 min shared loading and 1 min indexed RGB/telemetry inside worker, plus 10 min shared archive staging and 4 min publication. All allowances are unmeasured; no first-output or GPU wall-time guarantee.",
     "compressed_return_conservative_bytes": 80000000,
@@ -24,6 +44,7 @@
     "lossless_depth_plane_bytes": 49939200,
     "publication_allowance_s": 240,
     "return_cap_bytes": 1000000000,
+    "scheduler_collector_start_allowance_s": 0,
     "shared_load_allowance_s": 360,
     "staging_allowance_s": 600,
     "t1_first_per_capture_replay_s": 1005.0134477399697,
@@ -95,7 +116,7 @@
             "gcloud",
             "storage",
             "cp",
-            "/scratch/jjyeung/orch_n30/lever1_c/r1/tests/fix_le9twinw/sj/b0/c/0.gz",
+            "/scratch/jjyeung/orch_n30/lever1_c/r1/tests/fix_xnlqx49y/sj/b0/c/0.gz",
             "gs://a0/a00000000000000000000c/0.gz"
           ],
           "timeout": 150.0,

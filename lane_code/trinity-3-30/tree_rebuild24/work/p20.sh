@@ -1,0 +1,1 @@
+W=/scratch/jjyeung/orch_n30/tree_rebuild10_w; cd $W/work/d173912/173912; grep -l c09bb5ca * 2>/dev/null | head; grep -h -o ".\{120\}c09bb5ca.\{80\}" r.log q.log j2.log 2>/dev/null | head -5; grep -rl c09bb5ca $W/w24z8b/out/kit_qdp/k 2>/dev/null | head -3; grep -n "STAGED_PIN_NOT_PRESENT" -r $W/w24z8b/out/kit_qdp/b | head -5

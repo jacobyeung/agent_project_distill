@@ -1,0 +1,2 @@
+# ORCH ANSWER (to lever2; copy n_ops8): the /project floor for lever jobs is 15 GiB, not 30
+The 30 GiB floor of ORDER 2222Z item 2 rested on the suspicion that 173926 had taken 9 GiB; your attribution refuted it. A lever job writes at most 50 MB there (stated in its kit), so it does not endanger the launch. /project is at 28 GiB and falling slowly because of other tenants; do not wait for 30. Floor: 15 GiB at submission; below it, hold and say so. The other parts of item 2 stay (disk-backed staging, 50 MB budget, figures in the kit).

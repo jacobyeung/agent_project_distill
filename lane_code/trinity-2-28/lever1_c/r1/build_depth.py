@@ -48,6 +48,7 @@ def reference():
         shared_load_allowance_s=360,indexed_staging_monitor_allowance_s=60,
         worker_cap_s=1800,allocation_s=3000,worker_margin_s=1800-replay_s-420,
         allocation_margin_s=3000-replay_s-420-600-240,
+        scheduler_collector_start_allowance_s=0,
         staging_allowance_s=600,publication_allowance_s=240,allowances_measured=False,
         worker_cap_reason='Forecast 1425.01s leaves 374.99s within 1800s; with 600s staging and 240s publication a capped worker fits in 2640s, leaving 360s of the allocation. No evidence requires 35 minutes.',
         deadline_offsets_s=dict(worker_latest_stop=3000-270,staging_stop=3000-240,capture_publication_stop=3000-90,normal_publication_stop=3000-10,failure_receipt_stop=3000-2),
@@ -142,6 +143,8 @@ def build(out=HERE/'out',scripts=HERE/'orchard'):
     guard=revision8.patch(nf,pf,B,HERE,token)
     import external_inputs
     input_proof=external_inputs.reshape(nf,pf,B)
+    import boot_order
+    boot_manifest=boot_order.patch(nf,pf,B,HERE)
     codec=(HERE/'runtime/j.py').read_bytes()
     # Standalone launchers run before the package import loader exists.
     bootstrap=b"\nexec(bytes.fromhex('"+codec.hex().encode()+b"').decode(),_a0:={});_a0['install']()\n"
@@ -199,12 +202,26 @@ def build(out=HERE/'out',scripts=HERE/'orchard'):
     code=nf['BATCH.sh'].split(b"<<'A'\n",1)[1]
     # The shell and supervisor retain the diagnostic file-size limit.
     nf['a/27.py']=(HERE/'runtime/c.py').read_bytes()
+    fallback=supervisor.rsplit(b'\nraise SystemExit(supervise(r,b))',1)[0]+(HERE/'runtime/f.py').read_bytes()
+    nf['a/29.py']=b"exec(bytes.fromhex('"+fallback.hex().encode()+b"'))\n"
     nf['BATCH.sh']=revision8.batch_header(token).encode()+code
     pk=json.loads(nf['PACKAGE.json']);pk['token']=token
     pk['files']={n:B.sha(v) for n,v in nf.items() if n!='PACKAGE.json'};nf['PACKAGE.json']=B.jd(pk)
     delivery=B.write_tar([B.added(n,nf[n]) for n in sorted(nf)])
+    assets=wire.loads(pf['orchard_h10/vendor/ORCHARD_ASSETS.json'])
+    runtime_bytes=sum(part[1] for group in assets['groups'] for part in group)
+    inputs=wire.loads(nf['a/1.json'])
+    environment_bytes=sum(p['bytes'] for i in (2,4) for p in inputs['archives'][i]['parts'])
+    boot=dict(order=['package','runtime_archives','environment_and_policy_only','real_worker_import_closure','boot_receipt','bulk_staging'],
+        package_archive_bytes=len(nf['0.tgz']),runtime_archive_bytes=runtime_bytes,
+        environment_policy_stream_bytes=environment_bytes,bwrap_bytes=assets['bwrap_pin']['bytes'],
+        pre_bulk_bytes=len(nf['0.tgz'])+runtime_bytes+environment_bytes+assets['bwrap_pin']['bytes'],
+        pre_bulk_seconds=None,production_timing_measured=False,receipt='metadata/25.json',
+        mixed_archive='Authenticate input 2 once without storing its bulk members; copy it for the remaining inputs only after boot succeeds',
+        timing_allowance='Included in the existing unmeasured 600-second staging allowance; no first-seconds claim before runtime provisioning')
+    forecast['boot']=boot
     result=dict(token=token,package='/project/community/jjyeung/'+token,job_name='a15_cot_ap'+token,
-        forecast=forecast,
+        forecast=forecast,boot=boot,boot_closure=boot_manifest,
         walltime='00:50:00',delivery_bytes=len(delivery),delivery_sha256=B.sha(delivery),
         payload_expanded_bytes=sum(map(len,pf.values())),layout=layout_proof,external_inputs=input_proof,
         installed_bytes=sum(map(len,nf.values())),files={n:B.sha(v) for n,v in nf.items()},
@@ -214,7 +231,7 @@ def build(out=HERE/'out',scripts=HERE/'orchard'):
     for n,v in [('BUILD.json',B.jd(result)),('REFERENCE.json',B.jd(ref)),('FORECAST.json',B.jd(forecast)),('delivery.tgz',delivery)]:
         (out/n).write_bytes(v)
     import scripts as S
-    public_info={k:v for k,v in result.items() if k not in ('layout','external_inputs','forecast')}
+    public_info={k:v for k,v in result.items() if k not in ('layout','external_inputs','forecast','boot','boot_closure')}
     (out/'BUILD.json').write_bytes(B.jd(public_info))
     S.render(out,scripts,cpu_partition='general')
     (out/'BUILD.json').write_bytes(B.jd(result))
@@ -222,6 +239,7 @@ def build(out=HERE/'out',scripts=HERE/'orchard'):
         if p.name!='o_place.sh':
             text=p.read_text().replace('05:00:00','00:50:00').replace('--cpus-per-task=8','--cpus-per-task=16').replace("--exclude='orchard-flame-[0-31]'",'--exclude=orchard-community-4')
             if p.name=='o_fetch.sh':
+                text=text.replace("ex=json.loads((source/'EXIT.json').read_text())","if not (source/'RETURN_RECEIPT.json').exists():runpy.run_path(str(p/'a/29.py'))['recover'](p,job)\nex=json.loads((source/'EXIT.json').read_text())")
                 text=text.replace("with (dest/name).open('xb') as f:f.write(raw)","with (dest/({'CAPTURE.json':'4.json','PARITY.json':'5.json'}[name])).open('xb') as f:f.write(raw)")
                 text=text.replace("print(name);print(raw.decode())","print(hashlib.sha256(raw).hexdigest())")
                 text=text.replace("raw=t.extractfile('metadata/'+name).read()", "raw=t.extractfile('metadata/'+name).read(200001)\n        if len(raw)>200000:raise ValueError('E75')")

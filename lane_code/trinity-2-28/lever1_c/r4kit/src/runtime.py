@@ -103,9 +103,32 @@ def run_batches(out, rows, progress, end, prepare_rows, generate, deadline):
     return 'complete'
 
 
+def import_closure(p):
+    """Execute the audited worker imports, including function-local imports."""
+    import ast
+    statements = set()
+    for name in ('5.py', '7.py', '9.py', '10.py', '11.py'):
+        wrapper = ast.parse((p/name).read_text()).body[0].value
+        source = bytes.fromhex(ast.literal_eval(wrapper.args[0].args[0].args[0]))
+        for node in ast.walk(ast.parse(source)):
+            if isinstance(node, (ast.Import, ast.ImportFrom)):
+                exec(compile(ast.Module(body=[node], type_ignores=[]), name, 'exec'), {})
+                statements.add(ast.unparse(node))
+    # Keep the lazy stdlib closure identical to the staged-interpreter audit.
+    for name in ('keyword', 'pkgutil', 'collections', 'asyncio', 'concurrent.futures',
+                 'multiprocessing', 'email', 'email.policy', 'xml.dom.minidom',
+                 'email._encoded_words', 'importlib.readers', 'importlib.resources.readers',
+                 'xml.sax.expatreader', 'xml.sax.xmlreader', 'xmlrpc.client',
+                 'wave', 'pydoc', 'unittest', 'venv', 'ensurepip'):
+        __import__(name)
+        statements.add('import '+name)
+    return dict(statements=len(statements), modules=len(sys.modules),
+                closure_sha256=hashlib.sha256('\n'.join(sorted(statements)).encode()).hexdigest())
+
+
 def run(package, mode, end):
-    # Staging and namespace are the base package's implementations. This process
-    # runs inside that namespace, after the original archives pass their pins.
+    # Boot and workload use the same interpreter and base package namespace.
+    # Only interpreter, environment and code pins must pass before boot.
     global C, WATCH_STOP, WATCH_THREAD
     started = time.monotonic()
     end = min(float(end), time.time()+1500)
@@ -150,6 +173,13 @@ def run(package, mode, end):
     spec = importlib.util.spec_from_file_location('a0', p/'7.py')
     probe = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(probe)
+    if os.environ.get('A_B') == '1':
+        closure = import_closure(p)
+        write(out/'10.json', dict(passed=True, mode=mode, seconds=time.monotonic()-started,
+            interpreter=sys.executable, cwd=os.getcwd(), bulk_bytes=0, **closure))
+        mark('boot_complete')
+        signal.setitimer(signal.ITIMER_REAL, 0)
+        return
     pins = cfg['export']
     assert pins['artifact']['sha256'].startswith('5083243c') and pins['step'] == 400
     f = cfg['inputs']['files']
@@ -261,6 +291,9 @@ def main(package, mode, end):
             C = importlib.util.module_from_spec(spec); spec.loader.exec_module(C)
         memory_metrics(root/'a')
         write(root/'a/4.json', C.diagnostic(error))
+        if os.environ.get('A_B') == '1':
+            write(root/'a/10.json', dict(passed=False, mode=mode, bulk_bytes=0,
+                **{k:v for k,v in C.diagnostic(error).items() if k != 'passed'}))
         return 1
     finally:
         if WATCH_STOP is not None: WATCH_STOP.set()

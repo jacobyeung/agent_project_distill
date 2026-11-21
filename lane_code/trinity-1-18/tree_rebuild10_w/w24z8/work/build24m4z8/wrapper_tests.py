@@ -48,6 +48,7 @@ assert heredoc(old)==heredoc(new)
 assert '--removal-manifest "$N/rdm.json"' in new and '"$X/j7.py" m "$N/dr/p/q/n.json" "$N/dr" "$N/rdm.json"' in new
 assert '--bind "$N/ev" "$O"' in new
 for s in (new,pp):assert re.search(r'--job-name=a15_cot_ap[0-9a-f]{12}\n',s)
+assert '${SLURM_JOB_ID:?}' in pp and '$SLURM_JOB_ID' in pp
 assert '--gres' not in pp and '--cpus-per-task=8' in pp and 'CUDA_VISIBLE_DEVICES=""' in pp
 assert '/tmp/' in pp and not re.search(r'\bsbatch\b|\bsrun\b|\bssh\b',pp)
 for p in (L/'out/jd7.sh',L/'out/pp/pp.sh'):subprocess.run(['bash','-n',str(p)],check=True)

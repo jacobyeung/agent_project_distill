@@ -1,0 +1,65 @@
+{
+  "expected_fail_before": "Retained in findings_final, core_final, exit_final and tgcs_observers_pass",
+  "local_suites": "PASS",
+  "real_GCS_new_bytes": "NOT_RUN",
+  "resolved": [
+    {
+      "log": "work/build24m4z10/legacy_guard.log",
+      "name": "legacy_fixture",
+      "output": "test_byte_cap_and_marker_only_listing (__main__.Live24F.test_byte_cap_and_marker_only_listing) ... ok\ntest_no_sessions_retry_done_and_idempotence (__main__.Live24F.test_no_sessions_retry_done_and_idempotence) ... UPLOAD_NO_RECEIPTS q9/test/m100.tar.j41 rc=1\nok\ntest_stop_checkpoint_space_branches (__main__.Live24F.test_stop_checkpoint_space_branches) ... FAIL\ntest_stop_generation_claims_once (__main__.Live24F.test_stop_generation_claims_once) ... ok\ntest_term_final_copy (__main__.Live24F.test_term_final_copy) ... ok\n\n======================================================================\nFAIL: test_stop_checkpoint_space_branches (__main__.Live24F.test_stop_checkpoint_space_branches)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z10/work/build24m4z10/legacy_tests_guard.py\", line 99, in test_stop_checkpoint_space_branches\n    v=C.read(c.state/'ckstop.json');self.assertEqual(v['status'],'gcs');self.assertEqual(v['marker_sha256'],C.sha(last))\n                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: 'no completed checkpoint' != 'gcs'\n- no completed checkpoint\n+ gcs\n\n\n----------------------------------------------------------------------\nRan 5 tests in 0.513s\n\nFAILED (failures=1)\n",
+      "reason": "Direct stop-method fixture now selects final state explicitly.",
+      "resolved": true
+    },
+    {
+      "log": "work/build24m4z10/existing_enospc_guard.log",
+      "name": "existing_enospc_fixture",
+      "output": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z10/work/enospc10/check_current.py\", line 44, in <module>\n    assert set(local_done)=={'gcs_checkpoint_7.done','gcs_checkpoint_8.done','gcs_m100.done','gcs_m200.done','gcs_checkpoint_8_stop.done','gcs_o.done'}\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n",
+      "reason": "Fixture no longer requires a duplicate ordinary upload of the stop checkpoint.",
+      "resolved": true
+    },
+    {
+      "log": "work/build24m4z10/wrapper_race.log",
+      "name": "wrapper_race_argument",
+      "output": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z10/work/build24m4z10/wrapper_race_test.py\", line 3, in <module>\n    J=Path.cwd();D=J/'work/build24m4z10';W=D/('wrapper_race_'+sys.argv[1]);W.mkdir();rows=[]\n                                                              ~~~~~~~~^^^\nIndexError: list index out of range\n",
+      "reason": "Supplied the required output suffix.",
+      "resolved": true
+    },
+    {
+      "log": "work/build24m4z10/wrapper_race_guard.log",
+      "name": "wrapper_race_control",
+      "output": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z10/work/build24m4z10/wrapper_race_test.py\", line 19, in <module>\n    src=(D/'jn3_wait_before.sh') if version=='before' else (J/'out/jn3.sh');s=src.read_text()\n                                                                              ^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py\", line 1027, in read_text\n    with self.open(mode='r', encoding=encoding, errors=errors) as f:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py\", line 1013, in open\n    return io.open(self, mode, buffering, encoding, errors, newline)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nFileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z10/work/build24m4z10/jn3_wait_before.sh'\n",
+      "reason": "Staged the missing pre-fix wrapper control.",
+      "resolved": true
+    },
+    {
+      "log": "work/build24m4z10/all_tgcs_observers.log",
+      "name": "tgcs_constructor_control",
+      "output": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z10/work/build24m4z10/tgcs_observers_final_test.py\", line 25, in <module>\n    assert (logs/'gc.stderr').exists() and (logs/'http.jsonl').exists()\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n",
+      "reason": "A constructor failure has no HTTP response log; the control now asserts its constructor error and zero receipts.",
+      "resolved": true
+    },
+    {
+      "log": "work/build24m4z10/all_trinity.log",
+      "name": "trinity_memory_cap",
+      "output": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z10/work/build24m4z10/trinity_release_test.py\", line 18, in <module>\n    assert r.returncode==0,(r.returncode,(W/'shell.log').read_text())\n           ^^^^^^^^^^^^^^^\nAssertionError: (1, '/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z10/work/build24m4z10/trinity_release/bundle/trinity.sh: line 6: ulimit: virtual memory: cannot modify limit: Operation not permitted\\n')\n",
+      "reason": "The launcher now respects a lower inherited hard memory limit.",
+      "resolved": true
+    },
+    {
+      "name": "fixture_script_quoting",
+      "output": "-euo: line 28: here-document ended early; /b/pc.sh: No such file or directory; touch /started: Read-only file system.",
+      "reason": "Interrupted only the malformed local command; wrote the fixture with apply_patch. No out-of-workspace write succeeded.",
+      "resolved": true
+    }
+  ],
+  "unresolved": [
+    {
+      "item": "measurement",
+      "reason": "Historical checkpoint write times W and real E3 rate/resume were not available under the offline run constraint."
+    },
+    {
+      "item": "training_gate",
+      "reason": "The shipped stop constant remains 3600 as required; evaluate the measured formula and review the constant before training."
+    }
+  ]
+}

@@ -1,0 +1,1 @@
+W=/scratch/jjyeung/orch_n30/tree_rebuild10_w; A=$W/w24y2/out/arm_routing.py; wc -l $A; grep -n "SEAL\|seal\|BASE\|kits\|def \|argv\|add_argument" $A | head -50 | cut -c1-200; ls $W/w24y2/work/build24m4m 2>/dev/null | head; ls $W/w24y2/work | head -40

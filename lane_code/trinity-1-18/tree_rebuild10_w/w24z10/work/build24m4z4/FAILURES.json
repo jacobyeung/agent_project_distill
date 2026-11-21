@@ -1,0 +1,61 @@
+{
+  "cluster_killed_processes": [],
+  "expected_injected_failures": [
+    "One failed archive part; three receipts retained, fourth uploaded on retry, no duplicate object.",
+    "First X archive-copy attempt returns ENOSPC; the actual final loop retries and publishes exact bytes.",
+    "Missing or incomplete sessions, wrong modes/symlinks, MD5 mismatch and insufficient local spool space refuse as asserted."
+  ],
+  "inherited_legacy": {
+    "output": "test_byte_cap_and_marker_only_listing (__main__.Live24F.test_byte_cap_and_marker_only_listing) ... ERROR\ntest_no_sessions_retry_done_and_idempotence (__main__.Live24F.test_no_sessions_retry_done_and_idempotence) ... ERROR\ntest_stop_checkpoint_space_branches (__main__.Live24F.test_stop_checkpoint_space_branches) ... ERROR\ntest_stop_generation_claims_once (__main__.Live24F.test_stop_generation_claims_once) ... ERROR\ntest_term_final_copy (__main__.Live24F.test_term_final_copy) ... ERROR\n\n======================================================================\nERROR: test_byte_cap_and_marker_only_listing (__main__.Live24F.test_byte_cap_and_marker_only_listing)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z2/work/build24m4z2/legacy_live_tests.py\", line 55, in test_byte_cap_and_marker_only_listing\n    c,root=fixture('cap')\n           ^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z2/work/build24m4z2/legacy_live_tests.py\", line 42, in fixture\n    return C.Copier(kit,node,'41',home=home),root\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z2/out/kit_n_go/b/pc.py\", line 80, in __init__\n    raw = self.session_bytes()\n          ^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z2/out/kit_n_go/b/pc.py\", line 268, in session_bytes\n    raise ValueError('file missing') from None\nValueError: file missing\n\n======================================================================\nERROR: test_no_sessions_retry_done_and_idempotence (__main__.Live24F.test_no_sessions_retry_done_and_idempotence)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z2/work/build24m4z2/legacy_live_tests.py\", line 72, in test_no_sessions_retry_done_and_idempotence\n    c,root=fixture('retry');m=state(c,'m100')\n           ^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z2/work/build24m4z2/legacy_live_tests.py\", line 42, in fixture\n    return C.Copier(kit,node,'41',home=home),root\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z2/out/kit_n_go/b/pc.py\", line 80, in __init__\n    raw = self.session_bytes()\n          ^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z2/out/kit_n_go/b/pc.py\", line 268, in session_bytes\n    raise ValueError('file missing') from None\nValueError: file missing\n\n======================================================================\nERROR: test_stop_checkpoint_space_branches (__main__.Live24F.test_stop_checkpoint_space_branches)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z2/work/build24m4z2/legacy_live_tests.py\", line 95, in test_stop_checkpoint_space_branches\n    c,root=fixture('checkpoint_project');state(c,'checkpoint_000001');last=state(c,'checkpoint_000003')\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z2/work/build24m4z2/legacy_live_tests.py\", line 42, in fixture\n    return C.Copier(kit,node,'41',home=home),root\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z2/out/kit_n_go/b/pc.py\", line 80, in __init__\n    raw = self.session_bytes()\n          ^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z2/out/kit_n_go/b/pc.py\", line 268, in session_bytes\n    raise ValueError('file missing') from None\nValueError: file missing\n\n======================================================================\nERROR: test_stop_generation_claims_once (__main__.Live24F.test_stop_generation_claims_once)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z2/work/build24m4z2/legacy_live_tests.py\", line 86, in test_stop_generation_claims_once\n    c,root=fixture('claims');C.put(c.home/'sess.json',{});os.chmod(c.home/'sess.json',0o600)\n           ^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z2/work/build24m4z2/legacy_live_tests.py\", line 42, in fixture\n    return C.Copier(kit,node,'41',home=home),root\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z2/out/kit_n_go/b/pc.py\", line 80, in __init__\n    raw = self.session_bytes()\n          ^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z2/out/kit_n_go/b/pc.py\", line 268, in session_bytes\n    raise ValueError('file missing') from None\nValueError: file missing\n\n======================================================================\nERROR: test_term_final_copy (__main__.Live24F.test_term_final_copy)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z2/work/build24m4z2/legacy_live_tests.py\", line 110, in test_term_final_copy\n    c,root=fixture('term')\n           ^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z2/work/build24m4z2/legacy_live_tests.py\", line 42, in fixture\n    return C.Copier(kit,node,'41',home=home),root\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z2/out/kit_n_go/b/pc.py\", line 80, in __init__\n    raw = self.session_bytes()\n          ^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z2/out/kit_n_go/b/pc.py\", line 268, in session_bytes\n    raise ValueError('file missing') from None\nValueError: file missing\n\n----------------------------------------------------------------------\nRan 5 tests in 0.063s\n\nFAILED (errors=5)\n",
+    "resolved_by": [
+      {
+        "adaptation": "Complete sessions added; cap, tail, marker hashes and no weight-copy assertions retained.",
+        "log": "work/build24m4z4/legacy_final.log",
+        "name": "Live24F.test_byte_cap_and_marker_only_listing",
+        "status": "PASS"
+      },
+      {
+        "adaptation": "Missing sessions now refuse at construction; failed-writer retry, local done receipt, archive hash/size/identity and idempotence assertions pass.",
+        "log": "work/build24m4z4/legacy_final.log",
+        "name": "Live24F.test_no_sessions_retry_done_and_idempotence",
+        "status": "PASS"
+      },
+      {
+        "adaptation": "Complete sessions added; three fallback labels and fourth-generation refusal assertions use local receipt paths.",
+        "log": "work/build24m4z4/legacy_final.log",
+        "name": "Live24F.test_stop_generation_claims_once",
+        "status": "PASS"
+      },
+      {
+        "adaptation": "The new contract supersedes project-first checkpoint copying: named test asserts GCS with ample or zero X space, latest complete identity, no project checkpoint copy, and refusal when node-local reserve is unavailable.",
+        "log": "work/build24m4z4/legacy_final.log",
+        "name": "Live24F.test_stop_checkpoint_space_branches",
+        "status": "PASS"
+      },
+      {
+        "adaptation": "Complete sessions and archive helpers added; TERM exit status and final exact log copy assertions retained.",
+        "log": "work/build24m4z4/legacy_final.log",
+        "name": "Live24F.test_term_final_copy",
+        "status": "PASS"
+      }
+    ]
+  },
+  "remote_validation": "NOT_RUN",
+  "setup_failures": [
+    {
+      "explanation": "The already transformed source needed only a new bundle and pins; all final E2 and readback checks pass.",
+      "name": "Repeated one-time E2 transformation",
+      "output": "Traceback (most recent call last):\n  File \"work/build24m4z4/update_e2.py\", line 8, in <module>\n    start=s.index('  # The adopted kit has no object label')\nValueError: substring not found\n",
+      "resolved_by": "work/build24m4z4/e2_final.log"
+    },
+    {
+      "explanation": "jn2.sh carries the wrapper helper; the exact prefix/helper test passes.",
+      "name": "Optional named helper absent",
+      "output": "rg: out/kit_n/b/j2.py: No such file or directory (os error 2)\n",
+      "resolved_by": "work/build24m4z4/wrapper_final.log"
+    }
+  ],
+  "status": "PASS",
+  "suite_failures": [],
+  "unresolved": []
+}

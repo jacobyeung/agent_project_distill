@@ -1,4 +1,4 @@
-"""Overflow the actual batch pipes and scheduler FIFO without a scheduler."""
+"""Check durable output and shell limits without a scheduler."""
 import ast
 import hashlib
 import io
@@ -14,6 +14,7 @@ import sys
 import tarfile
 import tempfile
 import unittest
+from unittest.mock import patch
 HERE=Path(__file__).resolve().parents[1]
 sys.path[:0]=[str(HERE),str(HERE/'tests')]
 import import_audit as A
@@ -64,40 +65,43 @@ class Review9Tests(unittest.TestCase):
         header=header.replace('/project/community/jjyeung/'+pub['token']+'/a/',str(p/'a')+'/')
         script=root/'overflow.sh';script.write_text(header+shlex.join(argv)+'\n')
         result=subprocess.run(['bash',str(script)],env=env,capture_output=True)
-        self.assertEqual(result.returncode,1,result.stderr)
-        self.assertEqual(result.stdout+result.stderr,b'')
-        self.assertEqual((p/'a/20').stat().st_size,131072)
-        self.assertEqual((p/'a/22').read_bytes(),b'1\n')
-        # Fetch the authenticated failure after 64 MiB bypassed Python open().
+        self.assertNotEqual(result.returncode,0)
+        self.assertEqual((p/'a/19').stat().st_size,524288)
         fetch=[sys.executable,'-I','-s','-B',str(HERE/'tests/local_fetch.py'),'parent',str(p),
                '/project/community/jjyeung/okh7/ae71c903',str(root/'pool'),'173925',str(HERE/'orchard/o_fetch.sh')]
         got=subprocess.run(fetch,env=env,capture_output=True)
         self.assertEqual(got.returncode,0,got.stderr)
         with tarfile.open(p/'a/f/0.tgz') as archive:
-            cause=B.decoded(archive.extractfile('metadata/9.json').read())
-            self.assertTrue(any('external staging boundary' in line for line in cause['lines']))
+            cause=B.decoded(archive.extractfile('metadata/14.json').read())
+            self.assertTrue(any('E83 19' in line for line in cause['lines']))
         size=sum(f.stat().st_size for base in (p,root/'pool') for f in base.rglob('*') if f.is_file())
         size+=(HERE/'out/delivery.tgz').stat().st_size
         self.assertLess(size,48_000_000)
-        self.evidence['supervisor_overflow']=dict(passed=True,inherited_fd_bytes=67108864,sink_bytes=131072,truncation_marker=True,supervisor_fsize=524288,production_failure_fetch=True,project_observed_bytes=size)
+        self.evidence['supervisor_overflow']=dict(passed=True,sink_bytes=524288,production_failure_fetch=True,project_observed_bytes=size,cause=cause)
 
-    def test_scheduler_fifo_overflow_and_reuse(self):
-        root=Path(tempfile.mkdtemp(dir=HERE/'tests',prefix='sink_'))
+    def test_scheduler_files_and_submission_failure(self):
+        root=Path(tempfile.mkdtemp(dir=HERE/'tests',prefix='sink_'))/'a';root.mkdir()
+        body=b'#!/bin/bash\nulimit -S -f 512\n';(root.parent/'BATCH.sh').write_bytes(body)
         helper=root/'27.py';helper.write_bytes(self.outer['a/27.py'])
-        module=runpy.run_path(str(helper));submit=module['submit']
-        code="import os,sys\np=sys.argv[1]\nf=os.open(p,os.O_WRONLY)\nos.dup2(f,1);os.dup2(f,2)\nfor _ in range(4096):os.write(1,b'a'*8192);os.write(2,b'b'*8192)\nassert sys.argv[-1]=='--wait'\n"
-        for _ in range(2):
-            result=submit(root,[sys.executable,'-I','-s','-B','-c',code,str(root/'19')],capture_output=True)
-            self.assertEqual(result.returncode,0,result.stderr)
-        self.assertTrue(stat.S_ISFIFO((root/'19').stat().st_mode))
-        self.assertEqual((root/'19').stat().st_size,0)
-        self.assertEqual((root/'24').stat().st_size,131072)
-        self.assertEqual((root/'25').read_bytes(),b'1\n')
-        diagnostics=sum((root/n).stat().st_size for n in ('19','24','25','28'))
-        # Both overflow channels, both markers, and worst-case trap file.
-        bounded=diagnostics+131072+2+524288
+        submit=runpy.run_path(str(helper))['submit'];calls=[]
+        def control(argv,**kwargs):
+            self.assertEqual(argv[0],'sbatch');calls.append(argv)
+            for name in ('19','24','21'):
+                self.assertTrue(stat.S_ISREG((root/name).stat().st_mode))
+            return subprocess.CompletedProcess(argv,1,stdout=b'1001\n',stderr=b'injected submission failure')
+        with patch.object(subprocess,'run',side_effect=control):
+            result=submit(root,['sbatch','--parsable'],input=body,capture_output=True)
+        self.assertEqual(result.returncode,1);self.assertEqual(len(calls),1)
+        with patch.object(subprocess,'run') as run:
+            with self.assertRaisesRegex(ValueError,'E84'):submit(root,['sbatch'],input=b'uncapped batch',capture_output=True)
+            run.assert_not_called()
+        (root/'19').write_bytes(b'x'*524288)
+        with patch.object(subprocess,'run') as run:
+            with self.assertRaisesRegex(ValueError,'E76'):submit(root,['sbatch'],input=body,capture_output=True)
+            run.assert_not_called()
+        bounded=3*524288
         self.assertLess(bounded,2_000_000)
-        self.evidence['scheduler_overflow']=dict(passed=True,inherited_fd_bytes=134217728,scheduler_fifo_bytes=0,sink_bytes=131072,truncation_marker=True,repeated_submissions=2,combined_diagnostics_bound=bounded,total_project_bound=48_000_000)
+        self.evidence['scheduler_files']=dict(passed=True,sealed_batch_only=True,no_collector=True,no_fifo=True,failure_preserved=True,precreated=True,oversize_rejected=True,combined_diagnostics_bound=bounded,total_project_bound=48_000_000)
 
     def test_shell_file_limit_remains_in_force(self):
         batch=self.outer['BATCH.sh'].decode()

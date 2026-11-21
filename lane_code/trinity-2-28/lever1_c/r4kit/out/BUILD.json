@@ -1,20 +1,42 @@
 {
+  "boot": {
+    "archive_and_code_bytes": 8614197649,
+    "archive_bytes": 8612076000,
+    "code_archive_bytes": 2121649,
+    "environment_expanded_bytes": 8386282204,
+    "input_archives": [
+      2
+    ],
+    "interpreter_file_bytes": 104949562,
+    "interpreter_group": 0,
+    "interpreter_prefix": "sj/uv-python/cpython-3.12.13-linux-x86_64-gnu",
+    "interpreter_source_bytes": 1621422080,
+    "overlay_expanded_bytes": 143782645,
+    "pre_bulk_bytes": 8719147211,
+    "production_seconds": null,
+    "receipt": "execution.boot",
+    "runtime_groups": [
+      1
+    ]
+  },
   "data": {
     "bytes": 1358926,
     "sha256": "01c77435b7daf9fca122bc6325a176c8566170ef07eb947b7aafda9d76027af4"
   },
   "delivery": {
-    "bytes": 4250122,
-    "sha256": "3ca1fd77d3cd021210bae2ef31d0c323bd3d8bd0d1cf3e2b5df12410c91232af"
+    "bytes": 4255483,
+    "sha256": "233ee0816bc9a6e39c999519cbe0944a1b024518c1c0e61a7925b043254dbd66"
   },
-  "expanded_delivery_bytes": 15256157,
-  "expanded_payload_bytes": 13091542,
+  "expanded_delivery_bytes": 15275940,
+  "expanded_payload_bytes": 13101240,
   "frozen": "3743891f778115529710461333ad09a9588b8075e2173a74fac0065dc5d0382d",
   "gpu_memory": {
     "batch_and_overhead_bytes": 20000000000,
-    "charged_stop_bytes": 193273528320,
     "expected_peak_bytes": 187000000000,
     "full_load_rss_bytes": 96000000000,
+    "guard_fallback": "process-tree RSS when memory.stat/current is unavailable",
+    "guard_formula": "max(0, memory.current - min(active_file + inactive_file, max(0, file - shmem)))",
+    "guarded_stop_bytes": 193273528320,
     "measured": false,
     "page_cache_bytes": 71000000000,
     "request": "200G"
@@ -25,32 +47,40 @@
       "sha256": "715d494e6d840796eddcbf8c75bee96ea98d2fe5ba2c2e9ef5c63edd5c00155c"
     },
     "src/control.py": {
-      "bytes": 21713,
-      "sha256": "9b7ffea038ed33bd5d5e1f0dda0749ab5c3ed031544951996e436714a7e4d8d0"
+      "bytes": 25800,
+      "sha256": "754008aa74672b53261d2733debe3a31dc0cfeb32034720a0e963f2d4003eab1"
     },
     "src/monitor.py": {
-      "bytes": 7963,
-      "sha256": "95a473a5c638da378f0b1cfe719143bdb7dcb026fbd98bb53bd440e94ab20d61"
+      "bytes": 10024,
+      "sha256": "1c914c666c1a8d1a15f6772844c45d7a24a7671008c1fd154d961e1de77f46cb"
     },
     "src/probe.py": {
       "bytes": 1115,
       "sha256": "cdd53fddf8c1b6bc6718eeeb52787efe1683c93a61d56bec135eee77d08a94ba"
     },
     "src/runtime.py": {
-      "bytes": 12700,
-      "sha256": "d229cfec6647002a69d8b66c0bbd1787147c9c1f901aa5a4bc11f24401f51148"
+      "bytes": 14552,
+      "sha256": "372201280adc66c2235214818431c26de0acd2995242a5bd7a67c8e91598f664"
     },
     "src/storage.py": {
-      "bytes": 8795,
-      "sha256": "8d82ed49eab376022c3688ce49dd8413f30c1f9c4e180c11fe258b619e9a1935"
+      "bytes": 9115,
+      "sha256": "fabcd623ddacc0b378e767d4991b74c41c612799b131fe3dd06003874c66861f"
     }
   },
-  "package": "/project/community/jjyeung/okh7/a15_cot_ape71c940a6b283",
-  "payload": {
-    "bytes": 2119738,
-    "sha256": "0b674481ebe85151fc747c911de8bf595d8c80b246f5d31d62681696e27efd2a"
+  "interpreter_exposure": {
+    "audit": "out/IMPORT_CHECKS.json",
+    "native_archives": "Preserve all pinned interpreter and third-party package paths and bytes",
+    "opaque_roots": [
+      "c",
+      "v"
+    ]
   },
-  "private_source_bytes": 5634993,
+  "package": "/project/community/jjyeung/okh7/a15_cot_apf68a2d7c903be",
+  "payload": {
+    "bytes": 2121649,
+    "sha256": "525db2a51865cdc3075a373bd1b63483219963148066a62baa4108818d7739a8"
+  },
+  "private_source_bytes": 5635326,
   "project_budget": {
     "enforced_max_bytes": 44000000,
     "fetches_bytes": 16000000,
@@ -61,8 +91,8 @@
     "returns_bytes": 6000000
   },
   "source_blob": {
-    "bytes": 11648920,
-    "sha256": "0163dcfce7ca82efdc3b9599745afde2832eae103d8606c10a037e47cc0d687d"
+    "bytes": 11649594,
+    "sha256": "65cf33e036db7714572998fe79b2cb80a6580300143407a4bf907733ba8b1361"
   },
   "sources": {
     "c/b/e2e_reader/__init__.py": "481d2c8a8b5e38f7a39cc38635a64d97672e8fa1b4520e2c8aa4d13300b9106c",
@@ -536,10 +566,10 @@
     "v/orchard_job.py": "0cb59d313de126d14ef6154a18c23f2d19f866f814bc24e3a92764b90b895bde",
     "v/orchard_launcher.py": "f7151c1dbfe297fd055e54bd84adc97737809ab2b03ca56a719dc807039b0354",
     "v/orchard_results.py": "d739b38a5c00854068f9d76ec49d679100cf59a693fafd8c8446eb1d0807fce5",
-    "v/orchard_stage.py": "c1e0e4d3bec5ae2aace0f3e7d295ca3cdb80afb809c0adccb7898db5e5afccf3",
+    "v/orchard_stage.py": "98985b35a6166d0e3427811bf54955b6578adf970fa98c1101c3ec185a508112",
     "v/return_io.py": "ad24ee4c4ffb0592011efce63d741b3f449daddf4da7c377d9623a5db2dad8b3",
     "v/stdout_transfer.py": "85ad256cfa7836948ddba934ca82537486fc3c42cab06fa5442de86caef2e0f6",
     "v/trace_runtime.py": "faec481ff5b445fdeb885a0ee70e1f83beaff05afb115dd3073fa6ce1934237d"
   },
-  "token": "e71c940a6b283"
+  "token": "f68a2d7c903be"
 }

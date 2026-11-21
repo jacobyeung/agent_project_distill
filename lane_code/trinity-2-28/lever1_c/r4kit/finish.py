@@ -15,7 +15,15 @@ def members(raw):
     with tarfile.open(fileobj=io.BytesIO(raw)) as t:return {m.name:t.extractfile(m).read() for m in t}
 
 build=read('BUILD.json');checks=read('out/FIX_CHECKS.json');tests=read('TEST_RESULTS.json')
+assert B.pin((ROOT/'out/delivery.tgz').read_bytes()) == build['delivery']
+assert B.digest((ROOT/'FROZEN.json').read_bytes()) == build['frozen'] == (ROOT/'FROZEN.sha256').read_text().split()[0]
 assert checks['passed'] and tests['passed']
+imports=read('out/IMPORT_CHECKS.json')
+assert imports['passed'] and imports['delivery']==build['delivery']
+boots=read('out/BOOT_CHECKS.json')
+assert boots['passed'] and boots['delivery']==build['delivery']
+assert tests['delivery']==checks['delivery']==build['delivery']
+test_count=tests['tests']+checks['tests']+imports['tests']+boots['tests']
 files=members((ROOT/'out/delivery.tgz').read_bytes());payload=members(files['0.tgz'])
 cfg=B.storage.loads(files['2.json']);sources=B.storage.loads(files['8.bin'])
 f=read('FORECAST.json');mapping=read('PAIR_MAP.json');ids={m['source_id'] for m in mapping};positions={}
@@ -27,10 +35,13 @@ steps=[max(positions[m['source_id']] for m in mapping[i:i+4]) for i in range(0,l
 fixed_worker=f['model_load_s']+580*(f['per_item_other_mean_s']+f['prefill_mean_s'])
 decode=sum(steps)*2*f['tool_free_decode_s_per_token'];worker=fixed_worker+decode;total=f['base_other_s']+worker
 f.update(token=build['token'], delivery=build['delivery'],
+    boot=build['boot'],
+    interpreter_exposure=build['interpreter_exposure'],
     project_budget=build['project_budget'], gpu_memory=build['gpu_memory'],
+    memory_guard=dict(formula=build['gpu_memory']['guard_formula'],fallback=build['gpu_memory']['guard_fallback'],gpu_stop_bytes=180*1024**3,cpu_stop_bytes=110*1024**3,return_fields=['peak_tree_rss_bytes','peak_cgroup_current_bytes','cgroup_memory_peak_bytes','peak_guarded_bytes']),
     submission_parity=dict(export_policy='A_M only; c/g selects mode',chdir='/tmp',entry='4.sh executes /usr/bin/python3 -I -s -B 3.py work',output='/tmp/<opaque job name>-%j.8.log and .9.log',differences=['GPU adds --gres=gpu:1','A_M=c versus A_M=g selects the preflight/read'],time='00:30:00 in both modes'),
     cpu_preflight=dict(worker_address_space_limit_bytes=32*1024**3,
-        charged_memory_stop_bytes=110*1024**3, staging_filesystem='ext4',
+        guarded_memory_stop_bytes=110*1024**3, staging_filesystem='ext4',
         tensors='meta shapes only; processor and two CPU prompt batches',
         production_measured=False, diagnostic='DEBUG.md'),
     batch_timing_return='3.jsonl: packed per-batch preparation, prefill, slowest synchronized token-step, total seconds, completed pairs, admission estimate, remaining time, host peak RSS and GPU max allocated bytes',
@@ -49,7 +60,7 @@ f.update(token=build['token'], delivery=build['delivery'],
     batching_assumption='An eight-row token forward costs twice a serial token forward. This GPU estimate is unmeasured; CPU timing is not used as a GPU speed estimate.',
     caveat='Full-checkpoint GPU numerical parity, batch memory use, speed and ext4 sync/supervisor overhead are unmeasured. Slow openings/staging can still yield a partial return with no gate verdict.',
     cpu_parity_evidence='out/FIX_CHECKS.json:evidence.native_cpu_parity',
-    code_pins={str(p.relative_to(ROOT)):B.pin(p.read_bytes()) for p in (ROOT/'src/batch.py',ROOT/'src/runtime.py')})
+    code_pins={str(p.relative_to(ROOT)):B.pin(p.read_bytes()) for p in (ROOT/'src/batch.py',ROOT/'src/runtime.py',ROOT/'src/monitor.py',ROOT/'src/control.py')})
 assert f['headroom_requirement_passed'];save('FORECAST.json',f)
 
 inventory=[]
@@ -91,6 +102,7 @@ exceptions=[
     dict(value='Library-owned cache internals under <ext4 job root>/0/<number> only',
          reason='Native cache formats may retain library identifiers. Every cache root is opaque and job-local; Orchard teardown removes it. These files are excluded from all public package/return/fetch outputs, and /project is absent from the worker namespace.')]
 audit=dict(passed=True,deny_list=B.DENY,case_sensitive=False,match='literal substring',delivery=build['delivery'],token=build['token'],
+    interpreter_exposure=dict(policy=build['interpreter_exposure'],new_public_names=[],new_external_exceptions=[],evidence='out/IMPORT_CHECKS.json'),
     checks=inventory,source_files=len(source_paths),renamed_source_paths=sum(a!=b for a,b in source_paths.items()),source_paths=source_paths,
     source_storage='Every authored source/resource is stored in an a0 hex envelope at a path whose components pass the deny-list. Import names and decoded program text exist only in memory; __file__ uses the opaque path.',
     json_storage='Job metadata and returned JSON/JSONL use a0 hex envelopes. Scans check raw text and JSON-decoded keys/strings (including escaped Unicode). Intentional hex payload decoding occurs only in memory or in the local scorer.',
@@ -152,7 +164,7 @@ PYPLACE
 /usr/bin/python3 -I -s -B "$P/3.py" check
 ```
 
-The CPU preflight uses the assigned ext4 job_tmp bind at `/tmp`; it refuses tmpfs before copying archives. It hashes all staged inputs, checks head metadata and meta model shapes, and exercises the processor on two prompts. It loads no resident full-model weights. The CPU worker has a 32 GiB address-space ceiling and a 110 GiB charged-memory stop. Production execution refuses to proceed without readable cgroup memory counters. The production peak remains unmeasured. `DEBUG.md` records the cause analysis and evidence.
+The CPU preflight uses the assigned ext4 job_tmp bind at `/tmp`; it refuses tmpfs before copying archives. It hashes all staged inputs, checks head metadata and meta model shapes, and exercises the processor on two prompts. It loads no resident full-model weights. The CPU worker has a 32 GiB address-space ceiling and a 110 GiB non-reclaimable-memory stop. Missing memory.stat or memory.current falls back to process-tree RSS. The production peak remains unmeasured. `DEBUG.md` records the cause analysis and evidence.
 
 Submit the CPU preflight once:
 
@@ -176,7 +188,7 @@ P={package}
 /usr/bin/python3 -I -s -B "$P/3.py" submit
 ```
 
-The resource arguments fix general, one GPU, 16 CPUs, 200G, 30 minutes, `--exclude=orchard-community-4` and `--no-requeue`. Both modes use the same `--export=A_M=...` policy, `--chdir=/tmp`, output/error paths under `/tmp`, 30-minute limit, 200G request, sanitized submission environment and `4.sh` entry into `/usr/bin/python3 -I -s -B 3.py work`. The only submission differences are `A_M=c` versus `A_M=g` to select the workload and `--gres=gpu:1` for GPU mode. Inside the namespace, CPU hides CUDA, uses a 32 GiB address-space cap and a 110 GiB charged-memory stop, and returns after processor checks; GPU exposes its assigned device, loads the full model and uses a 180 GiB stop. These differences keep preflight light while checking the same staging and launch path. Submission-attempt markers prevent duplicate submissions. A killed job must not be retried without the user's answer.
+The resource arguments fix general, one GPU, 16 CPUs, 200G, 30 minutes, `--exclude=orchard-community-4` and `--no-requeue`. Both modes use the same `--export=A_M=...` policy, `--chdir=/tmp`, output/error paths under `/tmp`, 30-minute limit, 200G request, sanitized submission environment and `4.sh` entry into `/usr/bin/python3 -I -s -B 3.py work`. The only submission differences are `A_M=c` versus `A_M=g` to select the workload and `--gres=gpu:1` for GPU mode. Inside the namespace, CPU hides CUDA, uses a 32 GiB address-space cap and a 110 GiB non-reclaimable-memory stop, and returns after processor checks; GPU exposes its assigned device, loads the full model and uses a 180 GiB stop. These differences keep preflight light while checking the same staging and launch path. Submission-attempt markers prevent duplicate submissions. A killed job must not be retried without the user's answer.
 
 Fetch the GPU success or failure return:
 
@@ -213,7 +225,7 @@ The central forecast is **{total:.1f} seconds ({total/60:.2f} minutes)**, includ
 
 Eight-row batches retain serial video prefills, then left-pad and merge the native hybrid caches for greedy token forwards. Prompts remain pair-interleaved. The forecast assumes each eight-row token forward costs twice a serial forward and both arms open as early as D400. GPU throughput, memory use and full-checkpoint numerical parity remain unmeasured. The all-64-token estimate is {f['all_64_token_total_s']:.1f} seconds and assumes the same unmeasured cost. Each admitted batch records preparation, prefill, slowest synchronized token-step and total time, plus complete-pair counts. Admission requires a full batch estimate plus 10 seconds: initially 60 seconds; thereafter the maximum of 60 seconds, 1.25 times observed batch duration, and 1.25 times (preparation + prefill + 64 slowest token steps). The worker stops admitting batches if that estimate will not fit. An unexpected slowdown can still interrupt a batch; only complete pairs are returned. The tiny native CPU model produced identical tokens for eight unequal-length prompts, including EOS and 64-token stops. `FORECAST.json` records the model and its limits.
 
-All **{tests['tests']+checks['tests']} CPU tests pass**. They include eleven injected failures in each of CPU and GPU modes followed by real fetch, real delivered-worker subprocess failures with locally decoded tracebacks, SIGKILL/SIGTERM/hard-exit/deadline diagnostics through real fetch in both modes, active-mount checks and metadata-only head loading, bounded diagnostic and output scans, slow/fast batch admission with fetched timing records, interrupted-pair retention, the real staging allowance, native batch parity, and the actual CPU runtime/restore with tiny pinned inputs and processor doubles. `out/FIX_CHECKS.json` records every file scanned during that rehearsal. Expanded delivery: {build['expanded_delivery_bytes']:,} bytes; inner payload: {build['expanded_payload_bytes']:,} bytes, both below 32 MiB.
+All **{test_count} CPU tests pass**. They include eleven injected failures in each of CPU and GPU modes followed by real fetch, real delivered-worker subprocess failures with locally decoded tracebacks, SIGKILL/SIGTERM/hard-exit/deadline diagnostics through real fetch in both modes, active-mount checks and metadata-only head loading, bounded diagnostic and output scans, slow/fast batch admission with fetched timing records, interrupted-pair retention, the real staging allowance, native batch parity, and the actual CPU runtime/restore with tiny pinned inputs and processor doubles. `out/FIX_CHECKS.json` records every file scanned during that rehearsal. Expanded delivery: {build['expanded_delivery_bytes']:,} bytes; inner payload: {build['expanded_payload_bytes']:,} bytes, both below 32 MiB.
 
 `NAMING_AUDIT.json` records opaque physical source names and raw/JSON-decoded output scans. Logical names and generated text are decoded only in memory. Its remaining exceptions cover fixed kernel/CUDA interfaces, immutable external runtime/model assets, and native cache internals confined to the ephemeral job directory; each has a stated reason. Production GPU cache contents were not exercised here.
 
@@ -223,6 +235,8 @@ Reproduce locally:
 nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B build.py
 nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B tests/test_probe.py
 nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B tests/test_fixes.py
+nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B tests/test_imports.py
+nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B tests/test_boot.py
 nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B finish.py
 ```
 '''
@@ -250,15 +264,30 @@ The worker namespace exposes only this job's temporary directory and cannot see 
 
 The GPU job requests **200G (200 GiB)**. Its conservative planning peak is **187 GB (174.2 GiB)**: approximately 96 GB host RSS from the old full-load preflight, 71 GB of potentially charged staged-file page cache, and 20 GB for batch buffers and overhead. The full-model GPU peak remains unmeasured.
 
-Both supervisors poll charged memory every 50 ms and stop their child at **180 GiB (193,273,528,320 bytes)**, leaving 20 GiB below the request. Staging phases also check memory. Missing production counters cause a failure. The controller returns the memory-stop reason and both stream tails. External node/controller death or a spike faster than polling can still prevent finalization.
+Both supervisors poll the guarded figure every 50 ms and stop at **180 GiB (GPU)** or **110 GiB (CPU)**. The exact formula is `max(0, memory.current - min(active_file + inactive_file, max(0, file - shmem)))`. Equivalently, subtract both file LRUs and add back only their overlap with shmem. Linux file LRUs normally exclude shmem, so adding all shmem again would double-count it; the file-minus-shmem bound also protects counters that include it. Without the file/shmem pair, subtract the file LRUs directly. Missing or incomplete memory.stat/current falls back to process-tree RSS. Staging phases use the same guard. Every authenticated return records `peak_tree_rss_bytes`, `peak_cgroup_current_bytes`, `cgroup_memory_peak_bytes` (null if unavailable), and `peak_guarded_bytes`; sampled peaks merge across supervisors and staging. memory.peak is the kernel cgroup lifetime high-water, not a reset per-job counter. The guard retains 20 GiB of non-reclaimable-memory headroom under the request. The controller returns the memory-stop reason and both stream tails. External node/controller death or a spike faster than polling can still prevent finalization.
 
 Every batch records host RSS high-water and GPU max allocated bytes. Every return includes the final observations. A 200 ms sampler covers model loading; abrupt death returns the last sampled GPU peak with `gpu_peak_complete=false`, while wait4 supplies peak host RSS. Normal completion and Python exceptions record the final CUDA peak. CPU and pre-CUDA failures report zero GPU allocation with `gpu_measured=false`.
 
 Controller, namespace-supervisor and worker output enters opaque hex `8.log`/`9.log` journals as bytes arrive. Each stream admits at most 262,144 raw bytes; overflow fails the job. Every return carries **16,000-byte stdout and stderr tails**. Success, partial results, early failures in both modes, memory stops and log overflow pass real fetch. `out/FIX_CHECKS.json` records this evidence.
 """
-place += contract
+import_contract=f'''
+The extractor preserves every native interpreter/package path. Opaque translation applies only to authored `c/` and `v/` source trees (`src/storage.py:108`). The existing native-runtime ABI exception covers the unchanged pinned external files; no new public names or exceptions are introduced. The memory guard and FROZEN.json remain unchanged.
+
+The CPU import regression verifies all {imports['runtime_files']:,} local pinned interpreter files after the real extractor, checks {imports['package_paths_checked']:,} package paths, reproduces the old missing `keyword` failure, and imports all worker import statements in a fresh staged interpreter with `-X importtime`. The worker reaches `restore` without loading checkpoint weights. Namespace test mode: {imports['mode']}. The original Orchard environment archive/boot wrapper is not local; the test reproduces its `runpy.run_path` operation and uses local p1cpu packages. `IMPORTS.md` and `out/IMPORT_CHECKS.json` record the exact evidence and limits.
+'''
+place += contract+import_contract
+boot_text = f"""
+Both CPU and GPU jobs follow this order: authenticate and materialize the package; stream only the complete CPython tree from runtime group 0; stage the group 1 environment, a4 entry/overlay and bwrap; run the real worker's import closure through the production interpreter, namespace, environment and cwd; require its boot receipt; then stage all remaining archives and run the workload. Group 0's other members and all of group 2, the checkpoint, base assets, frames and preparation inputs wait for boot success. The streamed mixed archive is authenticated in full but never copied before boot.
+
+Pre-bulk bytes: {build['boot']['interpreter_file_bytes']:,} CPython file bytes; {build['boot']['archive_bytes']:,} environment/overlay archives plus bwrap; {build['boot']['code_archive_bytes']:,} package archive bytes; total **{build['boot']['pre_bulk_bytes']:,} bytes** copied or selectively materialized. Authentication also reads the {build['boot']['interpreter_source_bytes']:,}-byte mixed interpreter archive without staging its other members. The environment and overlay expand to another {build['boot']['environment_expanded_bytes']+build['boot']['overlay_expanded_bytes']:,} file bytes; the package expands to {build['expanded_payload_bytes']:,} bytes plus materialized private sources. These are separate source-transfer and expansion counts, not a measured disk high-water.
+
+Local successful pre-bulk checks took {min(c['boot']['pre_bulk_seconds'] for c in boots['cases'] if not c['missing']):.3f}–{max(c['boot']['pre_bulk_seconds'] for c in boots['cases'] if not c['missing']):.3f} seconds with tiny staging fixtures and read-only local runtime binds. Production pre-bulk seconds remain unmeasured; each return records them in `execution.boot.pre_bulk_seconds`, alongside bytes, mode, interpreter, cwd, closure digest and import duration. Boot uses the existing 600-second staging deadline. The overall forecast retains its existing staging allowance; it does not claim measured Orchard boot time.
+
+The four boot tests use the delivered worker, the exact pinned `v/py` and `v/boot.py`, both production supervisors, the production namespace constructor with local runtime fixture binds, and real finalization/fetch. In both modes, an omitted private module fails with **zero bulk bytes staged**, and its traceback survives authenticated fetch. `out/BOOT_CHECKS.json` pins these checks to this delivery. The test uses local p1cpu libraries; full production-environment execution remains an Orchard check.
+"""
+place += boot_text
 (ROOT/'PLACE.md').write_text(place)
-report=f"""The delivery passes **{tests['tests']+checks['tests']} local CPU tests**, including forced early failures in both modes through real authenticated fetch. No placement, submission, network access or GPU execution occurred.
+report=f"""The delivery passes **{test_count} local CPU tests**, including staged-interpreter imports and forced early failures in both modes through real authenticated fetch. No placement, submission, network access or GPU execution occurred.
 
 Token: `{token}`. Job: `a15_cot_ap{token}`.
 Delivery: **{size:,} bytes**. SHA-256: `{sha}`.
@@ -268,7 +297,7 @@ Both streams now reach every return. The controller, namespace supervisor and wo
 
 CPU and GPU submissions use the same export policy, sanitized environment, chdir, output paths and entry script. Only the `A_M` mode value and GPU `--gres=gpu:1` differ. Both request 200G and 30 minutes. The constructor regression compares complete argument lists, script bytes and environments.
 
-CPU preflight disables CUDA, caps address space at 32 GiB and charged memory at 110 GiB, validates metadata and two processor batches, and skips resident full-model loading. GPU mode exposes its assigned device, loads the checkpoint and stops at 180 GiB charged memory. Both use the same staging and namespace path.
+CPU preflight disables CUDA, caps address space at 32 GiB and guarded memory at 110 GiB, validates metadata and two processor batches, and skips resident full-model loading. GPU mode exposes its assigned device, loads the checkpoint and stops at 180 GiB guarded memory. Both use the same staging and namespace path.
 
 The frozen 580 prompts, greedy 64-token limit, first-opening stop and unserved tools remain intact. Native tiny-model batch parity, opaque-source loading, naming scans, staging limits and interrupted-pair retention pass. The actual scorer accepts successful, partial and failed archives produced by real finalization and fetch.
 
@@ -276,12 +305,14 @@ The central timing forecast remains **{total:.1f} seconds ({total/60:.2f} minute
 
 Evidence: `out/test_probe.log`, `out/test_fixes.log`, `out/FIX_CHECKS.json`, `out/FIX3_CHECKS.json`, `out/CACHE_CHECKS.json`, `NAMING_AUDIT.json`, `FORECAST.json` and `BUILD.json`. `PLACE.md` contains exact operator commands. Full-checkpoint GPU numerical parity remains untested.
 """
-report += contract
+report += contract+import_contract
+report += boot_text
 (ROOT/'REPORT.md').write_text(report)
 save('out/BUILD.json',build)
-save('out/FINAL_CHECKS.json',dict(passed=True,token=token,delivery=build['delivery'],tests=tests['tests']+checks['tests'],frozen=frozen,
+save('out/FINAL_CHECKS.json',dict(passed=True,token=token,delivery=build['delivery'],tests=test_count,frozen=frozen,
     project_budget=build['project_budget'],gpu_memory=build['gpu_memory'],forecast_seconds=total,headroom_fraction=f['headroom_fraction'],artifact=cfg['export']['artifact']['sha256']))
 names = [line.split(None, 1)[1] for line in (ROOT/'SHA256SUMS').read_text().splitlines()]
 names = sorted(set(names) | {'REPORT.md', 'finish.py', 'tests/test_fixes.py', 'tests/cache_preflight.py', 'tests/write_audit.c', 'out/CACHE_CHECKS.json', 'src/storage.py', 'src/batch.py', 'src/monitor.py', 'DEBUG.md', 'out/fail1_code/control.py', 'out/fail1_code/runtime.py', 'out/FIX_CHECKS.json', 'out/FINAL_CHECKS.json'})
+names = sorted(set(names) | {'IMPORTS.md', 'tests/test_imports.py', 'tests/import_worker.py', 'out/IMPORT_CHECKS.json', 'out/test_imports.log', 'tests/test_boot.py', 'out/BOOT_CHECKS.json', 'out/test_boot.log'})
 (ROOT/'SHA256SUMS').write_text(''.join(hashlib.sha256((ROOT/name).read_bytes()).hexdigest()+'  '+name+'\n' for name in names))
 print(json.dumps(read('out/FINAL_CHECKS.json'),sort_keys=True))

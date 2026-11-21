@@ -15,15 +15,59 @@ from contextlib import contextmanager
 
 TAIL = 16000
 LOG_CAP = 262144
+MEMORY_PEAKS = dict(peak_tree_rss_bytes=0, peak_cgroup_current_bytes=None,
+                    cgroup_memory_peak_bytes=None, peak_guarded_bytes=0)
+
+
+def tree_rss(pid=None, proc=Path('/proc')):
+    """Sum current RSS over this process and descendants, including thread children."""
+    pending = [os.getpid() if pid is None else pid]; seen = set(); total = 0
+    while pending:
+        pid = pending.pop()
+        if pid in seen: continue
+        seen.add(pid)
+        try:
+            for line in (proc/str(pid)/'status').read_text().splitlines():
+                if line.startswith('VmRSS:'): total += int(line.split()[1])*1024
+            for task in (proc/str(pid)/'task').iterdir():
+                try: pending.extend(map(int, (task/'children').read_text().split()))
+                except OSError: pass
+        except OSError: pass
+    return total
+
+
+def guarded_memory(values, resident):
+    try:
+        stat = dict(line.split() for line in values['memory.stat'].splitlines())
+        file_lru = int(stat['active_file']) + int(stat['inactive_file'])
+        # v2 file includes shmem, but file LRUs normally exclude it. Only add
+        # back overlap: blindly adding all shmem would count it twice.
+        reclaimable = file_lru
+        if 'file' in stat and 'shmem' in stat:
+            reclaimable = min(file_lru, max(0, int(stat['file'])-int(stat['shmem'])))
+        return max(0, int(values['memory.current'])-reclaimable), 'cgroup'
+    except (KeyError, ValueError, TypeError):
+        return resident, 'process_tree_rss'
+
+
+def sample_memory():
+    values = cgroup_memory(); resident = tree_rss()
+    guarded, source = guarded_memory(values, resident)
+    observations = dict(peak_tree_rss_bytes=resident, peak_guarded_bytes=guarded)
+    for field, key in (('peak_cgroup_current_bytes', 'memory.current'),
+                       ('cgroup_memory_peak_bytes', 'memory.peak')):
+        try: observations[field] = int(values[key])
+        except (KeyError, ValueError): pass
+    for key, value in observations.items():
+        MEMORY_PEAKS[key] = max(MEMORY_PEAKS[key] or 0, value)
+    return dict(MEMORY_PEAKS, guarded_bytes=guarded, guard_source=source), values
 
 def memory_limit(mode):
     return (110 if mode == "c" else 180)*1024**3
 
 def memory_over(mode, strict=False):
-    values = cgroup_memory()
-    if strict and "memory.current" not in values:
-        raise MemoryError("E07")
-    return int(values.get("memory.current", 0)) >= memory_limit(mode)
+    metrics, _ = sample_memory()
+    return metrics['guarded_bytes'] >= memory_limit(mode)
 
 
 class Streams:
@@ -88,7 +132,7 @@ def cgroup_memory():
         readings = []
         for directory in candidates:
             if (directory/'memory.current').is_file():
-                readings.append({key: (directory/key).read_text().strip() for key in ('memory.current', 'memory.peak', 'memory.events', 'memory.max') if (directory/key).is_file()})
+                readings.append({key: (directory/key).read_text().strip() for key in ('memory.current', 'memory.peak', 'memory.events', 'memory.max', 'memory.stat') if (directory/key).is_file()})
         # The nearest finite job allocation is authoritative; node-wide ancestors
         # must not count other users. Fall back to the leaf when no limit is set.
         return next((r for r in readings if r.get('memory.max', 'max') != 'max'), readings[0] if readings else {})
@@ -106,7 +150,7 @@ def mark(C, directory, stage, **extra):
 def supervise(argv, env, directory, C, end):
     directory = Path(directory); directory.mkdir(parents=True, exist_ok=True)
     streams = Streams(directory, C); peak = 0; code = None; reason = None; usage = None
-    before = cgroup_memory()
+    metrics, before = sample_memory()
     process = subprocess.Popen(argv, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     selector = selectors.DefaultSelector()
     for i, stream in enumerate((process.stdout, process.stderr)):
@@ -123,14 +167,13 @@ def supervise(argv, env, directory, C, end):
                 for line in Path('/proc/%d/status' % process.pid).read_text().splitlines():
                     if line.startswith(('VmHWM:', 'VmRSS:')): peak = max(peak, int(line.split()[1])*1024)
             except OSError: pass
+            metrics, memory = sample_memory()
             pid, status, usage = os.wait4(process.pid, os.WNOHANG)
             if pid:
                 code = exitcode(status); process.returncode = code
                 peak = max(peak, usage.ru_maxrss*1024)
                 break
-            memory = cgroup_memory()
-            over = int(memory.get('memory.current', 0)) >= memory_limit(env.get('A_M', 'g'))
-            over = over or (env.get('A_G') == '1' and 'memory.current' not in memory)
+            over = metrics['guarded_bytes'] >= memory_limit(env.get('A_M', 'g'))
             if time.time() >= end or over or streams.over:
                 reason = 'memory_budget' if over else 'log_budget' if streams.over else 'deadline'
                 try: os.kill(process.pid, signal.SIGKILL)
@@ -158,11 +201,12 @@ def supervise(argv, env, directory, C, end):
             if code == 0: code = 1
         try: stage = C.loads((directory/'5.json').read_bytes())
         except (OSError, ValueError): stage = dict(stage='launch')
+        metrics, after = sample_memory()
         value = dict(returncode=code, signal=-code if code is not None and code < 0 else None,
                      signal_name=signal.Signals(-code).name if code is not None and code < 0 else None,
                      peak_rss_bytes=peak, peak_rss_source='wait4_and_proc', last_stage=stage,
-                     **streams.value(),
-                     reason=reason, cgroup_before=before, cgroup_after=cgroup_memory())
+                     **streams.value(), **metrics,
+                     reason=reason, cgroup_before=before, cgroup_after=after)
         C.store(directory/'6.json', value)
     return code
 

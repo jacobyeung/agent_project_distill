@@ -1,0 +1,68 @@
+set -e; C=/scratch/jjyeung/orch_n30/lever1_c
+tmux kill-session -t l2_r4bootrev 2>/dev/null && echo killed_l2_r4bootrev; tail -3 $C/r4bootrev_run.log
+base64 -d > $C/BRIEF_R4BOOT2.md <<'B64'
+IyBGaW5pc2ggdGhlIGJvb3QtZmlyc3QgY2hhbmdlIGluIHI0a2l0ICh3b3Jrc3BhY2UgY2FwIHJh
+aXNlZCkKCkNvbnRpbnVlIGluIGAvc2NyYXRjaC9qanlldW5nL29yY2hfbjMwL2xldmVyMV9jL3I0
+a2l0L2AgdW5kZXIgYC9zY3JhdGNoL2pqeWV1bmcvb3JjaF9uMzAvbGV2ZXIxX2MvQlJJRUZfUjRC
+T09ULm1kYCBhbmQgYWxsIGVhcmxpZXIgYnJpZWZzIChydWxlcyBob2xkOyBGUk9aRU4uanNvbiB1
+bmNoYW5nZWQ7IGxvY2FsIC9zY3JhdGNoIHJlYWRzIGFwcHJvdmVkLCBkbyBub3Qgc3RvcCB0byBh
+c2s7IG5vIHNzaC9naXQvbmV0d29yay9HUFUva2lsbC9TbHVybTsgbm8gL2hvbWUgb3IgL2RhdGEq
+KS4KWW91ciBwcmV2aW91cyBzZXNzaW9uIGltcGxlbWVudGVkIHRoZSBib290LWZpcnN0IG9yZGVy
+IGFuZCBzdG9wcGVkIGJlY2F1c2UgdGhlIHdvcmtzcGFjZSAoMjAuMTEgR0IpIGV4Y2VlZGVkIHRo
+ZSAxMCBHQiBjYXAuIFRoZSBsYW5lIHJhaXNlcyB0aGUgY2FwIHRvIDM1IEdCIGZvciB0aGlzIHBh
+Y2thZ2UgKHRyaW5pdHktMi0yOCAvc2NyYXRjaCBoYXMgMi45IFRCIGZyZWUpLiBEZWxldGUgbm90
+aGluZzsgaWYgYSByZWJ1aWxkYWJsZSBpbnRlcm1lZGlhdGUgbXVzdCBtb3ZlLCBwdXQgaXQgdW5k
+ZXIgYC9zY3JhdGNoL2pqeWV1bmcvb3JjaF9uMzAvbGV2ZXIxX2MvcjRraXQvdG1wL2AuCkZpbmlz
+aCBleGFjdGx5IHdoYXQgQlJJRUZfUjRCT09ULm1kIGFza3M6IHRoZSBtaXNzaW5nLW1vZHVsZSB0
+ZXN0ICh6ZXJvIGJ1bGsgYnl0ZXMgc3RhZ2VkLCBjYXVzZSBiYWNrIHRocm91Z2ggdGhlIHByb2R1
+Y3Rpb24gZmV0Y2gpLCBhbGwgdGVzdHMgcmUtcnVuLCBvdXQvZGVsaXZlcnkudGd6IHJlYnVpbHQg
+YW5kIHZhbGlkYXRpb24gcGFzc2VkIGZvciBpdHMgZXhhY3Qgc2hhMjU2LCBQTEFDRS5tZC9SRVBP
+UlQubWQvQlVJTEQuanNvbi9GT1JFQ0FTVC5qc29uIGFncmVlIChmaXggUExBQ0UubWQncyBzdGFs
+ZSB0ZXN0IGNvdW50IHRvbyksIHRoZSBuZXcgb3JkZXIgYW5kIHByZS1idWxrIGJ5dGVzIGFuZCBz
+ZWNvbmRzIHN0YXRlZC4gS2VlcCB0b2tlbiBmNjhhMmQ3YzkwM2JlLiBDaGFuZ2Ugbm90aGluZyBl
+bHNlLgpGaW5hbCBtZXNzYWdlOiB0aGUgbmV3IG9yZGVyIHdpdGggZmlsZTpsaW5lLCB0ZXN0cywg
+dG9rZW4sIGRlbGl2ZXJ5IHNoYTI1NiBhbmQgYnl0ZXMsIHdvcmtzcGFjZSBzaXplLiBCZSBxdWlj
+ay4K
+B64
+cat > $C/r4boot2_run.sh <<'RUN'
+B=/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30; C=/scratch/jjyeung/orch_n30/lever1_c
+while [ -n "" ] && tmux has-session -t  2>/dev/null; do sleep 30; done
+echo "START $(date -u +%FT%TZ)"
+bash $B/tools/codex_local.sh implement $C/r4kit $C/BRIEF_R4BOOT2.md --model gpt-6-astra --effort high --label lever3_r4boot2 --skip-git-check --writable-root $C/r4kit
+echo "r4boot2 DONE rc=$? $(date -u +%FT%TZ)"
+RUN
+tmux new-session -d -s l3_r4boot2 "bash $C/r4boot2_run.sh > $C/r4boot2_run.log 2>&1"
+base64 -d > $C/BRIEF_R4BOOT2REV.md <<'B64'
+IyBSZWFkLW9ubHkgZ2F0ZSByZXZpZXc6IGJvb3QtZmlyc3Qgb3JkZXIgaW4gdGhlIHI0a2l0IHBh
+Y2thZ2UKCllvdSBhcmUgYW4gaW5kZXBlbmRlbnQgQ29kZXggcmV2aWV3ZXIgb24gdHJpbml0eS0y
+LTI4IChyZWFkLW9ubHkpLiBGaW5hbCBtZXNzYWdlIG9ubHkuIE5vIHNzaCwgZ2l0LCBuZXR3b3Jr
+LCBHUFUsIGtpbGwsIFNsdXJtLCB3cml0ZXM7IG5vIC9ob21lIG9yIC9kYXRhKiByZWFkczsgbG9j
+YWwgL3NjcmF0Y2ggcmVhZHMgYXBwcm92ZWQgKGRvIG5vdCBzdG9wIHRvIGFzaykuClN1YmplY3Qg
+YC9zY3JhdGNoL2pqeWV1bmcvb3JjaF9uMzAvbGV2ZXIxX2MvcjRraXQvYCBhZnRlciBgL3NjcmF0
+Y2gvamp5ZXVuZy9vcmNoX24zMC9sZXZlcjFfYy9CUklFRl9SNEJPT1QubWRgIGFuZCBgQlJJRUZf
+UjRCT09UMi5tZGAgKGJvb3QgdGhlIHJlYWwgd29ya2VyIGFuZCBydW4gaXRzIGltcG9ydCBjbG9z
+dXJlIGJlZm9yZSBidWxrIHN0YWdpbmcpLiBUaGUgcHJldmlvdXMgYnVpbGQgcGFzc2VkIGl0cyBn
+YXRlIHJldmlldyAoR08pLiBWZXJpZnkgd2l0aCBmaWxlOmxpbmUgZXZpZGVuY2U6ICgxKSBpbiBi
+b3RoIHRoZSBDUFUgY2hlY2sgYW5kIHRoZSBHUFUgam9iLCBiZWZvcmUgYW55IGJ1bGsgYnl0ZSBp
+cyBzdGFnZWQsIHRoZSB3b3JrZXIgYm9vdHMgZXhhY3RseSBhcyBwcm9kdWN0aW9uIGRvZXMgKHNh
+bWUgaW50ZXJwcmV0ZXIsIG5hbWVzcGFjZSwgZW52IGNvbnN0cnVjdGlvbiwgcGF0aCB0cmFuc2xh
+dGlvbikgYW5kIGltcG9ydHMgaXRzIGNvbXBsZXRlIGNsb3N1cmUsIGFuZCBhbnkgZmFpbHVyZSBy
+ZXR1cm5zIGFuIGF1dGhlbnRpY2F0ZWQgdHJhY2ViYWNrIHRocm91Z2ggdGhlIHByb2R1Y3Rpb24g
+ZmV0Y2ggd2l0aCB6ZXJvIGJ1bGsgYnl0ZXMgc3RhZ2VkIChhIHRlc3Qgc2hvd3MgaXQpOyAoMikg
+bm90aGluZyBlbHNlIGNoYW5nZWQgb3IgcmVncmVzc2VkIChkaWFnbm9zdGljcyB3aXRob3V0IC9k
+ZXYvbnVsbCwgZXh0NC1vbmx5IHN0YWdpbmcsIC9wcm9qZWN0IGJ1ZGdldCwgbmFtaW5nIGRlbnkt
+bGlzdCBvbiBldmVyeSBPcmNoYXJkLXZpc2libGUgcGF0aCBhbmQgam9iLXdyaXR0ZW4gZmlsZSwg
+cmVzb3VyY2VzIGFuZCBkZWFkbGluZXMsIHZhbGlkYXRpb24gZm9yIHRoZSBleGFjdCBzaGEyNTYs
+IGRvY3MgYWdyZWUgb24gdG9rZW4gYW5kIGhhc2gpLiBWZXJkaWN0IGZpcnN0OiBHTyAvIEdPIEFG
+VEVSIEZJWEVTIChsaXN0KSAvIE5PLUdPLiBBdCBtb3N0IDMwIGxpbmVzLiBCZSBxdWljazsgZ2l2
+ZSBHTyB1bmxlc3MgYSBkZWZlY3Qgd291bGQgd2FzdGUgb3IgaW52YWxpZGF0ZSB0aGUgam9iLgo=
+B64
+cat > $C/r4boot2rev_run.sh <<'RUN'
+B=/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30; C=/scratch/jjyeung/orch_n30/lever1_c
+while [ -n "l3_r4boot2" ] && tmux has-session -t l3_r4boot2 2>/dev/null; do sleep 30; done
+echo "START $(date -u +%FT%TZ)"
+mkdir -p $C/r4boot2rev; bash $B/tools/codex_local.sh review $C/r4boot2rev $C/BRIEF_R4BOOT2REV.md --model gpt-6-astra --effort high --label lever3_r4boot2rev --skip-git-check --writable-root $C/r4boot2rev
+echo "r4boot2rev DONE rc=$? $(date -u +%FT%TZ)"
+RUN
+tmux new-session -d -s l3_r4boot2rev "bash $C/r4boot2rev_run.sh > $C/r4boot2rev_run.log 2>&1"
+sleep 2; tmux ls | grep l[23]_; du -sh $C/r4kit/* 2>/dev/null | sort -h | tail -6
