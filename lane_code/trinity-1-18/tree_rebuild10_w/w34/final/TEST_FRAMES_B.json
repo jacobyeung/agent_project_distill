@@ -1,0 +1,50 @@
+{
+ "mode": "B",
+ "namespace": "/tmp/q_22c714e1",
+ "census_stubbed": true,
+ "cases_pins_second_name": {
+  "U1_all_sources_under_roots (expect PASS, pose/0 sample honours frame_prefix)": "PASS {\"pointing\": \"/tmp/jjyeung/q_22c714e1/p/q/fu/root1/k6tk/a.png\", \"pose/0\": \"/tmp/jjyeung/q_22c714e1/p/q/fu/root1/k7pd/p.png\", \"pose/1\": \"/tmp/jjyeung/q_22c714e1/p/q/fu/root1/k6tk/a.png\", \"vqa\": \"/tmp/jjyeung/q_22c714e1/p/q/fu/root2/u/b.png\"}",
+  "U2_pointing_frame_outside_roots (expect R1_FRAME_ROOT_REFUSED:pointing)": "REFUSE R1_FRAME_ROOT_REFUSED:pointing:/tmp/jjyeung/q_22c714e1/p/q/fu/elsewhere/k6tk/o.png",
+  "U3a_no_roots (expect R1_FRAME_ROOT_MISSING)": "REFUSE R1_FRAME_ROOT_MISSING:",
+  "U3b_root_absent (expect R1_FRAME_ROOT_MISSING)": "REFUSE R1_FRAME_ROOT_MISSING:/tmp/q_22c714e1/p/q/fu/nope",
+  "U4_database_absent (expect R1_FRAME_PREFLIGHT_DATABASE_MISSING:vqa)": "REFUSE R1_FRAME_PREFLIGHT_DATABASE_MISSING:vqa",
+  "U5_no_frame_rows (expect R1_FRAME_PIN_MISSING:vqa)": "REFUSE R1_FRAME_PIN_MISSING:vqa",
+  "U6_frame_file_missing_under_root (expect R1_FRAME_ROOT_REFUSED:vqa)": "REFUSE R1_FRAME_ROOT_REFUSED:vqa:/tmp/jjyeung/q_22c714e1/p/q/fu/root2/u/missing.png",
+  "U7_symlink_under_root_to_outside (expect R1_FRAME_ROOT_REFUSED:vqa)": "REFUSE R1_FRAME_ROOT_REFUSED:vqa:/tmp/q_22c714e1/p/q/fu/elsewhere/k6tk/o.png",
+  "U8_prefix_with_no_matching_row (expect R1_FRAME_PIN_MISSING:pose/0)": "REFUSE R1_FRAME_PIN_MISSING:pose/0"
+ },
+ "C1_control_pins_namespace_spelling (expect R1_FRAME_ROOT_REFUSED:pointing)": "REFUSE R1_FRAME_ROOT_REFUSED:pointing:/tmp/q_22c714e1/p/q/fu/root1/k6tk/a.png",
+ "audit_roots": {
+  "A1_two_roots (expect PASS, second-name spellings)": "PASS [\"/tmp/jjyeung/q_22c714e1/p/q/fu/root1\", \"/tmp/jjyeung/q_22c714e1/p/q/fu/root2\"]",
+  "A2_namespace_itself (expect R1_FRAME_ROOT_NAME_REFUSED:)": "REFUSE R1_FRAME_ROOT_NAME_REFUSED:/tmp/q_22c714e1",
+  "A3_missing_dir (expect R1_FRAME_ROOT_MISSING:)": "REFUSE R1_FRAME_ROOT_MISSING:/tmp/q_22c714e1/p/q/fu/nope",
+  "A4_root_already_second_name (expect R1_FRAME_ROOT_NAME_REFUSED:)": "REFUSE R1_FRAME_ROOT_NAME_REFUSED:/tmp/jjyeung/q_22c714e1/p/q/fu/root1",
+  "A5_dotdot (expect R1_FRAME_ROOT_NAME_REFUSED:)": "REFUSE R1_FRAME_ROOT_NAME_REFUSED:/tmp/q_22c714e1/p/q/fu/root1/../root2",
+  "A6_outside_namespace (expect R1_FRAME_ROOT_NAME_REFUSED:)": "REFUSE R1_FRAME_ROOT_NAME_REFUSED:/scratch/jjyeung/orch_n30/tree_rebuild10_w",
+  "A7_file (expect R1_FRAME_ROOT_NAME_REFUSED:)": "REFUSE R1_FRAME_ROOT_NAME_REFUSED:/tmp/q_22c714e1/p/q/fu/afile",
+  "A8_symlink_dir (expect R1_FRAME_ROOT_NAME_REFUSED:)": "REFUSE R1_FRAME_ROOT_NAME_REFUSED:/tmp/q_22c714e1/p/q/fu/alink",
+  "A9_twin_other_inode (expect R1_FRAME_ROOT_NAME_REFUSED:)": "REFUSE R1_FRAME_ROOT_NAME_REFUSED:/tmp/q_22c714e1/p/q/fu/root3"
+ },
+ "per_case_ok": [
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true
+ ],
+ "all_as_expected": true
+}

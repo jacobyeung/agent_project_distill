@@ -1,0 +1,1 @@
+F=/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z14/out/admit_test.py; grep -n "^BASE" $F; K=/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z14/out/kit_n_go; ls -d $K; sha256sum $K/SHA256SUMS.txt $K/k/s.json 2>&1 | cut -c1-120

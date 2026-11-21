@@ -1,4 +1,4 @@
-# Sourced by go.sh. Rebuilds the kit inner shell's (j.sh, k/j.json b718d5d9) environment and sandbox for the
+# Sourced by go.sh. Rebuilds the kit inner shell's (j.sh, kit 7e23bbdd k/j.json 2ca9c9bd, decoded 9f7a02bb) environment and sandbox for the
 # training start, lines 12-63, tk_env, tk_pythonpath c, tk_bwrap and the binds of lines 404-410, with three
 # differences: (1) the job folder is read-only at all three of its names; (2) every path the job's sandbox
 # binds read-write gets a scratch folder under $RUN/w at the same absolute path; (3) the scratch run folder

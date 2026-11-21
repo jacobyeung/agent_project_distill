@@ -1,5 +1,5 @@
 #!/bin/bash
-# Training-start rehearsal for job $A15_JOB (default 174198), run on its node inside
+# Training-start rehearsal for job $A15_JOB (default 174246), run on its node inside
 #   srun --overlap --jobid <job> -N1 -n1 timeout -s TERM -k 30 900 bash /tmp/a15_rh_<job>/rh/go.sh
 # during the job's review wait. Steps: guards; scratch layout; post-PASS acceptance with a stand-in record
 # (not a review); the kit's launch line (t2.py) on four ranks for A15_STEPS (2) optimizer steps; GPU samples;
@@ -7,7 +7,7 @@
 set -uo pipefail
 export TZ=UTC
 umask 077
-JOB=${A15_JOB:-174198}
+JOB=${A15_JOB:-174246}
 D=${A15_D:-/tmp/a15_rh_$JOB}; RH=$D/rh
 HARD=${A15_HARD_S:-800}             # training budget from driver start; then its own cleanup (srun timeout 870 -k 20 is the backstop)
 T0=$(date +%s); T_END=$((T0 + HARD))
@@ -102,7 +102,7 @@ say "sandbox: $(grep -c . "$LOG/bwrap_args.txt") args; job folder read-only at $
 env | grep -E '^(Q_|TK_|R1_|C1_|PYTHONPATH|OMP|HF_|TMPDIR|XDG|TORCH|TRITON|CUDA|PATH|A15_)' | sort > "$LOG/env.txt"
 # ---- acceptance stand-in, as j.sh runs rv.py (8 threads, nice, no device)
 export OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8
-CUDA_VISIBLE_DEVICES='' "${BW[@]}" nice -n 10 "$PILOT_VENV/bin/python" -B -s "$RH/accept.py" "$Q_NJ" "$Q_NJ/v.json" > "$LOG/accept.log" 2>&1
+CUDA_VISIBLE_DEVICES='' "${BW[@]}" nice -n 10 "$PILOT_VENV/bin/python" -B -s "$RH/accept.py" "$Q_NS" "$Q_NS/v.json" > "$LOG/accept.log" 2>&1
 rc=$?; say "acceptance stand-in rc=$rc: $(tail -c 700 "$LOG/accept.log")"
 [[ $rc == 0 ]] || { RESULT="failed: acceptance stand-in rc=$rc"; exit 0; }
 m=$(started_marks); [[ -z "$m" ]] || fail "the job's own start is under way:$m"
@@ -112,7 +112,7 @@ SMI=$!; echo "$SMI" > "$LOG/smi.pid"
 say "training start (four ranks, $A15_STEPS steps)"
 date +%s > "$LOG/t0"
 setsid bash -c 'echo $$ > "$A15_LOG/pgid"; "$@" 2>&1 | tee "$A15_LOG/t.raw.log" | /usr/bin/python3 -B "$Q_KIT/b/l.py" "$Q_KIT" > "$A15_LOG/t.log"; echo "${PIPESTATUS[0]}" > "$A15_LOG/t.rc"' \
-    bash "${BW[@]}" "$PILOT_VENV/bin/python" -B -s "$RH/t2.py" "$Q_NJ/p" "$Q_NJ/v.json" &
+    bash "${BW[@]}" "$PILOT_VENV/bin/python" -B -s "$RH/t2.py" "$Q_NS/p" "$Q_NS/v.json" &
 sleep 1; PG=$(cat "$LOG/pgid" 2>/dev/null)
 # ---- watch: end, steps, the job's own start (stop at once), budget
 RESULT=running; seen=0

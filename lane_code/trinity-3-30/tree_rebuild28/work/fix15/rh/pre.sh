@@ -2,7 +2,7 @@
 # Node layout pre-check (CPU only, no GPU, nothing of the job written): builds the rehearsal sandbox on the
 # job's current folder and runs pre.py in it; then shows that the probes exist only in scratch.
 set -uo pipefail; export TZ=UTC; umask 077
-JOB=${A15_JOB:-174198}; D=${A15_D:-/tmp/a15_rh_$JOB}; RH=$D/rh
+JOB=${A15_JOB:-174246}; D=${A15_D:-/tmp/a15_rh_$JOB}; RH=$D/rh
 RUN=$D/pre_$(date -u +%Y%m%dT%H%M%SZ); mkdir -p "$RUN/log"
 JSH=$(pgrep -u "$(id -u)" -f "^/bin/bash /tmp/q_22c714e1_$JOB/j.sh$" | head -1)
 envof() { [[ -n "$JSH" ]] && tr '\0' '\n' < "/proc/$JSH/environ" 2>/dev/null | sed -n "s/^$1=//p" | head -1; }

@@ -1,9 +1,9 @@
 #!/bin/bash
-# Stop the rehearsal of job $A15_JOB (default 174198) at once and prove it: TERM then KILL to its driver,
+# Stop the rehearsal of job $A15_JOB (default 174246) at once and prove it: TERM then KILL to its driver,
 # its process group and every process whose environment carries A15_RUN=<its run folder>; then ps and
 # nvidia-smi. Touches nothing of the job. usage: stop.sh [run folder] (default: the latest run)
 export TZ=UTC
-JOB=${A15_JOB:-174198}; D=${A15_D:-/tmp/a15_rh_$JOB}
+JOB=${A15_JOB:-174246}; D=${A15_D:-/tmp/a15_rh_$JOB}
 RUN=$(readlink -f "${1:-$D/last}"); LOG=$RUN/log
 [[ -d "$RUN" && "$RUN" == "$D"/run_* ]] || { echo "no run folder under $D"; exit 2; }
 say() { echo "$(date -u +%FT%TZ) stop.sh: $*" | tee -a "$LOG/go.log"; }

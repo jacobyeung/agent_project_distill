@@ -1,0 +1,1 @@
+F=/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z14/out/admit_test.py; grep -n "^KIT\|^TREE\|^SEAL\|KIT *=\|TREE *=" $F | head; K=$(grep -o "^KIT *= *Path([^)]*)" $F | head -1 | grep -o "/scratch[^\"']*"); echo "kit $K"; [ -n "$K" ] && sha256sum $K/SHA256SUMS.txt $K/k/s.json

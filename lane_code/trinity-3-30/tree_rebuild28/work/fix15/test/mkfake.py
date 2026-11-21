@@ -4,7 +4,7 @@ usage: mkfake.py <kit> <job folder> <venv dir>"""
 import base64, hashlib, json, os, sys, tarfile
 from pathlib import Path
 kit, Q, venv = Path(sys.argv[1]), Path(sys.argv[2]), sys.argv[3]
-NJ = Path('/tmp/jjyeung/q_22c714e1')        # the namespace the pins name, as in the job
+NJ = Path('/tmp/q_22c714e1')        # the namespace the pins name: Q_NS, where kit 7e23bbdd runs its python steps
 sys.path.insert(0, str(kit / 'b'))
 from z import load
 def sha(p): return hashlib.sha256(Path(p).read_bytes()).hexdigest()

@@ -1,5 +1,5 @@
 #!/bin/bash
-set -eu; cd /scratch/jjyeung/orch_n30/tree_rebuild28/work/fix15; J=174198
+set -eu; cd /scratch/jjyeung/orch_n30/tree_rebuild28/work/fix15; J=174246
 {
 echo 'export TZ=UTC; date -u +%TZ'
 echo "squeue -j $J -h -o '%T|%M|%N'"

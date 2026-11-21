@@ -2,7 +2,7 @@
 checks and the same writes (p/rv.json, p/pr.json through rv.sync_preparation, the config rewritten in
 place), done with the kit's own rv functions at the job's own paths, which the rehearsal sandbox backs with
 scratch. The record it accepts is a stand-in written here and labelled as such. IT IS NOT A REVIEW.
-usage (inside the sandbox): accept.py <Q_NJ> <Q_NJ>/v.json"""
+usage (inside the sandbox): accept.py <Q_NS> <Q_NS>/v.json (the kit runs rv.py under $Q_NS, k/j.json 2ca9c9bd line 436)"""
 import hashlib, importlib, json, os, sys, time
 from pathlib import Path
 kit = Path(os.environ['Q_KIT']).resolve()

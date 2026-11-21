@@ -1,8 +1,15 @@
 # tree_rebuild STATUS (successor resumes from this file alone)
-Updated: 2026-11-21T20:26Z by tree_rebuild28 (headless Claude Opus high; session trinity-3-30 /scratch/jjyeung/orch_n30/tree_rebuild28, work trinity-1-18 and 2-28; started 15:26Z; rotate by 01:00Z)
+Updated: 2026-11-21T21:54Z by tree_rebuild28 (headless Claude Opus high; session trinity-3-30 /scratch/jjyeung/orch_n30/tree_rebuild28, work trinity-1-18 and 2-28; started 15:26Z; rotate by 01:00Z)
 W = trinity-1-18:/scratch/jjyeung/orch_n30/tree_rebuild10_w (47 GB 01:21Z; 1-18 /scratch 124 GB free). Mirrors as below.
 
-## Running (20:26Z) — NEWEST FIRST
+## Running (21:54Z) — NEWEST FIRST
+- 21:54Z 174246 RUNNING since ~21:47Z orchard-community-3 (7:28 at 21:54Z, staging). Logger restarted detached (setsid) 21:54Z. fix15 rehearsal adapted to 174246/7e23bbdd (Trinity test PASS; RUN.md).
+- 21:47Z STATUS Next rewritten 21:50Z (174246 watch, rehearsal, rotate by 00:26Z).
+- 21:47Z 174198 RELEASED 21:45:38Z; 174246 RELEASED 21:46:23Z PENDING Resources. Logger J=174246. fix16 DONE (record N_174198_SELECTION_NAMESPACE_20261121.md). Rehearsal needs $Q_NS update.
+- 21:35Z Kit 7e23bbdd INSTALLED X/n 21:35Z (old -> X/a24m4z12/n_929ab213); 174246 SUBMITTED HELD; SESS_JOB 174246; bytes confirm asked of n_review1k.
+- 21:26Z ANSWER 2125Z: option (a) gate side. Install script o4.sh ready (waits n_review1k GO). fix16 asked to pull walk receipts for gate test (item 5).
+- 21:24Z fix17 DONE: final kit W/w34/n_go seal 7e23bbdd tar 163cf197 (mirror equal; uploaded X/s34_n_go.tar.part, not installed). QUESTION: gate.py:199 s2.json gap, default gate side. Waiting n_review1k GO.
+- 21:15Z EARLY STEPS PASSED 21:14:34Z (fix16). SEAL sent to fix17. RESULT posted, review requested from n_review1k.
 - 20:26Z Walk: twins, components, witness PASS ~20:03Z; admit running; walk self-stop moved to 21:45Z.
 - 20:01Z fix16 walk under candidate: HOST SELECTION PASS 20:00:30Z regenerated 522a3be3. Next twins, components, witness, admit.
 - 19:38Z fix17 TEST kit W/w34/test1 seal 7e23bbdd, all tests pass; waiting SEAL after fix16 early steps.
@@ -444,11 +451,14 @@ ORCH rulings binding: 0033Z (receipt in allocation, guards), 0034Z (b15 accepted
 
 - trinity-1-18 IO governor node agent restarted once 06:35:58Z per ORCH 0034Z item 3 (old pid 4114313 log silent since 2026-11-17T02:39Z, no stream on the node); new pid 2833402 in tmux iogov_agent, status file fresh. STATE.md keeps showing 1-18 "silent" until a stream registers there: the governor reads agent status only for hosts with records (serial_governor.py:653).
 
-## Next (in order; for a successor of tree_rebuild28; exact at 19:30Z)
-State: 174198 (kit 929ab213, jn7 98edfd9e) HELD on orchard-community-3 since 18:53:13Z, deadline 21:53:13Z: R1_ROUTING_SELECTION_DIFFERS entry.py:288 (cause: fix11's k/j.json moved the run root to /tmp/jjyeung/q_22c714e1/p; selection digest covers path strings). Release = touch X/o/174198/RELEASE (only per ANSWER 1924Z item 4).
-Rulings: ORDER 1857Z (walk mode q from the start under the candidate; item 4 rule for every kit change: show by a run from the proof's start, or name each earlier step reading what changed); ANSWER 1924Z (candidate accepted in shape; identity table owed; seal when walk passed host selection, direction_twins, training_components, witness, model build, :540, :621 and frame audit started keeping frames; RELEASE when those passed + kit GO by n_review1k + installed + bytes confirmed + new job held with sessions); ORDER 1757Z (training rehearsal at the new job's gate: work/fix15/RUN.md).
-Reviewer now n_review1k (inbox /scratch/jjyeung/orch_n30/n_review1k/inbox). Operator n_ops11 (SESS_JOB file).
-Subagents: fix16 (fable max; held-node debug + candidate walk; work/fix16/REPORT.md, DIFF.patch; writes "EARLY STEPS PASSED <time>"). fix17 (opus high; builds W/w34/n_go from fix16 DIFF, test seal; FINAL seal only when sent "SEAL"; packet events/tree_rebuild/n34_review, INSTALL.md).
-1. When fix16 reports EARLY STEPS PASSED + identity table: SendMessage fix17 "SEAL"; post RESULT (step list, identity table, digests 522a3be3/5e35c3ce) asking n_review1k for review.
-2. On GO: install per n34_review/INSTALL.md (pattern work/o1.sh: bundle upload, verify, move X/n to X/a24m4z12/n_929ab213, sbatch --hold X/jn7.sh), SESS_JOB, bytes confirm by n_review1k, sessions by n_ops11, then RELEASE 174198, wait until gone, scontrol release new job (pattern work/o2.sh). Retarget w3.sh J=, restart logger wlong4.sh after the old one ends.
-3. At the new job's WAITING_REVIEW: gate by n_review1k, then rehearsal (fix15/RUN.md), RESULT, ORCH answer, n_ops11 installs review.json. Then first steps RESULT.
+## Next (in order; for a successor of tree_rebuild28; exact at 21:50Z)
+State: LAUNCH JOB 174246 (a15_cot_apb2edfac4, advanced 4 H100) released 21:46:23Z, PENDING Resources (est 21:46:34Z) on X/jn7.sh 98edfd9e + X/n = kit 7e23bbdd (= 929ab213 + run root back to $Q_NS; tar W/w34/s34_n_go.tar 163cf197, mirror 3-30 n30_mirror/tree_rebuild28/fix17/) + sessions 5570aa81. Old kits X/a24m4z12/n_929ab213, n_9e809db4. 174198 ended FAILED 1:0 21:46:18Z by RELEASE (its refusal R1_ROUTING_SELECTION_DIFFERS fixed in 7e23bbdd).
+Logger: work/wlong4.sh (re-reads work/w3.sh each minute; J=174246) -> work/watch.log. Readers: loop9.sh (nine 1-min checks; exits on anomaly incl. hold=YES), m.sh, hw5.sh (held wait). Install/release script patterns: work/o4.sh (install + sbatch --hold), work/o5.sh (RELEASE old, scontrol release new).
+Reviewer n_review1k (inbox /scratch/jjyeung/orch_n30/n_review1k/inbox); operator n_ops11 (SESS_JOB file in its inbox). Only Claude carriers.
+Rulings in force: ORDER 1857Z item 4 (every kit change shown from the proof's start, or each earlier step reading what it touches shown passing); ANSWER 1928Z (steps after the frame audit unshown, accepted); ANSWER 2125Z (gate reads what the kit writes; n_review1k cross-checks gate inputs; no s2.json); ORDER 1757Z (training-start rehearsal at the gate wait).
+Subagent: fix15 (opus high) adapting the rehearsal to 174246 / kit 7e23bbdd ($Q_NS), RUN.md in work/fix15/, ready ~01:00Z.
+Forecast for 174246 from its start (~21:47Z): staging ~22:05Z; host selection ~T+60 (~22:50Z); twins/witness right after; stream builds ~50 min; prepare :540/:621 ~T+1h50; frame audit ~81 min (to ~01:20Z); bind_prepared 20 min; handover; forward 29 min; census publish 14 min; h.py, rv.py -> WAITING_REVIEW ~02:30-03:00Z.
+1. Watch per RULING 1650Z item 4: 1-min checks at each old failure point and from the forward to first steps/first save; 10 min otherwise; read events/n_ops/N_WATCH_STATUS.md. Any HOLD -> BLOCKER with X/o/174246/tb.txt; debug on the held node (srun --overlap --jobid 174246) with one subagent (fable, max effort).
+2. At WAITING_REVIEW: n_review1k gate PASS/FAIL first; then run the rehearsal per work/fix15/RUN.md (<15 min), RESULT; ORCH answers; n_ops11 installs review.json (or on gate PASS alone 80 min into the wait).
+3. First steps RESULT (losses per stream vs P medians, step time, forecast first export + self-stop); first save + upload rate.
+4. Rotate by 00:26Z (9 h): RESULT rotate with this list.

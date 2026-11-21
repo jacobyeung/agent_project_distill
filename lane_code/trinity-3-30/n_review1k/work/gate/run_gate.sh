@@ -6,7 +6,7 @@
 # 1. Orchard (one ossh call over the existing master; stops on any host-key line): tar of the named gate files in X/o/<job>/live
 #    (never the whole dir: the copier keeps up to 50 MB of logs there) and
 #    X/o/<job>_gate (jn6 copy; or the n_ops10 srun fallback) -> <out>/x/.
-# 2. trinity-1-18 (one tssh call): v.json + identity.txt -> W/w24z14/work/gate_<job>_<stamp>/in, admit_test.sh there
+# 2. trinity-1-18 (one tssh call): v.json + identity.txt (+ h0.json, c4.json as c5.json, offline_pins.json) -> W/w24z14/work/gate_<job>_<stamp>/in, admit_test.sh there
 #    (it may write only under W/w24z14), ADMIT.json back -> <out>/ADMIT.json.
 # 3. gate.py on <out>/x --admit <out>/ADMIT.json -> <out>/gate.out; last line GATE ALL PASS|FAIL; exit 0 only on PASS.
 # 4. spell.py on <out>/x -> <out>/spell.out: the job-folder spelling in frames.json / request.json (info only; exit code unchanged).
@@ -45,7 +45,14 @@ if [ -f "$V" ] && [ -f "$I" ]; then
   { echo "set -u; mkdir -p $D/in"
     echo "base64 -d > $D/in/v.json <<'B64'"; base64 "$V"; echo "B64"
     echo "base64 -d > $D/in/identity.txt <<'B64'"; base64 "$I"; echo "B64"
-    echo "cd $D && sha256sum in/v.json in/identity.txt 1>&2 < /dev/null"
+    # ORCH ANSWER 2143Z: the host receipt (hr.json = live/h0.json, h.py:39) and the census receipt (c5.json = live/c4.json
+    # bytes, cs.py:136-138,189) go to the admit test as real bytes through its offline_pins.json map (admit_test.py:151-162);
+    # native pinned() still verifies each digest. Without them host_receipt_pin is NOT_RUN and the admit point fails.
+    H0=$(find x -name h0.json -type f | head -1); C4=$(find x -name c4.json -type f | head -1); M="{"
+    if [ -f "$H0" ]; then echo "base64 -d > $D/in/h0.json <<'B64'"; base64 "$H0"; echo "B64"; M="$M\"$(sha256sum "$H0" | cut -c1-64)\": \"$D/in/h0.json\""; fi
+    if [ -f "$C4" ]; then echo "base64 -d > $D/in/c5.json <<'B64'"; base64 "$C4"; echo "B64"; [ "$M" != "{" ] && M="$M, "; M="$M\"$(sha256sum "$C4" | cut -c1-64)\": \"$D/in/c5.json\""; fi
+    [ "$M" != "{" ] && echo "printf '%s\\n' '$M}' > $D/in/offline_pins.json; cat $D/in/offline_pins.json 1>&2"
+    echo "cd $D && sha256sum in/* 1>&2 < /dev/null"
     echo "timeout 900 /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z14/out/admit_test.sh $D/in/v.json $D/admit > $D/admit.stdout 2>&1 < /dev/null; echo admit_rc=\$? 1>&2"
     echo "tail -3 $D/admit.stdout 1>&2; base64 -w0 $D/admit/ADMIT.json < /dev/null"; } > t_admit.sh
   bash $B/tools/tssh.sh trinity-1-18 'bash -s' < t_admit.sh > ADMIT.json.b64 2> t_admit.err

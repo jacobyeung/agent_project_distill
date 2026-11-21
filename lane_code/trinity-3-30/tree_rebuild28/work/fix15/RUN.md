@@ -1,14 +1,15 @@
-# RUN: training-start rehearsal for 174198 at WAITING_REVIEW (fix15, 2026-11-21)
+# RUN: training-start rehearsal for 174246 at WAITING_REVIEW (fix15, 2026-11-21; kit 7e23bbdd)
 
+Optional CPU pre-check once the job RUNS and p/s exists (one srun, no GPU): s/o_pre.sh (ships rh, runs rh/pre.sh).
 Who runs it: the coordinator (tree_rebuild28), after n_review1j has posted the gate PASS or FAIL, while
-X/o/174198/live/WAITING_REVIEW.json exists and before review.json is installed. Orchard calls stay 2+ minutes apart.
+X/o/174246/live/WAITING_REVIEW.json exists and before review.json is installed. Orchard calls stay 2+ minutes apart.
 The rehearsal's numbers are not evidence for the card's first-steps row (ORDER 1757Z item 4).
 
 ## 1. Start (one command, returns in about 75 s)
     cd /scratch/jjyeung/orch_n30/tree_rebuild28/work/fix15
     timeout 300 bash /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/tools/ossh.sh 'bash -s' < s/o_start.sh > rd/start.out 2>&1; cat rd/start.out
-s/o_start.sh (sha256 f291370c) ships rh/ to the node's /tmp/a15_rh_174198/rh (one srun step), then starts on the login
-node `nohup setsid srun --overlap --jobid 174198 -N1 -n1 timeout -s TERM -k 20 870 bash /tmp/a15_rh_174198/rh/go.sh`,
+s/o_start.sh (sha256 1ff06c09) ships rh/ to the node's /tmp/a15_rh_174246/rh (one srun step), then starts on the login
+node `nohup setsid srun --overlap --jobid 174246 -N1 -n1 timeout -s TERM -k 20 870 bash /tmp/a15_rh_174246/rh/go.sh`,
 and after 40 s prints the driver's log. If rh/ changes, rebuild with `bash s/mk_orchard.sh` first.
 
 What the first print must show: "gpus before: 0,0;1,0;2,0;3,0", "rendezvous port 29517", "sandbox: N args",
@@ -30,9 +31,9 @@ driver left [], GPU memory and compute apps. It never touches a job process: the
     timeout 300 bash .../tools/ossh.sh 'bash -s' < s/o_pull.sh > rd/pull.b64 2>&1
     mkdir -p pull && sed -n '/^H4sI/,$p' rd/pull.b64 | base64 -d | tar xzf - -C pull
 summary.json, go.log, accept.log, ev_rank0-3.jsonl, smi.csv, the tail of t.raw.log (unscreened), proof.txt,
-job_before/after.txt, env.txt, bwrap_args.txt and the tree's smoke folder (metrics_174198.jsonl, smoke.json).
+job_before/after.txt, env.txt, bwrap_args.txt and the tree's smoke folder (metrics_174246.jsonl, smoke.json).
 
-## Expected durations (fix14/fix6 measurements on 174134; model load and step times never measured)
+## Expected durations (fix14/fix6 measurements on 174134 under kit 929ab213's predecessors; model load and step times never measured)
 - guards, layout, acceptance stand-in: 10-60 s.
 - ranks up about 2 s after the start; seal, RESULT, identity and verify_staging to about 43 s; admit (u.py) to about
   110 s; admit again inside train to about 180 s; rank-0 prepared(admission=True) to about 250 s.
@@ -54,19 +55,23 @@ A failure shows as "result" other than "ended rc=0" with "errors" (rank, stage, 
 
 ## What runs, and what does not
 - Same as the job after a PASS: the kit's inner-shell environment (tk_env, tk_pythonpath c, OMP 8) and sandbox
-  (tk_bwrap plus the Q_NS/Q_NJ binds and the live bind), the job's own absolute paths (/tmp/q_22c714e1_174198,
+  (tk_bwrap plus the Q_NS/Q_NJ binds and the live bind), the job's own absolute paths (/tmp/q_22c714e1_174246,
   /tmp/q_22c714e1, /tmp/jjyeung/q_22c714e1, the frame map Q_E4 = /tmp/jjyeung/q_22c714e1/p/q/f/<sha256 of X/data2root>),
-  the job's own TK_JOB_START (17:52:32Z, read from the running j.sh), rv.py's PASS-branch checks and writes, t.py's
+  the job's own TK_JOB_START (read from the running j.sh at the start), rv.py's PASS-branch checks and writes, t.py's
   launch line (torch.distributed.run, four ranks, e.sh, u.py's checks, verify_staging, admit, train).
+- Kit 7e23bbdd (k/j.json 2ca9c9bd, decoded 9f7a02bb): the five python steps run under $Q_NS, so the stand-in acceptance
+  gets /tmp/q_22c714e1 and /tmp/q_22c714e1/v.json and the launch gets /tmp/q_22c714e1/p and /tmp/q_22c714e1/v.json,
+  as the kit's rv.py (line 436) and t.py (line 441) do. $Q_NJ stays a second read-only name of the job folder and the
+  /data2 map target; the sandbox binds are unchanged from 929ab213 (only a.py, pf.py and the step paths changed).
 - Different, on purpose: the job folder is read-only at all three names; the writable paths (v.json, p/rv.json,
-  p/pr.json, p/q/r run output, j, cache, tmp, rp = X/runs, X/o, X/ck, the live folder X/o/174198/live) are scratch
-  folders under /tmp/a15_rh_174198/run_<UTC>/w bound at the same absolute paths; the review record is a stand-in
+  p/pr.json, p/q/r run output, j, cache, tmp, rp = X/runs, X/o, X/ck, the live folder X/o/174246/live) are scratch
+  folders under /tmp/a15_rh_174246/run_<UTC>/w bound at the same absolute paths; the review record is a stand-in
   labelled A15_REHEARSAL_STAND_IN_NOT_A_REVIEW and lives only in that scratch; train(cfg, smoke_steps=2) (the tree's
-  smoke length: no step-0 export, no checkpoint, no export, output r/smoke/174198); --standalone is spelled out as
+  smoke length: no step-0 export, no checkpoint, no export, output r/smoke/174246); --standalone is spelled out as
   the same c10d rendezvous on localhost:29517 (the job's is localhost:0, an ephemeral port); stages are timed by
   wrappers that log and re-raise.
 - Publishers: none is started. Not run at all: pc.py --loop and --loop-small (upload sessions), j2.py (periodic
   session), j6.py (live mirror), ep.py/o.py/rd.py (evidence and final publish), the export and stop-file paths
   (smoke length; stop.request is pc.py's). Pointed at scratch: the live folder bind (rv.py's live directory), X/runs,
-  X/o, X/ck, the run output p/q/r. The job's own pc.py loops keep running and watch only /tmp/q_22c714e1_174198/p/q/r
+  X/o, X/ck, the run output p/q/r. The job's own pc.py loops keep running and watch only /tmp/q_22c714e1_174246/p/q/r
   on the host, where the rehearsal writes nothing.

@@ -1,5 +1,5 @@
 # n_ops11 STATUS (successor resumes from this file alone)
-Updated 2026-11-21T20:33Z n_ops11 (headless Claude Opus, trinity-3-30, brief B/briefs/n_ops11_c.md) started 14:35Z; start RESULT 1435Z posted.
+Updated 2026-11-21T21:58Z n_ops11 (headless Claude Opus, trinity-3-30, brief B/briefs/n_ops11_c.md) started 14:35Z; start RESULT 1435Z posted.
 My watch: /scratch/jjyeung/orch_n30/n_ops11/work/watch1.sh (copy of n_ops10's, my inbox + seen.txt + told75/saw_wr flags in /scratch/jjyeung/orch_n30/n_ops11/work). Tools by path in n_ops10/work (sess2.sh, run_pull.sh, sig.sh); install tool n_ops9/work/auto/install_review.sh.
 ## Now (15:03Z)
 - 174134 FAILED before training at 14:58:27Z in admit/prepare: carrier_c1_run.py:542 ValueError('Preservation/pointing receipt or division differs'). RESULT.json GO false, proof_rc 1. The wrapper holds the node: HOLD start 14:59:50Z, deadline 17:59:50Z (X/o/174134/HOLD.txt; RELEASE only on ORCH's answer). BLOCKERs 1500Z (two); copy in tree_rebuild27/inbox. Reads saved in n_ops11/work/fail_174134/.
@@ -11,6 +11,9 @@ My watch: /scratch/jjyeung/orch_n30/n_ops11/work/watch1.sh (copy of n_ops10's, m
 - 174134 ended 17:52Z (RELEASE, FAILED=hold exit). 174198 RUNNING since 17:52:01Z orchard-community-3; self-stop ~2026-11-22T16:52Z. RESULT 1754Z.
 - 174198 REFUSED 18:51:51Z at production_proof.py:96 check_host_selection -> entry.py:288 R1_ROUTING_SELECTION_DIFFERS (before admit). HOLD 18:53:13Z-21:53:13Z. BLOCKER 1853Z (copy tree_rebuild28 inbox); reads n_ops11/work/fail_174198/. Waiting for ORCH; no RELEASE without its answer.
 - ORCH ANSWER 1924Z: candidate fix accepted in shape; 174198 RELEASE after the early steps of the walk pass.
+- 21:46:55Z 174246 RUNNING on orchard-community-3 (174198 ended 21:46:18Z on RELEASE). Self-stop ~2026-11-22T20:47Z. RESULT 2148Z. 1-min watch: n_ops11/work/watch1.sh. The guard hook queued two of my commands (a no-op file removal of flags that never existed) in agent/PENDING_USER_COMMANDS.md ~21:49Z; the user should skip both.
+- 21:35Z kit 7e23bbdd installed at X/n, 174246 submitted HELD on jn7.sh (y.json 9ce25396). 21:39Z my sessions installed: X/n_s/sess_174246.json sha256 5570aa815b66185133b7d5caccc4104dc9cd1183d5ec2cadfd06378fe055289e (RESULT, ledger, main notice). Next: 174198 RELEASE by tree_rebuild28, then 174246 released; 1-min watch of 174246.
+- ORCH ANSWER 2125Z: kit 7e23bbdd to n_review1k; after GO: install, held submission, my sessions, RELEASE of 174198, release of new job.
 - ORCH ORDER 1857Z item 6: watch the hold every minute; BLOCKER if 174198 ends before a RELEASE; tell main job id + minute of the next submission.
 - ORCH ORDER 1757Z item 2 (gate): install review.json only when BOTH n_review1j PASS and ORCH answer to tree_rebuild28 rehearsal RESULT are posted; if the rehearsal has not reported 80 min into the WAITING_REVIEW wait, install on PASS alone.
 - Next (for the next job): , 1-min watch around witness (~T+55), model build, prepare 540/621, frame audit, forward, gate (75% notice to n_review1j; SHA256SUMS 6 lines; install review.json), first steps RESULT.

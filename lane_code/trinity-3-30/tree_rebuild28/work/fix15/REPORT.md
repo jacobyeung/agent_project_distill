@@ -1,6 +1,20 @@
-# fix15 REPORT: training-start rehearsal for 174198's review wait (lane tree_rebuild28)
-STATUS 18:33Z: READY. Scripts built and tested as far as they go without GPUs (trinity-3-30, trinity-1-18) and pre-checked on 174198's node (CPU only). The GPU run waits for the coordinator at WAITING_REVIEW: fix15/RUN.md has the command. I used no GPU and wrote nothing into the job's folder, X/n or X/o.
+# fix15 REPORT: training-start rehearsal (lane tree_rebuild28); now for job 174246 on kit 7e23bbdd
+STATUS 21:51Z: READY FOR 174246. The coordinator's 2147Z message (new job 174246, kit 7e23bbdd) is handled: every 174198 reference is now 174246; the stand-in acceptance and the launch take $Q_NS paths, as kit 7e23bbdd's k/j.json does; the Trinity test on a fake job folder in the 7e23bbdd layout PASSED (CPU only); the s/o_*.sh scripts and RUN.md are rebuilt. No Orchard call since 18:28Z (174246 is pending). I used no GPU and wrote nothing into any job folder, X/n or X/o.
 
+## Adaptation to job 174246, kit 7e23bbdd (21:47-21:51Z)
+- Kit: the local mirror n30_mirror/tree_rebuild28/fix17/s34_n_go.tar (163cf197), extracted to fix15/kit34; seal 7e23bbdd, k/j.json 2ca9c9bd, decoded 9f7a02bb (fix15/dec/j34.sh). Against 929ab213's shell the only changes are the five python steps' paths ($Q_NJ -> $Q_NS on lines 421, 429, 432, 436, 441) and a comment. tk_env, tk_bwrap, the Q_NS/Q_NJ binds (line 410), the live bind and Q_E4 are unchanged, and t.py, e.sh, u.py, rv.py, z.py and l.py are byte-equal to 929ab213's.
+- Changes in rh/: go.sh passes $Q_NS and $Q_NS/v.json to accept.py and $Q_NS/p and $Q_NS/v.json to t2.py (fix16's note on lines 105 and 115); the default job is 174246 in go.sh, stop.sh and pre.sh (scratch /tmp/a15_rh_174246); pre.py reads the tree under $Q_NS. L.sh's sandbox is unchanged apart from its header comment. test/mkfake.py writes the fake pins under /tmp/q_22c714e1. s/mk_orchard.sh and s/mk_pre.sh default to 174246. The 174198 versions are kept in fix15/old174198/.
+- Trinity test 4 (trinity-1-18, 21:48:39Z, rd/t4.out), on a fake job folder 990035 in the W/w34/n_go layout (seal 7e23bbdd, j.json 2ca9c9bd):
+  - The stand-in acceptance passed, writing /tmp/q_22c714e1/p/rv.json, p/pr.json and v.json in scratch only; the fake job folder's p still holds just i, plan.json, q and s.
+  - The launch line got /tmp/q_22c714e1/p and /tmp/q_22c714e1/v.json and ran four CPU ranks on rendezvous localhost:29517.
+  - Every rank ran the tree's authenticate() on /tmp/q_22c714e1/p/s (a real directory, no symlink) and got the kit's seal sha256:9d2bbb8a.
+  - pre.sh's probes: the scratch paths were writable, and RESULT.json, r.json, j.sh, p/s and p/q/f refused writes (EROFS).
+  - Cleanup proof empty; no process left. The same dry run on trinity-3-30 passed first (21:48Z).
+- Rebuilt: s/o_start.sh (sha256 1ff06c09), o_poll.sh, o_stop.sh, o_pull.sh, o_pre.sh (optional CPU pre-check once 174246 RUNS); checksums in rh_SHA256SUMS.txt. Mirror: trinity-1-18:/scratch/jjyeung/n30_mirror/tree_rebuild28/fix15/fix15_rh_174246.tar, sha256 d34fed59 on both nodes.
+- Not yet checked on 174246's node, because it is pending: the job folder names, free GPUs and TK_JOB_START. go.sh reads them at the start, and its guards refuse to start if anything differs. One read-only CPU srun (s/o_pre.sh) can check the layout once p/s exists.
+- Fake folders added to REMOVAL_CANDIDATES.txt: trinity-3-30 /tmp/a15_rh_990034 and /tmp/q_22c714e1_990034; trinity-1-18 /tmp/a15_rh_990035 and /tmp/q_22c714e1_990035.
+
+## Earlier work for 174198 (kit 929ab213); the method is unchanged
 ## Files
 - fix15/rh/ (shipped to the node's /tmp/a15_rh_174198/rh): go.sh (driver), L.sh (sandbox), accept.py (acceptance stand-in), t2.py, e2.sh, u2.py (launch line, rank shell, rank script), sum.py (summary.json), stop.sh (stop with proof), pre.sh + pre.py (CPU layout pre-check). Checksums in fix15/rh_SHA256SUMS.txt.
 - fix15/s/o_start.sh (sha256 f291370c, ship and start in one call), o_poll.sh, o_stop.sh, o_pull.sh; rebuild with s/mk_orchard.sh after any change to rh/.
