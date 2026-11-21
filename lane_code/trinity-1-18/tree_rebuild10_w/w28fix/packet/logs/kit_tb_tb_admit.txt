@@ -1,0 +1,24 @@
+=== 2026-11-21T12:46:40Z pid=2040290 where=admit RuntimeError
+Stack above the wrapper:
+  File "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w28fix/src/t.py", line 428, in <module>
+    if case=='job':job()
+  File "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w28fix/src/t.py", line 307, in job
+    with contextlib.redirect_stdout(sys.stderr):runpy.run_path(str(kit/'b/a.py'),run_name='__main__')
+  File "<frozen runpy>", line 287, in run_path
+  File "<frozen runpy>", line 98, in _run_module_code
+  File "<frozen runpy>", line 88, in _run_code
+  File "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w28fix/n_go/b/a.py", line 111, in <module>
+    r=run(request,root/'q',stage=stage)
+  File "steps_of_run", line 20, in _test_run
+    steps=1, device=device, start_step=step)
+  File "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w28fix/n_go/b/a.py", line 100, in restoring_admit
+    except BaseException as error:tb_write('admit',error);raise
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w28fix/n_go/b/a.py", line 99, in restoring_admit
+    with guard():return native_admit(*args,**kwargs)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w28fix/src/t.py", line 196, in stub_admit
+    if FAIL=='admit':raise RuntimeError('injected admit failure')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: injected admit failure
+

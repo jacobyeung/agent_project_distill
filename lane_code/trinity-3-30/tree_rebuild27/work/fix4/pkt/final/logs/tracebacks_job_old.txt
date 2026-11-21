@@ -1,0 +1,43 @@
+=== case=job role=old where=steps
+Traceback (most recent call last):
+  File "/tmp/a15sim/c_job_old/steps_of_run.py", line 20, in _test_run
+    prepared = admit(None,directory,request['frame_roots'],threads=8,
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w27fix/n_go/b/a.py", line 70, in restoring_admit
+    with guard():return native_admit(*args,**kwargs)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w28fix/src/t.py", line 195, in stub_admit
+    toy(T['cfg'],'inside admit, mask on, after the model build')
+  File "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w28fix/src/t.py", line 160, in toy
+    model=build(cfg)
+          ^^^^^^^^^^
+  File "/tmp/a15sim/c_job_old/ns/p/s/student_pilot/r1_absence.py", line 63, in build
+    base=m3_5ForConditionalGeneration(config)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/transformers/models/m3_5/modeling_m3_5.py", line 1716, in __init__
+    self.model = m3_5Model(config)
+                 ^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/transformers/models/m3_5/modeling_m3_5.py", line 1245, in __init__
+    self.language_model = AutoModel.from_config(config.text_config)
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/transformers/models/auto/auto_factory.py", line 250, in from_config
+    return model_class._from_config(config, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/transformers/modeling_utils.py", line 1620, in _from_config
+    model = cls(config, **kwargs)
+            ^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/transformers/models/m3_5/modeling_m3_5.py", line 1144, in __init__
+    [m3_5DecoderLayer(config, layer_idx) for layer_idx in range(config.num_hidden_layers)]
+     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/transformers/models/m3_5/modeling_m3_5.py", line 762, in __init__
+    self.linear_attn = m3_5GatedDeltaNet(config, layer_idx)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/transformers/models/m3_5/modeling_m3_5.py", line 413, in __init__
+    device=torch.cuda.current_device(),
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/torch/cuda/__init__.py", line 1148, in current_device
+    _lazy_init()
+  File "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w27fix/n_go/b/mg.py", line 28, in _lazy_init
+    raise RuntimeError('No CUDA GPUs are available')
+RuntimeError: No CUDA GPUs are available
+

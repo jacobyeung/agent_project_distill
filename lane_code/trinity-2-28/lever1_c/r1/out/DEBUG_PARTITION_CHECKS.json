@@ -1,0 +1,185 @@
+{
+  "token": "a5d31c07be9f2",
+  "delivery_sha256": "3dcb6f8654f10f181ad7d14176978a2d014da31c3933ccf5abcf791dd41d39b0",
+  "delivery_bytes": 3727771,
+  "payload_sha256": "402e1a12fae424f9bf821d5a0c6dbddaf40d02b0f1b32e90acd9166de855bd60",
+  "plan_sha256": "c8d7b674219cd3f9247bba6dc850ee048d7d38bebb353b7e72b3b04e0582366c",
+  "exclusive_node": {
+    "passed": true,
+    "cpu_check_route": "cpu",
+    "cpu_check_gpu_env": {
+      "SLURM_JOB_GPUS": null,
+      "SLURM_STEP_GPUS": null,
+      "SLURM_GPUS_ON_NODE": null,
+      "GPU_DEVICE_ORDINAL": null,
+      "CUDA_VISIBLE_DEVICES": "",
+      "dispatch_cuda_visible": ""
+    },
+    "cpu_receipt_check": "passed",
+    "gpu_job_route": "job.main",
+    "card_selection": {
+      "0,1,2,3": [
+        "0"
+      ],
+      "3": [
+        "3"
+      ],
+      "": "refused by the GPU/hour contract"
+    }
+  },
+  "operator_queue_check": {
+    "passed": true,
+    "command": "cpu=$(cat a/4.txt); [[ \"$cpu\" =~ ^[0-9]+$ ]]\nsqueue -u jjyeung -h -t all -o '%i|%j' > a/9.txt\nif awk -F'|' -v cpu=\"$cpu\" -v name=\"a15_cot_ap${P##*/}\" '$2==name && $1!=cpu{f=1} END{exit !f}' a/9.txt; then exit 1; fi",
+    "cases": {
+      "empty": "admitted",
+      "own_cpu_check_completed": "admitted",
+      "other_project_general": "admitted",
+      "other_lane_package_advanced": "admitted",
+      "own_name_other_job": "refused",
+      "own_name_prefix_only": "admitted",
+      "squeue_failure": "refused",
+      "missing_cpu_job": "refused"
+    },
+    "scripts": [
+      "o_check_sub.sh",
+      "o_sub_hand.sh"
+    ]
+  },
+  "preempted_fetch": {
+    "passed": true,
+    "cases": {
+      "trap_only": {
+        "status": "FAILED",
+        "trap": "143 1 174302",
+        "state": "PREEMPTED"
+      },
+      "no_record": {
+        "error": "E85: job 174303 left no receipt and no nonzero trap record (scheduler state: 174303|CANCELLED by 0|0:9; ValueError: E81)"
+      }
+    }
+  },
+  "preemption_trap": {
+    "passed": true,
+    "trap_records": [
+      "143 1 174301"
+    ],
+    "supervisor_finished_first": true,
+    "shell_status": 143
+  },
+  "launcher": {
+    "passed": true,
+    "allowed": [
+      "empty",
+      "other_lane_package_advanced",
+      "other_project_general",
+      "other_user_same_name"
+    ],
+    "refused": [
+      "own_completed",
+      "own_pending",
+      "own_preempted"
+    ]
+  },
+  "submission": {
+    "passed": true,
+    "gpu_argv": [
+      "sbatch",
+      "--parsable",
+      "--account=mt01",
+      "--partition=preempt",
+      "--qos=preempt_qos",
+      "--nodes=1",
+      "--ntasks=1",
+      "--gres=gpu:1",
+      "--cpus-per-task=16",
+      "--mem=200G",
+      "--exclude=orchard-community-4,orchard-flame-[0-31]",
+      "--time=00:50:00",
+      "--signal=B:USR1@120",
+      "--no-requeue",
+      "--export=NONE",
+      "--output=/project/community/jjyeung/a5d31c07be9f2/a/19",
+      "--error=/project/community/jjyeung/a5d31c07be9f2/a/24",
+      "--open-mode=append",
+      "--chdir=/tmp",
+      "--job-name=a15_cot_apa5d31c07be9f2"
+    ],
+    "cpu_argv": [
+      "sbatch",
+      "--parsable",
+      "--account=mt01",
+      "--partition=preempt",
+      "--qos=preempt_qos",
+      "--nodes=1",
+      "--ntasks=1",
+      "--cpus-per-task=16",
+      "--mem=200G",
+      "--exclude=orchard-community-4,orchard-flame-[0-31]",
+      "--time=00:50:00",
+      "--signal=B:USR1@120",
+      "--no-requeue",
+      "--export=NONE",
+      "--output=/project/community/jjyeung/a5d31c07be9f2/a/19",
+      "--error=/project/community/jjyeung/a5d31c07be9f2/a/24",
+      "--open-mode=append",
+      "--chdir=/tmp",
+      "--job-name=a15_cot_apa5d31c07be9f2"
+    ],
+    "previous_argv": [
+      "sbatch",
+      "--parsable",
+      "--account=mt01",
+      "--partition=general",
+      "--nodes=1",
+      "--ntasks=1",
+      "--gres=gpu:1",
+      "--cpus-per-task=16",
+      "--mem=200G",
+      "--exclude=orchard-community-4",
+      "--time=00:50:00",
+      "--signal=B:USR1@120",
+      "--no-requeue",
+      "--export=NONE",
+      "--output=/project/community/jjyeung/a5d31c07be9f2/a/19",
+      "--error=/project/community/jjyeung/a5d31c07be9f2/a/24",
+      "--open-mode=append",
+      "--chdir=/tmp",
+      "--job-name=a15_cot_apa5d31c07be9f2"
+    ],
+    "changed": [
+      "--partition=general -> --partition=preempt --qos=preempt_qos",
+      "--exclude=orchard-community-4 -> --exclude=orchard-community-4,orchard-flame-[0-31]"
+    ],
+    "cpu_gpu_difference": [
+      "--gres=gpu:1"
+    ]
+  },
+  "time_guard": {
+    "passed": true,
+    "cases": {
+      "requested_50_min": {
+        "allocation_end_s": 3000.0,
+        "worker_stop_s": 2640.0,
+        "kill_s": 2670.0
+      },
+      "later_end": {
+        "allocation_end_s": 3000.0,
+        "worker_stop_s": 2640.0,
+        "kill_s": 2670.0
+      },
+      "no_end": {
+        "allocation_end_s": 3000.0,
+        "worker_stop_s": 2640.0,
+        "kill_s": 2670.0
+      },
+      "early_end": {
+        "allocation_end_s": 2000.0,
+        "worker_stop_s": 1640.0,
+        "kill_s": 1670.0
+      }
+    },
+    "usr1_before_end_s": 120,
+    "note": "The guard reads SLURM_JOB_START_TIME and SLURM_JOB_END_TIME, which Slurm sets the same way on every partition."
+  },
+  "passed": true
+}

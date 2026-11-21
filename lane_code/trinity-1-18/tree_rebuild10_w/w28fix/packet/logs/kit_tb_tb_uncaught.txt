@@ -1,0 +1,26 @@
+=== 2026-11-21T12:46:55Z pid=2040999 where=uncaught AssertionError
+Stack above the wrapper:
+  File "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w28fix/src/t.py", line 428, in <module>
+    if case=='job':job()
+  File "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w28fix/src/t.py", line 314, in job
+    try:hook(type(e),e,e.__traceback__)
+  File "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w28fix/n_go/b/a.py", line 43, in refused
+    tb_write('uncaught',value)
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w28fix/src/t.py", line 307, in job
+    with contextlib.redirect_stdout(sys.stderr):runpy.run_path(str(kit/'b/a.py'),run_name='__main__')
+                                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen runpy>", line 287, in run_path
+  File "<frozen runpy>", line 98, in _run_module_code
+  File "<frozen runpy>", line 88, in _run_code
+  File "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w28fix/n_go/b/a.py", line 111, in <module>
+    r=run(request,root/'q',stage=stage)
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "steps_of_run", line 11, in _test_run
+    entries = request.get('staged_pins')
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w28fix/src/t.py", line 159, in toy
+    if FAIL=='uncaught' and 'unmasked' in label:raise AssertionError('injected uncaught failure')
+                                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: injected uncaught failure
+

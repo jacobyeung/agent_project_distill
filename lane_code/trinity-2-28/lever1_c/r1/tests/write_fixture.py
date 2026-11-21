@@ -48,7 +48,12 @@ def configure(job,package,root,case):
         common.write(meta/'34.json',dict(returncode=0 if case!='write_unit_fail' else 1,stopped=None,
                      memory=dict(over=False,limit_bytes=1,guarded_bytes=0),action=3,phases=[]))
     def model(argv,**kw):
-        if argv[-1].endswith('/1.json'):unit_receipts()
+        if argv[-1].endswith('/1.json'):
+            # GPUs visible to the CPU operator dispatch (the CPU check must see none).
+            seen={k:os.environ.get(k) for k in ('SLURM_JOB_GPUS','SLURM_STEP_GPUS','SLURM_GPUS_ON_NODE','GPU_DEVICE_ORDINAL','CUDA_VISIBLE_DEVICES')}
+            seen['dispatch_cuda_visible']=(kw.get('env') or {}).get('CUDA_VISIBLE_DEVICES')
+            (root/'gpu_env.json').write_text(json.dumps(seen))
+            unit_receipts()
         if argv[-1].endswith('/0.json'):
             evidence=work/'wpool'/cfg['token']/'.wtest'
             if case=='write_size':

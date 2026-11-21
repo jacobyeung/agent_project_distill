@@ -22,7 +22,7 @@ class LocalPath(pathlib.PosixPath):
 pathlib.Path = LocalPath
 os.environ.clear()
 os.environ.update(PATH='/usr/bin:/bin', USER='jjyeung', SLURM_JOB_ID='173925',
-                  SLURM_JOB_PARTITION='general', SLURM_CPUS_PER_TASK='16',
+                  SLURM_JOB_PARTITION='preempt', SLURM_CPUS_PER_TASK='16',
                   SLURM_MEM_PER_NODE='204800', CUDA_VISIBLE_DEVICES='0',
                   SLURM_JOB_START_TIME=str(int(time.time())),
                   SLURM_JOB_END_TIME=str(int(time.time())+3000))

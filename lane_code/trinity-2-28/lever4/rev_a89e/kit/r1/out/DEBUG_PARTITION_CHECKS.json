@@ -1,0 +1,162 @@
+{
+  "token": "a89e8fdab55d4",
+  "delivery_sha256": "fc8ba8028fb6ffd735b2527bb4a44e750b3d9541a1b51bee7d27007604de6f3a",
+  "delivery_bytes": 3727046,
+  "payload_sha256": "52f6e1fc57753c72b7ea294daa629f3cf8c717d06c296b63af20ae70bcc83682",
+  "plan_sha256": "7c0793e0846f0f7778ed96b9e4cd3dfb0e9bd0a5e921543e7236bdb73da13596",
+  "exclusive_node": {
+    "passed": true,
+    "cpu_check_route": "cpu",
+    "cpu_check_gpu_env": {
+      "SLURM_JOB_GPUS": null,
+      "SLURM_STEP_GPUS": null,
+      "SLURM_GPUS_ON_NODE": null,
+      "GPU_DEVICE_ORDINAL": null,
+      "CUDA_VISIBLE_DEVICES": "",
+      "dispatch_cuda_visible": ""
+    },
+    "cpu_receipt_check": "passed",
+    "gpu_job_route": "job.main",
+    "card_selection": {
+      "0,1,2,3": [
+        "0"
+      ],
+      "3": [
+        "3"
+      ],
+      "": "refused by the GPU/hour contract"
+    }
+  },
+  "operator_queue_check": {
+    "passed": true,
+    "command": "squeue -u jjyeung -p debug -h -o '%j|%b' > a/9.txt\nif grep -Eiq '^a15_cot_ap[^|]*[|].*gpu' a/9.txt; then exit 1; fi",
+    "cases": {
+      "empty": "admitted",
+      "other_project_gpu": "admitted",
+      "lane_cpu_check": "admitted",
+      "own_gpu": "refused",
+      "lane_gpu": "refused",
+      "lane_gpu_upper": "refused",
+      "squeue_failure": "refused"
+    },
+    "scripts": [
+      "o_check_sub.sh",
+      "o_sub_hand.sh"
+    ]
+  },
+  "launcher": {
+    "passed": true,
+    "allowed": [
+      "empty",
+      "lane_cpu_check",
+      "other_project_gpu",
+      "other_user_lane_gpu"
+    ],
+    "refused": [
+      "lane_gpu",
+      "lane_gpu_with_others",
+      "own_gpu"
+    ]
+  },
+  "submission": {
+    "passed": true,
+    "gpu_argv": [
+      "sbatch",
+      "--parsable",
+      "--account=mt01",
+      "--partition=debug",
+      "--qos=debug_qos",
+      "--nodes=1",
+      "--ntasks=1",
+      "--gres=gpu:1",
+      "--cpus-per-task=16",
+      "--mem=200G",
+      "--exclude=orchard-community-4",
+      "--time=00:50:00",
+      "--signal=B:USR1@120",
+      "--no-requeue",
+      "--export=NONE",
+      "--output=/project/community/jjyeung/a89e8fdab55d4/a/19",
+      "--error=/project/community/jjyeung/a89e8fdab55d4/a/24",
+      "--open-mode=append",
+      "--chdir=/tmp",
+      "--job-name=a15_cot_apa89e8fdab55d4"
+    ],
+    "cpu_argv": [
+      "sbatch",
+      "--parsable",
+      "--account=mt01",
+      "--partition=debug",
+      "--qos=debug_qos",
+      "--nodes=1",
+      "--ntasks=1",
+      "--cpus-per-task=16",
+      "--mem=200G",
+      "--exclude=orchard-community-4",
+      "--time=00:50:00",
+      "--signal=B:USR1@120",
+      "--no-requeue",
+      "--export=NONE",
+      "--output=/project/community/jjyeung/a89e8fdab55d4/a/19",
+      "--error=/project/community/jjyeung/a89e8fdab55d4/a/24",
+      "--open-mode=append",
+      "--chdir=/tmp",
+      "--job-name=a15_cot_apa89e8fdab55d4"
+    ],
+    "previous_argv": [
+      "sbatch",
+      "--parsable",
+      "--account=mt01",
+      "--partition=general",
+      "--nodes=1",
+      "--ntasks=1",
+      "--gres=gpu:1",
+      "--cpus-per-task=16",
+      "--mem=200G",
+      "--exclude=orchard-community-4",
+      "--time=00:50:00",
+      "--signal=B:USR1@120",
+      "--no-requeue",
+      "--export=NONE",
+      "--output=/project/community/jjyeung/a89e8fdab55d4/a/19",
+      "--error=/project/community/jjyeung/a89e8fdab55d4/a/24",
+      "--open-mode=append",
+      "--chdir=/tmp",
+      "--job-name=a15_cot_apa89e8fdab55d4"
+    ],
+    "changed": [
+      "--partition=general -> --partition=debug --qos=debug_qos"
+    ],
+    "cpu_gpu_difference": [
+      "--gres=gpu:1"
+    ]
+  },
+  "time_guard": {
+    "passed": true,
+    "cases": {
+      "debug_50_min": {
+        "allocation_end_s": 3000.0,
+        "worker_stop_s": 2640.0,
+        "kill_s": 2670.0
+      },
+      "debug_max_time": {
+        "allocation_end_s": 3000.0,
+        "worker_stop_s": 2640.0,
+        "kill_s": 2670.0
+      },
+      "no_end": {
+        "allocation_end_s": 3000.0,
+        "worker_stop_s": 2640.0,
+        "kill_s": 2670.0
+      },
+      "early_end": {
+        "allocation_end_s": 2000.0,
+        "worker_stop_s": 1640.0,
+        "kill_s": 1670.0
+      }
+    },
+    "usr1_before_end_s": 120,
+    "note": "The guard reads SLURM_JOB_START_TIME and SLURM_JOB_END_TIME, which Slurm sets the same way on every partition."
+  },
+  "passed": true
+}

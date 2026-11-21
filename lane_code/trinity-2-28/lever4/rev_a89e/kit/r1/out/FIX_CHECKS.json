@@ -1,0 +1,200 @@
+{
+  "token": "a89e8fdab55d4",
+  "delivery_sha256": "fc8ba8028fb6ffd735b2527bb4a44e750b3d9541a1b51bee7d27007604de6f3a",
+  "delivery_bytes": 3727046,
+  "payload_sha256": "52f6e1fc57753c72b7ea294daa629f3cf8c717d06c296b63af20ae70bcc83682",
+  "plan_sha256": "7c0793e0846f0f7778ed96b9e4cd3dfb0e9bd0a5e921543e7236bdb73da13596",
+  "staging": {
+    "passed": true,
+    "expanded_bytes": 31068394,
+    "limit_bytes": 33554432,
+    "actual_function": "orchard_h10.job.stage",
+    "external_assets": "tiny local fixtures",
+    "code_receipt": {
+      "bytes": 3833173,
+      "sha256": "52f6e1fc57753c72b7ea294daa629f3cf8c717d06c296b63af20ae70bcc83682",
+      "seconds": 0.012424537999322638
+    }
+  },
+  "all_surfaces": {
+    "passed": true,
+    "json_strings": 1214,
+    "input_paths": 27,
+    "rgb_paths": 2912,
+    "removed": [
+      "sam_checkpoint",
+      "sam_receipt",
+      "selector_weights",
+      "selector_config"
+    ]
+  },
+  "identity": {
+    "passed": true,
+    "token": "a89e8fdab55d4",
+    "delivery_bytes": 3727046,
+    "delivery_sha256": "fc8ba8028fb6ffd735b2527bb4a44e750b3d9541a1b51bee7d27007604de6f3a"
+  },
+  "dynamic_imports": {
+    "passed": true
+  },
+  "external_extraction": {
+    "passed": true,
+    "retained": [
+      "g/model.safetensors",
+      "g/config.json"
+    ],
+    "unused_opens": 0,
+    "corrupt_sha_rejected": true
+  },
+  "unlabelled_factory": {
+    "passed": true,
+    "tasks": 150,
+    "weight_loads": "stubbed"
+  },
+  "allocation": {
+    "passed": true,
+    "seconds": 3000,
+    "worker_cap": 1800,
+    "windows": {
+      "capture_publication_stop": 2910,
+      "failure_receipt_stop": 2998,
+      "normal_publication_stop": 2990,
+      "staging_stop": 2760,
+      "worker_latest_stop": 2730
+    }
+  },
+  "labels": {
+    "passed": true,
+    "all_data_assets_scanned": true,
+    "exact_prompt_rgb_bindings": 150
+  },
+  "opaque_json": {
+    "passed": true,
+    "capture_roundtrip": true,
+    "resource_bytes_exact": true
+  },
+  "naming": {
+    "passed": true,
+    "members": 348,
+    "unchanged_source_hashes": 296,
+    "launch_scripts": 6,
+    "deny": [
+      "split",
+      "vsi",
+      "revsi",
+      "scannet",
+      "arkit",
+      "sam",
+      "g3t",
+      "depth",
+      "distill",
+      "qwen",
+      "ground",
+      "dev",
+      "bench",
+      "mask",
+      "tower",
+      "reader",
+      "student",
+      "teacher",
+      "k1",
+      "t1"
+    ]
+  },
+  "preparation_inputs": {
+    "passed": true,
+    "unused_settings_absent": true,
+    "preparation_pins_verified": 3
+  },
+  "slow_upload": {
+    "passed": true,
+    "deadline": 3000,
+    "finished_at": 2998.0,
+    "calls": [
+      {
+        "argv": [
+          "gcloud",
+          "storage",
+          "cp",
+          "/scratch/jjyeung/orch_n30/lever1_c/r1_fixtures_old/fix_dow7boma/sj/b0/c/0.gz",
+          "gs://a0/a00000000000000000000c/0.gz"
+        ],
+        "timeout": 150.0,
+        "start": 2760.0
+      },
+      {
+        "action": "publish",
+        "timeout": 80.0,
+        "start": 2910.0
+      },
+      {
+        "action": "receipt",
+        "timeout": 8.0,
+        "start": 2990.0
+      }
+    ]
+  },
+  "transfer_deadlines": {
+    "passed": true,
+    "calls": [
+      {
+        "action": "cp",
+        "timeout": 150.0,
+        "start": 2760.0
+      },
+      {
+        "action": "objects",
+        "timeout": 50.0,
+        "start": 2860.0
+      },
+      {
+        "action": "cat",
+        "timeout": 10.0,
+        "start": 2900.0
+      }
+    ]
+  },
+  "worker_deadline": {
+    "passed": true,
+    "cases": [
+      {
+        "start": 0,
+        "waits": [
+          1800.0,
+          20,
+          5
+        ],
+        "reaped_at": 1825.0,
+        "allocation_end": 3000
+      },
+      {
+        "start": 600,
+        "waits": [
+          1800.0,
+          20,
+          5
+        ],
+        "reaped_at": 2425.0,
+        "allocation_end": 3000
+      },
+      {
+        "start": 1200,
+        "waits": [
+          1530.0,
+          20,
+          5
+        ],
+        "reaped_at": 2755.0,
+        "allocation_end": 3000
+      }
+    ]
+  },
+  "unused_worker_inputs": {
+    "passed": true,
+    "unused_opens": 0,
+    "observed_opens": 4,
+    "prefills": 1,
+    "decode_steps": 0,
+    "weights": "CPU doubles"
+  }
+}

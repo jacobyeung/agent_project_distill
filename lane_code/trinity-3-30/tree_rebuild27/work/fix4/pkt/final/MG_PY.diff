@@ -1,0 +1,28 @@
+12,15c12,17
+<     """A driver query made under an empty mask leaves the process unable to open a device after the
+<     mask is lifted. Inside this block, while the mask is empty, is_available() is False,
+<     device_count() is 0 and _lazy_init() raises the library's own error; none of them calls the
+<     driver. Under any other mask the originals answer, and the originals are put back on exit."""
+---
+>     """A driver query made under an empty mask by a process that has not opened a device leaves the
+>     process unable to open one after the mask is lifted. Inside this block, while the mask is empty
+>     and the library is not initialized, is_available() is False, device_count() is 0 and
+>     _lazy_init() raises the library's own error; none of them calls the driver. A process that
+>     initialized the library before the mask keeps its devices under it, so there, and under any
+>     other mask, the originals answer. The originals are put back on exit."""
+19a22,24
+>     def answering():
+>         return masked() and not cuda.is_initialized()
+> 
+21c26
+<         return False if masked() else native[0]()
+---
+>         return False if answering() else native[0]()
+24c29
+<         return 0 if masked() else native[1]()
+---
+>         return 0 if answering() else native[1]()
+27c32
+<         if masked():
+---
+>         if answering():

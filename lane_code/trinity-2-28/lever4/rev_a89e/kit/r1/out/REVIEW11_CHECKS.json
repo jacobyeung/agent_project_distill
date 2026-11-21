@@ -1,0 +1,72 @@
+{
+  "delivery_sha256": "fc8ba8028fb6ffd735b2527bb4a44e750b3d9541a1b51bee7d27007604de6f3a",
+  "cases": [
+    {
+      "case": "late_sink_save",
+      "passed": true,
+      "initial_status": "COMPLETE",
+      "child_returncode": 0,
+      "supervisor_returncode": 1,
+      "fetched_status": "FAILED",
+      "production_fetch": true,
+      "traceback": {
+        "lines": [
+          "Traceback (most recent call last):",
+          "  File \"<string>\", line 44, in supervise",
+          "  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/contextlib.py\", line 144, in __exit__",
+          "    next(self.gen)",
+          "  File \"/scratch/jjyeung/orch_n30/lever1_c/r1_fixtures_old/boot_9dd5e1a7b04d4009aea4b31a4fc12168/work/a173925a89e8fdab55d4/15.py\", line 79, in capture",
+          "  File \"/scratch/jjyeung/orch_n30/lever1_c/r1_fixtures_old/boot_9dd5e1a7b04d4009aea4b31a4fc12168/work/a173925a89e8fdab55d4/15.py\", line 17, in save",
+          "OSError: injected late sink save"
+        ],
+        "limit": 200,
+        "width": 2048
+      },
+      "fetched_sha256": "b27288156042382a4e032d3ed0f152ef0acdf455c8971de5440947d0a78d3c69"
+    },
+    {
+      "case": "late_sink_drain",
+      "passed": true,
+      "initial_status": "COMPLETE",
+      "child_returncode": 0,
+      "supervisor_returncode": 1,
+      "fetched_status": "FAILED",
+      "production_fetch": true,
+      "traceback": {
+        "lines": [
+          "Traceback (most recent call last):",
+          "  File \"<string>\", line 44, in supervise",
+          "  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/contextlib.py\", line 144, in __exit__",
+          "    next(self.gen)",
+          "  File \"/scratch/jjyeung/orch_n30/lever1_c/r1_fixtures_old/boot_72ae170087bd4113869937c716376431/work/a173925a89e8fdab55d4/15.py\", line 80, in capture",
+          "OSError: injected late sink drain"
+        ],
+        "limit": 200,
+        "width": 2048
+      },
+      "fetched_sha256": "a124551e6dd8961c9a21c4d7f99484d041f94e05ca76bcd53e419769d4ee06ed"
+    },
+    {
+      "case": "late_sink_timeout",
+      "passed": true,
+      "initial_status": "COMPLETE",
+      "child_returncode": 0,
+      "supervisor_returncode": 1,
+      "fetched_status": "FAILED",
+      "production_fetch": true,
+      "traceback": {
+        "lines": [
+          "Traceback (most recent call last):",
+          "  File \"<string>\", line 44, in supervise",
+          "  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/contextlib.py\", line 144, in __exit__",
+          "    next(self.gen)",
+          "  File \"/scratch/jjyeung/orch_n30/lever1_c/r1_fixtures_old/boot_502121910a474771bae3177717e3c3a5/work/a173925a89e8fdab55d4/15.py\", line 80, in capture",
+          "RuntimeError: E80 injected late sink timeout"
+        ],
+        "limit": 200,
+        "width": 2048
+      },
+      "fetched_sha256": "257d900754f799df2a814bc4e18aa3089d80fcff80161d501e0e2f01bb9c9f60"
+    }
+  ]
+}

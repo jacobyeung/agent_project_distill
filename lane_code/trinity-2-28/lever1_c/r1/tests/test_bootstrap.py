@@ -52,7 +52,7 @@ class BootstrapTests(unittest.TestCase):
         cpu=dict(passed=True,plan=pub['plan_sha256'],inputs=sha(p/'a/1.json'),package=sha(p/'PACKAGE.json'),gpus=1,time='00:50:00')
         (p/'2.json').write_text(json.dumps(cpu))
         work=root/'work';work.mkdir();pool=root/'pool'
-        env=dict(PATH='/usr/bin:/bin',USER='jjyeung',SLURM_JOB_ID='173925',SLURM_JOB_PARTITION='general',
+        env=dict(PATH='/usr/bin:/bin',USER='jjyeung',SLURM_JOB_ID='173925',SLURM_JOB_PARTITION='preempt',
                  SLURM_CPUS_PER_TASK='16',SLURM_MEM_PER_NODE='204800',CUDA_VISIBLE_DEVICES='0',
                  SLURM_JOB_START_TIME=str(int(time.time())),SLURM_JOB_END_TIME=str(int(time.time())+3000))
         argv=[sys.executable,'-I','-s','-B',str(HERE/'tests/local_bootstrap.py'),'parent',str(p),str(work),str(pool),pub['token'],case]

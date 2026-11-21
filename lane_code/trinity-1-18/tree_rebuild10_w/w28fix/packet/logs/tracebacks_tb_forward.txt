@@ -1,0 +1,38 @@
+=== case=job role=new where=steps
+Traceback (most recent call last):
+  File "steps_of_run", line 31, in _test_run
+  File "/tmp/a15sim/c_tb_forward/ns/p/s/launch_r1/production_proof.py", line 19, in forward
+    records = first_batch_check(cfg, range(cfg['world_size']), root/'f.json',
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w28fix/src/t.py", line 202, in stub_first_batch
+    if FAIL=='forward':raise RuntimeError('injected forward failure')
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: injected forward failure
+
+=== the kit's own tb.txt of case=job role=new follows
+=== 2026-11-21T12:46:48Z pid=2040568 where=refusal RuntimeError
+Stack above the wrapper:
+  File "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w28fix/src/t.py", line 428, in <module>
+    if case=='job':job()
+  File "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w28fix/src/t.py", line 307, in job
+    with contextlib.redirect_stdout(sys.stderr):runpy.run_path(str(kit/'b/a.py'),run_name='__main__')
+  File "<frozen runpy>", line 287, in run_path
+  File "<frozen runpy>", line 98, in _run_module_code
+  File "<frozen runpy>", line 88, in _run_code
+  File "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w28fix/n_go/b/a.py", line 111, in <module>
+    r=run(request,root/'q',stage=stage)
+  File "steps_of_run", line 37, in _test_run
+    from student_pilot.source_seal import binding
+  File "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w28fix/n_go/b/a.py", line 107, in refusal_text
+    if args and isinstance(args[0],BaseException):tb_write('refusal',args[0])
+Traceback (most recent call last):
+  File "steps_of_run", line 31, in _test_run
+  File "/tmp/a15sim/c_tb_forward/ns/p/s/launch_r1/production_proof.py", line 19, in forward
+    records = first_batch_check(cfg, range(cfg['world_size']), root/'f.json',
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w28fix/src/t.py", line 202, in stub_first_batch
+    if FAIL=='forward':raise RuntimeError('injected forward failure')
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: injected forward failure
+
+

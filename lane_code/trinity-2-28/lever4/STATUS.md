@@ -3,8 +3,10 @@ Lane dir /scratch/jjyeung/orch_n30/lever4 (work/, out/, inbox/; lever3 copy in f
 ## Orchard: host key accepted by USER (ORCH 0658Z); hold lifted. kex drops: wait 60 s, retry once. (STATUS checked 10:11Z: rank 1 CPU real-unit build running)
 ## Rank 4: DONE 09:10Z
 - GPU read 174108 (token 2d1983684f183) COMPLETED: ORIG 100%, REVSI 100% (290/290 each), gate no change, arm D closed. RESULT 0914Z; plan record Rank 4 read entry written. Files events/lever/files/r4/, lever4/out/r4_gpu_174108, r4kit/out/*_174108*. Deaths fixed on the way: 173990 boot closure (causal_conv1d/fla absent), 174087 batch merge (transformers 5.19 dict states). Repeat on N's first export waits for that export.
-## Rank 1 (on general)
-- Token a4282fee306d6 (write-test fix + CPU real unit), delivery 3,727,220 B sha e6a001999854df0c351e5bcbee8992b8a33a6f803c8cc9b0adc338b1285b7755, validate 95/95, fresh review GO 10:50Z. Placed 10:51Z (verified). CPU check 174121 submitted 10:51:46Z (PENDING QOSMaxJobsPerUserLimit at 11:55Z: account runs 174113 advanced + 174110 general, neither ours). Scripts /dev/shm/lever4/r1 (o_*.sh with 5 GiB floor; mon.sh reads log /tmp/aa4282fee306d61.Ph4CShgU.log and a/4.txt). Next: on CPU pass (real_unit in CPU.json) o_sub_hand.sh (refuses while any jjyeung job is on general; 174110 jjy_allonv_dsi is not ours), monitor, o_fetch.sh, o_get.sh, depth pull (governed), relift.py (parity gate first), cells a-g, boxdev.
+## Rank 1 (waiting for general)
+- a4282fee306d6 (placed): CPU check 174121 PASSED on preempt 12:42Z with the real unit (lever4/out/r1_cpu_174121). GPU submit = /dev/shm/lever4/r1/o_sub_hand.sh (refuses while any jjyeung job is on general; 174110 jjy_allonv_dsi holds general to ~21:10Z). Default (QUESTION 1302Z): submit it the minute 174110 leaves; check every 10 min.
+- a89e8fdab55d4 (debug build, placed 12:59Z) is dead: sbatch refused debug for account mt01; its CPU lock is spent. Listed as removal candidate.
+- After GPU: o_fetch, o_get, depth pull (governed, --io-weight 1), relift.py (p1cpu; parity gate), cells a-g, boxdev.
 ## Mirrors
 - Rank 4 delivery on Orchard okh7/ad2d1983684f183/0.tgz, sha dd819d503161c64c30870b17a502a4f857a425015386fe0ca5e4a274446b1a31. Returns on /data2 events/lever/files/r4 and on 2-28 lever4/out.
 ## Rulings in force

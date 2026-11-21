@@ -1,0 +1,52 @@
+{
+  "allocation_margin_s": 734.9865522600303,
+  "allocation_planning_minutes": 37.7502241289995,
+  "allocation_s": 3000,
+  "allowances_measured": false,
+  "boot": {
+    "bwrap_bytes": 72160,
+    "environment_policy_stream_bytes": 145285120,
+    "mixed_archive": "Stream only CPython from runtime group 0; stage group 1 and inputs 3/4; defer other runtime members and all bulk inputs until boot succeeds",
+    "order": [
+      "package",
+      "runtime_archives",
+      "environment_and_policy_only",
+      "real_worker_import_closure",
+      "boot_receipt",
+      "bulk_staging"
+    ],
+    "package_archive_bytes": 3833173,
+    "pre_bulk_bytes": 10237341493,
+    "pre_bulk_seconds": null,
+    "production_timing_measured": false,
+    "receipt": "metadata/25.json",
+    "runtime_archive_bytes": 10088151040,
+    "timing_allowance": "Included in the existing unmeasured 600-second staging allowance; no first-seconds claim before runtime provisioning"
+  },
+  "captures": 60,
+  "caveat": "T1 replay is 16.75 min, including SAM/linking. Add 6 min shared loading and 1 min indexed RGB/telemetry inside worker, plus 10 min shared archive staging and 4 min publication. All allowances are unmeasured; no first-output or GPU wall-time guarantee.",
+  "compressed_return_conservative_bytes": 80000000,
+  "compressed_return_forecast_bytes": 40000000,
+  "deadline_offsets_s": {
+    "capture_publication_stop": 2910,
+    "failure_receipt_stop": 2998,
+    "normal_publication_stop": 2990,
+    "staging_stop": 2760,
+    "worker_latest_stop": 2730
+  },
+  "float16_depth_bytes": 9987840,
+  "indexed_staging_monitor_allowance_s": 60,
+  "lossless_depth_plane_bytes": 49939200,
+  "publication_allowance_s": 240,
+  "return_cap_bytes": 1000000000,
+  "scheduler_collector_start_allowance_s": 0,
+  "shared_load_allowance_s": 360,
+  "staging_allowance_s": 600,
+  "t1_first_per_capture_replay_s": 1005.0134477399697,
+  "t1_first_per_capture_tower_s": 430.61447064887034,
+  "t1_replay_minutes": 16.750224128999495,
+  "worker_cap_reason": "Forecast 1425.01s leaves 374.99s within 1800s; with 600s staging and 240s publication a capped worker fits in 2640s, leaving 360s of the allocation. No evidence requires 35 minutes.",
+  "worker_cap_s": 1800,
+  "worker_forecast_minutes": 23.750224128999495,
+  "worker_margin_s": 374.9865522600303
+}

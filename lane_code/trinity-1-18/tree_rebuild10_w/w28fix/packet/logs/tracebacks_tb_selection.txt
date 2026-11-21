@@ -1,0 +1,39 @@
+=== case=job role=new where=selection
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w28fix/src/t.py", line 277, in plan_payload
+    try:importlib.import_module('launch_r1.entry').check_host_selection({},Path(root),{},{})
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w28fix/n_go/b/a.py", line 63, in guarded_selection
+    return original_selection(cfg, directory, request, result, record=record)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/a15sim/c_tb_selection/ns/p/s/launch_r1/entry.py", line 280, in check_host_selection
+    point = load(pinned(cfg['streams']['pointing']))
+                        ~~~^^^^^^^^^^^
+KeyError: 'streams'
+
+=== the kit's own tb.txt of case=job role=new follows
+=== 2026-11-21T12:46:31Z pid=2039706 where=selection KeyError
+Stack above the wrapper:
+  File "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w28fix/src/t.py", line 428, in <module>
+    if case=='job':job()
+  File "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w28fix/src/t.py", line 307, in job
+    with contextlib.redirect_stdout(sys.stderr):runpy.run_path(str(kit/'b/a.py'),run_name='__main__')
+  File "<frozen runpy>", line 287, in run_path
+  File "<frozen runpy>", line 98, in _run_module_code
+  File "<frozen runpy>", line 88, in _run_code
+  File "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w28fix/n_go/b/a.py", line 82, in <module>
+    request,paths,stage=plan_payload(kit,incoming['_resolved'],root,regeneration=mode=='r')
+  File "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w28fix/src/t.py", line 277, in plan_payload
+    try:importlib.import_module('launch_r1.entry').check_host_selection({},Path(root),{},{})
+  File "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w28fix/n_go/b/a.py", line 64, in guarded_selection
+    except BaseException as error:tb_write('selection',error);raise
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w28fix/n_go/b/a.py", line 63, in guarded_selection
+    return original_selection(cfg, directory, request, result, record=record)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/a15sim/c_tb_selection/ns/p/s/launch_r1/entry.py", line 280, in check_host_selection
+    point = load(pinned(cfg['streams']['pointing']))
+                        ~~~^^^^^^^^^^^
+KeyError: 'streams'
+
+

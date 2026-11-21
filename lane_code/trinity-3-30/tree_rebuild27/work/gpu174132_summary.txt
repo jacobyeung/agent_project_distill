@@ -1,0 +1,40 @@
+ COMPLETED      0:0   00:01:08 
+2026-11-21T12:57:36Z
+orchard-community-3
+NVIDIA H100 80GB HBM3, 580.159.03
+visible 0
+old seal 4e29bdfb8754e85ffbb959eab3be31b33b4f2ce7e4c126f9a11f6f1e6024c992 guard 986063ccb915a76e
+new seal 9e809db4e0817adfad3d4ebd74fb39a6d15b39aea8f0cb129a0da5c4ecaf3405 guard 2ac1d6196848749b
+test 5850582de31152e6
+KITX_OK venv_rwtrain_torch211_cu129.tar 10s
+9:== /tmp/a15_fa5d00a8e996_174132/v/rwtrain_torch211_cu129/bin/python 12:57:46Z
+12:{"case": "job", "role": "old", "fail": null, "pid": 3455570, "sim": false, "marks": [{"at": "start of the steps", "visible": "0", "initialized": false}, {"at": "after step training_components, unmasked (line 125)", "visible": "0", "initialized": t
+14:{"case": "job", "role": "new", "fail": null, "pid": 3455604, "sim": false, "marks": [{"at": "start of the steps", "visible": "0", "initialized": false}, {"at": "after step training_components, unmasked (line 125)", "visible": "0", "initialized": t
+16:{"case": "job_noguard", "role": "old", "fail": null, "pid": 3455632, "sim": false, "marks": [{"at": "start of the steps", "visible": "0", "initialized": false}, {"at": "after step training_components, unmasked (line 125)", "visible": "0", "initial
+18:{"case": "api", "role": "old", "fail": null, "pid": 3455653, "sim": false, "marks": [{"at": "initialized unmasked", "visible": "0", "initialized": true}], "v": "2.11.0+cu129", "visible_at_start": "0", "guard_sha256": "986063ccb915a76e", "count_bef
+20:{"case": "api", "role": "new", "fail": null, "pid": 3455666, "sim": false, "marks": [{"at": "initialized unmasked", "visible": "0", "initialized": true}], "v": "2.11.0+cu129", "visible_at_start": "0", "guard_sha256": "2ac1d6196848749b", "count_bef
+22:{"case": "api_noguard", "role": "new", "fail": null, "pid": 3455678, "sim": false, "marks": [{"at": "initialized unmasked", "visible": "0", "initialized": true}], "v": "2.11.0+cu129", "visible_at_start": "0", "count_before_mask": 1, "current_devic
+24:{"case": "fresh", "role": "new", "fail": null, "pid": 3455690, "sim": false, "marks": [{"at": "under the mask", "visible": "", "initialized": false}], "v": "2.11.0+cu129", "visible_at_start": "0", "guard_sha256": "2ac1d6196848749b", "available_und
+26:{"case": "fresh_import", "role": "new", "fail": null, "pid": 3455710, "sim": false, "marks": [{"at": "under the mask", "visible": "", "initialized": false}], "v": "2.11.0+cu129", "visible_at_start": "0", "guard_sha256": "2ac1d6196848749b", "import
+28:{"case": "fresh_noguard", "role": "new", "fail": null, "pid": 3455723, "sim": false, "marks": [{"at": "under the mask", "visible": "", "initialized": false}], "v": "2.11.0+cu129", "visible_at_start": "0", "available_under_mask": false, "count_unde
+31:AS_EXPECTED 9 of 9 (9 cases); PASS
+32:== further runs (not counted)
+33:{"case": "order", "role": "new", "fail": null, "pid": 3455738, "sim": false, "marks": [{"at": "start", "visible": "0", "initialized": false}, {"at": "after the processor load alone", "visible": "0", "initialized": false, "processor": "m3VLProcesso
+35:{"case": "api_uncached_noguard", "role": "new", "fail": null, "pid": 3455759, "sim": false, "marks": [{"at": "initialized unmasked", "visible": "0", "initialized": true}], "v": "2.11.0+cu129", "visible_at_start": "0", "current_device_under_mask": 
+37:{"case": "job", "role": "old", "fail": null, "pid": 3455772, "sim": false, "marks": [{"at": "start of the steps", "visible": "0", "initialized": false}, {"at": "after step training_components, unmasked (line 125)", "visible": "0", "initialized": t
+39:{"case": "job", "role": "new", "fail": null, "pid": 3455808, "sim": false, "marks": [{"at": "start of the steps", "visible": "0", "initialized": false}, {"at": "after step training_components, unmasked (line 125)", "visible": "0", "initialized": t
+job old fail= None raised_by= None err= None ok= True as_expected= True
+job new fail= None raised_by= None err= None ok= True as_expected= True
+job_noguard old fail= None raised_by= None err= None ok= True as_expected= True
+api old fail= None raised_by= None err= None ok= True as_expected= True
+api new fail= None raised_by= None err= None ok= True as_expected= True
+api_noguard new fail= None raised_by= None err= None ok= True as_expected= True
+fresh new fail= None raised_by= None err= None ok= True as_expected= True
+fresh_import new fail= None raised_by= None err= None ok= True as_expected= True
+fresh_noguard new fail= None raised_by= None err= None ok= True as_expected= True
+order new fail= None raised_by= None err= None ok= True as_expected= True
+api_uncached_noguard new fail= None raised_by= None err= None ok= True as_expected= True
+job old fail= None raised_by= None err= None ok= True as_expected= True
+job new fail= None raised_by= None err= None ok= True as_expected= True
+{"case": "job", "role": "old", "fail": null, "pid": 3455570, "sim": false, "v": "2.11.0+cu129", "visible_at_start": "0", "kit_seal": "4e29bdfb", "guard_sha256": "986063ccb915a76e", "refusal_failure": {"where": "steps", "text": "RuntimeError:No CUDA GPUs are available", "raised_by": "(i) mg.py", "frames": ["m3_5/modeling_m3_5.py:1716 __init__", "m3_5/modeling_m3_5.py:1245 __init__", "auto/auto_factory.py:250 from_config", "transformers/modeling_utils.py:1620 _from_config", "m3_5/modeling_m3_5.py:1144 __init__", "m3_5/modeling_m3_5.py:762 __init__", "m3_5/modeling_m3_5.py:413 __init__", "cuda/__init__.py:1148 current_device", "b/mg.py:28 _lazy_init"]}, "entry": "exit 1", "status": "REFUSE", "s
+{"case": "job", "role": "new", "fail": null, "pid": 3455604, "sim": false, "v": "2.11.0+cu129", "visible_at_start": "0", "kit_seal": "9e809db4", "guard_sha256": "2ac1d6196848749b", "forward_device": "cuda:0", "forward_sum": 1073741824.0, "entry": "exit 1", "status": "TEST_PASS", "steps": ["training_components", "p_opener_witness", "s1_routing.build", "s1_admission.prepare", "all_rank_full_forward"], "refusal": null, "forward": "returned by the tree forward", "limit": {"before": -1, "at_plan": -1, "inside_admit": 206158430208, "after": -1}, "kit_hooks": {"refusal_hook": true, "admit_wrapper": "restoring_admit"}, "r0": false, "kit_tb": null, "expected": "TEST_PASS and no tb.txt", "as_expected"

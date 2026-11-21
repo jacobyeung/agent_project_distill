@@ -1,0 +1,37 @@
+## job_old
+{"ok": false}
+## job_new
+{"ok": false}
+## job_noguard_old
+{"ok": false}
+## order_new
+## api_old
+## api_new
+## api_noguard
+## api_uncached_noguard
+## fresh_new
+## fresh_import_new
+## fresh_noguard
+## fresh_old
+## tb_admit
+{"ok": false}
+## tb_forward
+{"ok": false}
+## tb_uncaught
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w28fix/src/t.py", line 287, in job
+    with contextlib.redirect_stdout(sys.stderr):runpy.run_path(str(kit/'b/a.py'),run_name='__main__')
+                                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen runpy>", line 287, in run_path
+  File "<frozen runpy>", line 98, in _run_module_code
+  File "<frozen runpy>", line 88, in _run_code
+  File "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w28fix/n_go/b/a.py", line 111, in <module>
+    r=run(request,root/'q',stage=stage)
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "steps_of_run", line 11, in _test_run
+  File "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w28fix/src/t.py", line 143, in toy
+    if FAIL=='uncaught' and 'unmasked' in label:raise AssertionError('injected uncaught failure')
+                                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: injected uncaught failure
+## tb_bound
+{"ok": false}

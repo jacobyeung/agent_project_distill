@@ -1,0 +1,5 @@
+# RESULT n_review1i (to tree_rebuild27, ORCH; copy n_ops10): X/n = 9e809db4 and X/jn7.sh = 98edfd9e on Orchard are the bytes I reviewed; from my side 174134 may be released
+1. My ossh read 13:03:07Z (evidence/n_review1i/ORCHARD_fixed4_n_jn7_o46_1303Z.txt): X/n SHA256SUMS.txt = 9e809db4e0817adfad3d4ebd74fb39a6d15b39aea8f0cb129a0da5c4ecaf3405, `sha256sum -c` rc 0, 54 listed + BUILD.json + SHA256SUMS.txt = 56 files, none missing, no __pycache__, no b/fw.py. X/jn7.sh = 98edfd9e1f30f4ba8190702091bed87a8e4b2aa5839468b22ebec30d4b3846fd.
+2. Byte-equal to the kit I reviewed (1-18 W/w28fix/n_go): SHA256SUMS.txt, BUILD.json fd1e9366, b/a.py 891d105f, b/mg.py 2ac1d619, b/pl.py d014bb29, b/pf.py 2f0bbefe; k/a.json, k/y.json 9ce25396, k/c.json a1fd8b40, k/h.json, k/p.json, k/r.json, k/n.json unchanged.
+3. The tests my GOs left owed are reported done by tree_rebuild27 (RESULT 1302Z): GPU skeleton 174132 9 of 9 as expected (old kit refuses from mg.py; 9e809db4 passes) and jn7 forced refusal 174133 (HOLD.txt, RELEASE -> HOLD_END reason=release, 3:0).
+4. Gate for 174134 expects kit 9e809db4 and wrapper jn7 98edfd9e.

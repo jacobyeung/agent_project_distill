@@ -1,0 +1,133 @@
+{
+  "delivery_sha256": "fc8ba8028fb6ffd735b2527bb4a44e750b3d9541a1b51bee7d27007604de6f3a",
+  "cases": [
+    {
+      "case": "boot_cpu",
+      "passed": true,
+      "bulk_bytes": 0,
+      "bulk_calls": 0,
+      "seconds": 1.83719008899061,
+      "boot": {
+        "bulk_bytes": 0,
+        "child_output": {
+          "limit": 200,
+          "lines": [
+            "Traceback (most recent call last):",
+            "  File \"/scratch/jjyeung/orch_n30/lever1_c/r1_fixtures_old/boot_72435298bef0423d989e377f5fbab2d4/work/a173925a89e8fdab55d4/34/sj/b01ec87a6f29b/r/metadata/a/5.py\", line 1, in <module>",
+            "22870295d0a696d706f7274206c0a506174683d6c2e696e7374616c6c2870292e506174680a66726f6d206f7263686172645f6831302e636f6d6d6f6e20696d706f727420696e7374616c6c5f70726f636573735f67756172640a696e7374616c6c5f70726f636573735f67756172642850617468287379732e617267765b315d292e7265736f6c766528292e706172656e74290a616374696f6e3d6366675b27616374696f6e275d0a696620616374696f6e3d3d303a0a2020202066726f6d206f7263686172645f6831302e7072657061726520696d706f72742072756e0a2020202072756e286366675b27636f6e666967275d2c6366675b27696e70757473275d290a656c696620616374696f6e3d3d313a0a20202020696d706f7274206f730a2020202066726f6d206f7263686172645f6831302e72756e6e657220696d706f72742072756e0a20202020726573756c743d72756e286366675b27636f6e666967275d2c6f732e656e7669726f6e5b27435544415f56495349424c455f44455649434553275d2e73706c697428272c27292c6366675b27656e64275d2c7072656669783d6366675b27636f6e666967275d5b27707265666978275d290a2020202072616973652053797374656d45786974283120696620726573756c745b276661696c757265275d20656c73652030290a656c696620616374696f6e3d3d323a0a2020202066726f6d206f7263686172645f6831302e72756e6e657220696d706f727420776f726b65725f617267730a2020202066726f6d2068316576616c2e6831302e6c61756e636820696d706f7274206d61696e0a2020202072616973652053797374656d45786974286d61696e28776f726b65725f61726773286366672929290a656c696620616374696f6e3d3d333a0a202020206966206366672e6765742827626f6f7427293a0a202020202020202066726f6d206f7263686172645f6831302e626f6f7420696d706f727420636865636b0a2020202020202020636865636b28636667290a202020202020202072616973652053797374656d457869742830290a2020202066726f6d20672e7720696d706f72742072756e0a20202020726573756c743d72756e286366675b27636f6e666967275d2c6366675b2773746f705f6174275d290a2020202072616973652053797374656d45786974283120696620726573756c7420616e6420726573756c745b276661696c757265275d20656c73652030290a656c696620616374696f6e3d3d343a0a2020202066726f6d206f7263686172645f6831302e626f6f7420696d706f727420776f726b65720a20202020776f726b657228636667290a656c73653a72616973652056616c75654572726f722827496e76616c696420646973706174636827290a'))",
+            "  File \"<string>\", line 31, in <module>",
+            "  File \"/scratch/jjyeung/orch_n30/lever1_c/r1_fixtures_old/boot_72435298bef0423d989e377f5fbab2d4/work/a173925a89e8fdab55d4/34/sj/b01ec87a6f29b/p/orchard_h10/boot.py\", line 32, in check",
+            "    importlib.import_module(name)",
+            "  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/importlib/__init__.py\", line 90, in import_module",
+            "    return _bootstrap._gcd_import(name[level:], package, level)",
+            "           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
+            "  File \"<frozen importlib._bootstrap>\", line 1387, in _gcd_import",
+            "  File \"<frozen importlib._bootstrap>\", line 1360, in _find_and_load",
+            "  File \"<frozen importlib._bootstrap>\", line 1324, in _find_and_load_unlocked",
+            "ModuleNotFoundError: No module named 'a_missing_closure'",
+            "Traceback (most recent call last):",
+            "  File \"/scratch/jjyeung/orch_n30/lever1_c/r1_fixtures_old/boot_72435298bef0423d989e377f5fbab2d4/work/a173925a89e8fdab55d4/34/a/5.py\", line 38, in <module>",
+            "    worker(cfg)",
+            "  File \"/scratch/jjyeung/orch_n30/lever1_c/r1_fixtures_old/boot_72435298bef0423d989e377f5fbab2d4/work/a173925a89e8fdab55d4/34/sj/b01ec87a6f29b/p/orchard_h10/boot.py\", line 63, in worker",
+            "    if result.returncode:raise subprocess.CalledProcessError(result.returncode,argv)",
+            "                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
+            "subprocess.CalledProcessError: Command '['bash', '/scratch/jjyeung/orch_n30/lever1_c/r1_fixtures_old/boot_72435298bef0423d989e377f5fbab2d4/work/a173925a89e8fdab55d4/34/sj/b01ec87a6f29b/d/q/0', '/scratch/jjyeung/envs/p1cpu/bin/python', '-B', '-I', '5.py', '30.json']' returned non-zero exit status 1."
+          ],
+          "width": 2048
+        },
+        "child_returncode": 1,
+        "child_signal": null,
+        "cwd": "/scratch/jjyeung/orch_n30/lever1_c/r1_fixtures_old/boot_72435298bef0423d989e377f5fbab2d4/work/a173925a89e8fdab55d4/34/sj/b01ec87a6f29b/r/metadata/a",
+        "failed_module": "a_missing_closure",
+        "job": "173925",
+        "launch_seconds": 1.3394342059909832,
+        "modules": 0,
+        "passed": false,
+        "plan": "7c0793e0846f0f7778ed96b9e4cd3dfb0e9bd0a5e921543e7236bdb73da13596",
+        "pre_bulk_bytes": 3863893,
+        "pre_bulk_seconds": 1.8338624319876544,
+        "python": "/scratch/jjyeung/envs/p1cpu/bin/python",
+        "seconds": 0.9494196460000239,
+        "stage_seconds": 0.49442822599667124,
+        "worker_returncode": 1,
+        "worker_signal": null
+      },
+      "production_fetch": true,
+      "fetched_sha256": "0d2d0f0a0692514b7ef56cb808e7ac9afbde42ba149ac5f35cde0052272667af",
+      "binding": "Local interpreter and filesystem replace remote runtime archives and bwrap; worker entry, loader, environment constructor, cwd, stage and fetch are real"
+    },
+    {
+      "case": "boot_gpu",
+      "passed": true,
+      "bulk_bytes": 0,
+      "bulk_calls": 0,
+      "seconds": 1.945136980008101,
+      "boot": {
+        "bulk_bytes": 0,
+        "child_output": {
+          "limit": 200,
+          "lines": [
+            "Traceback (most recent call last):",
+            "  File \"/scratch/jjyeung/orch_n30/lever1_c/r1_fixtures_old/boot_93d12dca4e7f4e4d9fbddf817f7d92af/work/a173925a89e8fdab55d4/sj/b01ec87a6f29b/r/metadata/a/5.py\", line 1, in <module>",
+            "22870295d0a696d706f7274206c0a506174683d6c2e696e7374616c6c2870292e506174680a66726f6d206f7263686172645f6831302e636f6d6d6f6e20696d706f727420696e7374616c6c5f70726f636573735f67756172640a696e7374616c6c5f70726f636573735f67756172642850617468287379732e617267765b315d292e7265736f6c766528292e706172656e74290a616374696f6e3d6366675b27616374696f6e275d0a696620616374696f6e3d3d303a0a2020202066726f6d206f7263686172645f6831302e7072657061726520696d706f72742072756e0a2020202072756e286366675b27636f6e666967275d2c6366675b27696e70757473275d290a656c696620616374696f6e3d3d313a0a20202020696d706f7274206f730a2020202066726f6d206f7263686172645f6831302e72756e6e657220696d706f72742072756e0a20202020726573756c743d72756e286366675b27636f6e666967275d2c6f732e656e7669726f6e5b27435544415f56495349424c455f44455649434553275d2e73706c697428272c27292c6366675b27656e64275d2c7072656669783d6366675b27636f6e666967275d5b27707265666978275d290a2020202072616973652053797374656d45786974283120696620726573756c745b276661696c757265275d20656c73652030290a656c696620616374696f6e3d3d323a0a2020202066726f6d206f7263686172645f6831302e72756e6e657220696d706f727420776f726b65725f617267730a2020202066726f6d2068316576616c2e6831302e6c61756e636820696d706f7274206d61696e0a2020202072616973652053797374656d45786974286d61696e28776f726b65725f61726773286366672929290a656c696620616374696f6e3d3d333a0a202020206966206366672e6765742827626f6f7427293a0a202020202020202066726f6d206f7263686172645f6831302e626f6f7420696d706f727420636865636b0a2020202020202020636865636b28636667290a202020202020202072616973652053797374656d457869742830290a2020202066726f6d20672e7720696d706f72742072756e0a20202020726573756c743d72756e286366675b27636f6e666967275d2c6366675b2773746f705f6174275d290a2020202072616973652053797374656d45786974283120696620726573756c7420616e6420726573756c745b276661696c757265275d20656c73652030290a656c696620616374696f6e3d3d343a0a2020202066726f6d206f7263686172645f6831302e626f6f7420696d706f727420776f726b65720a20202020776f726b657228636667290a656c73653a72616973652056616c75654572726f722827496e76616c696420646973706174636827290a'))",
+            "  File \"<string>\", line 31, in <module>",
+            "  File \"/scratch/jjyeung/orch_n30/lever1_c/r1_fixtures_old/boot_93d12dca4e7f4e4d9fbddf817f7d92af/work/a173925a89e8fdab55d4/sj/b01ec87a6f29b/p/orchard_h10/boot.py\", line 32, in check",
+            "    importlib.import_module(name)",
+            "  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/importlib/__init__.py\", line 90, in import_module",
+            "    return _bootstrap._gcd_import(name[level:], package, level)",
+            "           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
+            "  File \"<frozen importlib._bootstrap>\", line 1387, in _gcd_import",
+            "  File \"<frozen importlib._bootstrap>\", line 1360, in _find_and_load",
+            "  File \"<frozen importlib._bootstrap>\", line 1324, in _find_and_load_unlocked",
+            "ModuleNotFoundError: No module named 'a_missing_closure'",
+            "Traceback (most recent call last):",
+            "  File \"/scratch/jjyeung/orch_n30/lever1_c/r1_fixtures_old/boot_93d12dca4e7f4e4d9fbddf817f7d92af/work/a173925a89e8fdab55d4/a/5.py\", line 38, in <module>",
+            "    worker(cfg)",
+            "  File \"/scratch/jjyeung/orch_n30/lever1_c/r1_fixtures_old/boot_93d12dca4e7f4e4d9fbddf817f7d92af/work/a173925a89e8fdab55d4/sj/b01ec87a6f29b/p/orchard_h10/boot.py\", line 63, in worker",
+            "    if result.returncode:raise subprocess.CalledProcessError(result.returncode,argv)",
+            "                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
+            "subprocess.CalledProcessError: Command '['bash', '/scratch/jjyeung/orch_n30/lever1_c/r1_fixtures_old/boot_93d12dca4e7f4e4d9fbddf817f7d92af/work/a173925a89e8fdab55d4/sj/b01ec87a6f29b/d/q/0', '/scratch/jjyeung/envs/p1cpu/bin/python', '-B', '-I', '5.py', '30.json']' returned non-zero exit status 1."
+          ],
+          "width": 2048
+        },
+        "child_returncode": 1,
+        "child_signal": null,
+        "cwd": "/scratch/jjyeung/orch_n30/lever1_c/r1_fixtures_old/boot_93d12dca4e7f4e4d9fbddf817f7d92af/work/a173925a89e8fdab55d4/sj/b01ec87a6f29b/r/metadata/a",
+        "failed_module": "a_missing_closure",
+        "job": "173925",
+        "launch_seconds": 1.4708270280098077,
+        "modules": 0,
+        "passed": false,
+        "plan": "7c0793e0846f0f7778ed96b9e4cd3dfb0e9bd0a5e921543e7236bdb73da13596",
+        "pre_bulk_bytes": 3863893,
+        "pre_bulk_seconds": 1.943166590994224,
+        "python": "/scratch/jjyeung/envs/p1cpu/bin/python",
+        "seconds": 1.0016548510175198,
+        "stage_seconds": 0.47233956298441626,
+        "worker_returncode": 1,
+        "worker_signal": null
+      },
+      "production_fetch": true,
+      "fetched_sha256": "3c100e36c7a835d568f9677f8eedc393786f22bef5efc714fa47b4abbe3f7371",
+      "binding": "Local interpreter and filesystem replace remote runtime archives and bwrap; worker entry, loader, environment constructor, cwd, stage and fetch are real"
+    }
+  ],
+  "closure": {
+    "modules": 411,
+    "symbols": 1165,
+    "passed": true
+  },
+  "mixed_archive": {
+    "passed": true,
+    "bulk_bytes": 0,
+    "authenticated_before_boot": true
+  },
+  "success_order": {
+    "passed": true,
+    "bulk_bytes": 10240,
+    "bulk_calls": 1,
+    "boot_passed_before_bulk": true,
+    "seconds": 1.9921183450205717,
+    "closure": "Small fixture closure in the real worker; full production closure is checked separately"
+  }
+}
