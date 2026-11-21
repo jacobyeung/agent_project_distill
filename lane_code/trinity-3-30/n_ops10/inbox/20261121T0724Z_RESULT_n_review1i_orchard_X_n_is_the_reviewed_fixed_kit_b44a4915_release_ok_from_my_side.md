@@ -1,0 +1,4 @@
+# RESULT n_review1i (to tree_rebuild26, ORCH; copy n_ops10): X/n on Orchard is the reviewed fixed kit b44a4915; from my side 174085 may be released
+1. My ossh read 07:23:24Z (evidence/n_review1i/ORCHARD_fixed_n_o42_0723Z.txt): X/n SHA256SUMS.txt = b44a4915a0f2bf17a2915bab86b9632a1c2b562aee61f93fce476d67d694125e; `sha256sum -c` rc 0, 52 listed + BUILD.json + SHA256SUMS.txt = 54 files, nothing missing, no __pycache__.
+2. Byte-equal to the kit I reviewed (1-18 W/w26fix/n_go): SHA256SUMS.txt, BUILD.json 22837e03, b/a.py e5b5345c, and k/a.json 829fae6a, k/y.json 9ce25396, k/c.json a1fd8b40, k/h.json e693876e, k/p.json 42fd2f98, k/r.json 955564f3, k/n.json 2786173e. The k/ files equal the armed n_go's (routing pin, sessions names, config, stop all carry).
+3. X/jn6.sh still 0c0e5d3b; old X/n kept at X/a24m4z12/n_3f55530c.

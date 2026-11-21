@@ -1,7 +1,8 @@
 #!/bin/bash
 # Review-gate check of vehicle N's launch job, end to end (ORCH RULING 0211Z items 4-5). Run on trinity-3-30.
 # Usage: bash run_gate.sh <slurm job id> <fresh local out dir under /scratch/jjyeung/orch_n30/<your lane>/>
-# 1. Orchard (one ossh call over the existing master; stops on any host-key line): tar of X/o/<job>/live and
+# 1. Orchard (one ossh call over the existing master; stops on any host-key line): tar of the named gate files in X/o/<job>/live
+#    (never the whole dir: the copier keeps up to 50 MB of logs there) and
 #    X/o/<job>_gate (jn6 copy; or the n_ops10 srun fallback) -> <out>/x/.
 # 2. trinity-1-18 (one tssh call): v.json + identity.txt -> W/w24z14/work/gate_<job>_<stamp>/in, admit_test.sh there
 #    (it may write only under W/w24z14), ADMIT.json back -> <out>/ADMIT.json.
@@ -16,16 +17,19 @@ mkdir -p "$OUT" && [ -z "$(ls -A "$OUT")" ] || { echo "out dir must be new and e
 cd "$OUT"
 cat > o_fetch.sh <<EOF
 cd $X/o < /dev/null || exit 3
-ls -la $JOB/live ${JOB}_gate < /dev/null 1>&2
-du -sb $JOB/live ${JOB}_gate < /dev/null 1>&2
-tar cf - $JOB/live \$( [ -d ${JOB}_gate ] && echo ${JOB}_gate ) < /dev/null | base64 -w0
+ls -la ${JOB}_gate < /dev/null 1>&2
+L=""; for f in v.json identity.txt WAITING_REVIEW.json e0.json e1.json e2.json e3.json c0.json c1.json c2.json c3.json c4.json s2.json h0.json; do [ -f $JOB/live/\$f ] && L="\$L $JOB/live/\$f"; done
+G=""; [ -d ${JOB}_gate ] && G=${JOB}_gate
+[ -z "\$L\$G" ] || du -cb \$L \$G < /dev/null 2>&1 | tail -1 1>&2
+if [ -n "\$L\$G" ]; then tar cf - \$L \$G < /dev/null | base64 -w0; fi
 EOF
 ssh -o ControlPath=/tmp/cm-n30-orchard-%r -O check orchard 2>/dev/null || echo "NOTE no live Orchard master; ossh will open a new connection"
 timeout 300 bash $B/tools/ossh.sh 'bash -s' < o_fetch.sh > x.tar.b64 2> o_fetch.err; rc=$?
 if grep -qi 'host identification\|host key\|man-in-the-middle' o_fetch.err; then
   echo "HOST-KEY LINE on Orchard: stop all Orchard calls and post a BLOCKER (ANSWER 0222Z item 3):"; grep -i 'host' o_fetch.err; exit 4; fi
 [ $rc = 0 ] || { echo "Orchard fetch rc $rc (one failure: wait 2 min, retry once; a second is a BLOCKER)"; cat o_fetch.err; exit 5; }
-mkdir x && base64 -d x.tar.b64 > x.tar && tar xf x.tar -C x || { echo "fetch decode failed"; exit 5; }
+mkdir x; if [ -s x.tar.b64 ]; then base64 -d x.tar.b64 > x.tar && tar xf x.tar -C x || { echo "fetch decode failed"; exit 5; }; else echo "NOTE no gate file on X for job $JOB"; : > x.tar; fi
+[ $(stat -c %s x.tar) -lt 20000000 ] || echo "NOTE fetch above 20 MB: next time register it with the IO governor"
 sha256sum x.tar; cat o_fetch.err
 V=x/$JOB/live/v.json; I=x/$JOB/live/identity.txt
 if [ -f "$V" ] && [ -f "$I" ]; then

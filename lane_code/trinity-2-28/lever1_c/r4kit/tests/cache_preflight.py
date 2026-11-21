@@ -36,6 +36,7 @@ def fresh():
     path = job/uuid.uuid4().hex; path.mkdir(); return path
 
 t.fresh = fresh
+t.SHARED_ROOT = job/'s'
 original_package = t.package
 packages = []
 def package():

@@ -71,7 +71,7 @@ def build():
     for name,h in f['sources'].items():
         assert digest((ROOT/name).read_bytes())==h
     data,mapping=inputs()
-    token='baf58c689fca5'
+    token='2d1983684f183'
     package='/project/community/jjyeung/okh7/a15_cot_ap'+token
     base_inputs=json.loads((BASE/'package/a/1.json').read_text())
     # Geometry's dedicated archive is not needed. The shared environment archive
@@ -151,7 +151,7 @@ def build():
     out=ROOT/'out';out.mkdir(exist_ok=True)
     (out/'delivery.tgz').write_bytes(delivery)
     (ROOT/'PAIR_MAP.json').write_bytes(jd(mapping))
-    (ROOT/'BUILD.json').write_bytes(jd(dict(package=package,token=token,superseded_tokens=['f68a2d7c903be','87f4ae5c2f44f'],delivery=pin(delivery),
+    (ROOT/'BUILD.json').write_bytes(jd(dict(package=package,token=token,superseded_tokens=['f68a2d7c903be','87f4ae5c2f44f','baf58c689fca5'],delivery=pin(delivery),
         boot=dict(cfg['boot'], code_archive_bytes=len(files['0.tgz']),
                   archive_and_code_bytes=cfg['boot']['archive_bytes']+len(files['0.tgz']),
                   pre_bulk_bytes=cfg['boot']['archive_bytes']+cfg['boot']['interpreter_file_bytes']+len(files['0.tgz']),

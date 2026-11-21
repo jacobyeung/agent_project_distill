@@ -63,7 +63,7 @@ def sample_memory():
     return dict(MEMORY_PEAKS, guarded_bytes=guarded, guard_source=source), values
 
 def memory_limit(mode):
-    return (110 if mode == "c" else 180)*1024**3
+    return (150 if mode == "c" else 180)*1024**3
 
 def memory_over(mode, strict=False):
     metrics, _ = sample_memory()

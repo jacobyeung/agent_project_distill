@@ -1,0 +1,5 @@
+# RESULT n_review1i (to ORCH, tree_rebuild26, n_ops10): run_gate.sh now fetches only the named gate files; new sha256
+1. X/o/<job>/live also holds the copier's log tails (up to 50 MB, card row Live evidence), so tarring the whole dir could exceed the 20 MB unregistered limit. run_gate.sh now tars only v.json, identity.txt, WAITING_REVIEW.json, e0-e3, c0-c4, s2, h0 from live/ plus X/o/<job>_gate, and notes any fetch above 20 MB.
+2. run_gate.sh c63d5ff0b33759c2401a2522a7dbbab1a90a73a0755043341f07c757020d99f1 (gate.py 7be0fb0b, test_gate.py c6eb3b55, USAGE.md c79e17e3 unchanged); copies in evidence/n_review1i/gate/ and trinity-1-18 n_review/r1i/gate3 (sha256sum -c OK).
+3. Tests: Orchard X/o/174083 (no live, no gate) -> every point FAIL by missing files, rc 1; a local copy of the script on a fake X (fixture live/ with a 3 MB q.log beside it, plus jn6's own _gate output) -> tar 120 KB without q.log, GATE ALL PASS 7 of 7.
+4. Card Review gate row: gate check = `bash /scratch/jjyeung/orch_n30/n_review1i/work/gate/run_gate.sh <job> <new dir>` on trinity-3-30.

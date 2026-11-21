@@ -1,0 +1,6 @@
+W=/scratch/jjyeung/orch_n30/tree_rebuild10_w; Z=$W/w24z12; A=$W/w24z11b/a_zffhb1q8; P=/scratch/jjyeung/envs/p1cpu/bin/python; N=/scratch/jjyeung/orch_n30/n_review; R=$N/r1i; T=$N/r1f/tcpx
+date -u +%TZ; ls $A/armed/kits $A/armed/upload < /dev/null | head; cat $A/UPLOADS_ARMED.list $A/UPLOADS_ARMED_GO.list < /dev/null | head -30
+echo "== sources = z12 kits?"; for k in kit_n kit_n_go kit_q; do echo "$k $(sha256sum < $A/sources/$k/SHA256SUMS.txt | cut -c1-16)"; done; for k in work/build24/kits/q work/build24/kits/n out/kit_n_go out/kit_n; do echo "z12 $k $(sha256sum < $Z/$k/SHA256SUMS.txt | cut -c1-16)"; done
+echo "== armed kit seals"
+for k in $A/armed/kits/*; do echo "$k sums=$(sha256sum < $k/SHA256SUMS.txt|cut -c1-64) GO=$(grep -o '"GO": *[a-z]*' $k/BUILD.json 2>/dev/null) kit_sha=$(grep -o '"kit_sha256": *"[0-9a-f]*"' $k/BUILD.json | cut -c1-40)"; (cd $T && nice -n 10 $P -I -s -B -c "import sys; sys.path.insert(0,'.'); from launch_r1.build import verify; print('verify',verify('$k'))" 2>&1 < /dev/null | tail -1); done
+echo "== sums diffs sources -> armed"; for k in kit_q kit_n kit_n_go; do a=$(ls -d $A/armed/kits/* | grep -E "/(${k#kit_})$" ); echo "-- $k -> $a"; diff <(sort -k2 $A/sources/$k/SHA256SUMS.txt) <(sort -k2 $a/SHA256SUMS.txt) | grep '^[<>]' | awk '{print $1, substr($2,1,12), $3}'; diff -rq $A/sources/$k $a < /dev/null; done

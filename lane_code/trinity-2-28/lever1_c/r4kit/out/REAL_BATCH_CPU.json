@@ -1,0 +1,96 @@
+{
+  "passed": false,
+  "executed": false,
+  "status": "not_run_export_absent",
+  "host": "trinity-2-28",
+  "checked": "2026-11-21",
+  "requirement": "Batch 0 (first 8 frozen rows, 4 pairs, real RGB frames) through full forward and batched decode on CPU in the pinned environment with the real step-400 weights",
+  "batch0": {
+    "rows": 8,
+    "pairs": [
+      "8b38860e59ea0c21b6f8f252",
+      "a61ae5e3786ddd7541ced95d",
+      "4c3804591eab5d3ef24d6924",
+      "f7842394ae139b03d6ad19f2"
+    ]
+  },
+  "local_inputs": {
+    "artifact_json": {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/ext/m400real/files/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/m400/artifact.json",
+      "sha256": "5083243cfedd2a389dfca579c5452e7d0c73b03a58e1cb7d204292ddd10e67cd",
+      "present": true
+    },
+    "full_weights_json": {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/ext/m400real/files/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/m400/full_weights/full_weights.json",
+      "sha256": "1de983c9839c1ed25a9113bb5d3b473eaa8be6ae914d9227b143fdc6dd80334c",
+      "present": true
+    },
+    "weight_shards": {
+      "files": [
+        "model-00001-of-00005.safetensors",
+        "model-00002-of-00005.safetensors",
+        "model-00003-of-00005.safetensors",
+        "model-00004-of-00005.safetensors",
+        "model-00005-of-00005.safetensors"
+      ],
+      "bytes": 18819721016,
+      "present": false
+    },
+    "heads": {
+      "bytes": 2763214343,
+      "sha256": "e72208ac55e342a3ac7972383f63740be323eba28d6c3bd293da1ad47743d4a7",
+      "present": false
+    },
+    "export_archive": {
+      "parts": [
+        {
+          "bytes": 5395758080,
+          "path": "/project/community/jjyeung/okh7/a15_cot_apda6f7936c1779/a/e/0",
+          "sha256": "cbbe6aa0d0e04dc3828ce9b9e784285a272fd3c5bee232e3b56ef1b974c8f469"
+        },
+        {
+          "bytes": 5395758080,
+          "path": "/project/community/jjyeung/okh7/a15_cot_apda6f7936c1779/a/e/1",
+          "sha256": "fa217f69b72ceefd5d426efb981ac00507223d295269f5e28e6675e36739d82e"
+        },
+        {
+          "bytes": 5395758080,
+          "path": "/project/community/jjyeung/okh7/a15_cot_apda6f7936c1779/a/e/2",
+          "sha256": "2f7f00221a5bef88da47687fc420db2e1f3836946e0f8e8f16ce81158df4c238"
+        },
+        {
+          "bytes": 5395758080,
+          "path": "/project/community/jjyeung/okh7/a15_cot_apda6f7936c1779/a/e/3",
+          "sha256": "99c787cc3fcca78db590a0b740d531b068455064294ccf29615bda32434c9988"
+        }
+      ],
+      "sha256": "dcd49569e1555e18c403207f429de7b352f806bb11827fb57aa9973f4ceec7b5",
+      "expanded_bytes": 21583016318,
+      "present": false
+    },
+    "frames_archive": {
+      "parts": [
+        {
+          "bytes": 797685760,
+          "path": "/project/community/jjyeung/okh7/af83c921/d81f4a26.tar",
+          "sha256": "2ad8c67c111d5f286aa96ea688efd5c88218e116a8c09ae1a9b4bc71be893a21"
+        }
+      ],
+      "sha256": "2ad8c67c111d5f286aa96ea688efd5c88218e116a8c09ae1a9b4bc71be893a21",
+      "present": false
+    }
+  },
+  "search": "Exact-size find over local /scratch (maxdepth 9) for model-0000[15]-of-00005.safetensors, heads.pt (2,763,214,343 bytes) and d81f4a26*; /scratch/jjyeung/b01ec87a6f29b/d holds only k/ and s/; reads228/dl holds runtime/env archives (r0-r2, a2-a4, g0), not the export (a/e/0-2) or frames. reads228/dl/s4e0b (5,395,758,080 bytes) is part 0 of a 4-part split of another package (a15_cot_apdc76460c3a164/a/e/0-3, about the export size); parts 1-3 are absent and s4e0 is a failed partial copy (exit 255), so no complete weight set exists locally.",
+  "resources": {
+    "memory_total_gib": 1007,
+    "memory_available_gib": 916,
+    "cores": 96
+  },
+  "substitute": "tests/test_pinned_batch.py: delivered 10.py merge/select and native cache continuation under pinned transformers 5.19.0 on CPU with the native tiny Qwen3.5 hybrid fixture; out/PINNED_BATCH_CHECKS.json",
+  "to_run": "Copy the export archive parts (a/e/0..2) and frames tar (af83c921/d81f4a26.tar) to this node, extract on /scratch, then run batch 0 under tmp/pinned; this needs a transfer the builder cannot perform (no network or ssh).",
+  "per_row": null,
+  "batched_vs_serial": null,
+  "peak_rss_bytes": null,
+  "wall_s": null,
+  "summary": "The orchestrator-requested CPU run of the real first batch with step-400 weights did not run: the export weights (18.8 GB of bf16 shards, 2.76 GB heads.pt) and the frame archive are not on trinity-2-28; only their metadata is (`out/REAL_BATCH_CPU.json`)."
+}

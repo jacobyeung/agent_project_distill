@@ -22,6 +22,10 @@ imports=read('out/IMPORT_CHECKS.json')
 assert imports['passed'] and imports['delivery']==build['delivery']
 pinned=read('out/PINNED_CHECKS.json')
 assert pinned['passed'] and pinned['delivery']==build['delivery']
+pinned_batch=read('out/PINNED_BATCH_CHECKS.json')
+assert pinned_batch['passed'] and pinned_batch['delivery']==build['delivery']
+pb=pinned_batch['result'];assert pb['transformers']=='5.19.0' and pb['selfcheck_with_frozen_merge']['failed']
+real_batch=read('out/REAL_BATCH_CPU.json')
 boots=read('out/BOOT_CHECKS.json')
 assert boots['passed'] and boots['delivery']==build['delivery']
 assert tests['delivery']==checks['delivery']==build['delivery']
@@ -44,7 +48,7 @@ assert pinned['gpu_mode']['passed'] and all(not v['present'] for v in pinned['gp
 build['boot']['local_pre_bulk_seconds']=[min(c['boot']['pre_bulk_seconds'] for c in boots['cases'] if not c['expected_failure']),max(c['boot']['pre_bulk_seconds'] for c in boots['cases'] if not c['expected_failure'])]
 build['boot']['pinned_replay']={k:pinned[k] for k in ('passed','seconds','environment','bulk_bytes','returncode')}
 save('BUILD.json',build)
-test_count=tests['tests']+checks['tests']+imports['tests']+boots['tests']+pinned['tests']+1
+test_count=tests['tests']+checks['tests']+imports['tests']+boots['tests']+pinned['tests']+pinned_batch['tests']+1
 files=members((ROOT/'out/delivery.tgz').read_bytes());payload=members(files['0.tgz'])
 cfg=B.storage.loads(files['2.json']);sources=B.storage.loads(files['8.bin'])
 assert cfg['import_closure']==closure
@@ -67,6 +71,7 @@ f.update(token=build['token'], delivery=build['delivery'],
     cpu_preflight=dict(worker_address_space_limit_bytes=32*1024**3,
         guarded_memory_stop_bytes=110*1024**3, staging_filesystem='ext4',
         tensors='meta shapes only; processor and two CPU prompt batches',
+        boot_batch_selfcheck='Both modes, before bulk staging: delivered merge_caches/select_cache_rows on a tiny native hybrid model in the pinned interpreter, under 1 second (execution.boot.batch_selfcheck)',
         production_measured=False, diagnostic='DEBUG.md'),
     batch_timing_return='3.jsonl: packed per-batch preparation, prefill, slowest synchronized token-step, total seconds, completed pairs, admission estimate, remaining time, host peak RSS and GPU max allocated bytes',
     batch_admission='First batch requires 60 seconds plus a 10-second reserve. Later batches require the maximum of 60 seconds, 1.25 times every observed batch elapsed time, and 1.25 times (preparation + prefill + 64 times slowest token-step seconds), plus the reserve. Whole pair batches only; estimates cannot guarantee future speed or prevent an external interruption.',
@@ -148,7 +153,7 @@ sha=build['delivery']['sha256'];size=build['delivery']['bytes'];token=build['tok
 dest='/project/community/jjyeung/okh7/ad'+token+'/0.tgz';ret='/project/community/jjyeung/okh7/af'+token
 place=f'''The delivery preserves the frozen 580 prompts, greedy decoding, 64-token cap and first-call-opening stop. No tool response is served. The checkpoint is step 400, artifact `5083243cfedd2a389dfca579c5452e7d0c73b03a58e1cb7d204292ddd10e67cd`.
 
-Token: `{token}`. Superseded tokens: `f68a2d7c903be` (placed destination exists; CPU submission marker spent) and `87f4ae5c2f44f` (placed destination exists; CPU submission marker spent; GPU marker used by job 173990). Job: `a15_cot_ap{token}`.
+Token: `{token}`. Superseded tokens: `f68a2d7c903be` (placed destination exists; CPU submission marker spent), `87f4ae5c2f44f` (placed destination exists; CPU submission marker spent; GPU marker used by job 173990) and `baf58c689fca5` (placed destination exists; CPU and GPU submission markers spent; GPU marker used by job 174087). Job: `a15_cot_ap{token}`.
 Delivery: **{size:,} bytes**, SHA-256 `{sha}`.
 Frozen SHA-256: `{frozen}`.
 
@@ -188,7 +193,7 @@ PYPLACE
 /usr/bin/python3 -I -s -B "$P/3.py" check
 ```
 
-The CPU preflight uses the assigned ext4 job_tmp bind at `/tmp`; it refuses tmpfs before copying archives. It hashes all staged inputs, checks head metadata and meta model shapes, and exercises the processor on two prompts. It loads no resident full-model weights. The CPU worker has a 32 GiB address-space ceiling and a 110 GiB non-reclaimable-memory stop. Missing memory.stat or memory.current falls back to process-tree RSS. The production peak remains unmeasured. `DEBUG.md` records the cause analysis and evidence.
+The CPU preflight uses the assigned ext4 job_tmp bind at `/tmp`; it refuses tmpfs before copying archives. It hashes all staged inputs, checks head metadata and meta model shapes, and exercises the processor on two prompts. It loads no resident full-model weights. Before any bulk staging, the boot gate of both CPU and GPU jobs runs the delivered batched cache merge on a tiny native hybrid model in the pinned interpreter (`execution.boot.batch_selfcheck`); a merge incompatible with the installed transformers fails there with zero bulk bytes. The CPU worker has a 32 GiB address-space ceiling and a 110 GiB non-reclaimable-memory stop. Missing memory.stat or memory.current falls back to process-tree RSS. The production peak remains unmeasured. `DEBUG.md` records the cause analysis and evidence.
 
 Submit the CPU preflight once:
 
@@ -262,6 +267,7 @@ nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B tests/test_fixes.py
 nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B tests/test_imports.py
 nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B tests/test_boot.py
 nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B tests/test_pinned.py
+nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B tests/test_pinned_batch.py
 nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B finish.py
 ```
 '''
@@ -318,7 +324,7 @@ place += boot_text
 (ROOT/'PLACE.md').write_text(place)
 report=f"""The delivery passes **{test_count} local CPU tests**, including staged-interpreter imports and forced early failures in both modes through real authenticated fetch. No placement, submission, network access or GPU execution occurred.
 
-Token: `{token}`. Superseded tokens: `f68a2d7c903be` (placed destination exists; CPU submission marker spent) and `87f4ae5c2f44f` (placed destination exists; CPU submission marker spent; GPU marker used by job 173990). Job: `a15_cot_ap{token}`.
+Token: `{token}`. Superseded tokens: `f68a2d7c903be` (placed destination exists; CPU submission marker spent), `87f4ae5c2f44f` (placed destination exists; CPU submission marker spent; GPU marker used by job 173990) and `baf58c689fca5` (placed destination exists; CPU and GPU submission markers spent; GPU marker used by job 174087). Job: `a15_cot_ap{token}`.
 Delivery: **{size:,} bytes**. SHA-256: `{sha}`.
 Frozen SHA-256: `{frozen}`. FROZEN.json and the checkpoint pin remain unchanged.
 
@@ -335,12 +341,15 @@ The central timing forecast remains **{total:.1f} seconds ({total/60:.2f} minute
 Evidence: `out/test_probe.log`, `out/test_fixes.log`, `out/FIX_CHECKS.json`, `out/FIX3_CHECKS.json`, `out/CACHE_CHECKS.json`, `NAMING_AUDIT.json`, `FORECAST.json` and `BUILD.json`. `PLACE.md` contains exact operator commands. Full-checkpoint GPU numerical parity remains untested.
 """
 report += contract+import_contract
+real_batch_text=real_batch['summary']
 pinned_text=f"""
 The pinned CPU boot passes all {closure['cpu_modules']:,} required imports in {pinned['seconds']:.3f} seconds with zero bulk bytes and no package doubles. The pinned GPU-mode boot, with CUDA hidden, imports those modules plus `triton` in {pinned['gpu_mode']['seconds']:.3f} seconds and records `fla` and `causal_conv1d` as absent with the PyTorch fallback expected. The pre-bulk archives were authenticated and extracted under `tmp/pinned/`; `out/PINNED_ARCHIVES.json` records their pins. The environment uses Pillow 13.0.0, NumPy 2.3.5 and Torch 2.13.0+cu130. `out/PINNED_CHECKS.json` pins the successful replay to this delivery.
 
 The failed entry was `PIL._typing`: the pinned `PIL/_typing.py:8` imports `numbers._IntegralLike` unconditionally, while `PIL/Image.py:207–214` places that helper inside a disabled `if TYPE_CHECKING` branch. The local copy guards the numbers import. Every dropped entry and its pinned-environment reason is recorded in `tests/pinned_exclusions.json` and `IMPORT_CLOSURE.json:pinned_drops`: {len(closure['pinned_drops'])} drops reduce the CPU closure from {closure['previous_cpu_modules']:,} to {closure['cpu_modules']:,} and the GPU closure from {closure['previous_gpu_modules']:,} to {closure['gpu_modules']:,}. The three CUDA-only exclusions are unchanged. Imports use normal module names with runtime typing semantics; no library or interpreter bytes are patched.
 
-Closure failures retain the entry and full exception in both the worker diagnostic and boot receipt. The typing-helper regression verifies that an exception longer than 120 characters survives authenticated fetch, with zero bulk staging. Tokens `f68a2d7c903be` and `87f4ae5c2f44f` are superseded by `{token}` because placement cannot overwrite their destinations and their submission markers are spent.
+Closure failures retain the entry and full exception in both the worker diagnostic and boot receipt. The typing-helper regression verifies that an exception longer than 120 characters survives authenticated fetch, with zero bulk staging. Tokens `f68a2d7c903be`, `87f4ae5c2f44f` and `baf58c689fca5` are superseded by `{token}` because placement cannot overwrite their destinations and their submission markers are spent.
+
+GPU job 174087 (token `baf58c689fca5`) booted, loaded the model (26.1 GB GPU) and failed in batch 0 after 16.8 seconds: `10.py:23` called the frozen `carrier_c1_batch_decode.merge_caches`, whose line 43 reads `.shape` from each linear-attention state. Pinned transformers 5.19.0 stores `LinearAttentionLayer.conv_states` and `recurrent_states` as `{{state_idx: tensor}}` dicts with per-index `is_*_initialized` and `has_previous_state` dicts (`cache_utils.py:950-957`); local 5.12.1 stores tensors and booleans, so local tests passed. The frozen module stays unchanged (FROZEN.json pins it). `src/batch.py` now owns `merge_caches` and `select_cache_rows`: it concatenates every state index, copies the flag and kernel-size dicts per merged layer, rejects mismatched flags, past-recording layers, static, sliding and offloaded caches, and still handles the tensor form. Decoding semantics are unchanged. In the pinned interpreter on CPU (`tests/test_pinned_batch.py`, `out/PINNED_BATCH_CHECKS.json`), the previous delivery reproduces the production traceback exactly; the new delivery matches serial decoding token for token in eight unequal-length rows, with EOS, 64-token-cap and first-call-opening stops and mid-batch row removal, and the boot self-check passes while the frozen merge fails it. {real_batch_text}
 
 GPU job 173990 (token `87f4ae5c2f44f`) failed at the boot gate on `causal_conv1d` with zero bulk bytes. `build.py` serializes `2.json` with sorted keys, so the worker tried `causal_conv1d` before `fla` and `triton`; neither of those was attempted. `fla` would also have failed: no `fla` package exists in runtime group 1, a4, a2 or a3 (only `cudnn/fla` and `vllm/third_party/flash_linear_attention` subpackages), and D400's `worker.log` lines 6–9 report the `flash-linear-attention` and `causal_conv1d` fallbacks. Transformers 5.19 resolves both kernels when `modeling_qwen3_5` is imported (`integrations/hub_kernels.py:984–1014`) and otherwise uses its PyTorch reference implementation; `kernels` is not installed, so no hub download is attempted.
 """
@@ -353,6 +362,6 @@ save('out/FINAL_CHECKS.json',dict(passed=True,token=token,delivery=build['delive
     project_budget=build['project_budget'],gpu_memory=build['gpu_memory'],forecast_seconds=total,headroom_fraction=f['headroom_fraction'],artifact=cfg['export']['artifact']['sha256']))
 names = [line.split(None, 1)[1] for line in (ROOT/'SHA256SUMS').read_text().splitlines()]
 names = sorted(set(names) | {'REPORT.md', 'finish.py', 'tests/test_fixes.py', 'tests/cache_preflight.py', 'tests/write_audit.c', 'out/CACHE_CHECKS.json', 'src/storage.py', 'src/batch.py', 'src/monitor.py', 'DEBUG.md', 'out/fail1_code/control.py', 'out/fail1_code/runtime.py', 'out/FIX_CHECKS.json', 'out/FINAL_CHECKS.json'})
-names = sorted(set(names) | {'IMPORT_CLOSURE.json','tests/import_baseline.json','tests/trace_worker.py','tests/record_import_closure.py','out/WORKER_IMPORT_TRACE.json','out/trace_worker.log','IMPORTS.md', 'tests/test_imports.py', 'tests/import_worker.py', 'out/IMPORT_CHECKS.json', 'out/test_imports.log', 'tests/test_boot.py', 'out/BOOT_CHECKS.json', 'out/test_boot.log','tests/test_pinned.py','tests/pinned_exclusions.json','out/PINNED_ARCHIVES.json','out/PINNED_CHECKS.json','out/PINNED_IMPORT_PROBE.json','out/test_pinned.log'})
+names = sorted(set(names) | {'IMPORT_CLOSURE.json','tests/import_baseline.json','tests/trace_worker.py','tests/record_import_closure.py','out/WORKER_IMPORT_TRACE.json','out/trace_worker.log','IMPORTS.md', 'tests/test_imports.py', 'tests/import_worker.py', 'out/IMPORT_CHECKS.json', 'out/test_imports.log', 'tests/test_boot.py', 'out/BOOT_CHECKS.json', 'out/test_boot.log','tests/test_pinned.py','tests/pinned_exclusions.json','out/PINNED_ARCHIVES.json','out/PINNED_CHECKS.json','out/PINNED_IMPORT_PROBE.json','out/test_pinned.log','tests/test_pinned_batch.py','tests/pinned_batch_worker.py','out/PINNED_BATCH_CHECKS.json','out/test_pinned_batch.log','out/REAL_BATCH_CPU.json'})
 (ROOT/'SHA256SUMS').write_text(''.join(hashlib.sha256((ROOT/name).read_bytes()).hexdigest()+'  '+name+'\n' for name in names))
 print(json.dumps(read('out/FINAL_CHECKS.json'),sort_keys=True))

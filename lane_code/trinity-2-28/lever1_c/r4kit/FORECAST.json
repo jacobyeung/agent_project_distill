@@ -15,7 +15,7 @@
   "batches": 73,
   "batching_assumption": "An eight-row token forward costs twice a serial token forward. This GPU estimate is unmeasured; CPU timing is not used as a GPU speed estimate.",
   "boot": {
-    "archive_and_code_bytes": 8614225632,
+    "archive_and_code_bytes": 8614229128,
     "archive_bytes": 8612076000,
     "closure": {
       "aliases": {
@@ -170,9 +170,9 @@
       "previous_cpu_modules": 3338,
       "previous_gpu_modules": 3341,
       "trace": "out/WORKER_IMPORT_TRACE.json",
-      "traced_modules": 3325
+      "traced_modules": 3324
     },
-    "code_archive_bytes": 2149632,
+    "code_archive_bytes": 2153128,
     "environment_expanded_bytes": 8386282204,
     "exclusions": {
       "PIL._typing": "Typing-only PIL helper: pinned PIL/_typing.py:8 unconditionally imports numbers._IntegralLike, which is absent at runtime. PIL/Image.py:207-214 and ImageFont.py:45-52 guard this helper with TYPE_CHECKING=False; local Pillow guards the numbers import instead.",
@@ -363,8 +363,8 @@
     "interpreter_prefix": "sj/uv-python/cpython-3.12.13-linux-x86_64-gnu",
     "interpreter_source_bytes": 1621422080,
     "local_pre_bulk_seconds": [
-      4.1176687619881704,
-      4.581225213012658
+      4.207063767011277,
+      4.249195221986156
     ],
     "overlay_expanded_bytes": 143782645,
     "pinned_replay": {
@@ -383,9 +383,9 @@
       },
       "passed": true,
       "returncode": 0,
-      "seconds": 10.255859283002792
+      "seconds": 10.286859165003989
     },
-    "pre_bulk_bytes": 8719175194,
+    "pre_bulk_bytes": 8719178690,
     "production_seconds": null,
     "receipt": "execution.boot",
     "runtime_groups": [
@@ -395,8 +395,8 @@
   "caveat": "Full-checkpoint GPU numerical parity, batch memory use, speed and ext4 sync/supervisor overhead are unmeasured. Slow openings/staging can still yield a partial return with no gate verdict.",
   "code_pins": {
     "src/batch.py": {
-      "bytes": 4131,
-      "sha256": "715d494e6d840796eddcbf8c75bee96ea98d2fe5ba2c2e9ef5c63edd5c00155c"
+      "bytes": 14373,
+      "sha256": "2b8e10017bf9fd10c749a4344d67fb3c6cf2a827b4e926b2f5ac5ed1c47732d1"
     },
     "src/control.py": {
       "bytes": 25800,
@@ -407,13 +407,14 @@
       "sha256": "1c914c666c1a8d1a15f6772844c45d7a24a7671008c1fd154d961e1de77f46cb"
     },
     "src/runtime.py": {
-      "bytes": 15834,
-      "sha256": "f567fe47ac2e5722f1f64a5bd66d494ec2ede7a22333a7822d5c07e17990df5f"
+      "bytes": 16255,
+      "sha256": "031e8177d461514e6e8c8185d20209798c9055868cda7169d37b03fcebddfd58"
     }
   },
   "controller_subprocess_cutoff_s": 1730,
   "cpu_parity_evidence": "out/FIX_CHECKS.json:evidence.native_cpu_parity",
   "cpu_preflight": {
+    "boot_batch_selfcheck": "Both modes, before bulk staging: delivered merge_caches/select_cache_rows on a tiny native hybrid model in the pinned interpreter, under 1 second (execution.boot.batch_selfcheck)",
     "diagnostic": "DEBUG.md",
     "guarded_memory_stop_bytes": 118111600640,
     "production_measured": false,
@@ -422,8 +423,8 @@
     "worker_address_space_limit_bytes": 34359738368
   },
   "delivery": {
-    "bytes": 4310812,
-    "sha256": "210bab49e44f3390265bce1900749af87fb93cd586c73b693d5d942af376c763"
+    "bytes": 4318129,
+    "sha256": "d18d1524465ce7cb6aaaeece1ba9fbb19672dc5b6ed626ca9de1e26a513f42d9"
   },
   "effective_worker_cutoff_from_controller_start_s": 1720,
   "evidence": {
@@ -502,9 +503,10 @@
   },
   "superseded_tokens": [
     "f68a2d7c903be",
-    "87f4ae5c2f44f"
+    "87f4ae5c2f44f",
+    "baf58c689fca5"
   ],
-  "token": "baf58c689fca5",
+  "token": "2d1983684f183",
   "tool_free_decode_s_per_token": 0.04883935931269989,
   "tool_free_tokens": 35622,
   "worker_headroom_fraction": 0.3519176427583548,

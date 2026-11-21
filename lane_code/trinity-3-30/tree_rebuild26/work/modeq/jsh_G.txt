@@ -1,0 +1,440 @@
+     1	export PYTHONDONTWRITEBYTECODE=1
+     2	set -euo pipefail
+     3	tk_evidence_exit() {
+     4	    local status="$1"
+     5	    trap - EXIT TERM USR1
+     6	    /usr/bin/python3 -B -I -s "$Q_KIT/b/ep.py" "$Q_KIT" "$Q_ROOT" "${SLURM_JOB_ID:?}" "$status" || true
+     7	    exit "$status"
+     8	}
+     9	trap 'tk_evidence_exit $?' EXIT
+    10	trap 'exit 143' TERM
+    11	trap 'exit 138' USR1
+    12	export TMPDIR="$Q_ROOT/tmp" XDG_CACHE_HOME="$Q_ROOT/cache"
+    13	export HF_HOME="$Q_ROOT/cache/hf" TORCH_HOME="$Q_ROOT/cache/torch" TRITON_CACHE_DIR="$Q_ROOT/cache/triton"
+    14	export CUDA_CACHE_PATH="$Q_ROOT/cache/cu" MPLCONFIGDIR="$Q_ROOT/cache/plot"
+    15	mkdir -p "$TMPDIR" "$XDG_CACHE_HOME"
+    16	cd "$Q_ROOT"
+    17	export PATH=/usr/local/bin:/usr/bin:/bin
+    18	AS=/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung
+    19	AL=/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung
+    20	K=8865619b
+    21	X=$AS/ap/$K
+    22	R=/project/community/jjyeung/okh7/l_94a76bda
+    23	HX="${TK_KIT_HOME:?}"
+    24	IN=$R/in
+    25	REV=c202236235762e1c871ad0ccb60c8ee5ba337b9a
+    26	P=/project/community/jjyeung/c7d31ddd
+    27	RR=runs/aws128p_20261025
+    28	EPOCHS=/home/jjyeung/6d00e578
+    29	S="$Q_ROOT/s"
+    30	U=$S/aws/u
+    31	HM=$HX
+    32	NX="$Q_ROOT/x"
+    33	NR="$Q_ROOT/rp"
+    34	CUR=$HX/k/0.json
+    35	COMMIT=$(/usr/bin/python3 -B -I -c 'import json, sys; print(json.load(open(sys.argv[1]))["commit"])' "$CUR")
+    36	tk_step() {
+    37	    local line
+    38	    line="$(date -u +%FT%TZ) | $*"
+    39	    printf '%s\n' "$line"
+    40	    if [[ -n "${SLURM_JOB_ID:-}" ]]; then printf '%s\n' "$line" >> "$Q_ROOT/$SLURM_JOB_ID.steps"; fi
+    41	}
+    42	hp() {
+    43	    case "$1" in
+    44	        "$X"/*) printf '%s\n' "$NX/${1#"$X"/}" ;;
+    45	        "$AS"/*) printf '%s\n' "$U/${1#"$AS"/}" ;;
+    46	        "$AL"/*) printf '%s\n' "$U/${1#"$AL"/}" ;;
+    47	        *) printf '%s\n' "$1" ;;
+    48	    esac
+    49	}
+    50	tk_current() { /usr/bin/python3 -B -I -c 'import json, sys; e = json.load(open(sys.argv[1]))[sys.argv[2]]; print(e["file"], e["sha256"])' "$CUR" "$1"; }
+    51	tk_has() { /usr/bin/python3 -B -I -c 'import json,sys; sys.exit(0 if sys.argv[2] in json.load(open(sys.argv[1])) else 1)' "$CUR" "$1"; }
+    52	CLOSURE_DIR="_jobs/cp4tk_$(tk_current closure | cut -d' ' -f2 | cut -c1-12)"
+    53	tk_kitx() {
+    54	    local key="$1" dest="$2" file sha
+    55	    read -r file sha < <(tk_current "$key")
+    56	    file=$(hp "$file")
+    57	    if [[ -f "$S/.stamp/$key.$sha" && -d "$dest" ]]; then return 0; fi
+    58	    if [[ -e "$dest" ]]; then mv "$dest" "$dest.old.$(date +%s)"; fi
+    59	    mkdir -p "$(dirname "$dest")" "$S/.stamp"
+    60	    /usr/bin/python3 -B -I "$HX/b/kitx.py" "$file" "$sha" "$dest"
+    61	    touch "$S/.stamp/$key.$sha"
+    62	}
+    63	sha_is() { [[ "$(sha256sum < "$1" | cut -d' ' -f1)" == "$2" ]] || { tk_step "sha differs: $1"; return 3; }; }
+    64	
+    65	tk_venv_shebangs() {
+    66	    local v="$S/c7d31ddd/venvs/rwtrain_torch211_cu129" stamp
+    67	    stamp="$S/.stamp/shebang.$(tk_current venv | cut -d' ' -f2)"
+    68	    [[ ! -f "$stamp" ]] || return 0
+    69	    /usr/bin/python3 -B -I - "$v/bin" "$P/venvs/rwtrain_torch211_cu129/bin/python" <<'PYSHEBANG'
+    70	import os, re, sys
+    71	bindir, target = sys.argv[1], sys.argv[2].encode()
+    72	pattern = re.compile(rb'#!/project/community/jjyeung/[^/\s]+/venvs/rwtrain_torch211_cu129/bin/python[0-9.]*')
+    73	changed = 0
+    74	for name in sorted(os.listdir(bindir)):
+    75	    path = os.path.join(bindir, name)
+    76	    if os.path.islink(path) or not os.path.isfile(path):
+    77	        continue
+    78	    with open(path, 'rb') as stream:
+    79	        data = stream.read()
+    80	    first, sep, rest = data.partition(b'\n')
+    81	    if pattern.fullmatch(first.rstrip()) and first != b'#!' + target:
+    82	        with open(path + '.part', 'wb') as stream:
+    83	            stream.write(b'#!' + target + sep + rest)
+    84	        os.chmod(path + '.part', os.stat(path).st_mode)
+    85	        os.replace(path + '.part', path)
+    86	        changed += 1
+    87	assert os.path.isfile(os.path.join(bindir, 'torchrun'))
+    88	print('venv console scripts repointed:', changed, flush=True)
+    89	PYSHEBANG
+    90	    touch "$stamp"
+    91	}
+    92	
+    93	tk_join() {
+    94	    local dest="$1" sha="$2"; shift 2
+    95	    [[ ! -f "$S/.stamp/join.$sha" || ! -f "$dest" ]] || return 0
+    96	    mkdir -p "$(dirname "$dest")" "$S/.stamp"
+    97	    cat "$@" > "$dest.part"
+    98	    sha_is "$dest.part" "$sha"
+    99	    mv "$dest.part" "$dest"; chmod a-w "$dest"
+   100	    touch "$S/.stamp/join.$sha"
+   101	    tk_step "joined $(basename "$dest") $(stat -c %s "$dest") B"
+   102	}
+   103	
+   104	tk_readonly_files() {
+   105	    find "$1" -type f -exec chmod a-w {} +
+   106	    find "$1" -type d -exec chmod 700 {} +
+   107	}
+   108	
+   109	tk_stage_model() {
+   110	    local snap="$S/c7d31ddd/$RR/models/a32330d0/snapshots/$REV" file sha
+   111	    read -r file sha < <(tk_current model)
+   112	    [[ ! -f "$S/.stamp/model.$sha" || ! -d "$snap" ]] || return 0
+   113	    /usr/bin/python3 -B -I "$Q_KIT/b/m.py" "$file" "$sha" "$snap" "$REV"
+   114	    tk_readonly_files "$snap"
+   115	    touch "$S/.stamp/model.$sha"
+   116	    tk_step "model staged: $(du -sk "$snap" | cut -f1) KiB"
+   117	}
+   118	
+   119	tk_stage_small() {
+   120	    local sha stamp
+   121	    read -r _ sha < <(tk_current small)
+   122	    stamp="$S/.stamp/small.$sha.$( { if [[ -d "$HX/in_small" ]]; then (cd "$HX" && find in_small -type f -printf '%P %s %T@\n'); fi; } 2>/dev/null | sort | sha256sum | cut -c1-16)"
+   123	    [[ ! -f "$stamp" ]] || return 0
+   124	    sha_is "$IN/e00" "$sha"
+   125	    mkdir -p "$U" "$S/aws/raw.$sha"
+   126	    [[ -f "$S/.stamp/e00.$sha" ]] || { tar -x -f "$IN/e00" -C "$S/aws/raw.$sha" --no-same-owner; touch "$S/.stamp/e00.$sha"; }
+   127	    cp -a "$S/aws/raw.$sha/${AS#/}/." "$U/"
+   128	    cp -a "$S/aws/raw.$sha/${AL#/}/." "$U/"
+   129	    mkdir -p "$U/ap/f1a2c7e9/k"
+   130	    cp "$U/ap/244cdf20/k/932c0c4e.json" "$U/ap/244cdf20/k/99e6eed6.json" "$U/ap/f1a2c7e9/k/"
+   131	    if [[ -d "$HX/in_small" ]]; then rsync -rt "$HX/in_small/" "$U/"; fi
+   132	    touch "$stamp"
+   133	    tk_step "small inputs staged"
+   134	}
+   135	
+   136	tk_stage_extra() {
+   137	    local dest sha parts
+   138	    while IFS=$'\t' read -r dest sha parts; do
+   139	        [[ -n "$dest" ]] || continue
+   140	        tk_join "$(hp "$dest")" "$sha" $parts
+   141	    done < <(/usr/bin/python3 -B -I -c 'import json,sys
+   142	d=json.load(open(sys.argv[1]))
+   143	for e in d.get("extra", []) + [d["a1rows"]]: print(e["dest"], e["sha256"], " ".join(e["parts"]), sep="\t")' "$CUR")
+   144	}
+   145	
+   146	tk_stage_tars() {
+   147	    local i n
+   148	    n=$(/usr/bin/python3 -B -I -c 'import json,sys; print(len(json.load(open(sys.argv[1])).get("tars", [])))' "$CUR")
+   149	    for ((i = 0; i < n; i++)); do
+   150	        local id parts
+   151	        id=$(/usr/bin/python3 -B -I -c 'import json,sys,hashlib; e=json.load(open(sys.argv[1]))["tars"][int(sys.argv[2])]; print(hashlib.sha256(json.dumps(e,sort_keys=True).encode()).hexdigest()[:16])' "$CUR" "$i")
+   152	        [[ ! -f "$S/.stamp/tar.$id" ]] || continue
+   153	        parts=$(/usr/bin/python3 -B -I -c 'import json,sys; print(" ".join(json.load(open(sys.argv[1]))["tars"][int(sys.argv[2])]["parts"]))' "$CUR" "$i")
+   154	        mkdir -p "$U"
+   155	        cat $parts | tar -x -C "$U" --no-same-owner --no-same-permissions
+   156	        /usr/bin/python3 -B -I - "$CUR" "$i" "$U" <<'PYTARS'
+   157	import hashlib, json, sys
+   158	from pathlib import Path
+   159	entry = json.load(open(sys.argv[1]))['tars'][int(sys.argv[2])]; root = Path(sys.argv[3])
+   160	for rel, want in sorted(entry['files'].items()):
+   161	    h = hashlib.sha256()
+   162	    with open(root / rel, 'rb') as stream:
+   163	        for block in iter(lambda: stream.read(8 << 20), b''):
+   164	            h.update(block)
+   165	    if h.hexdigest() != want:
+   166	        raise SystemExit('archive member differs: ' + rel)
+   167	print('archive members verified:', len(entry['files']), flush=True)
+   168	PYTARS
+   169	        touch "$S/.stamp/tar.$id"
+   170	        tk_step "archive $id staged"
+   171	    done
+   172	}
+   173	
+   174	tk_stage_fla() {
+   175	    [[ ! -f "$S/.stamp/fla.d00" ]] || return 0
+   176	    local file sha
+   177	    mkdir -p "$U/ap/7b30c1e4/u"
+   178	    tar -x -f "$IN/d00" -C "$U/ap/7b30c1e4/u" --no-same-owner
+   179	    read -r file sha < <(tk_current fla)
+   180	    sha_is "$(hp "$file")" "$sha"
+   181	    (cd "$U/ap/7b30c1e4/u/ebe69df8/p" && sha256sum -c --quiet ../m.sha)
+   182	    touch "$S/.stamp/fla.d00"
+   183	    tk_step "fla overlay staged"
+   184	}
+   185	
+   186	tk_stage_bundle() {
+   187	    local key="$1" file sha manifest manifest_sha stamp dest="$S/c7d31ddd/data2root" store parts got
+   188	    tk_has "$key" || return 0
+   189	    read -r file sha < <(tk_current "$key")
+   190	    read -r manifest manifest_sha < <(tk_current "${key}_manifest")
+   191	    manifest=$(hp "$manifest")
+   192	    sha_is "$manifest" "$manifest_sha"
+   193	    if /usr/bin/python3 -B -I -c 'import json,sys; p=json.load(open(sys.argv[1])).get("staged_inputs", {}); sys.exit(0 if sys.argv[2] in p.get("covered_bundles", []) else 1)' "$CUR" "$key"; then
+   194	        store=$(/usr/bin/python3 -B -I -c 'import json,sys; print(json.load(open(sys.argv[1]))["stores"].get(sys.argv[2], ""))' "$CUR" "$key")
+   195	        /usr/bin/python3 -B -I "$HX/b/f2.py" "$manifest" "$dest" "$manifest_sha" "$store"
+   196	        tk_step "frames $key verified through pinned shards"
+   197	        return 0
+   198	    fi
+   199	    stamp="$S/.stamp/$key.$sha.$manifest_sha"
+   200	    mkdir -p "$dest"
+   201	    if [[ ! -f "$stamp" ]]; then
+   202	        parts=$(/usr/bin/python3 -B -I -c 'import json,sys; d=json.load(open(sys.argv[1])); print(" ".join(d.get("bundle_parts", {}).get(sys.argv[2], d.get("f3_parts") if sys.argv[2] == "f3" else [])))' "$CUR" "$key")
+   203	        [[ -n "$parts" ]] || parts=$(hp "$file")
+   204	        : > "$S/.$key.sha"
+   205	        cat $parts | tee >(sha256sum | cut -d' ' -f1 > "$S/.$key.sha.part" && mv "$S/.$key.sha.part" "$S/.$key.sha") \
+   206	            | tar --extract --directory="$dest" --skip-old-files --no-same-owner --no-same-permissions
+   207	        for _ in $(seq 300); do [[ -s "$S/.$key.sha" ]] && break; sleep 1; done
+   208	        got=$(cat "$S/.$key.sha")
+   209	        [[ "$got" == "$sha" ]] || { tk_step "frame tar $key sha differs: $got"; return 3; }
+   210	        store=$(/usr/bin/python3 -B -I -c 'import json,sys; print(json.load(open(sys.argv[1]))["stores"].get(sys.argv[2], ""))' "$CUR" "$key")
+   211	        /usr/bin/python3 -B -I "$HX/b/f2.py" "$manifest" "$dest" "$manifest_sha" $store
+   212	        touch "$stamp"
+   213	    fi
+   214	    tk_step "frames $key verified: ${manifest_sha:0:12}"
+   215	}
+   216	
+   217	tk_stage_init() {
+   218	    local file sha dest
+   219	    tk_has init || return 0
+   220	    read -r file sha < <(tk_current init)
+   221	    dest="$S/c7d31ddd/init/${sha:0:16}"
+   222	    if [[ -f "$dest/.verified" ]]; then tk_step "init mirror present: ${sha:0:16}"; return 0; fi
+   223	    [[ ! -e "$dest" ]] || mv "$dest" "$dest.old.$(date +%s)"
+   224	    [[ ! -e "$dest.part" ]] || mv "$dest.part" "$dest.part.prev.$(date +%s).$$"
+   225	    mkdir -p "$dest.part/full_weights"
+   226	    cp "$(hp "$file")" "$dest.part/artifact.json"
+   227	    /usr/bin/python3 -B -I - "$dest.part" "$sha" "$U" "$AS" "$AL" <<'PYINIT'
+   228	import hashlib, json, os, sys
+   229	from pathlib import Path
+   230	dest, sha, union, aws, awl = Path(sys.argv[1]), sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5]
+   231	def digest(path):
+   232	    h = hashlib.sha256()
+   233	    with open(path, 'rb') as stream:
+   234	        for block in iter(lambda: stream.read(8 << 20), b''):
+   235	            h.update(block)
+   236	    return h.hexdigest()
+   237	def host(p):
+   238	    for prefix in (aws, awl):
+   239	        if p.startswith(prefix + '/'):
+   240	            return Path(union + p[len(prefix):])
+   241	    raise SystemExit('init path outside the code-aws prefixes: ' + p)
+   242	if digest(dest/'artifact.json') != sha:
+   243	    raise SystemExit('init artifact differs from its pin')
+   244	artifact = json.loads((dest/'artifact.json').read_text())
+   245	heads, manifest = host(artifact['heads']['path']), host(artifact['full_weights']['path'])
+   246	os.link(heads, dest/'heads.pt')
+   247	if digest(dest/'heads.pt') != artifact['heads']['sha256']:
+   248	    raise SystemExit('init heads differ')
+   249	os.link(manifest, dest/'full_weights'/manifest.name)
+   250	if digest(dest/'full_weights'/manifest.name) != artifact['full_weights']['sha256']:
+   251	    raise SystemExit('init manifest differs')
+   252	spec = json.loads(manifest.read_text())
+   253	pins = {spec['index']['name']: spec['index']['sha256'], **{f['name']: f['sha256'] for f in spec['files']}}
+   254	for name, expected in pins.items():
+   255	    os.link(manifest.parent/name, dest/'full_weights'/name)
+   256	    if digest(dest/'full_weights'/name) != expected:
+   257	        raise SystemExit('init weights differ: ' + name)
+   258	PYINIT
+   259	    touch "$dest.part/.verified"
+   260	    mv "$dest.part" "$dest"
+   261	    tk_step "init mirror verified: ${sha:0:16}"
+   262	}
+   263	
+   264	tk_stage() {
+   265	    local mode="$1"
+   266	    mkdir -p /tmp/jjyeung && chmod 700 /tmp/jjyeung
+   267	    mkdir -p "$S" "$TK_JOBDIR"
+   268	    tk_nx
+   269	    exec 8>"$S/../stage.lock"
+   270	    flock 8
+   271	    tk_step "stage $mode on $(hostname): /tmp free $(df -Pk /tmp | awk 'NR==2 {print int($4 / 1048576)}') GiB; mem $(free -g | awk 'NR==2 {print $2}') GiB"
+   272	    mkdir -p "$S/c7d31ddd/$RR" "$S/epochs" "$S/c7d31ddd/anyhost" "$S/c7d31ddd/coord" "$S/c7d31ddd/stop" "$S/c7d31ddd/data2root"
+   273	    tk_kitx venv "$S/c7d31ddd/venvs"
+   274	    tk_venv_shebangs
+   275	    tk_kitx closure "$S/c7d31ddd/$CLOSURE_DIR"
+   276	    local sa_stamp
+   277	    sa_stamp="$S/.stamp/sitealias.${CLOSURE_DIR##*/}.$(cat "$HX/b/sa/sitecustomize.py" "$HX/b/sa/prestage_hooks.py" | sha256sum | cut -c1-16)"
+   278	    if [[ ! -f "$sa_stamp" ]]; then
+   279	        [[ ! -d "$S/c7d31ddd/$CLOSURE_DIR/site_alias" ]] || mv "$S/c7d31ddd/$CLOSURE_DIR/site_alias" "$S/c7d31ddd/$CLOSURE_DIR/site_alias.closure.$(date +%s)"
+   280	        mkdir -p "$S/c7d31ddd/$CLOSURE_DIR/site_alias"
+   281	        cp "$HX/b/sa/prestage_hooks.py" "$HX/b/sa/sitecustomize.py" "$S/c7d31ddd/$CLOSURE_DIR/site_alias/"
+   282	        touch "$sa_stamp"
+   283	    fi
+   284	    if [[ ! -d "$S/epochs/$COMMIT" ]]; then
+   285	        tk_kitx trainer "$S/epochs/$COMMIT"
+   286	        tk_readonly_files "$S/epochs/$COMMIT"
+   287	    fi
+   288	    if [[ "$mode" != preflight ]] && tk_has trainer_old; then
+   289	        local old_commit
+   290	        old_commit=$(/usr/bin/python3 -B -I -c 'import json, sys; print(json.load(open(sys.argv[1]))["trainer_old_commit"])' "$CUR")
+   291	        if [[ ! -d "$S/epochs/$old_commit" ]]; then
+   292	            tk_kitx trainer_old "$S/epochs/$old_commit"
+   293	            tk_readonly_files "$S/epochs/$old_commit"
+   294	        fi
+   295	    fi
+   296	    local rfile rsha
+   297	    read -r rfile rsha < <(tk_current record)
+   298	    cp "$(hp "$rfile")" "$S/c7d31ddd/anyhost/$rsha.json.part" && mv "$S/c7d31ddd/anyhost/$rsha.json.part" "$S/c7d31ddd/anyhost/$rsha.json"
+   299	    sha_is "$S/c7d31ddd/anyhost/$rsha.json" "$rsha"
+   300	    R1_RUNTIME_RECORD="$P/anyhost/$rsha.json"
+   301	    if [[ "$mode" == preflight ]]; then
+   302	        tk_stage_fla
+   303	        if tk_has np; then tk_kitx np "$S/np226"; fi
+   304	        mkdir -p "$U/ap/$K/u" "$NX/u" "$S/c7d31ddd/$RR/models"
+   305	        flock -u 8
+   306	        tk_step "stage preflight done"
+   307	        return
+   308	    fi
+   309	    tk_stage_model
+   310	    tk_kitx art "$S/c7d31ddd/art"
+   311	    mkdir -p "$S/c7d31ddd/lb"
+   312	    cp -f "$S/c7d31ddd/art/lb/51f013139e77.npz" "$S/c7d31ddd/lb/51f013139e77.npz"
+   313	    mkdir -p "$S/c7d31ddd/$RR/frozen" "$S/c7d31ddd/$RR/prestage" "$S/c7d31ddd/$RR/incoming_r1" "$S/c7d31ddd/data2root/t6tk"
+   314	    tk_stage_small
+   315	    tk_stage_extra
+   316	    tk_stage_tars
+   317	    tk_stage_fla
+   318	    if tk_has np; then tk_kitx np "$S/np226"; fi
+   319	    local import_mode=metadata
+   320	    if [[ "$mode" != reuse && -z "${TK_LIGHT:-}" ]]; then import_mode=full; fi
+   321	    /usr/bin/python3 -B -I "$Q_KIT/b/s.py" "$Q_KIT" "$CUR" "$HX" "$S" "$import_mode"
+   322	    if [[ "$mode" != reuse && -z "${TK_LIGHT:-}" ]]; then
+   323	        local key
+   324	        for key in f3 f4 f5 f6 f7 f8 f9 f10 f11 f12 f13 f14; do tk_stage_bundle "$key"; done
+   325	        tk_stage_init
+   326	    fi
+   327	    mkdir -p "$U/ap/$K"
+   328	    mkdir -p "$U/ap/$K/u" "$NX/u"
+   329	    flock -u 8
+   330	    tk_step "stage $mode done"
+   331	}
+   332	
+   333	tk_bwrap() {
+   334	    local bw sha
+   335	    read -r bw sha < <(tk_current bwrap)
+   336	    [[ -x "$bw" ]] && sha_is "$bw" "$sha"
+   337	    BW=("$bw")
+   338	    local entry
+   339	    for entry in /* /.[!.]* /..?*; do
+   340	        case "$entry" in /home|/dev|/proc) continue ;; esac
+   341	        [[ -e "$entry" || -L "$entry" ]] || continue
+   342	        if [[ -L "$entry" ]]; then BW+=(--symlink "$(readlink "$entry")" "$entry"); else BW+=(--ro-bind "$entry" "$entry"); fi
+   343	    done
+   344	    BW+=(--tmpfs /tmp --bind "$Q_ROOT" "$Q_ROOT" --dev-bind /dev /dev --proc /proc
+   345	        --tmpfs /home --dir /home/jjyeung
+   346	        --ro-bind "$U" "$AS"
+   347	        --ro-bind "$U" "$AL"
+   348	        --bind "$NX" "$X"
+   349	        --bind "$NR" "$X/runs"
+   350	        --ro-bind "$U/ap/$K/u" "$X/u"
+   351	        --ro-bind "$S/c7d31ddd/data2root" "$X/data2root"
+   352	        --ro-bind "$S/c7d31ddd/$RR/models" "$X/models"
+   353	        --ro-bind "$S/c7d31ddd" "$P"
+   354	        --ro-bind "$S/epochs" "$EPOCHS"
+   355	        --bind "$TK_JOBDIR" "$TK_JOBDIR"
+   356	        --remount-ro /home
+   357	        --unshare-user --uid "$(id -u)" --gid "$(id -g)")
+   358	}
+   359	
+   360	tk_env() {
+   361	    export R1_OPAQUE_LOGS=1
+   362	    export Q_E5=6d38613965 R1_MODEL_DIR=a32330d0
+   363	    export R1_MOUNT="$X" R1_TRAINER="$EPOCHS/$COMMIT" TRAINER="$EPOCHS/$COMMIT" ANYHOST_JOBS="$P/$CLOSURE_DIR"
+   364	    export R1_RUNTIME_RECORD ANYHOST_NEUTRAL_RUNTIME="$R1_RUNTIME_RECORD"
+   365	    export PILOT_VENV="$P/venvs/rwtrain_torch211_cu129"
+   366	    export PATH="$ANYHOST_JOBS/provenance_bin:$PILOT_VENV/bin:/usr/local/bin:/usr/bin:/bin"
+   367	    export PYTHONDONTWRITEBYTECODE=1 PYTHONNOUSERSITE=1 PYTHONPATH="$ANYHOST_JOBS/site_alias"
+   368	    export Q_E1=1 Q_E2=orchard A_SITE_PROFILE="$X/b/profile.json"
+   369	    export Q_E3="$X/models"
+   370	    export Q_E4="{\"/data2\": \"$X/data2root\"}"
+   371	    export C1_INIT_LOCAL="$P/init"
+   372	    export HF_HOME="$TK_JOBDIR/cache/hf" HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 HF_HUB_DISABLE_TELEMETRY=1
+   373	    export OMP_NUM_THREADS=48 MKL_NUM_THREADS=48 OPENBLAS_NUM_THREADS=48 TOKENIZERS_PARALLELISM=false WANDB_DISABLED=true
+   374	    export Q_E6=1
+   375	    export TMPDIR="$TK_JOBDIR/tmp"
+   376	    export XDG_CACHE_HOME="$TK_JOBDIR/cache" TORCH_HOME="$TK_JOBDIR/cache/torch" TRITON_CACHE_DIR="$TK_JOBDIR/cache/triton"
+   377	    mkdir -p "$TMPDIR"
+   378	}
+   379	
+   380	tk_pythonpath() {
+   381	    local mode="${1:?}" fla_file fla_sha
+   382	    export PYTHONPATH="$X/b:$ANYHOST_JOBS:$ANYHOST_JOBS/site_alias"
+   383	    if tk_has np; then export PYTHONPATH="$S/np226:$PYTHONPATH"; tk_step "numpy 2.2.6 overlay on"; fi
+   384	    if [[ "$mode" =~ ^[ctu]$ ]] && read -r fla_file fla_sha < <(tk_current fla 2>/dev/null); then
+   385	        sha_is "$(hp "$fla_file")" "$fla_sha"
+   386	        export PYTHONPATH="$(dirname "$fla_file")/p:$PYTHONPATH" C1_EXPECT_FLA=1
+   387	        tk_step "fla overlay on: ${fla_sha:0:12}"
+   388	    fi
+   389	}
+   390	
+   391	tk_nx() {
+   392	    mkdir -p "$NR" "$NX/o" "$NX/runs" "$NX/arm" "$NX/ck" "$NX/data2root" "$NX/models" "$HM/o" "$HM/arm" "$HM/runs"
+   393	    rsync -rt --chmod=D700 "$HX/b" "$HX/k" "$HX/ANON_OK.json" "$HX/SHA256SUMS.txt" "$NX/"
+   394	    rsync -rt "$HM/arm/" "$NX/arm/"
+   395	}
+   396	
+   397	tk_stage full
+   398	tk_env
+   399	if [[ "${Q_MODE:-q}" == r ]]; then export OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8; fi
+   400	tk_pythonpath c
+   401	tk_bwrap
+   402	export PATH="$(dirname "${BW[0]}"):$PATH"
+   403	BW+=(--bind "$Q_ROOT" "$Q_NS" --setenv TK_JOB_START "${TK_JOB_START:?}")
+   404	Q_LIVE=$(/usr/bin/python3 -B -I -s "$Q_KIT/b/rv.py" --live "$Q_ROOT" "${SLURM_JOB_ID:?}")
+   405	BW+=(--bind "$Q_LIVE" "$Q_LIVE")
+   406	if [[ "${Q_CAPTURE:-0}" == 1 ]]; then
+   407	    /usr/bin/python3 -B "$Q_KIT/b/w.py" "$Q_ROOT/args.json" "${BW[@]}"
+   408	    exit 0
+   409	fi
+   410	if [[ "${Q_MODE:-q}" != r ]]; then
+   411	"${BW[@]}" "$PILOT_VENV/bin/python" -B -s "$Q_KIT/b/g.py"
+   412	fi
+   413	set +e
+   414	"${BW[@]}" "$PILOT_VENV/bin/python" -B -s "$Q_KIT/b/a.py" "${Q_MODE:-q}" "$Q_NS/p" "$Q_NS/r.json" 2>&1 | /usr/bin/python3 -B "$Q_KIT/b/l.py" "$Q_KIT" > "$Q_ROOT/q.log"
+   415	rc=${PIPESTATUS[0]}
+   416	if [[ "${Q_MODE:-q}" == r ]]; then
+   417	    /usr/bin/python3 -B -I -s "$Q_KIT/b/rd.py" "$Q_ROOT" "${SLURM_JOB_ID:?}" "$rc"
+   418	    rp=$?
+   419	    if [[ "$rc" == 0 ]]; then rc=$rp; fi
+   420	    exit "$rc"
+   421	fi
+   422	"${BW[@]}" "$PILOT_VENV/bin/python" -B -s "$Q_KIT/b/d.py" "$Q_NS/p/s" "$Q_NS/r.json" "$Q_NS/n.json" "$Q_NS/rooms.json" 2>&1 | /usr/bin/python3 -B "$Q_KIT/b/l.py" "$Q_KIT" > "$Q_ROOT/rooms.log"
+   423	rr=${PIPESTATUS[0]}
+   424	if [[ "$rc" == 0 && "$rr" == 0 ]]; then
+   425	"${BW[@]}" "$PILOT_VENV/bin/python" -B -s "$Q_KIT/b/h.py" "$Q_NS/p" "$Q_NS/v.json" 2>&1 | /usr/bin/python3 -B "$Q_KIT/b/l.py" "$Q_KIT" > "$Q_ROOT/h.log"
+   426	rc=${PIPESTATUS[0]}
+   427	if [[ "$rc" == 0 ]]; then
+   428	export OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8
+   429	"${BW[@]}" nice -n 10 "$PILOT_VENV/bin/python" -B -s "$Q_KIT/b/rv.py" "$Q_NS" "$Q_NS/v.json" "${SLURM_JOB_ID:?}" 2>&1 | /usr/bin/python3 -B "$Q_KIT/b/l.py" "$Q_KIT" > "$Q_ROOT/rv.log"
+   430	rc=${PIPESTATUS[0]}
+   431	fi
+   432	if [[ "$rc" == 0 ]]; then
+   433	export OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8
+   434	"${BW[@]}" "$PILOT_VENV/bin/python" -B -s "$Q_KIT/b/t.py" "$Q_NS/p" "$Q_NS/v.json" 2>&1 | /usr/bin/python3 -B "$Q_KIT/b/l.py" "$Q_KIT" > "$Q_ROOT/t.log"
+   435	rc=${PIPESTATUS[0]}
+   436	fi
+   437	fi
+   438	/usr/bin/python3 -B "$Q_KIT/b/o.py" "$Q_ROOT" "$rc" "$rr"
+   439	exit "$rc"
+   440	

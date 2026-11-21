@@ -52,6 +52,106 @@ class Deadline(Exception):
     pass
 
 
+class SoftStop(Exception):
+    """The CPU real-batch check reached its reserve; finish with partial evidence."""
+
+
+# CPU real-batch budget. Batch 0 runs on CPU with the full checkpoint before the
+# GPU read; it must leave this reserve for finalization before the worker end.
+CPU_RESERVE_S = 180.
+# Eight-row bf16 decode step as a fraction of one measured row prefill: 0.53 s
+# versus about 52 s (10 s vision + 32 s LM, 4,730 tokens) for the real
+# architecture on 16 EPYC 9224 threads in the pinned environment; doubled.
+CPU_STEP_FRACTION = .02
+CPU_ROWS = (8, 6, 4, 2)
+# CPU worker address-space cap; GPU mode has none. The cgroup request is 200G.
+ADDRESS_SPACE = {'c': 190*1024**3}
+CLOCK = time.time  # the CPU time guard's clock (tests substitute a stepping clock)
+
+
+def admission(first_prefill_s, rows, remaining_s, step_fraction=CPU_STEP_FRACTION):
+    """Largest even prefix of batch 0 whose prefills and 64 steps fit the budget."""
+    step = step_fraction*first_prefill_s
+    for k in CPU_ROWS:
+        if k > rows: continue
+        need = 1.1*(k-1)*first_prefill_s + 64*step + 10
+        if need <= remaining_s:
+            return k, dict(reason='all_rows' if k == rows else 'time_guard', need_s=need,
+                           remaining_s=remaining_s, step_estimate_s=step, first_prefill_s=first_prefill_s)
+    k = min(2, rows)
+    return k, dict(reason='over_budget', need_s=1.1*(k-1)*first_prefill_s+64*step+10,
+                   remaining_s=remaining_s, step_estimate_s=step, first_prefill_s=first_prefill_s)
+
+
+def cpu_real_batch(out, rows, prepare_rows, batched, model, processor, probe, end, deadline, mark):
+    """Run batch 0 on CPU through the GPU read's prefill/merge/decode/select path."""
+    import torch
+    soft_end = end-CPU_RESERVE_S
+    def soft(*unused):
+        deadline()
+        if CLOCK() >= soft_end: raise SoftStop()
+    results, metrics, plan = {}, {}, {}
+    def admit(first, count):
+        k, info = admission(first, count, soft_end-CLOCK())
+        plan.update(k=k, **info); mark('real_admit', k=k)
+        return k
+    status, error, prepare_s, batches = 'failed', None, None, []
+    begun = time.monotonic()
+    try:
+        mark('real_prepare')
+        batches = prepare_rows(rows)
+        prepare_s = time.monotonic()-begun
+        mark('real_batch')
+        with torch.no_grad():
+            batched.generate(model, processor, batches, probe, results.__setitem__, soft, metrics=metrics, admit=admit)
+        status = 'complete'
+    except SoftStop:
+        status = 'interrupted'
+    except Exception as exc:
+        status = 'timeout' if isinstance(exc, Deadline) else 'error'
+        error = C.diagnostic(exc); write(out/'4.json', error)
+    k = plan.get('k', 0)
+    finished = [results[i]['n'] for i in results]
+    select_needed = status != 'complete' or len(set(finished)) > 1
+    path_ok = (error is None and status in ('complete', 'interrupted') and metrics.get('merge_s') is not None
+               and metrics.get('steps', 0) >= 1 and (metrics.get('selects', 0) >= 1 or not select_needed))
+    agreement = dict(checked=False, reason='batch_not_complete')
+    if status == 'complete' and k >= 2:
+        order = sorted(range(k), key=lambda i: int(batches[i]['input_ids'].shape[1]))[:2]
+        need = 1.2*sum(plan['first_prefill_s']+results[i]['n']*max(metrics.get('max_step_s', 0.), 1e-3) for i in order)
+        left = soft_end-CLOCK()
+        agreement = dict(checked=False, reason='time', need_s=need, remaining_s=left, rows=order)
+        if need <= left:
+            checks = []
+            try:
+                mark('real_serial')
+                with torch.no_grad():
+                    for i in order:
+                        t0 = time.monotonic()
+                        reference = batched.serial(model, processor, batches[i], probe, soft)
+                        checks.append(dict(row=i, identical=reference == results[i], seconds=time.monotonic()-t0,
+                                           serial_tokens=reference['tokens'], serial_finish=reference['finish']))
+                agreement = dict(checked=True, rows=order, identical=all(c['identical'] for c in checks), checks=checks)
+            except SoftStop:
+                agreement.update(reason='interrupted', partial=checks)
+            except Exception as exc:
+                agreement.update(reason='error', partial=checks, error=C.diagnostic(exc)['traceback'][-2000:])
+    per_row = []
+    for i in range(len(batches)):
+        r = results.get(i)
+        entry = dict(i=rows[i]['i'], a=rows[i]['a'], prompt_tokens=int(batches[i]['input_ids'].shape[1]), admitted=i < k)
+        if r is not None:
+            entry.update(tokens=r['tokens'], n=r['n'], finish=r['finish'], call_at=r['n'] if r['finish'] == 'call' else None,
+                         opened=r['o'], g=r['g'], text=r['text'])
+        per_row.append(entry)
+    return dict(path_ok=path_ok, status=status, k=k, plan=plan, rows=per_row, prepare_s=prepare_s,
+                prefill_each_s=metrics.get('prefill_each_s'), merge_s=metrics.get('merge_s'),
+                step_s=metrics.get('step_s'), steps=metrics.get('steps'), selects=metrics.get('selects'),
+                select_needed=select_needed, prefill_s=metrics.get('prefill_s'), max_step_s=metrics.get('max_step_s'),
+                seconds=time.monotonic()-begun, agreement=agreement, error=error and error.get('traceback', '')[-4000:],
+                reserve_s=CPU_RESERVE_S, step_fraction=CPU_STEP_FRACTION, device='cpu', **memory_metrics(out))
+
+
 class PairWriter:
     def __init__(self, stream, rows, progress, started):
         self.stream, self.rows, self.progress, self.started = stream, rows, progress, started
@@ -215,8 +315,14 @@ def run(package, mode, end):
     spec.loader.exec_module(probe)
     if os.environ.get('A_B') == '1':
         closure = import_closure(p, mode)
+        # Before bulk staging, run the delivered batched cache merge against
+        # this interpreter's transformers on a tiny native hybrid model (CPU).
+        mark('batch_selfcheck')
+        spec = importlib.util.spec_from_file_location('a_batch', p/'10.py')
+        batched = importlib.util.module_from_spec(spec); spec.loader.exec_module(batched)
+        selfcheck = batched.selfcheck()
         write(out/'10.json', dict(passed=True, mode=mode, seconds=time.monotonic()-started,
-            interpreter=sys.executable, cwd=os.getcwd(), bulk_bytes=0, **closure))
+            interpreter=sys.executable, cwd=os.getcwd(), bulk_bytes=0, batch_selfcheck=selfcheck, **closure))
         mark('boot_complete')
         signal.setitimer(signal.ITIMER_REAL, 0)
         return
@@ -271,18 +377,16 @@ def run(package, mode, end):
                         same = torch.equal(batch[key], previous[key]) if isinstance(batch[key], torch.Tensor) else batch[key] == previous[key]
                         assert same, key
             previous = batch
-        mark('cpu_complete')
-        write(out/'1.json', dict(passed=True, mode='c', checked=checked,
-            frames=98*32, artifact=pins['artifact']['sha256'], frozen=cfg['frozen'],
-            seconds=time.monotonic()-started, model_loaded=False,
-            prefix_27_1884=processor.tokenizer.decode([27,1884],skip_special_tokens=False)=='<ground'))
-        signal.setitimer(signal.ITIMER_REAL, 0)
-        WATCH_STOP.set(); WATCH_THREAD.join(timeout=1)
-        memory_metrics(out, final=True)
-        return
+        mark('cpu_checks')
+        checks = dict(checked=checked, frames=98*32,
+            prefix_27_1884=processor.tokenizer.decode([27,1884],skip_special_tokens=False)=='<ground')
+        processor = previous = batch = None
+    # Both modes load the full step-400 checkpoint and run the same batch path;
+    # CPU mode runs only batch 0, before the GPU read is submitted.
+    device = 'cpu' if mode == 'c' else 'cuda:0'
     mark('model_load')
     load_start = time.monotonic()
-    model, processor, loaded = load_native(export, device='cuda:0', settings=settings)
+    model, processor, loaded = load_native(export, device=device, settings=settings)
     assert not getattr(model, 'geometry_online', None)
     assert getattr(model, 'sam3_tower', None) is None
     assert getattr(model, 'g3t_tower', None) is None
@@ -294,12 +398,25 @@ def run(package, mode, end):
         reserved.append(int(carrier))
     spec = importlib.util.spec_from_file_location('a_batch', p/'10.py')
     batched = importlib.util.module_from_spec(spec); spec.loader.exec_module(batched)
+    def prepare_rows(rows):
+        batches = [prompt_batch(processor, row_for(row), loaded['config'], 'routed') for row in rows]
+        return [{k:v.to(device) if hasattr(v, 'to') else v for k,v in b.items()} for b in batches]
+    if mode == 'c':
+        real = None
+        try:
+            real = cpu_real_batch(out, data['rows'][:8], prepare_rows, batched, model, processor, probe, end, deadline, mark)
+        finally:
+            memory_metrics(out)
+            signal.setitimer(signal.ITIMER_REAL, 0)
+            write(out/'1.json', dict(passed=bool(real and real['path_ok']), mode='c', **checks,
+                artifact=pins['artifact']['sha256'], frozen=cfg['frozen'], seconds=time.monotonic()-started,
+                model_loaded=True, load_s=loading, real_batch=real, tools_served=0,
+                external_components_loaded=False, max_new_tokens=64))
+        mark('cpu_complete')
+        return
     progress = [0]
     status = 'failed'
     try:
-        def prepare_rows(rows):
-            batches = [prompt_batch(processor, row_for(row), loaded['config'], 'routed') for row in rows]
-            return [{k:v.to('cuda:0') if hasattr(v, 'to') else v for k,v in b.items()} for b in batches]
         def generate(batches, emit, check, metrics):
             batched.generate(model, processor, batches, probe, emit, check, metrics=metrics)
         mark('batches')
@@ -342,6 +459,7 @@ def main(package, mode, end):
 
 
 if __name__ == '__main__':
-    if sys.argv[2] == 'c':
-        resource.setrlimit(resource.RLIMIT_AS, (32*1024**3, 32*1024**3))
+    if sys.argv[2] in ADDRESS_SPACE:
+        limit = ADDRESS_SPACE[sys.argv[2]]
+        resource.setrlimit(resource.RLIMIT_AS, (limit, limit))
     raise SystemExit(main(*sys.argv[1:]))

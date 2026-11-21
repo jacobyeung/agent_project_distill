@@ -38,13 +38,31 @@ SOURCES=C.loads(FILES['8.bin'])
 EVIDENCE={}
 
 
+SHARED=('8.bin','0.tgz')
+SHARED_ROOT=ROOT/'out/s'
+
+
+def place(directory):
+    """Write the delivery members; the two large read-only members are hard links
+    to one per-delivery copy so repeated fixtures stay small on disk."""
+    shared=SHARED_ROOT/hashlib.sha256(FILES['0.json']).hexdigest()[:16]
+    if not shared.exists():
+        staging=SHARED_ROOT/('t'+uuid.uuid4().hex);staging.mkdir(parents=True)
+        for n in SHARED:(staging/n).write_bytes(FILES[n]);(staging/n).chmod(0o400)
+        try:staging.rename(shared)
+        except OSError:pass
+    for n,v in FILES.items():
+        if n in SHARED:os.link(shared/n,directory/n)
+        else:(directory/n).write_bytes(v)
+
+
 def fresh():
     p=ROOT/'out'/('f'+uuid.uuid4().hex);p.mkdir();return p
 
 
 def package():
     p=fresh()
-    for n,v in FILES.items():(p/n).write_bytes(v)
+    place(p)
     cfg=C.loads(FILES['2.json']);cfg['package']=str(p);C.store(p/'2.json',cfg)
     pins=json.loads((p/'0.json').read_bytes());pins['files']['2.json']=B.pin((p/'2.json').read_bytes())
     (p/'0.json').write_bytes(B.jd(pins))
@@ -54,7 +72,12 @@ def package():
     return p,cfg,current
 
 
-def scan(root):
+# Pinned external checkpoint/config/RGB inputs and their unchanged restore
+# links keep native identifiers (NAMING_AUDIT.json remaining_external_interfaces).
+EXTERNAL=('tiny_native','d/b','d/m400','d/o','d/f','d/e/base','d/e/full_weights','d/e/heads.pt')
+
+
+def scan(root,skip=()):
     files=[]
     def check(raw,name):
         lower=raw.lower()
@@ -67,6 +90,8 @@ def scan(root):
         elif isinstance(obj,list):
             for v in obj:strings(v,name)
     for p in sorted(root.rglob('*')):
+        rel=p.relative_to(root).as_posix()
+        if any(rel==x or rel.startswith(x+'/') for x in skip):continue
         check(str(p.relative_to(root)).encode(),str(p))
         if not p.is_file():continue
         raw=p.read_bytes()
@@ -89,7 +114,7 @@ class Fixes(unittest.TestCase):
     def test_20_cache_environment_and_namespace(self):
         import orchard_job as J
         p,cfg,_=package(); root=p/'z'; root.mkdir(); local=root/'p'; local.mkdir()
-        for n,v in FILES.items(): (local/n).write_bytes(v)
+        place(local)
         M=types.SimpleNamespace(supervise=lambda *a:0)
         environments=[]
         for mode in ('c','g'):
@@ -170,7 +195,7 @@ class Fixes(unittest.TestCase):
                 def failed(*args,**kwargs):
                     injected.append(case);raise RuntimeError(case)
                 def extracting(stream,target,*args,**kwargs):
-                    for n,v in FILES.items():(target/n).write_bytes(v)
+                    place(target)
                 S.extract_stream=extracting
                 def prepare(p,root,cfg,job,end):
                     if case in ('launch','worker','timeout','alarm'):
@@ -290,78 +315,35 @@ class Fixes(unittest.TestCase):
 
     def test_05_actual_cpu_rehearsal_and_scan(self):
         import torch
-        from parity_kit import stage_restore
-        from student_pilot import carrier_c1_run as trainer,carrier_c1_canary
-        from e2e_reader import parity
-        p,cfg,_=package();d=p/'d';d.mkdir();cfg['logical']=str(p)
-        cfg['inputs']['frames_root']=str(d/'f');(d/'f').mkdir()
-        (d/'f/0').write_bytes(b'0')
-        data=C.loads(FILES['1.json'])
-        for cap in data['captures'].values():
-            for f in cap['frames']:f.update(path='0',sha256=hashlib.sha256(b'0').hexdigest())
-        C.store(p/'1.json',data);C.store(p/'2.json',cfg)
-        # Build a tiny authenticated export; the real restore verifies every
-        # hash/size and writes its normal metadata through the opaque Path view.
-        base=d/'b';base.mkdir();weights=d/'m400/full_weights';weights.mkdir(parents=True)
-        def put(path,value):
-            path.parent.mkdir(parents=True,exist_ok=True)
-            raw=B.jd(value);path.write_bytes(C.pack(raw));return dict(bytes=len(raw),sha256=B.digest(raw))
-        asset_names=('config.json','tokenizer.json','tokenizer_config.json','preprocessor_config.json')
-        assets={}
-        for name in asset_names:
-            (base/name).write_bytes(b'{}');assets[name]=B.digest(b'{}')
-        original=B.jd(dict(schema='p3-model-input-v1',base_identity='a',files=assets))
-        archive=d/'o/0.tgz';archive.parent.mkdir();archive.write_bytes(B.archive({'model.json':original}))
-        (weights/'0.bin').write_bytes(b'0')
-        index=dict(weight_map={'x':'0.bin'})
-        ix=put(weights/'0.json',index)
-        full=dict(schema='full-ft-export-v1',dtype='bfloat16',files=[dict(name='0.bin',bytes=1,sha256=B.digest(b'0'))],
-                  index=dict(name='0.json',**ix),tensor_count=1)
-        fp=put(weights/'full_weights.json',full)
-        (d/'m400/heads.pt').write_bytes(b'0')
-        artifact=dict(config_sha256='a'*64,base_identity='a',frame_layout='duplicate',
-                      full_weights=fp,heads=dict(sha256=B.digest(b'0')))
-        ap=put(d/'m400/artifact.json',artifact)
-        receipt=dict(config_sha256='a'*64,frame_layout='duplicate',camera={},depth={},
-                     model=dict(path='/a',sha256=B.digest(original)))
-        rp=put(d/'p0/receipt.json',receipt)
-        config=dict(base_identity='a',frame_layout='duplicate',preparation=dict(path='/a',sha256=rp['sha256']))
-        cp=put(d/'p0/config.json',config)
-        data_receipt=dict(status='PREPARED',schema='s1-in-job-data-v1',config=dict(path='/b',sha256=cp['sha256']),
-                          preparation=config['preparation'],real_frames_verified=True,rehearsal=False)
-        dp=put(d/'p0/data_receipt.json',data_receipt)
-        pins=dict(artifact=ap,preparation={name:dict(path='p0/'+filename,source_path=source,**pin) for name,filename,source,pin in
-            [('config','config.json','/b',cp),('receipt','receipt.json','/a',rp),('data_receipt','data_receipt.json','/c',dp)]})
-        for name,path in [('full_weights',weights/'full_weights.json'),('artifact',d/'m400/artifact.json'),
-                          ('base_config',base/'config.json'),('original_model',archive)]:
-            cfg['inputs']['files'][name]['path']=str(path)
-        C.store(p/'2.json',cfg)
-        real_stage=stage_restore.stage
-        def preparation(*args,**kw):
-            kw['export_pins']=pins
-            return real_stage(*args,**kw)
-        processor=types.SimpleNamespace(tokenizer=types.SimpleNamespace(decode=lambda *a,**k:'<ground'))
-        def prompt(processor,row,cfg):
-            self.assertNotIn('ground_truth',row)
-            return dict(input_ids=torch.tensor([[2,3]]),attention_mask=torch.ones((1,2),dtype=torch.long),
-                        pixel_values_videos=torch.zeros((2,4)),video_grid_thw=torch.tensor([[1,2,2]]))
+        fixture=mod('cpu_real_fixture',ROOT/'tests/cpu_real_fixture.py')
+        fixture.torchvision_fixture(ROOT)
+        p,cfg,_=package()
         runtime=mod('actual_runtime',p/'5.py')
-        # The production runtime, loader, binder, prompt adapter and all output
-        # writes run. Only external weights/RGB processing use CPU doubles.
-        with patch.object(stage_restore,'stage',side_effect=preparation), \
-             patch.object(stage_restore,'prove_depth',return_value=dict(passed=True)), \
-             patch.object(trainer,'processor_for_receipt',return_value=processor), \
-             patch.object(carrier_c1_canary,'prompt_batch',side_effect=prompt), \
-             patch.object(parity,'load_native',side_effect=AssertionError('model loaded')):
-            runtime.run(p,'c',time.time()+60)
-        self.assertTrue(C.loads((p/'a/1.json').read_bytes())['passed'])
-        files=scan(p)
+        # The production runtime, restore, loader, prompt adapter, CPU real batch
+        # and all output writes run. Only weights/processor/RGB use tiny doubles.
+        with fixture.tiny_export(types.SimpleNamespace(ROOT=ROOT,B=B,C=C,FILES=FILES),p,cfg):
+            runtime.run(p,'c',time.time()+600)
+        summary=C.loads((p/'a/1.json').read_bytes())
+        real=summary['real_batch']
+        self.assertTrue(summary['passed'],real)
+        self.assertTrue(summary['model_loaded'])
+        self.assertEqual((real['status'],real['k'],real['plan']['reason']),('complete',8,'all_rows'))
+        self.assertTrue(real['path_ok'] and real['merge_s'] is not None and real['steps']>=1 and real['selects']>=1)
+        self.assertEqual(len(real['prefill_each_s']),8);self.assertEqual(len(real['step_s']),real['steps'])
+        self.assertTrue(real['agreement']['checked'] and real['agreement']['identical'],real['agreement'])
+        self.assertIn('call',{r['finish'] for r in real['rows']})
+        self.assertEqual(len({r['n'] for r in real['rows']})>1,True)
+        EVIDENCE['cpu_real_batch']=dict(k=real['k'],finishes=[r['finish'] for r in real['rows']],
+            n=[r['n'] for r in real['rows']],prompt_tokens=[r['prompt_tokens'] for r in real['rows']],
+            steps=real['steps'],selects=real['selects'],agreement=real['agreement'],plan=real['plan'])
+        files=scan(p,EXTERNAL)
         EVIDENCE['cpu_rehearsal']=dict(files=files,passed=True,entry='delivered 5.py run(c)',
-            doubles=['tiny authenticated export inputs','head-shape proof','processor construction','RGB processor'],
-            real=['stage_restore.stage','opaque importer','runtime.run','trainer_row','evalpath.prompt_batch','receipt/output writes','all created file scans'])
+            doubles=['tiny authenticated native hybrid export','processor assets with tiny tokenizer','RGB decoding'],
+            real=['stage_restore.stage','opaque importer','runtime.run','trainer_row','evalpath.prompt_batch','load_native',
+                  'runtime.cpu_real_batch','batch.generate','batch.serial','receipt/output writes','all created file scans'])
         # Deliberate leak must fail the same scanner.
         (p/'12.json').write_text('{"x":"gro\\u0075nd"}')
-        with self.assertRaises(AssertionError):scan(p)
+        with self.assertRaises(AssertionError):scan(p,EXTERNAL)
 
     def test_06_archive_filter_and_encoded_metadata(self):
         import orchard_stage as stage
@@ -399,7 +381,7 @@ class Fixes(unittest.TestCase):
         results=[]
         for mode in ('c','g'):
             p,cfg,_=package(); local=p/'z/p'; local.mkdir(parents=True)
-            for n,v in FILES.items(): (local/n).write_bytes(v)
+            place(local)
             broken=dict(cfg); broken.pop('logical')
             C.store(local/'2.json',broken)
             # Run the delivered worker's real exception handler before any
@@ -474,7 +456,7 @@ class Fixes(unittest.TestCase):
         results=[]
         for mode, termination in itertools.product(('c','g'), ('signal', 'term', 'exit', 'timeout')):
             p,cfg,current=package(); root=p/'z'; local=root/'p'; local.mkdir(parents=True)
-            for n,v in FILES.items(): (local/n).write_bytes(v)
+            place(local)
             # The requested destructive test affects only this new synthetic child.
             ending = {'signal':'os.kill(os.getpid(), signal.SIGKILL)', 'term':'os.kill(os.getpid(), signal.SIGTERM)', 'exit':'os._exit(17)', 'timeout':'import time; time.sleep(60)'}[termination]
             script = """import os, sys, signal, importlib.util
@@ -552,7 +534,7 @@ os.write(2,b'x'*30000+b'ground stderr sentinel\\n')
                     self.assertEqual(ctl.work(p,root),1)
             else:
                 local.mkdir(parents=True)
-                for name,raw in FILES.items():(local/name).write_bytes(raw)
+                place(local)
                 (local/'5.py').write_text("import os\nos.write(1,b'ground stdout early sentinel\\n')\nos.write(2,b'tower stderr early sentinel\\n')\nraise SystemExit(17)\n")
                 (local/'5.py').write_bytes(B.wrap((local/'5.py').read_bytes()))
                 cfg['inputs']['python']=sys.executable

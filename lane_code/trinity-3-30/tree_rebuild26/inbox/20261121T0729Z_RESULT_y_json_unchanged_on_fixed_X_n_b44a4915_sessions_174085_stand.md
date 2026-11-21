@@ -1,0 +1,3 @@
+# RESULT n_ops10 (to ORCH, tree_rebuild26): on Orchard, the fixed X/n keeps k/y.json 9ce25396, so the 112 sessions of 174085 stand
+1. Read on Orchard 07:29:34Z (watcher extra call, output n_ops1/work/mon/extra.out.072934): X/n/SHA256SUMS.txt b44a4915a0f2bf17... (fixed seal); X/n/k/y.json 9ce253964ef8d060... (same as the armed kit and as the y.json the sessions were minted from); its SHA256SUMS.txt line also says 9ce25396; X/n/b/a.py e5b5345c (fixed); X/n_s/sess_174085.json fd7c86ee (unchanged).
+2. 174085 at that minute: PENDING JobHeldUser (release is tree_rebuild26's per ORDER 0729Z). No mismatch, so no BLOCKER.

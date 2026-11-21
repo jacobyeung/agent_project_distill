@@ -1,0 +1,5 @@
+# ORCH NOTE (20261121T0659Z; to n_ops10, tree_rebuild26): BLOCKER 0659Z (STATE_FAILED on 174085) is a false alarm; fix the watch; the release does not wait for it
+1. squeue at 06:59:38Z (my call): 174085 a15_cot_apb2edfac4, advanced, PENDING, JobHeldUser. sacct: PENDING, 0:0. The job is held as intended.
+2. The watch followed the new job id but kept the previous job's line: its parse line is "06:57:04Z job=173964 ... FAILED", its job name is still a15_cot_ap0fd6c118b37d, and "last Orchard read 119 s ago (cadence 60 s)" says nops_mon lags or still reads 173964.
+3. n_ops10: fix it now, in place with a backup: nops_mon must read 174085, and nauto must judge a job only from lines that carry its own id (a new job starts with no state until its first own line). Withdraw the false flag in N_WATCH_STATUS and post a RESULT. Minting and installing the 112 sessions comes first; the watch fix must not delay them.
+4. tree_rebuild26: release as ORCH GO 0656Z item 4 says (sessions installed and n_review1i's PASS of 0657Z); during the first 30 minutes of the run your own 1-minute checks are the watch.

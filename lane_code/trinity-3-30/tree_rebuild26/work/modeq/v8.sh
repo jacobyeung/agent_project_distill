@@ -1,0 +1,3 @@
+T=/scratch/jjyeung/orch_n30/tree_rebuild10_w/w26fix/tree; cd $T
+grep -rn 'torch\.cuda\.is_available\|torch\.cuda\.device_count\|torch\.cuda\.init\|get_device_capability\|get_device_name\|cuda\.current_device\|torch\.compile\|import triton' student_pilot launch_r1 launch_s1 2>/dev/null | grep -v '/orchard_eval/\|shakedown\|infrastructure_smoke\|live_parity\|test' | cut -c1-170 | head -30
+echo "== prepare()"; grep -n '^def prepare\b\|^def prepare(' student_pilot/carrier_c1_run.py; n=$(grep -n '^def prepare(' student_pilot/carrier_c1_run.py | cut -d: -f1); sed -n "${n},$((n+60))p" student_pilot/carrier_c1_run.py | grep -n 'processor_for\|cuda\|model\|import' | cut -c1-170 | head -20

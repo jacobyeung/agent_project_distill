@@ -1,0 +1,2 @@
+cd /scratch/jjyeung/orch_n30/tree_rebuild26/work; end=$(( $(date +%s) + ${1:-540} )); itv=${2:-60}
+while [ $(date +%s) -lt $end ]; do timeout 90 bash /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/tools/ossh.sh 'bash -s' < w1.sh >> watch.log 2>&1 || echo "$(date -u +%TZ) OSSH_FAIL" >> watch.log; tail -3 watch.log | grep -q 'state=GONE\|ALARM\|OOM_EVENT\|OSSH_FAIL\|host key\|HOST IDENTIFICATION' && break; sleep $itv; done; tail -9 watch.log

@@ -1,0 +1,139 @@
+{
+  "passed": true,
+  "python": "/scratch/jjyeung/envs/p1cpu/bin/python",
+  "scenarios": {
+    "all_rows": {
+      "status": "complete",
+      "k": 8,
+      "path_ok": true,
+      "steps": 25,
+      "selects": 3,
+      "select_needed": true,
+      "merge_s": 0.00029193900991231203,
+      "passed": true,
+      "reason": "all_rows",
+      "prefills": 8,
+      "finishes": [
+        "call",
+        "eos",
+        "call",
+        "eos",
+        "call",
+        "eos",
+        "call",
+        "eos"
+      ],
+      "agreement": true,
+      "peak_rss_bytes": 520470528
+    },
+    "time_guard_k2": {
+      "status": "complete",
+      "k": 2,
+      "path_ok": true,
+      "steps": 25,
+      "selects": 1,
+      "select_needed": true,
+      "merge_s": 0.00016521799261681736,
+      "passed": true,
+      "reason": "time_guard",
+      "prefills": 2,
+      "finishes": [
+        "call",
+        "eos",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "agreement": true,
+      "peak_rss_bytes": 543223808
+    },
+    "overrun_mid_decode": {
+      "status": "interrupted",
+      "k": 8,
+      "path_ok": true,
+      "steps": 4,
+      "selects": 1,
+      "select_needed": true,
+      "merge_s": 0.0004471419961191714,
+      "passed": true,
+      "reason": "all_rows",
+      "prefills": 8,
+      "finishes": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        "call",
+        null
+      ],
+      "agreement": null,
+      "peak_rss_bytes": 556314624
+    },
+    "overrun_before_prefill": {
+      "status": "interrupted",
+      "k": 0,
+      "path_ok": false,
+      "steps": 0,
+      "selects": 0,
+      "select_needed": true,
+      "merge_s": null,
+      "passed": false,
+      "reason": null,
+      "prefills": 0,
+      "finishes": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "agreement": null,
+      "peak_rss_bytes": 563945472
+    }
+  },
+  "transformers": "5.12.1",
+  "torch": "2.11.0+cpu",
+  "overrun_fetch": {
+    "receipt_passed": false,
+    "return_bytes": 1392
+  },
+  "admission": {
+    "fits": 8,
+    "tight": 4,
+    "over": [
+      2,
+      {
+        "reason": "over_budget",
+        "need_s": 129.0,
+        "remaining_s": 10.0,
+        "step_estimate_s": 1.0,
+        "first_prefill_s": 50.0
+      }
+    ],
+    "constants": {
+      "reserve_s": 180.0,
+      "step_fraction": 0.02,
+      "rows": [
+        8,
+        6,
+        4,
+        2
+      ],
+      "address_space": {
+        "c": 204010946560
+      }
+    }
+  },
+  "memory": {
+    "cpu_stop_bytes": 161061273600,
+    "gpu_stop_bytes": 193273528320
+  }
+}

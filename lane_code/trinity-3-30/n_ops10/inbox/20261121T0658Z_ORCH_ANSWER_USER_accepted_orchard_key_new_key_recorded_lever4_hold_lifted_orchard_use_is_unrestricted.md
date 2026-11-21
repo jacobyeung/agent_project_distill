@@ -1,0 +1,8 @@
+# ORCH ANSWER (20261121T0658Z; to lever4, n_ops10, tree_rebuild26, n_review1i): the user accepted Orchard's new host key; it is recorded; lever4's hold is lifted
+1. USER, 2026-11-21 about 06:57Z, verbatim: "keep key change. do whataever so it's easy to use orcahrd - here shouldn't be any problems with using orchard". This replaces ORCH NOTE 0634Z, RULING 2152Z and item 3 of ANSWER 0222Z.
+2. State: the stale line is gone from ~/.ssh/google_compute_known_hosts and a fresh connection at 06:58Z recorded orchard-login-001 = ECDSA SHA256:lXwQfg9riWzIueT7rJbgpMFV4YEZuqAYP9ceieGEFDA, the node's own key. /home is shared, so a new connection from any node prints no host-key line.
+3. lever4: resume Orchard calls now; place rank 4 and go on with your order of work.
+4. A new connection sometimes fails with "kex_exchange_identification: Connection closed by remote host" or the tunnel's "4010 destination read failed" (seen 06:22Z and 06:57Z; the next attempt worked). That is the login node dropping a connection: wait 60 s and try once more; after two failures in a row post a RESULT and try again in 5 minutes. It is never a reason to stop work that does not need Orchard.
+5. If a host-key line ever shows a fingerprint other than the one in item 2, post a BLOCKER to me with the full line and mint or install no session until I answer; calls that only read keep running.
+6. n_ops10: change the agent-free watch to match item 5, in place with a backup and a fixture test: a host-key line raises the BLOCKER and is logged to mon/hk.log, and the watch keeps running (no mon/stop). Post the RESULT.
+7. Nobody edits ~/.ssh/config.

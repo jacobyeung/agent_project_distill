@@ -1,0 +1,124 @@
+173964|a15_cot_ap0fd6c118b37d|FAILED|1:0|2026-11-21T00:17:37|2026-11-21T02:04:06|01:46:29|||
+173964.batch|batch|FAILED|1:0|2026-11-21T00:17:37|2026-11-21T02:04:06|01:46:29|838854828K|1397844.85M|4273652.84M
+173964.extern|extern|COMPLETED|0:0|2026-11-21T00:17:37|2026-11-21T02:04:06|01:46:29|||
+173964.0|timeout|COMPLETED|0:0|2026-11-21T00:19:48|2026-11-21T00:19:48|00:00:00|22948K|0.00M|0
+173964.1|timeout|COMPLETED|0:0|2026-11-21T00:21:49|2026-11-21T00:21:49|00:00:00|22388K|0.00M|0
+173964.2|timeout|COMPLETED|0:0|2026-11-21T00:23:50|2026-11-21T00:23:50|00:00:00|23348K|0.00M|0
+173964.3|timeout|COMPLETED|0:0|2026-11-21T00:25:50|2026-11-21T00:25:50|00:00:00|22196K|0.00M|0
+173964.4|timeout|COMPLETED|0:0|2026-11-21T00:27:51|2026-11-21T00:27:51|00:00:00|20916K|0.00M|0
+173964.5|timeout|COMPLETED|0:0|2026-11-21T00:29:51|2026-11-21T00:29:52|00:00:01|23212K|0.00M|0
+173964.6|timeout|COMPLETED|0:0|2026-11-21T00:29:52|2026-11-21T00:29:52|00:00:00|6624K|0.00M|0
+173964.7|timeout|COMPLETED|0:0|2026-11-21T00:31:52|2026-11-21T00:31:53|00:00:01|21656K|0.00M|0
+173964.8|timeout|COMPLETED|0:0|2026-11-21T00:31:53|2026-11-21T00:31:53|00:00:00|6560K|0.00M|0
+173964.9|timeout|COMPLETED|0:0|2026-11-21T00:33:53|2026-11-21T00:33:54|00:00:01|22040K|0.00M|0
+173964.10|timeout|COMPLETED|0:0|2026-11-21T00:35:54|2026-11-21T00:35:54|00:00:00|23192K|0.00M|0
+173964.11|timeout|COMPLETED|0:0|2026-11-21T00:35:54|2026-11-21T00:35:54|00:00:00|6876K|0.00M|0
+173964.12|timeout|COMPLETED|0:0|2026-11-21T00:37:55|2026-11-21T00:37:55|00:00:00|21920K|0.00M|0
+173964.13|timeout|COMPLETED|0:0|2026-11-21T00:39:56|2026-11-21T00:39:58|00:00:02|23948K|0.00M|0
+173964.14|timeout|COMPLETED|0:0|2026-11-21T00:41:58|2026-11-21T00:41:58|00:00:00|24580K|0.00M|0
+173964.15|timeout|COMPLETED|0:0|2026-11-21T00:41:58|2026-11-21T00:41:58|00:00:00|6452K|0.00M|0
+173964.16|timeout|COMPLETED|0:0|2026-11-21T00:44:00|2026-11-21T00:44:00|00:00:00|23068K|0.00M|0
+===wlog
+2026-11-21T01:43:01Z watcher start on orchard-community-4
+/tmp/q_22c714e1_173964/ev:
+a3r.json
+a6.json
+b0m.json
+b0r.json
+b1m.json
+b1r.json
+b2m.json
+b2r.json
+b3r.json
+b5r.json
+db_bytes.json
+dbb.log
+live
+materialization.json
+q.log
+q.steps
+r.log
+r1.json
+rd0
+srun: Job step aborted: Waiting up to 32 seconds for job step to finish.
+[2026-11-20T21:04:06.309] error: *** STEP 173964.61 ON orchard-community-4 FAILED (non-zero exit code or other failure mode) ***
+srun: error: orchard-community-4: task 0: Terminated
+===wsh
+N=/tmp/q_22c714e1_173964; L=$N/ev/live; D=$1
+echo "$(date -u +%FT%TZ) watcher start on $(hostname)"; ls $N/ev $L 2>&1 | head -20
+for i in $(seq 1 330); do
+  if test -s $L/v.json && { test -s $L/WAITING_REVIEW.json || test $i -gt 320; }; then sleep 15; break; fi
+  sleep 30
+done
+echo "$(date -u +%FT%TZ) copying (i=$i)"; ls -la $L | head -60
+cd $L && for f in $(find . -maxdepth 1 -type f -size -5M -printf '%f\n'); do cp -p "$f" "$D/$f.part" && mv "$D/$f.part" "$D/$f"; done
+cd $D && sha256sum $(ls | grep -v '^w\.sh$\|^w\.log$') > SHA256SUMS.live && cd $L && sha256sum -c $D/SHA256SUMS.live 2>&1 | grep -vc ': OK$'
+du -sh $D; echo "$(date -u +%FT%TZ) watcher done"
+===y
+2026-11-21T02:07:00Z
+orchard-community-4
+ls: cannot access '/tmp/q_22c714e1_173964': No such file or directory
+ls: cannot access '/tmp/q_22c714e1_173964/ev': No such file or directory
+ls: cannot access '/tmp/q_22c714e1_173964/ev/live': No such file or directory
+12K	.
+2026-11-21T02:07:00Z
+/project/community/jjyeung/okh7/x_22c714e1/o/173964_y/ev:
+total 0
+drwxr-xr-x 2 jjyeung users 0 Nov 21 02:07 .
+drwx------ 4 jjyeung users 0 Nov 21 02:07 ..
+
+/project/community/jjyeung/okh7/x_22c714e1/o/173964_y/live:
+total 0
+drwxr-xr-x 2 jjyeung users 0 Nov 21 02:07 .
+drwx------ 4 jjyeung users 0 Nov 21 02:07 ..
+===j2full
+1138611744d623dce116a7a104a5682ae7a6e889e3155059a92d20adc364ba83
+2026-11-21T00:19:51Z | stage full on orchard-community-4: /tmp free 5123 GiB; mem 1842 GiB
+KITX_OK venv_rwtrain_torch211_cu129.tar 43s
+venv console scripts repointed: 26
+KITX_OK c_fa8681cba4c0.tar 0s
+KITX_OK t_b83a8a35d420815b.tar 0s
+KITX_OK t_e6456bcecb8d4a8f4f68158eb68275f8befff128.tar 0s
+2026-11-21T00:21:14Z | model staged: 18876304 KiB
+KITX_OK art_8e85699ccf79.tar 0s
+2026-11-21T00:21:15Z | small inputs staged
+2026-11-21T00:21:15Z | joined receipt.json 724 B
+2026-11-21T00:21:24Z | joined rows.sqlite 1931452416 B
+2026-11-21T00:21:24Z | joined sources.json 585 B
+2026-11-21T00:21:24Z | joined receipt.json 8547 B
+2026-11-21T00:21:45Z | joined rows.sqlite 4891635712 B
+2026-11-21T00:21:45Z | joined division.json 143998 B
+2026-11-21T00:21:45Z | joined k.json 12169729 B
+2026-11-21T00:21:46Z | joined k3_109026.json 651169 B
+2026-11-21T00:21:46Z | joined k4_111337.json 1121761 B
+2026-11-21T00:21:46Z | joined k7_115066.json 229825 B
+2026-11-21T00:21:46Z | joined k.json 19469377 B
+2026-11-21T00:21:46Z | joined k.json 51519052 B
+2026-11-21T00:21:46Z | joined receipt.json 715 B
+2026-11-21T00:21:52Z | joined rows.sqlite 1297735680 B
+2026-11-21T00:21:52Z | joined sources.json 591 B
+2026-11-21T00:21:52Z | joined receipt.json 2211 B
+2026-11-21T00:23:30Z | joined rows.sqlite 21010542592 B
+2026-11-21T00:23:30Z | joined receipt.json 713 B
+2026-11-21T00:23:31Z | joined rows.sqlite 97079296 B
+2026-11-21T00:23:31Z | joined receipt.json 714 B
+2026-11-21T00:23:32Z | joined rows.sqlite 240427008 B
+2026-11-21T00:23:32Z | joined heads.json 3410 B
+2026-11-21T00:23:36Z | joined heads.safetensors 924151276 B
+2026-11-21T00:23:45Z | joined encoder.safetensors 1824074576 B
+2026-11-21T00:23:45Z | joined receipt.json 713 B
+2026-11-21T00:23:51Z | joined rows.sqlite 1298710528 B
+2026-11-21T00:23:51Z | joined patch.json 4231876 B
+2026-11-21T00:23:51Z | joined 30c516bf.json 229 B
+2026-11-21T00:23:51Z | joined 19c85a70.jsonl.gz 68141 B
+2026-11-21T00:23:51Z | joined 99e6eed6.json 52806 B
+2026-11-21T00:23:56Z | joined rows.sqlite 1251414016 B
+2026-11-21T00:23:56Z | joined receipt.json 731 B
+2026-11-21T00:24:04Z | joined d.db 1718255616 B
+2026-11-21T00:24:04Z | joined i.json 2880 B
+2026-11-21T00:24:04Z | joined m.json 47603 B
+2026-11-21T00:24:04Z | joined u.gz 1688862 B
+2026-11-21T00:24:04Z | joined c.json 120969 B
+2026-11-21T00:24:04Z | joined d.json 685 B
+2026-11-21T00:24:04Z | joined d_8091154cd499c474.json 712 B
+2026-11-21T00:24:
