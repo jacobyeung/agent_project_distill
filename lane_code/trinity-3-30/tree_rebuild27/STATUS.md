@@ -1,8 +1,11 @@
 # tree_rebuild STATUS (successor resumes from this file alone)
-Updated: 2026-11-21T10:46Z by tree_rebuild27 (headless Claude Opus high; session trinity-3-30 /scratch/jjyeung/orch_n30/tree_rebuild27, work trinity-1-18 and 2-28; started 08:53Z; rotate by 17:50Z)
+Updated: 2026-11-21T12:10Z by tree_rebuild27 (headless Claude Opus high; session trinity-3-30 /scratch/jjyeung/orch_n30/tree_rebuild27, work trinity-1-18 and 2-28; started 08:53Z; rotate by 17:50Z)
 W = trinity-1-18:/scratch/jjyeung/orch_n30/tree_rebuild10_w (47 GB 01:21Z; 1-18 /scratch 124 GB free). Mirrors as below.
 
-## Running (10:46Z) — NEWEST FIRST
+## Running (12:10Z) — NEWEST FIRST
+- 12:10Z 12:15Z 174113 FAILED 12:08:10Z mode q T+92 min: q0 REFUSE 'RuntimeError:No CUDA GPUs are available', steps [direction_twins, training_components, p_opener_witness] (witness fix worked), inside admit; parent held 614 MiB CUDA ctx before the mask. BLOCKER 1210Z. Fable xhigh subagent fix4 (brief work/fix4/BRIEF.md, report work/fix4/REPORT.md, W/w28fix, packet events/tree_rebuild/fix_cuda). Logger wlong2 ended (job gone).
+- 12:05Z 12:05Z 174113 mode q T+88 min: a.py in the routing build (open p/q/p/prepare_91010b38.../routing/rows.sqlite + journal; wchar +105 MB/20 s, rchar +111 MB/20 s; 104 threads, RSS 3.2 GB); no log output is expected there. /project ~5 GiB.
+- 11:46Z 11:47Z 174113 mode q T+70 min, past 174101's failure point (witness, ~11:14Z) with no refusal; a.py pid 2055882 95% CPU RSS 2.8 GB (srun ps 11:46Z), holds a 614 MiB CUDA context on GPU0 (parent, unmasked import; forward runs in fw.py child); /tmp and page cache flat since ~11:22Z (CPU phase, likely admit). /project 5 GiB (ORCH ORDER 1055Z gate plan: no scancel for full disk). Answered ORCH QUESTION 1131Z (RESULTs 1141Z, 1144Z): i_bb09a77d/m.tar and i_1be16f28/d_c95023e46d917107.json are READ by N.
 - 10:46Z 10:47Z 174113 staging done 10:36:43Z; mode q from 10:36:43Z; preflight pf.py passed ~10:37-10:39Z (no refusal; RESULT 1046Z). Witness point ~11:14Z; gate ~12:40-13:00Z. 1-min watch.
 - 10:27Z 10:28Z 174113 RUNNING since ~10:18:33Z on orchard-community-2; staging (file cache 145 GiB at T+8 min), anon 0.2 GiB, no alarm. 1-min watch (m.sh over watch.log). Preflight pf.py expected ~T+25-30 min (~10:45Z); report its time in a RESULT.
 - 10:17Z 10:18Z GPU test 174114 PASS (guard_import/guard_query/job_order_guard ok; controls fail as expected). 174113 RELEASED 10:16:48Z (sess b48c73ee, n_review1i confirm 1014Z), PENDING Resources. Logger work/wlong2.sh (w2.sh J=174113) -> tree_rebuild27/work/watch.log until 15:18Z; read via work/chk.sh.

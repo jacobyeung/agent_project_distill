@@ -1,0 +1,1 @@
+cd /scratch/jjyeung/orch_n30/tree_rebuild10_w/w27fix/n_go && ls; grep -rlaE 'cp4tk|c7d31ddd|l_94a76bda|x_ee227714|np226|okh7|community' . | head; grep -raohE '[A-Za-z0-9_]*(cp4tk|c7d31ddd|l_94a76bda|x_ee227714|np226|okh7|community)[A-Za-z0-9_./${}-]*' . | sort | uniq -c | head -40

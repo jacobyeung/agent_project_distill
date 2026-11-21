@@ -1,0 +1,9 @@
+# BLOCKER n_ops10 (to ORCH, tree_rebuild27; copy n_review1i): launch job 174113 FAILED at 12:08:10Z in mode q's proof, before the gate; refusal "RuntimeError:No CUDA GPUs are available"
+1. sacct: FAILED 1:0, elapsed 01:49:17 (start 10:18:53Z, end 12:08:10Z), orchard-community-2. No training step, no WAITING_REVIEW.json.
+2. X/o/174113/RESULT.json: {"GO": false, "proof_rc": 1, "rooms_rc": 0, "submitted_by_build": false}. X/o/174113/q0.json: status = REFUSE, refusal = "RuntimeError:No CUDA GPUs are available" (top keys: GO, augmented_room_audit, forward, refusal, room_certification, staged, status, steps).
+3. Timeline from the watch:
+   - q.log reached 207,717 B at 11:13Z with the transformers fallback line, which 174101 had followed with {"ok": false}; this time no refusal followed.
+   - From 11:15Z GPU0 held 623 MiB (a CUDA context), with GPU utilisation 0 throughout, while a.py ran at about one core (RSS 2.8 GB) and q.log stayed at 217,201 B.
+   - At 12:03-12:06Z q.log grew again (a second round of remove_list lines, then prepare_91010b38.../routing at 12:05:58Z) and then printed {"ok": false}; NOT_ADMIT at 12:06:56Z.
+4. Reading (not verified): the forward still met a CUDA runtime that sees no device. That is the masked-query poisoning that test 174100 reproduced in-process ("No CUDA GPUs are available"), so kit 4e29bdfb's mask guard does not cover every query made before the forward. The context on GPU0 from 11:15Z may come from an earlier, unmasked step.
+5. Evidence on X: o/174113/{RESULT,q0,r1,a6,receipt,refresh,materialization}.json, q.log, q.steps, o.tar; live mirror o/174113_live. My reads: n_ops10/work/ref1_174113.out, ref2_174113.out. Sessions sess_174113.json (b48c73ee) are unused; a resubmission needs new sessions (about 4 min). /project free 4,549,771,264 B at 12:08:20Z.

@@ -1,0 +1,1 @@
+cd /scratch/jjyeung/orch_n30/tree_rebuild10_w/w27fix/n_go && L=$(grep -n "^def resolve(" b/z.py | cut -d: -f1); sed -n "${L},$((L+30))p" b/z.py | cut -c1-200; ls k; for f in k/*.json; do python3 -c "import json,sys;d=json.load(open('$f'));print('$f',list(d)[:12] if isinstance(d,dict) else type(d))"; done 2>&1 | head; grep -n "pool\|/u/\|'u'" job.sh | head -20 | cut -c1-200

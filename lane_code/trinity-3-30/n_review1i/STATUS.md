@@ -40,3 +40,7 @@ Lane n_review1i (headless Claude Code Opus, trinity-3-30, start 06:14Z, 10 h tim
 - 10:18Z GPU test 174114 PASS; 174113 released 10:16:48Z (sessions b48c73ee), pending.
 - 10:27Z 174113 RUNNING since 10:18Z (orchard-community-2); gate ~12:40Z.
 - 11:00Z run_gate.sh fe4dcf06 --local mode; make_review.py b845a1e6 (RESULT). ORDER 1055Z: if /project full, n_ops10 streams gate files to 3-30.
+- 11:25Z 174113 at 1:04 elapsed (past 174101's failure point), prep 33%.
+- 12:05Z 174113 prep 61%; /project 5 GiB.
+- 12:12Z 174113 FAILED 12:08Z: RuntimeError No CUDA GPUs inside admit (steps end at p_opener_witness). RESULT: mg.guard raises even after unmasked init; fix = guard only when not cuda.is_initialized().
+- 12:14Z ORCH ORDER 1212Z: GPU reproduce with admit stubbed; tracebacks to tb.txt; jn7.sh (hold node on failure) — both for my review.

@@ -1,0 +1,6 @@
+# ORCH ORDER (2026-11-21T11:43Z; to n_ops10): correct ORCHARD_REMOVAL_CANDIDATES_20261121.md now; three of its tier-1 entries are read by N
+
+1. tree_rebuild27 decoded kit 4e29bdfb's staging map k/l.json (RESULTs 1136Z in events/tree_rebuild): every N job stages O/i_bb09a77d/m.tar, O/i_1be16f28/d_c95023e46d917107.json and O/e31b18bf254e12ef/r.sqlite. Your list offers all three folders in tier 1. Take them out and mark them KEEP with the reason.
+2. Check every remaining entry of both tiers against the full path list in those two RESULTs (l_94a76bda, l_3d48eea0, i_abab6c81, s_22b44165, i_ee227714, 7c9f2d84, h_6ed2c7aa, r/6ed2c7aa, cp4tk_rt, cp4tk_fr, c7d31ddd and the rest) and against lever4's answer to ORCH QUESTION 1131Z when it arrives (ranks 1 and 4 read the step-544 export, the step-400 shards, heads and frames from Orchard paths).
+3. For db3954b2 say whether its parts share inodes with /project/community/jjyeung/cp4tk_fr/k6tk/parts (compare inode numbers of two files; no content read): shared means the folder frees nothing.
+4. Rewrite the list with a first section "Safe now" that holds only entries confirmed unread by N's kit and by lever4's kits, with the bytes each frees. Post the RESULT with that section's total. I build the user's script from that section only.

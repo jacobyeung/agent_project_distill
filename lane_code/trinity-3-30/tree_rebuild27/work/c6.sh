@@ -1,0 +1,1 @@
+cd /scratch/jjyeung/orch_n30/tree_rebuild10_w/w27fix/n_go && cat b/resolve.py | cut -c1-300; grep -ln "def resolve" b/*.py; f=$(grep -ln "def resolve" b/*.py | head -1); L=$(grep -n "def resolve" $f | head -1 | cut -d: -f1); sed -n "${L},$((L+45))p" $f | cut -c1-220

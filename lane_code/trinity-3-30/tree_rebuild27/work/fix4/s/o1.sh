@@ -1,0 +1,3 @@
+X=/project/community/jjyeung/okh7/x_22c714e1
+{ date -u +%FT%TZ; cd $X/o/174113 && ls -la; echo "--- o.tar"; tar tvf o.tar; echo "--- test dir"; ls -la $X/t_e7c1a94b3d20; echo "--- overlay"; ls -la /project/community/jjyeung/okh7/l_94a76bda/in | head -20; tar tvf /project/community/jjyeung/okh7/l_94a76bda/in/d00 | awk '{print $3, $6}' | head -150; echo "--- X"; ls $X; ls $X/n 2>/dev/null | head; sha256sum $X/n/SHA256SUMS.txt 2>/dev/null; df -h /project/community | tail -1; } >&2
+cd $X && tar czf - o/174113/o.tar o/174113/q.log o/174113/q0.json o/174113/q.steps o/174113/RESULT.json o/174113/r1.json o/174113/a6.json o/174113/j2.log t_e7c1a94b3d20/r.txt t_e7c1a94b3d20/e.txt t_e7c1a94b3d20/s.log t_e7c1a94b3d20/s.err 2>/dev/null

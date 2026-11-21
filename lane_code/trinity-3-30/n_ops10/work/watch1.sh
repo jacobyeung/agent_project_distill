@@ -2,7 +2,7 @@
 # 1-minute launch watch for up to $1 s: every 60 s record the progress signature; stop early on two unchanged signatures in a row, a non-RUNNING state, a FLAG other than PROJECT_DISK, or a new ORCH/BLOCKER/QUESTION file
 W=/scratch/jjyeung/orch_n30/n_ops10/work; M=/scratch/jjyeung/orch_n30/n_ops1/work/mon
 O=/scratch/jjyeung/orch_n30; B=/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30; SEEN=$W/seen.txt
-lst() { ls $O/n_ops10/inbox $O/n_ops9/inbox $B/events/n_ops $B/events/tree_rebuild 2>/dev/null | grep -E 'SESS_JOB|_ORCH_|BLOCKER|QUESTION|[Ss]wap|n_ops10|resubmit|_held' | sort -u; }
+lst() { ls $O/n_ops10/inbox $O/n_ops9/inbox $B/events/n_ops $B/events/tree_rebuild 2>/dev/null | grep -E 'SESS_JOB|_ORCH_|BLOCKER|QUESTION|[Ss]wap|n_ops10|resubmit|_held|RESULT.*(path|read|orchard)' | sort -u; }
 end=$(( $(date +%s) + ${1:-540} )); prev=""; same=0; why=timeout
 while [ $(date +%s) -lt $end ]; do
   l=$($W/sig.sh); echo "$l" >> $W/sig.log; s=$(echo "$l" | grep -o 'sig=[0-9a-f]*')
