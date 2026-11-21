@@ -3,11 +3,12 @@ Lane dir /scratch/jjyeung/orch_n30/lever4 (work/, out/, inbox/; lever3 copy in f
 ## Orchard: host key accepted by USER (ORCH 0658Z); hold lifted. kex drops: wait 60 s, retry once. (STATUS checked 10:11Z: rank 1 CPU real-unit build running)
 ## Rank 4: DONE 09:10Z
 - GPU read 174108 (token 2d1983684f183) COMPLETED: ORIG 100%, REVSI 100% (290/290 each), gate no change, arm D closed. RESULT 0914Z; plan record Rank 4 read entry written. Files events/lever/files/r4/, lever4/out/r4_gpu_174108, r4kit/out/*_174108*. Deaths fixed on the way: 173990 boot closure (causal_conv1d/fla absent), 174087 batch merge (transformers 5.19 dict states). Repeat on N's first export waits for that export.
-## Rank 1 (waiting for general)
-- a4282fee306d6 (placed): CPU check 174121 PASSED on preempt 12:42Z with the real unit (lever4/out/r1_cpu_174121). GPU submit = /dev/shm/lever4/r1/o_sub_hand.sh (refuses while any jjyeung job is on general; 174110 jjy_allonv_dsi holds general to ~21:10Z). Default (QUESTION 1302Z): submit it the minute 174110 leaves; check every 10 min.
-- a89e8fdab55d4 (debug build, placed 12:59Z) is dead: sbatch refused debug for account mt01; its CPU lock is spent. Listed as removal candidate.
-- After GPU: o_fetch, o_get, depth pull (governed, --io-weight 1), relift.py (p1cpu; parity gate), cells a-g, boxdev.
+## Rank 1: STOP under the registered reading (13:40Z); ruling owed (QUESTION 1340Z)
+- GPU job 174135 COMPLETED; depth lever1_c/r1/returned/0.gz (sha 5839d0ba..., mirror trinity-1-18 /scratch/jjyeung/n30_mirror/lever4/r1/); pull record lever4_r1depth.done.
+- relift.py: STOP camera/scale parity (13/60 captures in bound; ARKit 1/47 items). Diagnostic (lever4/work/relift_gapdiag.py, no cells): printed-gap 141/150 exact, object fraction 0.94 < 0.95, 9 misses each 0.01 m. BOX dev check blocked by the same gate. Plan record Rank 1 entry written.
+- ORCH 1329Z option (b): repeat run token a3b73b53d92a7 (same code as a4282, verified SAME by an independent check; sha 45d9b91f...), placed 13:54Z; CPU check 174160 RUNNING 13:54Z on general; scripts /dev/shm/lever4/r1r; compare tool lever4/work/repeat/compare.py (tested). Next: o_sub_hand, monitor, o_fetch, o_get into a new returned dir, governed pull via 3-30, compare, RESULT, plan record.
 ## Mirrors
+- Rank 1 depth: 2-28 lever1_c/r1/returned/0.gz + trinity-1-18 n30_mirror/lever4/r1 (sha 5839d0ba8206ebbf50a5284eec6d6b434e193f50c792d672266765fcb64219c7); GCS gs://cmu-gpucloud-jjyeung/q8/ae71c903/a4282fee306d60002a837c/0.gz.
 - Rank 4 delivery on Orchard okh7/ad2d1983684f183/0.tgz, sha dd819d503161c64c30870b17a502a4f857a425015386fe0ca5e4a274446b1a31. Returns on /data2 events/lever/files/r4 and on 2-28 lever4/out.
 ## Rulings in force
 ORCH 0720Z: one more rank 4 GPU read after fix+review+pinned batch parity+CPU preflight; rank 1 may use general meanwhile (never both); deaths in first 10 min returning a NEW cause: fix, review, CPU preflight of the failed path, resubmit without asking (RESULT per death); repeat cause / no return / death after 10 min -> orchestrator. Item 4: before each rank's next GPU read, its first real batch through the whole forward on CPU in the pinned env.

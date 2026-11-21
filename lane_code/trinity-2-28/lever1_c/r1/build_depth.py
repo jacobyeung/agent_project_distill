@@ -64,7 +64,7 @@ def build(out=HERE/'out',scripts=HERE/'orchard'):
     entries=B.read_tar(nf['0.tgz']);pf={m.name:d for m,d in entries};before=dict(pf)
     pub=json.loads(nf['0.json']);plan=json.loads(pf['9.json']);oldtoken=plan['token']
     assert oldtoken=='a52c1dcfae7bb'
-    token='a5d31c07be9f2'
+    token='a3b73b53d92a7'
     ref,forecast=reference()
     pf['g/t.py']=(HERE/'runtime/t.py').read_bytes();pf['g/w.py']=(HERE/'runtime/w.py').read_bytes()
     pf['g/d.py']=(HERE/'depth_format.py').read_bytes();pf['g/8.json']=B.jd(ref)
@@ -152,9 +152,6 @@ def build(out=HERE/'out',scripts=HERE/'orchard'):
     write_receipt.patch(nf,B,HERE)
     # The CPU check runs the first real capture through the production worker.
     cpu_unit.patch(nf,pf,B,HERE)
-    # Both allocations go to the preempt partition with its QoS, on H100 nodes.
-    import debug_partition
-    debug_partition.patch(nf,pf,B)
     codec=(HERE/'runtime/j.py').read_bytes()
     # Standalone launchers run before the package import loader exists.
     bootstrap=b"\nexec(bytes.fromhex('"+codec.hex().encode()+b"').decode(),_a0:={});_a0['install']()\n"
@@ -177,7 +174,7 @@ def build(out=HERE/'out',scripts=HERE/'orchard'):
     nf['a/1.json']=nf['INPUTS.example.json']=wire.pack(B.jd(inputs))
     # All model/evaluator sources retain their exact bytes; only path resolution changes.
     # One unplaced identity for this repair; all content remains SHA256 sealed.
-    token='a5d31c07be9f2'
+    token='a3b73b53d92a7'
     plan['token']=token;plan['stop_margin']=270;plan['return_margin']=240;plan['budget_gpu_seconds']=3000
     plan['payload_pins']={n:dict(bytes=len(d),sha256=B.sha(d)) for n,d in pf.items() if n!='9.json'}
     pf['9.json']=wire.pack(B.jd(plan))
@@ -195,7 +192,6 @@ def build(out=HERE/'out',scripts=HERE/'orchard'):
             data=data.replace(b'from pathlib import Path',b'import os,runpy\nfrom pathlib import Path')
             data=B.once(data,b" proof=json.loads((shared/'a/c/CPU.json').read_text())",b" if not os.environ.get('SLURM_JOB_GPUS') and not os.environ.get('CUDA_VISIBLE_DEVICES'):\n  sys.argv=[str(shared/'a/5.py'),'--package',str(shared),'--sequence',str(shared/'a/6.py'),'--results',str(shared/'a/c')]\n  runpy.run_path(sys.argv[0],run_name='__main__')\n  return\n proof=json.loads((shared/'a/c/CPU.json').read_text())")
             data=cpu_unit.bootstrap(data)
-            data=debug_partition.bootstrap(data)
             helper=(HERE/'runtime/a.py').read_bytes()
             data=B.once(data,b' job.main(root)',
                 b" exec(bytes.fromhex('"+helper.hex().encode()+b"'),scope:={})\n scope['allocation'](shared,public,sha)\n job.main(root)")
@@ -216,7 +212,7 @@ def build(out=HERE/'out',scripts=HERE/'orchard'):
     nf['a/27.py']=(HERE/'runtime/c.py').read_bytes()
     fallback=supervisor.rsplit(b'\nraise SystemExit(supervise(r,b))',1)[0]+(HERE/'runtime/f.py').read_bytes()
     nf['a/29.py']=b"exec(bytes.fromhex('"+fallback.hex().encode()+b"'))\n"
-    nf['BATCH.sh']=debug_partition.batch_header(revision8.batch_header(token),token).encode()+code
+    nf['BATCH.sh']=revision8.batch_header(token).encode()+code
     pk=json.loads(nf['PACKAGE.json']);pk['token']=token
     pk['files']={n:B.sha(v) for n,v in nf.items() if n!='PACKAGE.json'};nf['PACKAGE.json']=B.jd(pk)
     delivery=B.write_tar([B.added(n,nf[n]) for n in sorted(nf)])
@@ -232,9 +228,9 @@ def build(out=HERE/'out',scripts=HERE/'orchard'):
         mixed_archive='Stream only CPython from runtime group 0; stage group 1 and inputs 3/4; defer other runtime members and all bulk inputs until boot succeeds',
         timing_allowance='Included in the existing unmeasured 600-second staging allowance; no first-seconds claim before runtime provisioning')
     forecast['boot']=boot
-    result=dict(token=token,superseded_tokens=['a6f198d3c7b20','a7e29d4c8f103','a38bd627f901e','ad07f53341bc0','a4282fee306d6','a89e8fdab55d4'],package='/project/community/jjyeung/'+token,job_name='a15_cot_ap'+token,
+    result=dict(token=token,superseded_tokens=['a6f198d3c7b20','a7e29d4c8f103','a38bd627f901e','ad07f53341bc0','a4282fee306d6','a89e8fdab55d4','a5d31c07be9f2'],package='/project/community/jjyeung/'+token,job_name='a15_cot_ap'+token,
         forecast=forecast,boot=boot,boot_closure=boot_manifest,
-        walltime='00:50:00',partition=debug_partition.PARTITION,qos=debug_partition.QOS,delivery_bytes=len(delivery),delivery_sha256=B.sha(delivery),
+        walltime='00:50:00',delivery_bytes=len(delivery),delivery_sha256=B.sha(delivery),
         payload_expanded_bytes=sum(map(len,pf.values())),layout=layout_proof,external_inputs=input_proof,
         installed_bytes=sum(map(len,nf.values())),files={n:B.sha(v) for n,v in nf.items()},
         payload_files={n:B.sha(v) for n,v in pf.items()},payload_sha256=B.sha(nf['0.tgz']),plan_sha256=B.canonical(plan),
@@ -248,7 +244,7 @@ def build(out=HERE/'out',scripts=HERE/'orchard'):
     import scripts as S
     public_info={k:v for k,v in result.items() if k not in ('layout','external_inputs','forecast','boot','boot_closure')}
     (out/'BUILD.json').write_bytes(B.jd(public_info))
-    S.render(out,scripts,cpu_partition=debug_partition.PARTITION)
+    S.render(out,scripts,cpu_partition='general')
     (out/'BUILD.json').write_bytes(B.jd(result))
     for p in scripts.glob('*.sh'):
         if p.name!='o_place.sh':
@@ -275,8 +271,6 @@ def build(out=HERE/'out',scripts=HERE/'orchard'):
     for name in ('o_cpu.sh','o_check_sub.sh'):
         path=scripts/name
         path.write_text(path.read_text().replace('cd "$P"','ulimit -S -f 512\ncd "$P"'))
-    path=scripts/'o_check_sub.sh';path.write_text(debug_partition.scripts(path.read_text()))
-    path=scripts/'o_fetch.sh';path.write_text(debug_partition.fetch(path.read_text()))
     (scripts/'o_sub_hand.sh').write_bytes((scripts/'o_check_sub.sh').read_bytes())
     for path in scripts.glob('*.sh'):
         text=path.read_text().replace(' < /dev/null &'," <<'A_EOF' &\nA_EOF")

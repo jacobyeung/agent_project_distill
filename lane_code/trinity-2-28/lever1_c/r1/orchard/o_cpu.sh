@@ -1,12 +1,12 @@
 #!/bin/bash
 set -euo pipefail
 umask 077
-S=$(mktemp /tmp/aa5d31c07be9f21.XXXXXXXX)
+S=$(mktemp /tmp/aa3b73b53d92a71.XXXXXXXX)
 cat > "$S" <<'BODY'
 #!/bin/bash
 set -euo pipefail
 umask 077
-P=/project/community/jjyeung/a5d31c07be9f2
+P=/project/community/jjyeung/a3b73b53d92a7
 ulimit -S -f 512
 cd "$P"
 (set -C; : > a/0.lock)

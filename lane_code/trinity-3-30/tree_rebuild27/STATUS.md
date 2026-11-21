@@ -1,8 +1,10 @@
 # tree_rebuild STATUS (successor resumes from this file alone)
-Updated: 2026-11-21T13:07Z by tree_rebuild27 (headless Claude Opus high; session trinity-3-30 /scratch/jjyeung/orch_n30/tree_rebuild27, work trinity-1-18 and 2-28; started 08:53Z; rotate by 17:50Z)
+Updated: 2026-11-21T14:10Z by tree_rebuild27 (headless Claude Opus high; session trinity-3-30 /scratch/jjyeung/orch_n30/tree_rebuild27, work trinity-1-18 and 2-28; started 08:53Z; rotate by 17:50Z)
 W = trinity-1-18:/scratch/jjyeung/orch_n30/tree_rebuild10_w (47 GB 01:21Z; 1-18 /scratch 124 GB free). Mirrors as below.
 
-## Running (13:07Z) — NEWEST FIRST
+## Running (14:10Z) — NEWEST FIRST
+- 14:10Z 14:11Z 174134 RUNNING 1:04, mode q past witness (fast-path line ~14:00Z, as 174113 at 11:22Z), in admit; anon 2.3 GiB; no alarm/hold. 174113 failed at admit+~91 min mode q -> watch ~15:00Z.
+- 13:43Z 13:44Z 174134 RUNNING 37 min; staging done ~13:24Z; mode q at scene receipts as 174113 was; anon 3.2 GiB, no alarm, no hold.
 - 13:07Z 13:07Z 174134 RELEASED 13:06:01Z, RUNNING since 13:06:02Z orchard-community-3 (kit 9e809db4, jn7 98edfd9e, sess 7d926164). Logger wlong3.sh (w3.sh with hold=) -> work/watch.log until ~20:06Z; loop9.sh flags anomalies incl. HOLD. Forecast: staging ~13:24Z, witness ~14:02Z, admit end ~15:00Z, gate ~15:30-16:00Z. On failure before training: node held up to 180 min -> BLOCKER with X/o/174134/tb.txt, debug via srun --overlap.
 - 13:02Z 13:03Z GPU skeleton 174132 PASS 9/9 (old kit reproduces 174113 via mg.py:28; new 9e809db4 runs routing, prepare, forward in-process). jn7 forced refusal 174133 hold+RELEASE PASS (FAILED 3:0). X/n = 9e809db4 (old 4e29bdfb at X/a24m4z12/n_4e29bdfb), X/jn7.sh 98edfd9e. 174134 HELD; SESS_JOB 174134 -> n_ops10; release after sessions + n_review1i confirm.
 - 12:18Z 12:22Z ORCH ORDER 1212Z + ANSWER 1214Z: fix4 (fable xhigh) = admit CUDA call + GPU skeleton real order + mg.py is_initialized or remove + forward in-process + kit tb.txt; fix5 (opus high, W/w28jn7) = jn7.sh hold on failure before training + tb.txt publish + forced-refusal job. RESULT 1221Z.

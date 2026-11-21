@@ -162,8 +162,7 @@ class PackageTests(unittest.TestCase):
         for n,h in info['payload_files'].items():self.assertEqual(R.sha(self.payload/n),h)
         from orchard_h10.common import submit_argv
         argv=submit_argv(info['token'],1,'00:50:00')
-        for arg in ('--exclude=orchard-community-4,orchard-flame-[0-31]','--mem=200G','--partition=preempt','--qos=preempt_qos','--gres=gpu:1','--cpus-per-task=16'):self.assertIn(arg,argv)
-        self.assertFalse(any('general' in arg for arg in argv))
+        for arg in ('--exclude=orchard-community-4','--mem=200G','--partition=general','--gres=gpu:1','--cpus-per-task=16'):self.assertIn(arg,argv)
         plan=json.loads((self.payload/'9.json').read_text());self.assertEqual(plan['stop_margin'],270)
         for n in info['changed_payload']:
             if n.endswith('.py'):compile((self.payload/n).read_bytes(),n,'exec')

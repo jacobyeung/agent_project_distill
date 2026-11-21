@@ -9,19 +9,19 @@
       "name": "deadline_kill",
       "passed": true,
       "pinned": false,
-      "work": "/scratch/jjyeung/orch_n30/lever1_c/r1_fixtures_old/uf04b28f7dbbb",
-      "seconds": 9.176056458003586,
+      "work": "/scratch/jjyeung/orch_n30/lever1_c/r1_fixtures_old/u4fb6432d56b7",
+      "seconds": 9.101220053009456,
       "process": {
         "returncode": 1,
         "stopped": "deadline",
-        "seconds": 8.822654898976907,
+        "seconds": 8.771351884992328,
         "memory": {
           "limit_bytes": 182536110080,
           "source": "process_tree_rss",
           "over": false,
           "cgroup_max": null,
-          "guarded_bytes": 521273344,
-          "tree_rss_bytes": 521273344,
+          "guarded_bytes": 520048640,
+          "tree_rss_bytes": 520048640,
           "cgroup_current_bytes": null,
           "cgroup_peak_bytes": null
         },
@@ -30,9 +30,9 @@
           {
             "phase": "1",
             "status": "incomplete",
-            "seconds": 4.32877723799902,
-            "rss_peak_bytes": 520482816,
-            "process_rss_hwm_bytes": 522076160
+            "seconds": 4.192352176993154,
+            "rss_peak_bytes": 520048640,
+            "process_rss_hwm_bytes": 520716288
           }
         ],
         "action": 3
@@ -41,7 +41,7 @@
         "passed": false,
         "status": "failed",
         "failure": "E99:546f7765724572726f72",
-        "error": "TowerError: run: e2e_artifact_refuses:write:/scratch/jjyeung/orch_n30/lever1_c/r1_fixtures_old/uf04b28f7dbbb/r/metadata/STOP",
+        "error": "TowerError: run: e2e_artifact_refuses:write:/scratch/jjyeung/orch_n30/lever1_c/r1_fixtures_old/u4fb6432d56b7/r/metadata/STOP",
         "admission": {
           "estimates": {
             "first_model": {
@@ -56,17 +56,17 @@
           "first_need_s": 92.5,
           "need_s": 92.5,
           "reason": "first_unit",
-          "remaining_s": 596.3171765804291,
+          "remaining_s": 596.1816484928131,
           "safety": 1.25
         },
         "capture_index": 0,
         "stages": [
           {
             "dense": 64,
-            "elapsed_s": 0.8996603449922986,
+            "elapsed_s": 0.836638321983628,
             "name": "bind",
-            "peak_rss_bytes": 507240448,
-            "seconds": 0.6112435089889914
+            "peak_rss_bytes": 507863040,
+            "seconds": 0.5989880030101631
           }
         ],
         "checks": null,
@@ -79,27 +79,27 @@
           "transformers": "5.12.1"
         },
         "parity": null,
-        "peak_rss_bytes": 522076160,
-        "seconds": 4.33421069799806
+        "peak_rss_bytes": 520716288,
+        "seconds": 4.1983156119822524
       }
     },
     {
       "name": "local_first_unit",
       "passed": true,
       "pinned": false,
-      "work": "/scratch/jjyeung/orch_n30/lever1_c/r1_fixtures_old/ud723a79b96d4",
-      "seconds": 11.977110562991584,
+      "work": "/scratch/jjyeung/orch_n30/lever1_c/r1_fixtures_old/uc3858ce1a82b",
+      "seconds": 12.249683739995817,
       "process": {
         "returncode": 0,
         "stopped": null,
-        "seconds": 11.597114125004737,
+        "seconds": 11.836216163996141,
         "memory": {
           "limit_bytes": 182536110080,
           "source": "process_tree_rss",
           "over": false,
           "cgroup_max": null,
-          "guarded_bytes": 624062464,
-          "tree_rss_bytes": 624062464,
+          "guarded_bytes": 615780352,
+          "tree_rss_bytes": 615780352,
           "cgroup_current_bytes": null,
           "cgroup_peak_bytes": null
         },
@@ -108,9 +108,9 @@
           {
             "phase": "4",
             "status": "written",
-            "seconds": 7.308284479018766,
-            "rss_peak_bytes": 624062464,
-            "process_rss_hwm_bytes": 649175040
+            "seconds": 7.348491950018797,
+            "rss_peak_bytes": 615780352,
+            "process_rss_hwm_bytes": 640811008
           }
         ],
         "action": 3
@@ -134,56 +134,56 @@
           "first_need_s": 92.5,
           "need_s": 92.5,
           "reason": "first_unit",
-          "remaining_s": 896.3609983921051,
+          "remaining_s": 896.2936599254608,
           "safety": 1.25
         },
         "capture_index": 0,
         "stages": [
           {
             "dense": 64,
-            "elapsed_s": 0.9043972190120257,
+            "elapsed_s": 0.8987021900247782,
             "name": "bind",
-            "peak_rss_bytes": 506802176,
-            "seconds": 0.6023328870069236
+            "peak_rss_bytes": 505442304,
+            "seconds": 0.6047262699867133
           },
           {
-            "elapsed_s": 6.779573395993793,
+            "elapsed_s": 6.8139662770263385,
             "name": "first_model",
-            "peak_rss_bytes": 552239104,
-            "remaining_s": 889.58203125,
-            "seconds": 5.8733213509840425
+            "peak_rss_bytes": 550731776,
+            "remaining_s": 889.480382680893,
+            "seconds": 5.913442741002655
           },
           {
             "dtypes": [
               "torch.bfloat16",
               "torch.float32"
             ],
-            "elapsed_s": 6.946251318004215,
+            "elapsed_s": 6.982680107001215,
             "locations": [
               "cpu"
             ],
             "name": "load",
             "parameters": 358773,
-            "peak_rss_bytes": 565420032,
-            "remaining_s": 889.4163067340851,
-            "seconds": 0.1647831560112536,
+            "peak_rss_bytes": 563904512,
+            "remaining_s": 889.3126032352448,
+            "seconds": 0.16660319999209605,
             "step": 544
           },
           {
-            "elapsed_s": 7.151464060996659,
+            "elapsed_s": 7.19519681300153,
             "name": "prefill",
-            "peak_rss_bytes": 649175040,
-            "seconds": 0.20362287500756793,
+            "peak_rss_bytes": 640811008,
+            "seconds": 0.21096147102070972,
             "timings": {
-              "first_model_s": 5.873298958002124
+              "first_model_s": 5.913376682001399
             }
           },
           {
-            "bytes": 637296,
-            "elapsed_s": 7.314002116007032,
+            "bytes": 637292,
+            "elapsed_s": 7.353914152015932,
             "name": "record",
-            "peak_rss_bytes": 649175040,
-            "seconds": 0.1530962960096076
+            "peak_rss_bytes": 640811008,
+            "seconds": 0.14938702798099257
           }
         ],
         "checks": {
@@ -334,8 +334,8 @@
           },
           "trusted": false
         },
-        "peak_rss_bytes": 649175040,
-        "seconds": 7.3173603489995
+        "peak_rss_bytes": 640811008,
+        "seconds": 7.357102540001506
       },
       "transformers": "5.12.1",
       "torch": "2.11.0+cpu"
@@ -344,19 +344,19 @@
       "name": "local_time_guard",
       "passed": true,
       "pinned": false,
-      "work": "/scratch/jjyeung/orch_n30/lever1_c/r1_fixtures_old/u335ecd0dc9e6",
-      "seconds": 9.726351575984154,
+      "work": "/scratch/jjyeung/orch_n30/lever1_c/r1_fixtures_old/u3f40a3ba5eb0",
+      "seconds": 9.525610481010517,
       "process": {
         "returncode": 0,
         "stopped": null,
-        "seconds": 9.417198918992653,
+        "seconds": 9.206351954984711,
         "memory": {
           "limit_bytes": 182536110080,
           "source": "process_tree_rss",
           "over": false,
           "cgroup_max": null,
-          "guarded_bytes": 558829568,
-          "tree_rss_bytes": 558829568,
+          "guarded_bytes": 552771584,
+          "tree_rss_bytes": 552771584,
           "cgroup_current_bytes": null,
           "cgroup_peak_bytes": null
         },
@@ -365,9 +365,9 @@
           {
             "phase": "4",
             "status": "written",
-            "seconds": 4.99857786600478,
-            "rss_peak_bytes": 574316544,
-            "process_rss_hwm_bytes": 599388160
+            "seconds": 4.779304016003152,
+            "rss_peak_bytes": 567226368,
+            "process_rss_hwm_bytes": 592371712
           }
         ],
         "action": 3
@@ -391,56 +391,56 @@
           "first_need_s": 92.5,
           "need_s": 55.0,
           "reason": "time_guard",
-          "remaining_s": 70.03540015220642,
+          "remaining_s": 70.1230251789093,
           "safety": 1.25
         },
         "capture_index": 30,
         "stages": [
           {
             "dense": 32,
-            "elapsed_s": 0.6407261650019791,
+            "elapsed_s": 0.5276072249980643,
             "name": "bind",
-            "peak_rss_bytes": 465416192,
-            "seconds": 0.330493455985561
+            "peak_rss_bytes": 468324352,
+            "seconds": 0.3235017780098133
           },
           {
-            "elapsed_s": 4.4412219150108285,
+            "elapsed_s": 4.267462287010858,
             "name": "first_model",
-            "peak_rss_bytes": 501477376,
-            "remaining_s": 65.59483170509338,
-            "seconds": 3.798777849995531
+            "peak_rss_bytes": 501776384,
+            "remaining_s": 65.85605359077454,
+            "seconds": 3.7382952790067066
           },
           {
             "dtypes": [
               "torch.bfloat16",
               "torch.float32"
             ],
-            "elapsed_s": 4.613927779020742,
+            "elapsed_s": 4.4297036369971465,
             "locations": [
               "cpu"
             ],
             "name": "load",
             "parameters": 358773,
-            "peak_rss_bytes": 514899968,
-            "remaining_s": 65.42305254936218,
-            "seconds": 0.17006392701296136,
+            "peak_rss_bytes": 515207168,
+            "remaining_s": 65.69477438926697,
+            "seconds": 0.1606163599935826,
             "step": 544
           },
           {
-            "elapsed_s": 4.8469501759973355,
+            "elapsed_s": 4.628286741004558,
             "name": "prefill",
-            "peak_rss_bytes": 599388160,
-            "seconds": 0.23129809700185433,
+            "peak_rss_bytes": 592371712,
+            "seconds": 0.1971499609935563,
             "timings": {
-              "first_model_s": 3.7987144439830445
+              "first_model_s": 3.73827479899046
             }
           },
           {
-            "bytes": 636015,
-            "elapsed_s": 5.002910573006375,
+            "bytes": 636014,
+            "elapsed_s": 4.783377764018951,
             "name": "record",
-            "peak_rss_bytes": 599388160,
-            "seconds": 0.14627952899900265
+            "peak_rss_bytes": 592371712,
+            "seconds": 0.14580845402088016
           }
         ],
         "checks": {
@@ -591,8 +591,8 @@
           },
           "trusted": false
         },
-        "peak_rss_bytes": 599388160,
-        "seconds": 5.006006401992636
+        "peak_rss_bytes": 592371712,
+        "seconds": 4.785525189014152
       },
       "transformers": "5.12.1",
       "torch": "2.11.0+cpu"
@@ -601,19 +601,19 @@
       "name": "memory_guard",
       "passed": true,
       "pinned": false,
-      "work": "/scratch/jjyeung/orch_n30/lever1_c/r1_fixtures_old/u8e8279d3518d",
-      "seconds": 2.179099350993056,
+      "work": "/scratch/jjyeung/orch_n30/lever1_c/r1_fixtures_old/u282044eb89f7",
+      "seconds": 2.109588734980207,
       "process": {
         "returncode": -9,
         "stopped": "memory",
-        "seconds": 1.849070683005266,
+        "seconds": 1.815211831999477,
         "memory": {
           "limit_bytes": 67108864,
           "source": "process_tree_rss",
           "over": true,
           "cgroup_max": null,
-          "guarded_bytes": 249409536,
-          "tree_rss_bytes": 249409536,
+          "guarded_bytes": 237449216,
+          "tree_rss_bytes": 237449216,
           "cgroup_current_bytes": null,
           "cgroup_peak_bytes": null
         },
@@ -644,19 +644,19 @@
       "name": "pinned_first_unit",
       "passed": true,
       "pinned": true,
-      "work": "/scratch/jjyeung/orch_n30/lever1_c/r1_fixtures_old/u00199c60cf6a",
-      "seconds": 18.98575893798261,
+      "work": "/scratch/jjyeung/orch_n30/lever1_c/r1_fixtures_old/u91ac68574cd1",
+      "seconds": 19.15206051900168,
       "process": {
         "returncode": 0,
         "stopped": null,
-        "seconds": 18.424843651009724,
+        "seconds": 18.67443498899229,
         "memory": {
           "limit_bytes": 182536110080,
           "source": "process_tree_rss",
           "over": false,
           "cgroup_max": null,
-          "guarded_bytes": 1049382912,
-          "tree_rss_bytes": 1049382912,
+          "guarded_bytes": 1040834560,
+          "tree_rss_bytes": 1040834560,
           "cgroup_current_bytes": null,
           "cgroup_peak_bytes": null
         },
@@ -665,9 +665,9 @@
           {
             "phase": "4",
             "status": "written",
-            "seconds": 7.358668605011189,
-            "rss_peak_bytes": 1049526272,
-            "process_rss_hwm_bytes": 1075277824
+            "seconds": 7.350089528976241,
+            "rss_peak_bytes": 1053376512,
+            "process_rss_hwm_bytes": 1079148544
           }
         ],
         "action": 3
@@ -691,56 +691,56 @@
           "first_need_s": 92.5,
           "need_s": 92.5,
           "reason": "first_unit",
-          "remaining_s": 889.8933024406433,
+          "remaining_s": 889.7171576023102,
           "safety": 1.25
         },
         "capture_index": 0,
         "stages": [
           {
             "dense": 64,
-            "elapsed_s": 0.660067340999376,
+            "elapsed_s": 0.6510549699887633,
             "name": "bind",
-            "peak_rss_bytes": 928059392,
-            "seconds": 0.613620919000823
+            "peak_rss_bytes": 929939456,
+            "seconds": 0.6064727029879577
           },
           {
-            "elapsed_s": 6.65347185000428,
+            "elapsed_s": 6.633103572996333,
             "name": "first_model",
-            "peak_rss_bytes": 974532608,
-            "remaining_s": 883.2405805587769,
-            "seconds": 5.991552557999967
+            "peak_rss_bytes": 976076800,
+            "remaining_s": 883.0845892429352,
+            "seconds": 5.980389100994216
           },
           {
             "dtypes": [
               "torch.bfloat16",
               "torch.float32"
             ],
-            "elapsed_s": 6.812403390009422,
+            "elapsed_s": 6.795639235991985,
             "locations": [
               "cpu"
             ],
             "name": "load",
             "parameters": 358773,
-            "peak_rss_bytes": 985939968,
-            "remaining_s": 883.082590341568,
-            "seconds": 0.1572483410127461,
+            "peak_rss_bytes": 989310976,
+            "remaining_s": 882.9230437278748,
+            "seconds": 0.16100129901315086,
             "step": 544
           },
           {
-            "elapsed_s": 7.209088450006675,
+            "elapsed_s": 7.196522304002428,
             "name": "prefill",
-            "peak_rss_bytes": 1075277824,
-            "seconds": 0.3951274620194454,
+            "peak_rss_bytes": 1079148544,
+            "seconds": 0.3994404020195361,
             "timings": {
-              "first_model_s": 5.991543393989559
+              "first_model_s": 5.9803826520219445
             }
           },
           {
-            "bytes": 623985,
-            "elapsed_s": 7.36290166300023,
+            "bytes": 623983,
+            "elapsed_s": 7.354094732989324,
             "name": "record",
-            "peak_rss_bytes": 1075277824,
-            "seconds": 0.143272071989486
+            "peak_rss_bytes": 1079148544,
+            "seconds": 0.146888936025789
           }
         ],
         "checks": {
@@ -891,8 +891,8 @@
           },
           "trusted": false
         },
-        "peak_rss_bytes": 1075277824,
-        "seconds": 7.365372723987093
+        "peak_rss_bytes": 1079148544,
+        "seconds": 7.356478852976579
       },
       "transformers": "5.19.0",
       "torch": "2.13.0+cu130"
@@ -901,19 +901,19 @@
       "name": "pinned_time_guard",
       "passed": true,
       "pinned": true,
-      "work": "/scratch/jjyeung/orch_n30/lever1_c/r1_fixtures_old/u96db04f5eedb",
-      "seconds": 16.665628660004586,
+      "work": "/scratch/jjyeung/orch_n30/lever1_c/r1_fixtures_old/u2a53305e1f3c",
+      "seconds": 16.65787642399664,
       "process": {
         "returncode": 0,
         "stopped": null,
-        "seconds": 16.2208202490001,
+        "seconds": 16.22299038199708,
         "memory": {
           "limit_bytes": 182536110080,
           "source": "process_tree_rss",
           "over": false,
           "cgroup_max": null,
-          "guarded_bytes": 1109671936,
-          "tree_rss_bytes": 1109671936,
+          "guarded_bytes": 995790848,
+          "tree_rss_bytes": 995790848,
           "cgroup_current_bytes": null,
           "cgroup_peak_bytes": null
         },
@@ -922,9 +922,9 @@
           {
             "phase": "4",
             "status": "written",
-            "seconds": 5.039113400998758,
-            "rss_peak_bytes": 1002250240,
-            "process_rss_hwm_bytes": 1028128768
+            "seconds": 5.069163945008768,
+            "rss_peak_bytes": 995803136,
+            "process_rss_hwm_bytes": 1021554688
           }
         ],
         "action": 3
@@ -948,56 +948,56 @@
           "first_need_s": 92.5,
           "need_s": 55.0,
           "reason": "time_guard",
-          "remaining_s": 63.49109172821045,
+          "remaining_s": 63.52531695365906,
           "safety": 1.25
         },
         "capture_index": 30,
         "stages": [
           {
             "dense": 32,
-            "elapsed_s": 0.5796384850109462,
+            "elapsed_s": 0.3828190939966589,
             "name": "bind",
-            "peak_rss_bytes": 887894016,
-            "seconds": 0.5329240309947636
+            "peak_rss_bytes": 889610240,
+            "seconds": 0.337448813021183
           },
           {
-            "elapsed_s": 4.330617271014489,
+            "elapsed_s": 4.3639024019939825,
             "name": "first_model",
-            "peak_rss_bytes": 924110848,
-            "remaining_s": 59.161027908325195,
-            "seconds": 3.7492272360250354
+            "peak_rss_bytes": 925532160,
+            "remaining_s": 59.16195225715637,
+            "seconds": 3.97957839697483
           },
           {
             "dtypes": [
               "torch.bfloat16",
               "torch.float32"
             ],
-            "elapsed_s": 4.4930032580159605,
+            "elapsed_s": 4.525430802983465,
             "locations": [
               "cpu"
             ],
             "name": "load",
             "parameters": 358773,
-            "peak_rss_bytes": 936779776,
-            "remaining_s": 58.99960541725159,
-            "seconds": 0.16062997898552567,
+            "peak_rss_bytes": 938795008,
+            "remaining_s": 59.00134801864624,
+            "seconds": 0.15984286900493316,
             "step": 544
           },
           {
-            "elapsed_s": 4.894475177017739,
+            "elapsed_s": 4.923345895978855,
             "name": "prefill",
-            "peak_rss_bytes": 1028128768,
-            "seconds": 0.39987166598439217,
+            "peak_rss_bytes": 1021554688,
+            "seconds": 0.39649512100731954,
             "timings": {
-              "first_model_s": 3.7492201249988284
+              "first_model_s": 3.9795665800047573
             }
           },
           {
-            "bytes": 609651,
-            "elapsed_s": 5.04301723401295,
+            "bytes": 609649,
+            "elapsed_s": 5.073076631000731,
             "name": "record",
-            "peak_rss_bytes": 1028128768,
-            "seconds": 0.1379814560059458
+            "peak_rss_bytes": 1021554688,
+            "seconds": 0.13876172300660983
           }
         ],
         "checks": {
@@ -1148,15 +1148,15 @@
           },
           "trusted": false
         },
-        "peak_rss_bytes": 1028128768,
-        "seconds": 5.04524997700355
+        "peak_rss_bytes": 1021554688,
+        "seconds": 5.0752406009996776
       },
       "transformers": "5.19.0",
       "torch": "2.13.0+cu130"
     }
   ],
   "passed": true,
-  "delivery_sha256": "3dcb6f8654f10f181ad7d14176978a2d014da31c3933ccf5abcf791dd41d39b0",
+  "delivery_sha256": "45d9b91fc298023b01340dda11627d953cb1c803ea7c1e1bc44330986a435fda",
   "scope": "CPU real unit: production worker path, time guard and memory guard, in p1cpu and the pinned env.  Each scenario runs the delivered operator's cpu_unit (the Orchard CPU check's step after rehearsal), which launches the delivered numeric entry (action 3, g.w.run) through the operator prefix seam with tests/cpu_unit_fixture.py doubles (tiny production-architecture carrier and G3T components; see that file). Served PNGs come from the authenticated local a2.tar through production stage_capture. The pinned scenarios run the pinned Orchard interpreter (transformers 5.19.0, torch 2.13.0) inside the production-shaped bwrap namespace of r1_fixtures_old/real_cl2opr5g. Writes out/CPU_UNIT_CHECKS.json.",
   "limits": {
     "address_space_bytes": 193273528320,
