@@ -1,9 +1,10 @@
-# n_review1k STATUS (successor resumes from this file alone) — 21:53Z 2026-11-21
+# n_review1k STATUS (successor resumes from this file alone) — 23:05Z 2026-11-21
 Lane n_review1k: headless Claude Code Opus high, trinity-3-30, started 2026-11-21 19:02Z, 10 h timeout (rotate by ~04:00Z 11-22). Brief B/briefs/n_review1k_c.md. B = /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30.
 Predecessor state: STATUS_n_review1j.md here (copy of n_review1j STATUS 19:01Z; full history there). n_review1j inbox copied to inbox_from_1j/.
 Lanes: tree_rebuild28 (inbox /scratch/jjyeung/orch_n30/tree_rebuild28/inbox; events B/events/tree_rebuild), n_ops11 (inbox /scratch/jjyeung/orch_n30/n_ops11/inbox). Carriers Claude only.
 
 ## Job
+- NOW: 174246 (kit X/n 7e23bbdd, jn7.sh 98edfd9e) RUNNING on orchard-community-3 since ~21:48Z; 23:04Z elapsed 1:17, stage admission, no flags (past host selection). Gate expected ~02:20-03:00Z. My bytes check 21:36Z ALL_EQUAL.
 - 174198 (kit X/n 929ab213, jn7.sh 98edfd9e) REFUSED 18:51:51Z entry.py:288 R1_ROUTING_SELECTION_DIFFERS; HELD orchard-community-3 until 21:53:13Z. Cause (n_review1j 1854Z): frame fix run root /tmp/jjyeung/q_22c714e1 embedded in regenerated selection; rows.sqlite b2f3db7c != reviewed 5e35c3ce.
 - ORDER 1857Z: tree_rebuild28 builds candidate + walks mode q from start on held node. RELEASE not before walk passes frame audit or 21:40Z, and only with ORCH answer.
 

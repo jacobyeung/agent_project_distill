@@ -1,3 +1,4 @@
 - /scratch/jjyeung/orch_n30/lever5/k5rev_dummy (empty file a reviewer created by mistake)
 - Orchard /project/community/jjyeung/a51f1ee88f0c9 (K5 first placement, 6.7 MB; superseded by the fixed token)
 - /tmp/a9990002-* and lever6/k5b/work/{ns_,e94_,sl_,t_,dry_}* (K5 fix test leftovers)
+- trinity-0-13 /scratch/jjyeung/orch_n30/lever6, /scratch/jjyeung/b01ec87a6f29b/d/{k,s}, staged frame copies under /scratch/jjyeung/devs1_frames and nvkey1 paths (GTC inputs, ~3.7 GB) when no longer needed

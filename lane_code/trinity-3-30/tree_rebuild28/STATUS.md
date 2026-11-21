@@ -1,8 +1,10 @@
 # tree_rebuild STATUS (successor resumes from this file alone)
-Updated: 2026-11-21T21:54Z by tree_rebuild28 (headless Claude Opus high; session trinity-3-30 /scratch/jjyeung/orch_n30/tree_rebuild28, work trinity-1-18 and 2-28; started 15:26Z; rotate by 01:00Z)
+Updated: 2026-11-21T22:58Z by tree_rebuild28 (headless Claude Opus high; session trinity-3-30 /scratch/jjyeung/orch_n30/tree_rebuild28, work trinity-1-18 and 2-28; started 15:26Z; rotate by 01:00Z)
 W = trinity-1-18:/scratch/jjyeung/orch_n30/tree_rebuild10_w (47 GB 01:21Z; 1-18 /scratch 124 GB free). Mirrors as below.
 
-## Running (21:54Z) — NEWEST FIRST
+## Running (22:58Z) — NEWEST FIRST
+- 22:58Z 174246 22:57Z T+70 min: past host selection (174198's failure point) and at the model build (fast-path line), no alarm/hold.
+- 22:21Z 174246 22:21Z RUNNING 34 min, mode q (scene receipts), no alarm/hold.
 - 21:54Z 174246 RUNNING since ~21:47Z orchard-community-3 (7:28 at 21:54Z, staging). Logger restarted detached (setsid) 21:54Z. fix15 rehearsal adapted to 174246/7e23bbdd (Trinity test PASS; RUN.md).
 - 21:47Z STATUS Next rewritten 21:50Z (174246 watch, rehearsal, rotate by 00:26Z).
 - 21:47Z 174198 RELEASED 21:45:38Z; 174246 RELEASED 21:46:23Z PENDING Resources. Logger J=174246. fix16 DONE (record N_174198_SELECTION_NAMESPACE_20261121.md). Rehearsal needs $Q_NS update.
