@@ -1,0 +1,265 @@
+['1.json', '2.json', '4.json']
+===== 1.json
+{
+ "artifact": "5083243cfedd2a389dfca579c5452e7d0c73b03a58e1cb7d204292ddd10e67cd",
+ "execution": {
+  "batch_gpu_max_allocated_bytes": 0,
+  "boot": {
+   "bulk_bytes": 0,
+   "closure_entry": "causal_conv1d",
+   "error": "3dbc2f87a872bbbbf849d47471b15a0108072605e61907fed6eb78380d143fe2",
+   "exception_message": "ModuleNotFoundError: No module named 'causal_conv1d'",
+   "interpreter_bytes": 104949562,
+   "mode": "g",
+   "passed": false,
+   "pre_bulk_bytes": 8719174654,
+   "pre_bulk_seconds": 173.51148409501184,
+   "returncode": 1,
+   "traceback": "Traceback (most recent call last):\n  File \"/tmp/a87f4ae5c2f44f173990/p/5.py\", line 122, in load\n  File \"/home/jyeung/.local/share/uv/python/cpython-3.12-linux-x86_64-gnu/lib/python3.12/importlib/__init__.py\", line 90, in import_module\n    return _bootstrap._gcd_import(name[level:], package, level)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<frozen importlib._bootstrap>\", line 1387, in _gcd_import\n  File \"<frozen importlib._bootstrap>\", line 1360, in _find_and_load\n  File \"<frozen importlib._bootstrap>\", line 1324, in _find_and_load_unlocked\nModuleNotFoundError: No module named 'causal_conv1d'\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"/tmp/a87f4ae5c2f44f173990/p/5.py\", line 302, in main\n  File \"/tmp/a87f4ae5c2f44f173990/p/5.py\", line 195, in run\n  File \"/tmp/a87f4ae5c2f44f173990/p/5.py\", line 136, in import_closure\n  File \"/tmp/a87f4ae5c2f44f173990/p/5.py\", line 124, in load\nClosureImportError: Closure entry causal_conv1d: ModuleNotFoundError: No module named 'causal_conv1d'"
+  },
+  "cgroup_after": {
+   "memory.current": "12263456768",
+   "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+   "memory.max": "214748364800",
+   "memory.peak": "12728291328",
+   "memory.stat": "anon 135815168\nfile 11944980480\nkernel 181149696\nkernel_stack 65536\npagetables 3887104\nsec_pagetables 0\npercpu 940800\nsock 0\nvmalloc 0\nshmem 0\nzswap 0\nzswapped 0\nfile_mapped 8515584\nfile_dirty 2064384\nfile_writeback 0\nswapcached 0\nanon_thp 0\nfile_thp 8598323200\nshmem_thp 0\ninactive_anon 0\nactive_anon 135741440\ninactive_file 10388824064\nactive_file 1556148224\nunevictable 0\nslab_reclaimable 175630520\nslab_unreclaimable 609000\nslab 176239520\nworkingset_refault_anon 0\nworkingset_refault_file 0\nworkingset_activate_anon 0\nworkingset_activate_file 0\nworkingset_restore_anon 0\nworkingset_restore_file 0\nworkingset_nodereclaim 0\npgdemote_kswapd 0\npgdemote_direct 0\npgdemote_khugepaged 0\npgdemote_proactive 0\npgpromote_success 0\npgscan 0\npgsteal 0\npswpin 0\npswpout 0\npgscan_kswapd 0\npgscan_direct 0\npgscan_khugepaged 0\npgscan_proactive 0\npgsteal_kswapd 0\npgsteal_direct 0\npgsteal_khugepaged 0\npgsteal_proactive 0\npgfault 395581\npgmajfault 1317\npgrefill 0\npgactivate 0\npgdeactivate 0\npglazyfree 0\npglazyfreed 0\nswpin_zero 0\nswpout_zero 0\nzswpin 0\nzswpout 0\nzswpwb 0\nthp_fault_alloc 0\nthp_collapse_alloc 0\nthp_swpout 0\nthp_swpout_fallback 0\nnuma_pages_migrated 0\nnuma_pte_updates 240332\nnuma_hint_faults 208165"
+  },
+  "cgroup_before": {
+   "memory.current": "10729316352",
+   "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+   "memory.max": "214748364800",
+   "memory.peak": "10729603072",
+   "memory.stat": "anon 135737344\nfile 10419449856\nkernel 173338624\nkernel_stack 65536\npagetables 548864\nsec_pagetables 0\npercpu 940800\nsock 0\nvmalloc 0\nshmem 0\nzswap 0\nzswapped 0\nfile_mapped 7995392\nfile_dirty 10596352\nfile_writeback 0\nswapcached 0\nanon_thp 0\nfile_thp 8598323200\nshmem_thp 0\ninactive_anon 0\nactive_anon 135610368\ninactive_file 10388475904\nactive_file 30969856\nunevictable 0\nslab_reclaimable 171552624\nslab_unreclaimable 205480\nslab 171758104\nworkingset_refault_anon 0\nworkingset_refault_file 0\nworkingset_activate_anon 0\nworkingset_activate_file 0\nworkingset_restore_anon 0\nworkingset_restore_file 0\nworkingset_nodereclaim 0\npgdemote_kswapd 0\npgdemote_direct 0\npgdemote_khugepaged 0\npgdemote_proactive 0\npgpromote_success 0\npgscan 0\npgsteal 0\npswpin 0\npswpout 0\npgscan_kswapd 0\npgscan_direct 0\npgscan_khugepaged 0\npgscan_proactive 0\npgsteal_kswapd 0\npgsteal_direct 0\npgsteal_khugepaged 0\npgsteal_proactive 0\npgfault 150264\npgmajfault 5\npgrefill 0\npgactivate 0\npgdeactivate 0\npglazyfree 0\npglazyfreed 0\nswpin_zero 0\nswpout_zero 0\nzswpin 0\nzswpout 0\nzswpwb 0\nthp_fault_alloc 0\nthp_collapse_alloc 0\nthp_swpout 0\nthp_swpout_fallback 0\nnuma_pages_migrated 0\nnuma_pte_updates 100788\nnuma_hint_faults 98278"
+  },
+  "cgroup_memory_peak_bytes": 12728291328,
+  "charged_memory_stop_bytes": 193273528320,
+  "controller": {
+   "stderr_bytes_retained": 0,
+   "stderr_bytes_seen": 0,
+   "stderr_tail_hex": "",
+   "stdout_bytes_retained": 0,
+   "stdout_bytes_seen": 0,
+   "stdout_tail_hex": ""
+  },
+  "gpu_max_allocated_bytes": 0,
+  "gpu_measured": false,
+  "gpu_peak_complete": true,
+  "guard_source": "cgroup",
+  "guarded_bytes": 318484480,
+  "guarded_memory_stop_bytes": 193273528320,
+  "last_stage": {
+   "peak_rss_bytes": 58081280,
+   "seconds": 1795239977.9570575,
+   "stage": "imports"
+  },
+  "launcher": {
+   "cgroup_after": {
+    "memory.current": "12244004864",
+    "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+    "memory.max": "214748364800",
+    "memory.peak": "12728291328",
+    "memory.stat": "anon 120139776\nfile 11944992768\nkernel 177561600\nkernel_stack 32768\npagetables 548864\nsec_pagetables 0\npercpu 940800\nsock 0\nvmalloc 0\nshmem 0\nzswap 0\nzswapped 0\nfile_mapped 0\nfile_dirty 2076672\nfile_writeback 0\nswapcached 0\nanon_thp 0\nfile_thp 8598323200\nshmem_thp 0\ninactive_anon 0\nactive_anon 120139776\ninactive_file 10388836352\nactive_file 1556148224\nunevictable 0\nslab_reclaimable 175568888\nslab_unreclaimable 468728\nslab 176037616\nworkingset_refault_anon 0\nworkingset_refault_file 0\nworkingset_activate_anon 0\nworkingset_activate_file 0\nworkingset_restore_anon 0\nworkingset_restore_file 0\nworkingset_nodereclaim 0\npgdemote_kswapd 0\npgdemote_direct 0\npgdemote_khugepaged 0\npgdemote_proactive 0\npgpromote_success 0\npgscan 0\npgsteal 0\npswpin 0\npswpout 0\npgscan_kswapd 0\npgscan_direct 0\npgscan_khugepaged 0\npgscan_proactive 0\npgsteal_kswapd 0\npgsteal_direct 0\npgsteal_khugepaged 0\npgsteal_proactive 0\npgfault 395603\npgmajfault 1317\npgrefill 0\npgactivate 0\npgdeactivate 0\npglazyfree 0\npglazyfreed 0\nswpin_zero 0\nswpout_zero 0\nzswpin 0\nzswpout 0\nzswpwb 0\nthp_fault_alloc 0\nthp_collapse_alloc 0\nthp_swpout 0\nthp_swpout_fallback 0\nnuma_pages_migrated 0\nnuma_pte_updates 240332\nnuma_hint_faults 208165"
+   },
+   "cgroup_before": {
+    "memory.current": "10682195968",
+    "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+    "memory.max": "214748364800",
+    "memory.peak": "10706292736",
+    "memory.stat": "anon 120139776\nfile 10388439040\nkernel 172838912\nkernel_stack 32768\npagetables 344064\nsec_pagetables 0\npercpu 934080\nsock 0\nvmalloc 0\nshmem 0\nzswap 0\nzswapped 0\nfile_mapped 0\nfile_dirty 10596352\nfile_writeback 0\nswapcached 0\nanon_thp 0\nfile_thp 8598323200\nshmem_thp 0\ninactive_anon 0\nactive_anon 120139776\ninactive_file 10388439040\nactive_file 0\nunevictable 0\nslab_reclaimable 171430832\nslab_unreclaimable 80504\nslab 171511336\nworkingset_refault_anon 0\nworkingset_refault_file 0\nworkingset_activate_anon 0\nworkingset_activate_file 0\nworkingset_restore_anon 0\nworkingset_restore_file 0\nworkingset_nodereclaim 0\npgdemote_kswapd 0\npgdemote_direct 0\npgdemote_khugepaged 0\npgdemote_proactive 0\npgpromote_success 0\npgscan 0\npgsteal 0\npswpin 0\npswpout 0\npgscan_kswapd 0\npgscan_direct 0\npgscan_khugepaged 0\npgscan_proactive 0\npgsteal_kswapd 0\npgsteal_direct 0\npgsteal_khugepaged 0\npgsteal_proactive 0\npgfault 145597\npgmajfault 0\npgrefill 0\npgactivate 0\npgdeactivate 0\npglazyfree 0\npglazyfreed 0\nswpin_zero 0\nswpout_zero 0\nzswpin 0\nzswpout 0\nzswpwb 0\nthp_fault_alloc 0\nthp_collapse_alloc 0\nthp_swpout 0\nthp_swpout_fallback 0\nnuma_pages_migrated 0\nnuma_pte_updates 100788\nnuma_hint_faults 98204"
+   },
+   "cgroup_memory_peak_bytes": 12728291328,
+   "guard_source": "cgroup",
+   "guarded_bytes": 299020288,
+   "last_stage": {
+    "stage": "launch"
+   },
+   "peak_cgroup_current_bytes": 12725170176,
+   "peak_guarded_bytes": 797954048,
+   "peak_rss_bytes": 918429696,
+   "peak_rss_source": "wait4_and_proc",
+   "peak_tree_rss_bytes": 1080102912,
+   "reason": null,
+   "returncode": 1,
+   "signal": null,
+   "signal_name": null,
+   "stderr_bytes_retained": 0,
+   "stderr_bytes_seen": 0,
+   "stderr_tail_hex": "",
+   "stdout_bytes_retained": 0,
+   "stdout_bytes_seen": 0,
+   "stdout_tail_hex": ""
+  },
+  "peak_cgroup_current_bytes": 12725174272,
+  "peak_guarded_bytes": 797954048,
+  "peak_rss_bytes": 919945216,
+  "peak_rss_source": "wait4_and_proc",
+  "peak_tree_rss_bytes": 1080102912,
+  "reason": null,
+  "returncode": 1,
+  "sampled_at": 1795239987.7295704,
+  "signal": null,
+  "signal_name": null,
+  "stderr_bytes_retained": 281,
+  "stderr_bytes_seen": 281,
+  "stderr_tail_hex": "2f686f6d652f6a7965756e672f2e6c6f63616c2f73686172652f75762f707974686f6e2f63707974686f6e2d332e31322d6c696e75782d7838365f36342d676e752f6c69622f707974686f6e332e31322f696d706f72746c69622f5f5f696e69745f5f2e70793a39303a20557365725761726e696e673a2041204e756d50792076657273696f6e203e3d312e32332e3520616e64203c322e332e3020697320726571756972656420666f7220746869732076657273696f6e206f66205363695079202864657465637465642076657273696f6e20322e332e35290a202072657475726e205f626f6f7473747261702e5f6763645f696d706f7274286e616d655b6c6576656c3a5d2c207061636b6167652c206c6576656c290a",
+  "stdout_bytes_retained": 0,
+  "stdout_bytes_seen": 0,
+  "stdout_tail_hex": "",
+  "storage": {
+   "filesystem": "ext4",
+   "job": "173990",
+   "mount": "/tmp",
+   "mount_id": 743,
+   "mount_root": "/job_tmp/173990/.173990/_tmp",
+   "path": "/tmp/a87f4ae5c2f44f173990",
+   "probe_path": "/tmp/a87f4ae5c2f44f173990",
+   "selected_mount_entry": "743 726 9:127 /job_tmp/173990/.173990/_tmp /tmp rw,relatime - ext4 /dev/md127 rw,discard,stripe=2048",
+   "source": "/dev/md127",
+   "tmp_mount_entries": [
+    "726 690 0:37 / /tmp rw,relatime - tmpfs tmpfs rw,size=193206196k,inode64",
+    "743 726 9:127 /job_tmp/173990/.173990/_tmp /tmp rw,relatime - ext4 /dev/md127 rw,discard,stripe=2048"
+   ]
+  }
+ },
+ "external_components_loaded": false,
+ "frozen": "3743891f778115529710461333ad09a9588b8075e2173a74fac0065dc5d0382d",
+ "max_new_tokens": 64,
+ "mode": "g",
+ "passed": false,
+ "records": 0,
+ "status": "failed",
+ "tools_served": 0
+}
+===== 2.json
+{
+ "error": "d5611b21fc7466c213493ca2f44f273d6f61656bf804370bf3746d0a08999fb9",
+ "passed": false,
+ "traceback": "Traceback (most recent call last):\n  File \"/project/community/jjyeung/okh7/a15_cot_ap87f4ae5c2f44f/3.py\", line 501, in _work\n  File \"/project/community/jjyeung/okh7/a15_cot_ap87f4ae5c2f44f/3.py\", line 295, in prepare\nRuntimeError: Worker boot failed before bulk staging"
+}
+===== 4.json
+{
+ "closure_entry": "causal_conv1d",
+ "error": "3dbc2f87a872bbbbf849d47471b15a0108072605e61907fed6eb78380d143fe2",
+ "exception_message": "ModuleNotFoundError: No module named 'causal_conv1d'",
+ "execution": {
+  "batch_gpu_max_allocated_bytes": 0,
+  "boot": {
+   "bulk_bytes": 0,
+   "closure_entry": "causal_conv1d",
+   "error": "3dbc2f87a872bbbbf849d47471b15a0108072605e61907fed6eb78380d143fe2",
+   "exception_message": "ModuleNotFoundError: No module named 'causal_conv1d'",
+   "interpreter_bytes": 104949562,
+   "mode": "g",
+   "passed": false,
+   "pre_bulk_bytes": 8719174654,
+   "pre_bulk_seconds": 173.51148409501184,
+   "returncode": 1,
+   "traceback": "Traceback (most recent call last):\n  File \"/tmp/a87f4ae5c2f44f173990/p/5.py\", line 122, in load\n  File \"/home/jyeung/.local/share/uv/python/cpython-3.12-linux-x86_64-gnu/lib/python3.12/importlib/__init__.py\", line 90, in import_module\n    return _bootstrap._gcd_import(name[level:], package, level)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<frozen importlib._bootstrap>\", line 1387, in _gcd_import\n  File \"<frozen importlib._bootstrap>\", line 1360, in _find_and_load\n  File \"<frozen importlib._bootstrap>\", line 1324, in _find_and_load_unlocked\nModuleNotFoundError: No module named 'causal_conv1d'\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"/tmp/a87f4ae5c2f44f173990/p/5.py\", line 302, in main\n  File \"/tmp/a87f4ae5c2f44f173990/p/5.py\", line 195, in run\n  File \"/tmp/a87f4ae5c2f44f173990/p/5.py\", line 136, in import_closure\n  File \"/tmp/a87f4ae5c2f44f173990/p/5.py\", line 124, in load\nClosureImportError: Closure entry causal_conv1d: ModuleNotFoundError: No module named 'causal_conv1d'"
+  },
+  "cgroup_after": {
+   "memory.current": "12263456768",
+   "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+   "memory.max": "214748364800",
+   "memory.peak": "12728291328",
+   "memory.stat": "anon 135815168\nfile 11944980480\nkernel 181149696\nkernel_stack 65536\npagetables 3887104\nsec_pagetables 0\npercpu 940800\nsock 0\nvmalloc 0\nshmem 0\nzswap 0\nzswapped 0\nfile_mapped 8515584\nfile_dirty 2064384\nfile_writeback 0\nswapcached 0\nanon_thp 0\nfile_thp 8598323200\nshmem_thp 0\ninactive_anon 0\nactive_anon 135741440\ninactive_file 10388824064\nactive_file 1556148224\nunevictable 0\nslab_reclaimable 175630520\nslab_unreclaimable 609000\nslab 176239520\nworkingset_refault_anon 0\nworkingset_refault_file 0\nworkingset_activate_anon 0\nworkingset_activate_file 0\nworkingset_restore_anon 0\nworkingset_restore_file 0\nworkingset_nodereclaim 0\npgdemote_kswapd 0\npgdemote_direct 0\npgdemote_khugepaged 0\npgdemote_proactive 0\npgpromote_success 0\npgscan 0\npgsteal 0\npswpin 0\npswpout 0\npgscan_kswapd 0\npgscan_direct 0\npgscan_khugepaged 0\npgscan_proactive 0\npgsteal_kswapd 0\npgsteal_direct 0\npgsteal_khugepaged 0\npgsteal_proactive 0\npgfault 395581\npgmajfault 1317\npgrefill 0\npgactivate 0\npgdeactivate 0\npglazyfree 0\npglazyfreed 0\nswpin_zero 0\nswpout_zero 0\nzswpin 0\nzswpout 0\nzswpwb 0\nthp_fault_alloc 0\nthp_collapse_alloc 0\nthp_swpout 0\nthp_swpout_fallback 0\nnuma_pages_migrated 0\nnuma_pte_updates 240332\nnuma_hint_faults 208165"
+  },
+  "cgroup_before": {
+   "memory.current": "10729316352",
+   "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+   "memory.max": "214748364800",
+   "memory.peak": "10729603072",
+   "memory.stat": "anon 135737344\nfile 10419449856\nkernel 173338624\nkernel_stack 65536\npagetables 548864\nsec_pagetables 0\npercpu 940800\nsock 0\nvmalloc 0\nshmem 0\nzswap 0\nzswapped 0\nfile_mapped 7995392\nfile_dirty 10596352\nfile_writeback 0\nswapcached 0\nanon_thp 0\nfile_thp 8598323200\nshmem_thp 0\ninactive_anon 0\nactive_anon 135610368\ninactive_file 10388475904\nactive_file 30969856\nunevictable 0\nslab_reclaimable 171552624\nslab_unreclaimable 205480\nslab 171758104\nworkingset_refault_anon 0\nworkingset_refault_file 0\nworkingset_activate_anon 0\nworkingset_activate_file 0\nworkingset_restore_anon 0\nworkingset_restore_file 0\nworkingset_nodereclaim 0\npgdemote_kswapd 0\npgdemote_direct 0\npgdemote_khugepaged 0\npgdemote_proactive 0\npgpromote_success 0\npgscan 0\npgsteal 0\npswpin 0\npswpout 0\npgscan_kswapd 0\npgscan_direct 0\npgscan_khugepaged 0\npgscan_proactive 0\npgsteal_kswapd 0\npgsteal_direct 0\npgsteal_khugepaged 0\npgsteal_proactive 0\npgfault 150264\npgmajfault 5\npgrefill 0\npgactivate 0\npgdeactivate 0\npglazyfree 0\npglazyfreed 0\nswpin_zero 0\nswpout_zero 0\nzswpin 0\nzswpout 0\nzswpwb 0\nthp_fault_alloc 0\nthp_collapse_alloc 0\nthp_swpout 0\nthp_swpout_fallback 0\nnuma_pages_migrated 0\nnuma_pte_updates 100788\nnuma_hint_faults 98278"
+  },
+  "cgroup_memory_peak_bytes": 12728291328,
+  "charged_memory_stop_bytes": 193273528320,
+  "controller": {
+   "stderr_bytes_retained": 0,
+   "stderr_bytes_seen": 0,
+   "stderr_tail_hex": "",
+   "stdout_bytes_retained": 0,
+   "stdout_bytes_seen": 0,
+   "stdout_tail_hex": ""
+  },
+  "gpu_max_allocated_bytes": 0,
+  "gpu_measured": false,
+  "gpu_peak_complete": true,
+  "guard_source": "cgroup",
+  "guarded_bytes": 318484480,
+  "guarded_memory_stop_bytes": 193273528320,
+  "last_stage": {
+   "peak_rss_bytes": 58081280,
+   "seconds": 1795239977.9570575,
+   "stage": "imports"
+  },
+  "launcher": {
+   "cgroup_after": {
+    "memory.current": "12244004864",
+    "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+    "memory.max": "214748364800",
+    "memory.peak": "12728291328",
+    "memory.stat": "anon 120139776\nfile 11944992768\nkernel 177561600\nkernel_stack 32768\npagetables 548864\nsec_pagetables 0\npercpu 940800\nsock 0\nvmalloc 0\nshmem 0\nzswap 0\nzswapped 0\nfile_mapped 0\nfile_dirty 2076672\nfile_writeback 0\nswapcached 0\nanon_thp 0\nfile_thp 8598323200\nshmem_thp 0\ninactive_anon 0\nactive_anon 120139776\ninactive_file 10388836352\nactive_file 1556148224\nunevictable 0\nslab_reclaimable 175568888\nslab_unreclaimable 468728\nslab 176037616\nworkingset_refault_anon 0\nworkingset_refault_file 0\nworkingset_activate_anon 0\nworkingset_activate_file 0\nworkingset_restore_anon 0\nworkingset_restore_file 0\nworkingset_nodereclaim 0\npgdemote_kswapd 0\npgdemote_direct 0\npgdemote_khugepaged 0\npgdemote_proactive 0\npgpromote_success 0\npgscan 0\npgsteal 0\npswpin 0\npswpout 0\npgscan_kswapd 0\npgscan_direct 0\npgscan_khugepaged 0\npgscan_proactive 0\npgsteal_kswapd 0\npgsteal_direct 0\npgsteal_khugepaged 0\npgsteal_proactive 0\npgfault 395603\npgmajfault 1317\npgrefill 0\npgactivate 0\npgdeactivate 0\npglazyfree 0\npglazyfreed 0\nswpin_zero 0\nswpout_zero 0\nzswpin 0\nzswpout 0\nzswpwb 0\nthp_fault_alloc 0\nthp_collapse_alloc 0\nthp_swpout 0\nthp_swpout_fallback 0\nnuma_pages_migrated 0\nnuma_pte_updates 240332\nnuma_hint_faults 208165"
+   },
+   "cgroup_before": {
+    "memory.current": "10682195968",
+    "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+    "memory.max": "214748364800",
+    "memory.peak": "10706292736",
+    "memory.stat": "anon 120139776\nfile 10388439040\nkernel 172838912\nkernel_stack 32768\npagetables 344064\nsec_pagetables 0\npercpu 934080\nsock 0\nvmalloc 0\nshmem 0\nzswap 0\nzswapped 0\nfile_mapped 0\nfile_dirty 10596352\nfile_writeback 0\nswapcached 0\nanon_thp 0\nfile_thp 8598323200\nshmem_thp 0\ninactive_anon 0\nactive_anon 120139776\ninactive_file 10388439040\nactive_file 0\nunevictable 0\nslab_reclaimable 171430832\nslab_unreclaimable 80504\nslab 171511336\nworkingset_refault_anon 0\nworkingset_refault_file 0\nworkingset_activate_anon 0\nworkingset_activate_file 0\nworkingset_restore_anon 0\nworkingset_restore_file 0\nworkingset_nodereclaim 0\npgdemote_kswapd 0\npgdemote_direct 0\npgdemote_khugepaged 0\npgdemote_proactive 0\npgpromote_success 0\npgscan 0\npgsteal 0\npswpin 0\npswpout 0\npgscan_kswapd 0\npgscan_direct 0\npgscan_khugepaged 0\npgscan_proactive 0\npgsteal_kswapd 0\npgsteal_direct 0\npgsteal_khugepaged 0\npgsteal_proactive 0\npgfault 145597\npgmajfault 0\npgrefill 0\npgactivate 0\npgdeactivate 0\npglazyfree 0\npglazyfreed 0\nswpin_zero 0\nswpout_zero 0\nzswpin 0\nzswpout 0\nzswpwb 0\nthp_fault_alloc 0\nthp_collapse_alloc 0\nthp_swpout 0\nthp_swpout_fallback 0\nnuma_pages_migrated 0\nnuma_pte_updates 100788\nnuma_hint_faults 98204"
+   },
+   "cgroup_memory_peak_bytes": 12728291328,
+   "guard_source": "cgroup",
+   "guarded_bytes": 299020288,
+   "last_stage": {
+    "stage": "launch"
+   },
+   "peak_cgroup_current_bytes": 12725170176,
+   "peak_guarded_bytes": 797954048,
+   "peak_rss_bytes": 918429696,
+   "peak_rss_source": "wait4_and_proc",
+   "peak_tree_rss_bytes": 1080102912,
+   "reason": null,
+   "returncode": 1,
+   "signal": null,
+   "signal_name": null,
+   "stderr_bytes_retained": 0,
+   "stderr_bytes_seen": 0,
+   "stderr_tail_hex": "",
+   "stdout_bytes_retained": 0,
+   "stdout_bytes_seen": 0,
+   "stdout_tail_hex": ""
+  },
+  "peak_cgroup_current_bytes": 12725174272,
+  "peak_guarded_bytes": 797954048,
+  "peak_rss_bytes": 919945216,
+  "peak_rss_source": "wait4_and_proc",
+  "peak_tree_rss_bytes": 1080102912,
+  "reason": null,
+  "returncode": 1,
+  "sampled_at": 1795239987.7295704,
+  "signal": null,
+  "signal_name": null,
+  "stderr_bytes_retained": 281,
+  "stderr_bytes_seen": 281,
+  "stderr_tail_hex": "2f686f6d652f6a7965756e672f2e6c6f63616c2f73686172652f75762f707974686f6e2f63707974686f6e2d332e31322d6c696e75782d7838365f36342d676e752f6c69622f707974686f6e332e31322f696d706f72746c69622f5f5f696e69745f5f2e70793a39303a20557365725761726e696e673a2041204e756d50792076657273696f6e203e3d312e32332e3520616e64203c322e332e3020697320726571756972656420666f7220746869732076657273696f6e206f66205363695079202864657465637465642076657273696f6e20322e332e35290a202072657475726e205f626f6f7473747261702e5f6763645f696d706f7274286e616d655b6c6576656c3a5d2c207061636b6167652c206c6576656c290a",
+  "stdout_bytes_retained": 0,
+  "stdout_bytes_seen": 0,
+  "stdout_tail_hex": "",
+  "storage": {
+   "filesystem": "ext4",
+   "job": "173990",
+   "mount": "/tmp",
+   "mount_id": 743,
+   "mount_root": "/job_tmp/173990/.173990/_tmp",
+   "path": "/tmp/a87f4ae5c2f44f173990",
+   "probe_path": "/tmp/a87f4ae5c2f44f173990",
+   "selected_mount_entry": "743 726 9:127 /job_tmp/173990/.173990/_tmp /tmp rw,relatime - ext4 /dev/md127 rw,discard,stripe=2048",
+   "source": "/dev/md127",
+   "tmp_mount_entries": [
+    "726 690 0:37 / /tmp rw,relatime - tmpfs tmpfs rw,size=193206196k,inode64",
+    "743 726 9:127 /job_tmp/173990/.173990/_tmp /tmp rw,relatime - ext4 /dev/md127 rw,discard,stripe=2048"
+   ]
+  }
+ },
+ "passed": false,
+ "traceback": "Traceback (most recent call last):\n  File \"/tmp/a87f4ae5c2f44f173990/p/5.py\", line 122, in load\n  File \"/home/jyeung/.local/share/uv/python/cpython-3.12-linux-x86_64-gnu/lib/python3.12/importlib/__init__.py\", line 90, in import_module\n    return _bootstrap._gcd_import(name[level:], package, level)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<frozen importlib._bootstrap>\", line 1387, in _gcd_import\n  File \"<frozen importlib._bootstrap>\", line 1360, in _find_and_load\n  File \"<frozen importlib._bootstrap>\", line 1324, in _find_and_load_unlocked\nModuleNotFoundError: No module named 'causal_conv1d'\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"/tmp/a87f4ae5c2f44f173990/p/5.py\", line 302, in main\n  File \"/tmp/a87f4ae5c2f44f173990/p/5.py\", line 195, in run\n  File \"/tmp/a87f4ae5c2f44f173990/p/5.py\", line 136, in import_closure\n  File \"/tmp/a87f4ae5c2f44f173990/p/5.py\", line 124, in load\nClosureImportError: Closure entry causal_conv1d: ModuleNotFoundError: No module named 'causal_conv1d'"
+}
