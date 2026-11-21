@@ -4,6 +4,8 @@ from contextlib import contextmanager
 import os
 from pathlib import Path
 import threading
+import select
+import time
 import traceback
 import j
 
@@ -34,11 +36,22 @@ def capture(path, mirror=None):
     durable=path.with_suffix('.0')
     with durable.open('ab'):pass
     read,write=os.pipe();lines=deque(maxlen=LIMIT);errors=[]
+    os.set_blocking(read,False)
+    stopped=threading.Event()
     def drain():
-        pending=b''
+        pending=b'';deadline=None
         try:
             while True:
-                block=os.read(read,8192)
+                # A policy watcher can inherit stdout after the waited child
+                # exits. End capture at the owner's boundary, not its EOF.
+                if stopped.is_set() and deadline is None:deadline=time.monotonic()+.5
+                if deadline is not None and time.monotonic()>=deadline:break
+                ready,_,_=select.select([read],[],[],.05)
+                if not ready:
+                    if deadline is not None:break
+                    continue
+                try:block=os.read(read,8192)
+                except BlockingIOError:continue
                 if not block:break
                 for target in (durable, Path(mirror) if mirror else None):
                     if target is None:continue
@@ -60,7 +73,8 @@ def capture(path, mirror=None):
     try:
         with os.fdopen(write,'wb',buffering=0) as stream:yield stream
     finally:
+        stopped.set()
         thread.join(timeout=2)
+        save(path,lines)
         if errors:raise errors[0]
         if thread.is_alive():raise RuntimeError('E80')
-        if lines:save(path,lines)

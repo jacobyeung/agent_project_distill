@@ -1,22 +1,22 @@
 The delivery preserves the frozen 580 prompts, greedy decoding, 64-token cap and first-call-opening stop. No tool response is served. The checkpoint is step 400, artifact `5083243cfedd2a389dfca579c5452e7d0c73b03a58e1cb7d204292ddd10e67cd`.
 
-Token: `f68a2d7c903be`. Job: `a15_cot_apf68a2d7c903be`.
-Delivery: **4,302,352 bytes**, SHA-256 `6bf05a9d860fe2494b840a8c01d1811186d15e81681528f6cf145d9e52381247`.
+Token: `87f4ae5c2f44f`. Superseded token: `f68a2d7c903be` (placed destination exists; CPU submission marker spent). Job: `a15_cot_ap87f4ae5c2f44f`.
+Delivery: **4,309,485 bytes**, SHA-256 `3998032470651ac870851f39990f638ead7efc6647e2a9c607508ecbe1400cbd`.
 Frozen SHA-256: `3743891f778115529710461333ad09a9588b8075e2173a74fac0065dc5d0382d`.
 
-The lane places and submits; this builder ran only local CPU checks. Use the existing approved transport to place `out/delivery.tgz` at `/project/community/jjyeung/okh7/adf68a2d7c903be/0.tgz`. The checkpoint, environment and frame archives already on Orchard remain pinned and are reused.
+The lane places and submits; this builder ran only local CPU checks. Use the existing approved transport to place `out/delivery.tgz` at `/project/community/jjyeung/okh7/ad87f4ae5c2f44f/0.tgz`. The checkpoint, environment and frame archives already on Orchard remain pinned and are reused.
 
 Place and authenticate once:
 
 ```bash
-P=/project/community/jjyeung/okh7/a15_cot_apf68a2d7c903be
-D=/project/community/jjyeung/okh7/adf68a2d7c903be/0.tgz
+P=/project/community/jjyeung/okh7/a15_cot_ap87f4ae5c2f44f
+D=/project/community/jjyeung/okh7/ad87f4ae5c2f44f/0.tgz
 /usr/bin/python3 -I -s -B - "$D" "$P" <<'PYPLACE'
 import hashlib, json, sys, tarfile
 from pathlib import Path, PurePosixPath
 src, dest = map(Path, sys.argv[1:])
-assert src.stat().st_size == 4302352
-assert hashlib.sha256(src.read_bytes()).hexdigest() == '6bf05a9d860fe2494b840a8c01d1811186d15e81681528f6cf145d9e52381247'
+assert src.stat().st_size == 4309485
+assert hashlib.sha256(src.read_bytes()).hexdigest() == '3998032470651ac870851f39990f638ead7efc6647e2a9c607508ecbe1400cbd'
 dest.mkdir(mode=0o700)
 with tarfile.open(src) as archive:
     seen = set(); total = 0
@@ -45,22 +45,22 @@ The CPU preflight uses the assigned ext4 job_tmp bind at `/tmp`; it refuses tmpf
 Submit the CPU preflight once:
 
 ```bash
-P=/project/community/jjyeung/okh7/a15_cot_apf68a2d7c903be
+P=/project/community/jjyeung/okh7/a15_cot_ap87f4ae5c2f44f
 /usr/bin/python3 -I -s -B "$P/3.py" cpu
 ```
 
 After the CPU job finishes, fetch its success or failure return explicitly:
 
 ```bash
-P=/project/community/jjyeung/okh7/a15_cot_apf68a2d7c903be
-R=/project/community/jjyeung/okh7/aff68a2d7c903bec
+P=/project/community/jjyeung/okh7/a15_cot_ap87f4ae5c2f44f
+R=/project/community/jjyeung/okh7/af87f4ae5c2f44fc
 /usr/bin/python3 -I -s -B "$P/3.py" fetch "$R" c
 ```
 
 After a successful CPU preflight, submit the GPU job once. The controller itself requires the successful CPU receipt and matching package, payload and frozen hashes before submission:
 
 ```bash
-P=/project/community/jjyeung/okh7/a15_cot_apf68a2d7c903be
+P=/project/community/jjyeung/okh7/a15_cot_ap87f4ae5c2f44f
 /usr/bin/python3 -I -s -B "$P/3.py" submit
 ```
 
@@ -69,12 +69,12 @@ The resource arguments fix general, one GPU, 16 CPUs, 200G, 30 minutes, `--exclu
 Fetch the GPU success or failure return:
 
 ```bash
-P=/project/community/jjyeung/okh7/a15_cot_apf68a2d7c903be
-R=/project/community/jjyeung/okh7/aff68a2d7c903be
+P=/project/community/jjyeung/okh7/a15_cot_ap87f4ae5c2f44f
+R=/project/community/jjyeung/okh7/af87f4ae5c2f44f
 /usr/bin/python3 -I -s -B "$P/3.py" fetch "$R" g
 ```
 
-The authenticated archive is `$R/0.tgz`; its receipt is `$R/1.json`. JSON receipts and result lines use `{"a0":"<hex bytes>"}`. Return members are paired results `0.jsonl`, summary `1.json`, optional controller traceback `2.json`, per-batch timings `3.jsonl`, and worker failure diagnostics `4.json` (traceback when available, exact return code/signal, last stage, peak host RSS, GPU max allocated bytes, and hex-packed stdout/stderr tails at each execution layer). Tracebacks retain the last 200 lines, capped at 120 characters per line and 24,000 ASCII bytes before packing. Controller and worker errors have separate files so both survive. The saved `0.stream` is hex-packed; the original framed protocol still authenticates the archive in memory. Both expanded and compressed returns are capped at 2 MB. A result-budget overflow returns a capped failure; it never publishes an oversized archive. A one-use reservation ledger caps cumulative project writes, including interrupted attempts and both fetches; retries cannot consume new slots. Every completed arm pair is flushed and synced immediately; an interrupted final pair is omitted during finalization. The scorer decodes envelopes locally. Decode diagnostics only after bringing the archive back locally:
+The authenticated archive is `$R/0.tgz`; its receipt is `$R/1.json`. JSON receipts and result lines use `{"a0":"<hex bytes>"}`. Return members are paired results `0.jsonl`, summary `1.json`, optional controller traceback `2.json`, per-batch timings `3.jsonl`, and worker failure diagnostics `4.json` (traceback when available, exact return code/signal, last stage, peak host RSS, GPU max allocated bytes, and hex-packed stdout/stderr tails at each execution layer). Tracebacks retain the last 200 lines, capped at 24,000 ASCII bytes; closure failures preserve full lines and separate full entry/exception fields, while other failures cap lines at 120 characters before packing. Controller and worker errors have separate files so both survive. The saved `0.stream` is hex-packed; the original framed protocol still authenticates the archive in memory. Both expanded and compressed returns are capped at 2 MB. A result-budget overflow returns a capped failure; it never publishes an oversized archive. A one-use reservation ledger caps cumulative project writes, including interrupted attempts and both fetches; retries cannot consume new slots. Every completed arm pair is flushed and synced immediately; an interrupted final pair is omitted during finalization. The scorer decodes envelopes locally. Decode diagnostics only after bringing the archive back locally:
 
 ```bash
 nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B - out/return.tgz <<'PYDIAG'
@@ -101,7 +101,7 @@ The central forecast is **1367.2 seconds (22.79 minutes)**, including 395.0 seco
 
 Eight-row batches retain serial video prefills, then left-pad and merge the native hybrid caches for greedy token forwards. Prompts remain pair-interleaved. The forecast assumes each eight-row token forward costs twice a serial forward and both arms open as early as D400. GPU throughput, memory use and full-checkpoint numerical parity remain unmeasured. The all-64-token estimate is 1694.2 seconds and assumes the same unmeasured cost. Each admitted batch records preparation, prefill, slowest synchronized token-step and total time, plus complete-pair counts. Admission requires a full batch estimate plus 10 seconds: initially 60 seconds; thereafter the maximum of 60 seconds, 1.25 times observed batch duration, and 1.25 times (preparation + prefill + 64 slowest token steps). The worker stops admitting batches if that estimate will not fit. An unexpected slowdown can still interrupt a batch; only complete pairs are returned. The tiny native CPU model produced identical tokens for eight unequal-length prompts, including EOS and 64-token stops. `FORECAST.json` records the model and its limits.
 
-All **43 CPU tests pass**. They include eleven injected failures in each of CPU and GPU modes followed by real fetch, real delivered-worker subprocess failures with locally decoded tracebacks, SIGKILL/SIGTERM/hard-exit/deadline diagnostics through real fetch in both modes, active-mount checks and metadata-only head loading, bounded diagnostic and output scans, slow/fast batch admission with fetched timing records, interrupted-pair retention, the real staging allowance, native batch parity, and the actual CPU runtime/restore with tiny pinned inputs and processor doubles. `out/FIX_CHECKS.json` records every file scanned during that rehearsal. Expanded delivery: 15,516,387 bytes; inner payload: 13,317,542 bytes, both below 32 MiB.
+All **45 CPU tests pass**. They include eleven injected failures in each of CPU and GPU modes followed by real fetch, real delivered-worker subprocess failures with locally decoded tracebacks, SIGKILL/SIGTERM/hard-exit/deadline diagnostics through real fetch in both modes, active-mount checks and metadata-only head loading, bounded diagnostic and output scans, slow/fast batch admission with fetched timing records, interrupted-pair retention, the real staging allowance, native batch parity, and the actual CPU runtime/restore with tiny pinned inputs and processor doubles. `out/FIX_CHECKS.json` records every file scanned during that rehearsal. Expanded delivery: 15,612,646 bytes; inner payload: 13,410,502 bytes, both below 32 MiB.
 
 `NAMING_AUDIT.json` records opaque physical source names and raw/JSON-decoded output scans. Logical names and generated text are decoded only in memory. Its remaining exceptions cover fixed kernel/CUDA interfaces, immutable external runtime/model assets, and native cache internals confined to the ephemeral job directory; each has a stated reason. Production GPU cache contents were not exercised here.
 
@@ -113,6 +113,7 @@ nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B tests/test_probe.py
 nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B tests/test_fixes.py
 nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B tests/test_imports.py
 nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B tests/test_boot.py
+nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B tests/test_pinned.py
 nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B finish.py
 ```
 
@@ -127,7 +128,7 @@ The aggregate `/project` write ceiling is **44,000,000 bytes (44 MB)** for the e
 | Logs on `/project` | 0 |
 | **Total** | **44,000,000** |
 
-Delivery plus extraction actually uses **19,818,739 bytes**. Placement checks that sum before each extracted-file write. Each return is capped at 2 MB. Each fetch reserves 8 MB before creating files: at most 2 MB for its archive, about 5.34 MB for hex/base64 transport, and bounded receipts. The transport's `.partial` and final archive are hard links to the same bytes.
+Delivery plus extraction actually uses **19,922,131 bytes**. Placement checks that sum before each extracted-file write. Each return is capped at 2 MB. Each fetch reserves 8 MB before creating files: at most 2 MB for its archive, about 5.34 MB for hex/base64 transport, and bounded receipts. The transport's `.partial` and final archive are hard links to the same bytes.
 
 The locked ledger reserves writes before they occur. Each mode gets one finalization and one fetch; interrupted reservations remain spent. Metadata has a separate byte cap, and the ledger permits at most 128 entries. Oversized returns become capped failures. Repeated fetches and excess metadata writes fail before writing their outputs.
 
@@ -147,16 +148,22 @@ Controller, namespace-supervisor and worker output enters opaque hex `8.log`/`9.
 
 The extractor preserves every native interpreter/package path. Opaque translation applies only to authored `c/` and `v/` source trees (`src/storage.py:108`). The existing native-runtime ABI exception covers the unchanged pinned external files; no new public names or exceptions are introduced. The memory guard and FROZEN.json remain unchanged.
 
-The CPU import regression verifies all 4,806 local pinned interpreter files after the real extractor, checks 36,009 package paths, reproduces the old missing `keyword` failure, and replays the recorded worker import closure in a fresh staged interpreter with `-X importtime`. The worker reaches `restore` without loading checkpoint weights. Namespace test mode: production namespace. The original Orchard environment archive/boot wrapper is not local; the test reproduces its `runpy.run_path` operation and uses local p1cpu packages. `IMPORTS.md` and `out/IMPORT_CHECKS.json` record the exact evidence and limits.
+The CPU import regression verifies all 4,806 local pinned interpreter files after the real extractor, checks 36,009 package paths, reproduces the old missing `keyword` failure, and replays the recorded worker import closure in a fresh staged interpreter with `-X importtime`. The worker reaches `restore` without loading checkpoint weights. Namespace test mode: production namespace. This test uses local p1cpu packages. `tests/test_pinned.py` separately boots the exact delivery with the authenticated Orchard interpreter, base environment and a4 overlay in the production namespace, with CUDA hidden and no package doubles. `IMPORTS.md` and `out/IMPORT_CHECKS.json` record the exact evidence and limits.
 
 Both CPU and GPU jobs follow this order: authenticate and materialize the package; stream only the complete CPython tree from runtime group 0; stage the group 1 environment, a4 entry/overlay and bwrap; run the real worker's import closure through the production interpreter, namespace, environment and cwd; require its boot receipt; then stage all remaining archives and run the workload. Group 0's other members and all of group 2, the checkpoint, base assets, frames and preparation inputs wait for boot success. The streamed mixed archive is authenticated in full but never copied before boot.
 
-Pre-bulk bytes: 104,949,562 CPython file bytes; 8,612,076,000 environment/overlay archives plus bwrap; 2,145,793 package archive bytes; total **8,719,171,355 bytes** copied or selectively materialized. Authentication also reads the 1,621,422,080-byte mixed interpreter archive without staging its other members. The environment and overlay expand to another 8,530,064,849 file bytes; the package expands to 13,317,542 bytes plus materialized private sources. These are separate source-transfer and expansion counts, not a measured disk high-water.
+Pre-bulk bytes: 104,949,562 CPython file bytes; 8,612,076,000 environment/overlay archives plus bwrap; 2,149,092 package archive bytes; total **8,719,174,654 bytes** copied or selectively materialized. Authentication also reads the 1,621,422,080-byte mixed interpreter archive without staging its other members. The environment and overlay expand to another 8,530,064,849 file bytes; the package expands to 13,410,502 bytes plus materialized private sources. These are separate source-transfer and expansion counts, not a measured disk high-water.
 
-Local successful pre-bulk checks took 5.713–6.008 seconds with tiny staging fixtures and read-only local runtime binds. Production pre-bulk seconds remain unmeasured; each return records them in `execution.boot.pre_bulk_seconds`, alongside bytes, mode, interpreter, cwd, closure digest and import duration. Boot uses the existing 600-second staging deadline. The overall forecast retains its existing staging allowance; it does not claim measured Orchard boot time.
+Local successful pre-bulk checks took 5.706–6.134 seconds with tiny staging fixtures and read-only local runtime binds. The superseded package reached the Orchard boot gate in 164.381 seconds with zero bulk bytes; successful revised production staging time remains unmeasured. Each return records its timing in `execution.boot.pre_bulk_seconds`, alongside bytes, mode, interpreter, cwd, closure digest and import duration. Boot uses the existing 600-second staging deadline. The overall forecast retains its existing staging allowance. The revised CPU replay time measures boot after local extraction.
 
-The recorded closure contains **3,338 CPU modules** and **3,341 GPU modules**, compared with 1,168 importable modules in the prior 1,170-entry inventory. `tests/trace_worker.py` runs the delivered `runtime.run` on CPU with `sys.addaudithook('import')`, through real restore/meta shape checking, processor construction, model loading with tiny native weights, routed prompt preparation and the first eight-row batch. `tests/record_import_closure.py` unions the successful runtime inventory with `tests/import_baseline.json`; `IMPORT_CLOSURE.json` records every module, digest and exclusion. `src/runtime.py:106` imports every required module before bulk staging. No AST/source scan derives this closure.
+The recorded closure contains **3,228 CPU modules** and **3,231 GPU modules**, compared with 1,167 importable modules in the prior 1,170-entry inventory. `tests/trace_worker.py` runs the delivered `runtime.run` on CPU with `sys.addaudithook('import')`, through real restore/meta shape checking, processor construction, model loading with tiny native weights, routed prompt preparation and the first eight-row batch. `tests/record_import_closure.py` unions the successful runtime inventory with `tests/import_baseline.json` and applies the per-entry exclusions in `tests/pinned_exclusions.json`; `IMPORT_CLOSURE.json` records every module, digest and exclusion. `src/runtime.py:113` imports every required module before bulk staging. No AST/source scan derives this closure.
 
 CPU replay excludes `fla`, `triton` and `causal_conv1d`; GPU replay requires all three before bulk. Trace harness aliases, local test modules, generated Cython/PyTorch runtime helpers and unsuccessful optional import probes are listed individually with reasons in `IMPORT_CLOSURE.json:exclusions`. Native aliases are imported after their canonical modules. The trace uses tiny tokenizer/RGB/checkpoint boundaries; full-checkpoint GPU execution remains unmeasured.
 
-The four boot tests use the delivered worker, the exact pinned `v/py` and `v/boot.py`, both production supervisors, the production namespace constructor with local runtime fixture binds, and real finalization/fetch. In both modes, omitting the lazy `student_pilot.carrier_c1_canary` module fails with **zero bulk bytes staged**, and its traceback survives authenticated fetch. `out/BOOT_CHECKS.json` pins these checks to this delivery. The test uses local p1cpu libraries; full production-environment execution remains an Orchard check.
+The five boot tests use the delivered worker, the exact pinned `v/py` and `v/boot.py`, both production supervisors, the production namespace constructor with local runtime fixture binds, and real finalization/fetch. In both modes, omitting the lazy `student_pilot.carrier_c1_canary` module fails with **zero bulk bytes staged**, and its traceback survives authenticated fetch. `out/BOOT_CHECKS.json` pins these checks to this delivery. These fetch tests use local p1cpu libraries. The pinned-environment CPU boot also passes; full-checkpoint GPU execution remains unmeasured.
+
+The pinned CPU boot passes all 3,228 required imports in 14.917 seconds with zero bulk bytes and no package doubles. The pre-bulk archives were authenticated and extracted under `tmp/pinned/`; `out/PINNED_ARCHIVES.json` records their pins. The environment uses Pillow 13.0.0, NumPy 2.3.5 and Torch 2.13.0+cu130. `out/PINNED_CHECKS.json` pins the successful replay to this delivery.
+
+The failed entry was `PIL._typing`: the pinned `PIL/_typing.py:8` imports `numbers._IntegralLike` unconditionally, while `PIL/Image.py:207–214` places that helper inside a disabled `if TYPE_CHECKING` branch. The local copy guards the numbers import. Every dropped entry and its pinned-environment reason is recorded in `tests/pinned_exclusions.json` and `IMPORT_CLOSURE.json:pinned_drops`: 110 drops reduce the CPU closure from 3,338 to 3,228 and the GPU closure from 3,341 to 3,231. The three CUDA-only exclusions are unchanged. Imports use normal module names with runtime typing semantics; no library or interpreter bytes are patched.
+
+Closure failures retain the entry and full exception in both the worker diagnostic and boot receipt. The typing-helper regression verifies that an exception longer than 120 characters survives authenticated fetch, with zero bulk staging. Token `f68a2d7c903be` is superseded by `87f4ae5c2f44f` because placement cannot overwrite its destination and its CPU submission marker is spent.

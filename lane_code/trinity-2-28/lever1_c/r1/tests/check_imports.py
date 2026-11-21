@@ -11,7 +11,7 @@ import subprocess
 import tempfile
 sys.path.insert(0,str(BD.GB/'gpkg'))
 import import_smoke as S
-root=Path(tempfile.mkdtemp(dir=HERE/'tests',prefix='import_'))
+root=Path(tempfile.mkdtemp(dir=HERE.parent/'r1_fixtures_old',prefix='import_'))
 BD.B.extract((HERE/'out/delivery.tgz').read_bytes(),root/'package')
 BD.B.extract((root/'package/0.tgz').read_bytes(),root/'p')
 results=[]

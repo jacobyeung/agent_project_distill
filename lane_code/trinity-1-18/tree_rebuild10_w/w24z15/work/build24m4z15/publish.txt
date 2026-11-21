@@ -1,0 +1,58 @@
+def publish(node,target,kit,code,slurm_log=None,slurm_err=None):
+ node,target,kit=map(Path,(node,target,kit));target.mkdir(parents=True,exist_ok=True)
+ # Reserve 1.2 MB for j2 and its in-progress replacements.
+ budget=3_500_000;payload={};rows=[];missing=[];skipped=[]
+ existing=[p for p in target.rglob("*") if p.is_file()]
+ if any(p.name not in ("j2.log","j2.err","j2.log.part","j2.err.part") for p in existing):raise ValueError("E96")
+ reserve=max(1_200_000,sum(p.stat().st_size for p in existing))
+ source_names=["p/q/b/population.json","p/q/b/indices.json","p/q/b/reader_filters.json",
+  "p/q/b/binding.json","p/q/b/receipt.json","p/q/h/receipt.json","p/q/h/config.json",
+  "p/q/f.json","p/q/host.json","p/q/RESULT.json","p/q/selection/receipt.json"]
+ fixed=[("j7/e"+str(i)+".json",node/p,None) for i,p in enumerate(source_names)]
+ tails=[(name,node/"ev"/name,256*1024) for name in ("q.log","r.log","dbb.log","q.steps")]
+ for name,path in (("j7/s.log",slurm_log),("j7/s.err",slurm_err)):
+  if path is not None:tails.append((name,Path(path),256*1024))
+ candidates=list(fixed)+tails;seen={p for _,p,_ in candidates}
+ for p in sorted((node/"p/q/b").glob("*.json")):
+  if p not in seen:candidates.append(("j7/b"+str(len(candidates))+".json",p,None));seen.add(p)
+ for p in sorted((node/"p/q/a").rglob("*.json")):
+  if p not in seen:candidates.append(("j7/a"+str(len(candidates))+".json",p,None));seen.add(p)
+ for p in sorted((node/"ev").rglob("*")):
+  if p.is_file() and p not in seen and p.name not in ("j2.log","j2.err",".l") and not p.name.endswith(".part"):
+   candidates.append((str(p.relative_to(node/"ev")),p,None));seen.add(p)
+ record=dict(returncode=int(code),kit_sha256=load(kit/"BUILD.json")["kit_sha256"],GO=False,
+  files=rows,missing=missing,skipped=skipped,bytes=0,limit=5_000_000,j2_reserved_bytes=1_200_000)
+ def encoded():return (json.dumps(record,sort_keys=True,separators=(",",":"))+"\n").encode()
+ # Account for the complete skip inventory before admitting any payload.
+ for name,p,tail in candidates:
+  if not p.is_file():
+   if (name,p,tail) in fixed:missing.append(name)
+   continue
+  if p.is_symlink() or (tail is None and p.stat().st_size>50_000_000):raise ValueError("E94")
+  skipped.append(dict(name=name,bytes=min(p.stat().st_size,tail) if tail else p.stat().st_size))
+ if reserve+len(encoded())>=5_000_000:raise ValueError("E95")
+ pending=iter(list(skipped))
+ for name,p,tail in candidates:
+  if not p.is_file():continue
+  item=next(pending)
+  with p.open("rb") as f:
+   if tail:f.seek(max(0,os.fstat(f.fileno()).st_size-tail))
+   raw=f.read(tail if tail else 50_000_001)
+  if tail is None and len(raw)>50_000_000:raise ValueError("E94")
+  packed=gzip.compress(raw,mtime=0)
+  if len(packed)<len(raw) or bytes([80,65,83,83]) in raw:name+=".gz";stored=packed
+  else:stored=raw
+  if name in payload or name=="j7.json":raise ValueError("E96")
+  source=str(p.relative_to(node)) if p.is_relative_to(node) else str(p)
+  row=dict(name=name,source=source,sha256=hashlib.sha256(raw).hexdigest(),bytes=len(raw),stored_bytes=len(stored),stored_sha256=hashlib.sha256(stored).hexdigest())
+  if tail:row.update(tail_bytes=tail,source_bytes=p.stat().st_size)
+  skipped.remove(item);rows.append(row);record["bytes"]+=len(stored)
+  if record["bytes"]>budget or reserve+record["bytes"]+len(encoded())>=5_000_000:
+   rows.pop();record["bytes"]-=len(stored);skipped.append(item)
+  else:payload[name]=stored
+ payload["j7.json"]=encoded()
+ for name,raw in payload.items():
+  p=target/name;p.parent.mkdir(parents=True,exist_ok=True)
+  with p.open("xb") as f:f.write(raw)
+ if sum(p.stat().st_size for p in target.rglob("*") if p.is_file())>=5_000_000:raise ValueError("E95")
+ return record

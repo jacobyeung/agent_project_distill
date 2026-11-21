@@ -39,6 +39,40 @@ echo "@@RCPT $(cat $Q/live_spool/private/*.receipts.jsonl 2>/dev/null | wc -l)"
 echo "@@TRAIN"; ls -la --time-style=+%T $Q/r $Q/train 2>/dev/null | tail -n +4 | cut -c1-160 | tail -20
 echo "@@CK"; find $Q/r $Q/train $Q/x $Q/rp -maxdepth 6 -type d \( -name 'checkpoint_*' -o -name 'm[0-9][0-9]*' -o -name 'export*' \) -printf '%TT %P\n' 2>/dev/null | sort | tail -8 | cut -c1-200
 find $Q/r $Q/train $Q/x $Q/rp -maxdepth 7 \( -name 'complete.json' -o -name 'artifact.json' \) -printf '%TT %P\n' 2>/dev/null | sort | tail -4 | cut -c1-200
-cg=$(cut -d: -f3 /proc/self/cgroup | head -1); d=/sys/fs/cgroup$cg; for i in 1 2 3; do d=$(dirname $d); [[ -f $d/memory.max ]] && echo "@@CG $d max=$(cat $d/memory.max) cur=$(cat $d/memory.current) $(grep -E '^(anon|file|shmem) ' $d/memory.stat | tr '\n' ' ') cpu_usec=$(grep usage_usec $d/cpu.stat | head -1 | cut -d' ' -f2)"; done
+cg=$(cut -d: -f3 /proc/self/cgroup | head -1); d=/sys/fs/cgroup$cg; for i in 1 2 3; do d=$(dirname $d); [[ -f $d/memory.max ]] && echo "@@CG $d max=$(cat $d/memory.max) cur=$(cat $d/memory.current) $(grep -E '^(anon|file|shmem|file_dirty|file_writeback) ' $d/memory.stat | tr '\n' ' ') oom=$(grep -E '^oom ' $d/memory.events 2>/dev/null | cut -d' ' -f2) oom_kill=$(grep -E '^oom_kill ' $d/memory.events 2>/dev/null | cut -d' ' -f2) high=$(grep -E '^high ' $d/memory.events 2>/dev/null | cut -d' ' -f2) cpu_usec=$(grep usage_usec $d/cpu.stat | head -1 | cut -d' ' -f2)"; done
 echo "@@GPU"; nvidia-smi --query-gpu=index,utilization.gpu,memory.used,memory.total --format=csv,noheader,nounits 2>&1 | head -8
 echo "@@PS"; ps -u $USER -o pid,etimes,pcpu,rss,args --sort=-pcpu | head -7 | cut -c1-200
+echo "@@ATT"; timeout 25 nice -n 19 python3 -B - "$Q" "/project/community/jjyeung/okh7/x_22c714e1/o/$J/live" <<'PY' 2>&1 | head -40 | cut -c1-400
+import os,sys,json,re
+seen=set()
+for root in sys.argv[1:]:
+  if not os.path.isdir(root):continue
+  base=root.rstrip('/').count('/')
+  for d,ds,fs in os.walk(root):
+    if d.count('/')-base>=3:ds[:]=[]
+    for f in fs:
+      p=os.path.join(d,f)
+      try:
+        sz=os.path.getsize(p)
+        if sz==0 or sz>60e6 or f.endswith(('.tar','.tgz')):continue
+        h=open(p,'rb').read(4096)
+      except Exception:continue
+      if b'"http"' not in h or b'"name"' not in h:continue
+      ob={};n=0
+      for l in open(p,errors='replace'):
+        try:r=json.loads(l)
+        except Exception:continue
+        nm=r.get('name');t=r.get('time')
+        if not isinstance(nm,str) or not isinstance(t,(int,float)):continue
+        n+=1;m=re.match(r'^(.*?)\.j(\d+)\.part(\d\d)-of-\d\d$',nm)
+        if not m:continue
+        o=ob.setdefault(m.group(1),{'p':{},'att':0,'err':0})
+        q=o['p'].setdefault(m.group(3),[t,None]);o['att']+=1;o['err']+=bool(r.get('error'))
+        if r.get('http') in (200,201):q[1]=t
+      key=(sz,n)
+      if key in seen:continue
+      seen.add(key);print('@@ATTF',p.replace(sys.argv[1],'$Q'),sz,n)
+      for k,o in sorted(ob.items()):
+        ps=o['p'];dn={a:b for a,b in ps.items() if b[1]}
+        print('@@ATTO',json.dumps({'f':f,'obj':k,'parts':len(ps),'done':len(dn),'first':min(v[0] for v in ps.values()),'last_done':max([v[1] for v in dn.values()] or [None]) if dn else None,'att':o['att'],'err':o['err'],'part_walls':{a:round(b[1]-b[0],2) for a,b in dn.items()}}))
+PY

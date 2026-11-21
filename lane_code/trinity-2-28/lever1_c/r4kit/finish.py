@@ -20,6 +20,8 @@ assert B.digest((ROOT/'FROZEN.json').read_bytes()) == build['frozen'] == (ROOT/'
 assert checks['passed'] and tests['passed']
 imports=read('out/IMPORT_CHECKS.json')
 assert imports['passed'] and imports['delivery']==build['delivery']
+pinned=read('out/PINNED_CHECKS.json')
+assert pinned['passed'] and pinned['delivery']==build['delivery']
 boots=read('out/BOOT_CHECKS.json')
 assert boots['passed'] and boots['delivery']==build['delivery']
 assert tests['delivery']==checks['delivery']==build['delivery']
@@ -36,8 +38,9 @@ for case in boots['cases']:
         assert set(case['boot']['required_modules'])==expected
         assert case['boot']['closure_sha256']==closure['closure_sha256']
 build['boot']['local_pre_bulk_seconds']=[min(c['boot']['pre_bulk_seconds'] for c in boots['cases'] if not c['missing']),max(c['boot']['pre_bulk_seconds'] for c in boots['cases'] if not c['missing'])]
+build['boot']['pinned_replay']={k:pinned[k] for k in ('passed','seconds','environment','bulk_bytes','returncode')}
 save('BUILD.json',build)
-test_count=tests['tests']+checks['tests']+imports['tests']+boots['tests']+1
+test_count=tests['tests']+checks['tests']+imports['tests']+boots['tests']+pinned['tests']+1
 files=members((ROOT/'out/delivery.tgz').read_bytes());payload=members(files['0.tgz'])
 cfg=B.storage.loads(files['2.json']);sources=B.storage.loads(files['8.bin'])
 assert cfg['import_closure']==closure
@@ -52,7 +55,7 @@ steps=[max(positions[m['source_id']] for m in mapping[i:i+4]) for i in range(0,l
 fixed_worker=f['model_load_s']+580*(f['per_item_other_mean_s']+f['prefill_mean_s'])
 decode=sum(steps)*2*f['tool_free_decode_s_per_token'];worker=fixed_worker+decode;total=f['base_other_s']+worker
 f.update(token=build['token'], delivery=build['delivery'],
-    boot=build['boot'],
+    boot=build['boot'], superseded_tokens=build['superseded_tokens'],
     interpreter_exposure=build['interpreter_exposure'],
     project_budget=build['project_budget'], gpu_memory=build['gpu_memory'],
     memory_guard=dict(formula=build['gpu_memory']['guard_formula'],fallback=build['gpu_memory']['guard_fallback'],gpu_stop_bytes=180*1024**3,cpu_stop_bytes=110*1024**3,return_fields=['peak_tree_rss_bytes','peak_cgroup_current_bytes','cgroup_memory_peak_bytes','peak_guarded_bytes']),
@@ -125,7 +128,7 @@ audit=dict(passed=True,deny_list=B.DENY,case_sensitive=False,match='literal subs
     json_storage='Job metadata and returned JSON/JSONL use a0 hex envelopes. Scans check raw text and JSON-decoded keys/strings (including escaped Unicode). Intentional hex payload decoding occurs only in memory or in the local scorer.',
     archive_scanning='Archive names and decompressed members are scanned recursively; compressed binary byte coincidences are not textual identifiers.',
     cpu_rehearsal=checks['evidence']['cpu_rehearsal'],remaining_external_interfaces=exceptions,
-    logs='Controller, namespace supervisor and worker capture both streams as they arrive into opaque hex journals on job_tmp. Each stream keeps a 16,000-byte tail and caps its journal at 262,144 raw bytes; overflow fails the job. Every return carries both tails. Controller and worker tracebacks retain the last 200 lines, capped at 120 characters per line and 24,000 ASCII bytes, inside a0 hex envelopes. The saved transport stream is also hex-packed.',
+    logs='Controller, namespace supervisor and worker capture both streams as they arrive into opaque hex journals on job_tmp. Each stream keeps a 16,000-byte tail and caps its journal at 262,144 raw bytes; overflow fails the job. Every return carries both tails. Controller and worker tracebacks retain the last 200 lines, capped at 24,000 ASCII bytes; closure failures preserve full lines and separate full entry/exception fields, while other failures cap lines at 120 characters, inside a0 hex envelopes. The saved transport stream is also hex-packed.',
     cache_isolation=dict(closed=True,paths=checks['evidence']['cache_environment']['paths'],
         flags=checks['evidence']['cache_environment']['flags'],
         placement='Every cache/temp override points to <ext4 job root>/0/<number>; controller sets this before staging and launch resets every override for both modes. Inherited environment is allowlisted.',
@@ -141,7 +144,7 @@ sha=build['delivery']['sha256'];size=build['delivery']['bytes'];token=build['tok
 dest='/project/community/jjyeung/okh7/ad'+token+'/0.tgz';ret='/project/community/jjyeung/okh7/af'+token
 place=f'''The delivery preserves the frozen 580 prompts, greedy decoding, 64-token cap and first-call-opening stop. No tool response is served. The checkpoint is step 400, artifact `5083243cfedd2a389dfca579c5452e7d0c73b03a58e1cb7d204292ddd10e67cd`.
 
-Token: `{token}`. Job: `a15_cot_ap{token}`.
+Token: `{token}`. Superseded token: `f68a2d7c903be` (placed destination exists; CPU submission marker spent). Job: `a15_cot_ap{token}`.
 Delivery: **{size:,} bytes**, SHA-256 `{sha}`.
 Frozen SHA-256: `{frozen}`.
 
@@ -215,7 +218,7 @@ R={ret}
 /usr/bin/python3 -I -s -B "$P/3.py" fetch "$R" g
 ```
 
-The authenticated archive is `$R/0.tgz`; its receipt is `$R/1.json`. JSON receipts and result lines use `{{"a0":"<hex bytes>"}}`. Return members are paired results `0.jsonl`, summary `1.json`, optional controller traceback `2.json`, per-batch timings `3.jsonl`, and worker failure diagnostics `4.json` (traceback when available, exact return code/signal, last stage, peak host RSS, GPU max allocated bytes, and hex-packed stdout/stderr tails at each execution layer). Tracebacks retain the last 200 lines, capped at 120 characters per line and 24,000 ASCII bytes before packing. Controller and worker errors have separate files so both survive. The saved `0.stream` is hex-packed; the original framed protocol still authenticates the archive in memory. Both expanded and compressed returns are capped at 2 MB. A result-budget overflow returns a capped failure; it never publishes an oversized archive. A one-use reservation ledger caps cumulative project writes, including interrupted attempts and both fetches; retries cannot consume new slots. Every completed arm pair is flushed and synced immediately; an interrupted final pair is omitted during finalization. The scorer decodes envelopes locally. Decode diagnostics only after bringing the archive back locally:
+The authenticated archive is `$R/0.tgz`; its receipt is `$R/1.json`. JSON receipts and result lines use `{{"a0":"<hex bytes>"}}`. Return members are paired results `0.jsonl`, summary `1.json`, optional controller traceback `2.json`, per-batch timings `3.jsonl`, and worker failure diagnostics `4.json` (traceback when available, exact return code/signal, last stage, peak host RSS, GPU max allocated bytes, and hex-packed stdout/stderr tails at each execution layer). Tracebacks retain the last 200 lines, capped at 24,000 ASCII bytes; closure failures preserve full lines and separate full entry/exception fields, while other failures cap lines at 120 characters before packing. Controller and worker errors have separate files so both survive. The saved `0.stream` is hex-packed; the original framed protocol still authenticates the archive in memory. Both expanded and compressed returns are capped at 2 MB. A result-budget overflow returns a capped failure; it never publishes an oversized archive. A one-use reservation ledger caps cumulative project writes, including interrupted attempts and both fetches; retries cannot consume new slots. Every completed arm pair is flushed and synced immediately; an interrupted final pair is omitted during finalization. The scorer decodes envelopes locally. Decode diagnostics only after bringing the archive back locally:
 
 ```bash
 nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B - out/return.tgz <<'PYDIAG'
@@ -254,6 +257,7 @@ nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B tests/test_probe.py
 nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B tests/test_fixes.py
 nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B tests/test_imports.py
 nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B tests/test_boot.py
+nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B tests/test_pinned.py
 nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B finish.py
 ```
 '''
@@ -290,7 +294,7 @@ Controller, namespace-supervisor and worker output enters opaque hex `8.log`/`9.
 import_contract=f'''
 The extractor preserves every native interpreter/package path. Opaque translation applies only to authored `c/` and `v/` source trees (`src/storage.py:108`). The existing native-runtime ABI exception covers the unchanged pinned external files; no new public names or exceptions are introduced. The memory guard and FROZEN.json remain unchanged.
 
-The CPU import regression verifies all {imports['runtime_files']:,} local pinned interpreter files after the real extractor, checks {imports['package_paths_checked']:,} package paths, reproduces the old missing `keyword` failure, and replays the recorded worker import closure in a fresh staged interpreter with `-X importtime`. The worker reaches `restore` without loading checkpoint weights. Namespace test mode: {imports['mode']}. The original Orchard environment archive/boot wrapper is not local; the test reproduces its `runpy.run_path` operation and uses local p1cpu packages. `IMPORTS.md` and `out/IMPORT_CHECKS.json` record the exact evidence and limits.
+The CPU import regression verifies all {imports['runtime_files']:,} local pinned interpreter files after the real extractor, checks {imports['package_paths_checked']:,} package paths, reproduces the old missing `keyword` failure, and replays the recorded worker import closure in a fresh staged interpreter with `-X importtime`. The worker reaches `restore` without loading checkpoint weights. Namespace test mode: {imports['mode']}. This test uses local p1cpu packages. `tests/test_pinned.py` separately boots the exact delivery with the authenticated Orchard interpreter, base environment and a4 overlay in the production namespace, with CUDA hidden and no package doubles. `IMPORTS.md` and `out/IMPORT_CHECKS.json` record the exact evidence and limits.
 '''
 place += contract+import_contract
 boot_text = f"""
@@ -298,19 +302,19 @@ Both CPU and GPU jobs follow this order: authenticate and materialize the packag
 
 Pre-bulk bytes: {build['boot']['interpreter_file_bytes']:,} CPython file bytes; {build['boot']['archive_bytes']:,} environment/overlay archives plus bwrap; {build['boot']['code_archive_bytes']:,} package archive bytes; total **{build['boot']['pre_bulk_bytes']:,} bytes** copied or selectively materialized. Authentication also reads the {build['boot']['interpreter_source_bytes']:,}-byte mixed interpreter archive without staging its other members. The environment and overlay expand to another {build['boot']['environment_expanded_bytes']+build['boot']['overlay_expanded_bytes']:,} file bytes; the package expands to {build['expanded_payload_bytes']:,} bytes plus materialized private sources. These are separate source-transfer and expansion counts, not a measured disk high-water.
 
-Local successful pre-bulk checks took {min(c['boot']['pre_bulk_seconds'] for c in boots['cases'] if not c['missing']):.3f}–{max(c['boot']['pre_bulk_seconds'] for c in boots['cases'] if not c['missing']):.3f} seconds with tiny staging fixtures and read-only local runtime binds. Production pre-bulk seconds remain unmeasured; each return records them in `execution.boot.pre_bulk_seconds`, alongside bytes, mode, interpreter, cwd, closure digest and import duration. Boot uses the existing 600-second staging deadline. The overall forecast retains its existing staging allowance; it does not claim measured Orchard boot time.
+Local successful pre-bulk checks took {min(c['boot']['pre_bulk_seconds'] for c in boots['cases'] if not c['missing']):.3f}–{max(c['boot']['pre_bulk_seconds'] for c in boots['cases'] if not c['missing']):.3f} seconds with tiny staging fixtures and read-only local runtime binds. The superseded package reached the Orchard boot gate in 164.381 seconds with zero bulk bytes; successful revised production staging time remains unmeasured. Each return records its timing in `execution.boot.pre_bulk_seconds`, alongside bytes, mode, interpreter, cwd, closure digest and import duration. Boot uses the existing 600-second staging deadline. The overall forecast retains its existing staging allowance. The revised CPU replay time measures boot after local extraction.
 
-The recorded closure contains **{closure['cpu_modules']:,} CPU modules** and **{closure['gpu_modules']:,} GPU modules**, compared with {closure['baseline_modules']:,} importable modules in the prior {closure['baseline_raw_modules']:,}-entry inventory. `tests/trace_worker.py` runs the delivered `runtime.run` on CPU with `sys.addaudithook('import')`, through real restore/meta shape checking, processor construction, model loading with tiny native weights, routed prompt preparation and the first eight-row batch. `tests/record_import_closure.py` unions the successful runtime inventory with `tests/import_baseline.json`; `IMPORT_CLOSURE.json` records every module, digest and exclusion. `src/runtime.py:106` imports every required module before bulk staging. No AST/source scan derives this closure.
+The recorded closure contains **{closure['cpu_modules']:,} CPU modules** and **{closure['gpu_modules']:,} GPU modules**, compared with {closure['baseline_modules']:,} importable modules in the prior {closure['baseline_raw_modules']:,}-entry inventory. `tests/trace_worker.py` runs the delivered `runtime.run` on CPU with `sys.addaudithook('import')`, through real restore/meta shape checking, processor construction, model loading with tiny native weights, routed prompt preparation and the first eight-row batch. `tests/record_import_closure.py` unions the successful runtime inventory with `tests/import_baseline.json` and applies the per-entry exclusions in `tests/pinned_exclusions.json`; `IMPORT_CLOSURE.json` records every module, digest and exclusion. `src/runtime.py:113` imports every required module before bulk staging. No AST/source scan derives this closure.
 
 CPU replay excludes `fla`, `triton` and `causal_conv1d`; GPU replay requires all three before bulk. Trace harness aliases, local test modules, generated Cython/PyTorch runtime helpers and unsuccessful optional import probes are listed individually with reasons in `IMPORT_CLOSURE.json:exclusions`. Native aliases are imported after their canonical modules. The trace uses tiny tokenizer/RGB/checkpoint boundaries; full-checkpoint GPU execution remains unmeasured.
 
-The four boot tests use the delivered worker, the exact pinned `v/py` and `v/boot.py`, both production supervisors, the production namespace constructor with local runtime fixture binds, and real finalization/fetch. In both modes, omitting the lazy `student_pilot.carrier_c1_canary` module fails with **zero bulk bytes staged**, and its traceback survives authenticated fetch. `out/BOOT_CHECKS.json` pins these checks to this delivery. The test uses local p1cpu libraries; full production-environment execution remains an Orchard check.
+The five boot tests use the delivered worker, the exact pinned `v/py` and `v/boot.py`, both production supervisors, the production namespace constructor with local runtime fixture binds, and real finalization/fetch. In both modes, omitting the lazy `student_pilot.carrier_c1_canary` module fails with **zero bulk bytes staged**, and its traceback survives authenticated fetch. `out/BOOT_CHECKS.json` pins these checks to this delivery. These fetch tests use local p1cpu libraries. The pinned-environment CPU boot also passes; full-checkpoint GPU execution remains unmeasured.
 """
 place += boot_text
 (ROOT/'PLACE.md').write_text(place)
 report=f"""The delivery passes **{test_count} local CPU tests**, including staged-interpreter imports and forced early failures in both modes through real authenticated fetch. No placement, submission, network access or GPU execution occurred.
 
-Token: `{token}`. Job: `a15_cot_ap{token}`.
+Token: `{token}`. Superseded token: `f68a2d7c903be` (placed destination exists; CPU submission marker spent). Job: `a15_cot_ap{token}`.
 Delivery: **{size:,} bytes**. SHA-256: `{sha}`.
 Frozen SHA-256: `{frozen}`. FROZEN.json and the checkpoint pin remain unchanged.
 
@@ -327,13 +331,22 @@ The central timing forecast remains **{total:.1f} seconds ({total/60:.2f} minute
 Evidence: `out/test_probe.log`, `out/test_fixes.log`, `out/FIX_CHECKS.json`, `out/FIX3_CHECKS.json`, `out/CACHE_CHECKS.json`, `NAMING_AUDIT.json`, `FORECAST.json` and `BUILD.json`. `PLACE.md` contains exact operator commands. Full-checkpoint GPU numerical parity remains untested.
 """
 report += contract+import_contract
-report += boot_text
+pinned_text=f"""
+The pinned CPU boot passes all {closure['cpu_modules']:,} required imports in {pinned['seconds']:.3f} seconds with zero bulk bytes and no package doubles. The pre-bulk archives were authenticated and extracted under `tmp/pinned/`; `out/PINNED_ARCHIVES.json` records their pins. The environment uses Pillow 13.0.0, NumPy 2.3.5 and Torch 2.13.0+cu130. `out/PINNED_CHECKS.json` pins the successful replay to this delivery.
+
+The failed entry was `PIL._typing`: the pinned `PIL/_typing.py:8` imports `numbers._IntegralLike` unconditionally, while `PIL/Image.py:207–214` places that helper inside a disabled `if TYPE_CHECKING` branch. The local copy guards the numbers import. Every dropped entry and its pinned-environment reason is recorded in `tests/pinned_exclusions.json` and `IMPORT_CLOSURE.json:pinned_drops`: {len(closure['pinned_drops'])} drops reduce the CPU closure from {closure['previous_cpu_modules']:,} to {closure['cpu_modules']:,} and the GPU closure from {closure['previous_gpu_modules']:,} to {closure['gpu_modules']:,}. The three CUDA-only exclusions are unchanged. Imports use normal module names with runtime typing semantics; no library or interpreter bytes are patched.
+
+Closure failures retain the entry and full exception in both the worker diagnostic and boot receipt. The typing-helper regression verifies that an exception longer than 120 characters survives authenticated fetch, with zero bulk staging. Token `f68a2d7c903be` is superseded by `{token}` because placement cannot overwrite its destination and its CPU submission marker is spent.
+"""
+place += pinned_text
+(ROOT/'PLACE.md').write_text(place)
+report += boot_text+pinned_text
 (ROOT/'REPORT.md').write_text(report)
 save('out/BUILD.json',build)
 save('out/FINAL_CHECKS.json',dict(passed=True,token=token,delivery=build['delivery'],tests=test_count,frozen=frozen,
     project_budget=build['project_budget'],gpu_memory=build['gpu_memory'],forecast_seconds=total,headroom_fraction=f['headroom_fraction'],artifact=cfg['export']['artifact']['sha256']))
 names = [line.split(None, 1)[1] for line in (ROOT/'SHA256SUMS').read_text().splitlines()]
 names = sorted(set(names) | {'REPORT.md', 'finish.py', 'tests/test_fixes.py', 'tests/cache_preflight.py', 'tests/write_audit.c', 'out/CACHE_CHECKS.json', 'src/storage.py', 'src/batch.py', 'src/monitor.py', 'DEBUG.md', 'out/fail1_code/control.py', 'out/fail1_code/runtime.py', 'out/FIX_CHECKS.json', 'out/FINAL_CHECKS.json'})
-names = sorted(set(names) | {'IMPORT_CLOSURE.json','tests/import_baseline.json','tests/trace_worker.py','tests/record_import_closure.py','out/WORKER_IMPORT_TRACE.json','out/trace_worker.log','IMPORTS.md', 'tests/test_imports.py', 'tests/import_worker.py', 'out/IMPORT_CHECKS.json', 'out/test_imports.log', 'tests/test_boot.py', 'out/BOOT_CHECKS.json', 'out/test_boot.log'})
+names = sorted(set(names) | {'IMPORT_CLOSURE.json','tests/import_baseline.json','tests/trace_worker.py','tests/record_import_closure.py','out/WORKER_IMPORT_TRACE.json','out/trace_worker.log','IMPORTS.md', 'tests/test_imports.py', 'tests/import_worker.py', 'out/IMPORT_CHECKS.json', 'out/test_imports.log', 'tests/test_boot.py', 'out/BOOT_CHECKS.json', 'out/test_boot.log','tests/test_pinned.py','tests/pinned_exclusions.json','out/PINNED_ARCHIVES.json','out/PINNED_CHECKS.json','out/PINNED_IMPORT_PROBE.json','out/test_pinned.log'})
 (ROOT/'SHA256SUMS').write_text(''.join(hashlib.sha256((ROOT/name).read_bytes()).hexdigest()+'  '+name+'\n' for name in names))
 print(json.dumps(read('out/FINAL_CHECKS.json'),sort_keys=True))

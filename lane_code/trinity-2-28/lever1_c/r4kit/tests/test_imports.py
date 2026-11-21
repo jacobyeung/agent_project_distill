@@ -92,8 +92,8 @@ audit = root/'2.py'
 audit.write_bytes((ROOT/'tests/import_worker.py').read_bytes())
 output = root/'2.json'
 stdlib = staged/'lib/python3.12'
-# This is the failing boot.py operation. Its original archive is not local;
-# execute the same runpy entry with the complete staged interpreter instead.
+# Exercise runpy with the staged local interpreter; test_pinned.py separately
+# uses the exact Orchard archives and entry wrapper.
 boot = root/'3.py'
 boot.write_text("import sys, runpy\nargs=sys.argv[1:]\nsys.argv=args\nrunpy.run_path(args[0], run_name='__main__')\n")
 native_site = module('native_fixture', ROOT/'tests/native_fixture.py').prepare(ROOT)
@@ -127,6 +127,6 @@ evidence.update(tests=1, delivery=B.pin((ROOT/'out/delivery.tgz').read_bytes()),
     runtime_inventory_sha256=B.digest(B.jd(inventory)), affected_runtime_files=damaged,
     package_paths_checked=len(package_paths), old_keyword_reproduced=True,
     importtime=str((root/'2.log').relative_to(ROOT)),
-    limits='Local pinned CPython 3.12.13 and p1cpu packages; original Orchard environment archive/boot wrapper unavailable locally. Native package bytes are read from the local site tree; all package paths pass the extractor path-identity audit. No checkpoint or GPU loaded.')
+    limits='Local pinned CPython 3.12.13 and p1cpu packages; the exact Orchard environment is tested separately by tests/test_pinned.py. Native package bytes are read from the local site tree; all package paths pass the extractor path-identity audit. No checkpoint or GPU loaded.')
 (ROOT/'out/IMPORT_CHECKS.json').write_text(json.dumps(evidence, indent=2)+'\n')
 print(json.dumps({k:v for k,v in evidence.items() if k not in ('imports','modules','affected_runtime_files')}, indent=2))

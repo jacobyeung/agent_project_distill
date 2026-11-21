@@ -1,0 +1,43 @@
+Each row compares the supplied jn4 bytes with jn5 after only private X/pool substitutions.
+Healthy publication rows are regression controls; setup and publisher-fault rows demonstrate fail-before/pass-after.
+The baseline hang is intentionally stopped by the test watchdog. It is not a cluster-killed job.
+The periodic worker is the generated j2.py itself; setsid is not replaced. The ticks case shortens only its interval argument.
+TERM/USR1 cases signal the wrapper and verify delivery to all three real child processes, child reaping, status, and one final attempt.
+The real resolver sees an empty pool. The real l.py receives a read-only stdout descriptor and fails under pipefail.
+The setup cases fail directory creation, log redirection, and publisher creation. The node case fails before N exists.
+The main publication blocks in an actual FIFO open. GNU timeout uses its full 120-second deadline; fallback then writes the fixed refusal.
+The separate blocked-fallback check intentionally cannot publish; its 15-second deadline preserves status 3.
+The initial harness assertion included j2.log.part as a committed output. Its output is in first_failure.log; complete frozen artifacts are in attic/attempt1.
+Original source kit hashes match both the supplied manifest and the fresh audit. No suite process remains running.
+No scheduler, live Slurm signal delivery, deployed Orchard bytes, or production workload shutdown was tested.
+The forbidden-name screen accepts every fixed fallback label and new submission name.
+No historical narrative was retained in the usage notes except required test-failure evidence and the explicit jn4 comparison.
+
+| Case | jn4 status / final / named output | jn5 status / final / named output |
+|---|---|---|
+| create | 1 / 0 / False | 1 / 1 / True |
+| g0 | 3 / 1 / True | 3 / 1 / True |
+| g2 | 3 / 1 / True | 3 / 1 / True |
+| g2_pfail | 3 / 1 / False | 3 / 1 / True |
+| hang | -9 / 1 / False | 3 / 1 / True |
+| iofail | 3 / 1 / False | 3 / 1 / True |
+| log | 1 / 0 / False | 1 / 1 / True |
+| logger | 120 / 1 / True | 120 / 1 / True |
+| logger_pfail | 120 / 1 / False | 120 / 1 / True |
+| node | 1 / 0 / False | 1 / 1 / True |
+| normal | 23 / 1 / True | 23 / 1 / True |
+| normal_pfail | 23 / 1 / False | 23 / 1 / True |
+| pfail | 3 / 1 / False | 3 / 1 / True |
+| resolve | 1 / 1 / True | 1 / 1 / True |
+| resolve_pfail | 1 / 1 / False | 1 / 1 / True |
+| seal | 1 / 1 / True | 1 / 1 / True |
+| seal_pfail | 1 / 1 / False | 1 / 1 / True |
+| term | 37 / 1 / True | 37 / 1 / True |
+| term_final | 3 / 1 / True | 3 / 1 / True |
+| term_final_iofail | 3 / 1 / False | 3 / 1 / True |
+| term_pfail | 37 / 1 / False | 37 / 1 / True |
+| ticks | 23 / 1 / True | 23 / 1 / True |
+| usr1 | 38 / 1 / True | 38 / 1 / True |
+| usr1_final | 3 / 1 / True | 3 / 1 / True |
+| usr1_final_iofail | 3 / 1 / False | 3 / 1 / True |
+| usr1_pfail | 38 / 1 / False | 38 / 1 / True |

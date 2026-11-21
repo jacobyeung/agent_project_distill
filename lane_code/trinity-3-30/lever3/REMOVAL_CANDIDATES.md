@@ -3,3 +3,6 @@
 - trinity-3-30 /scratch/jjyeung/orch_n30/lever1/work/r6in.tar (8 GB, accidental; already in lever1's list).
 - Orchard /project/community/jjyeung/a6f198d3c7b20 (rank 1 package placed 01:04Z 11-21, ~8.0 MB + ~20 KB job metadata; superseded once the v/py fix is placed under a new token). Its failure diagnostics are kept on trinity-3-30 lever3/out/r1_cpufail_173974 and 2-28 lever1_c/r1/returned_fail3.
 - Orchard okh7/a15_cot_apf68a2d7c903be + okh7/adf68a2d7c903be (rank 4 package placed 01:22Z 11-21, ~4.3 MB delivery + ~15 MB extracted) and okh7/aff68a2d7c903bec (CPU return, ~35 KB); superseded by the PIL-closure fix under a new token. Return kept on trinity-3-30 lever3/out/r4_cpufail_173975 and 2-28 r4kit/returned_fail3.
+- Orchard /project/community/jjyeung/a7e29d4c8f103 (rank 1 package placed 01:29Z, ~8.0 MB; superseded by the E80 fix under a new token). Diagnostics kept on trinity-3-30 lever3/out/r1_cpufail_173976 and 2-28 r1/returned_fail4.
+- Orchard /project/community/jjyeung/a7e29d4c8f103 superseded by a38bd627f901e (see above); placed rank 4 okh7/*f68a2d7c903be superseded by 87f4ae5c2f44f.
+- Orchard /project/community/jjyeung/a38bd627f901e (rank 1, placed 01:56Z, ~8.0 MB; superseded by the write-test fix). Diagnostics lever3/out/r1_cpufail_173995.

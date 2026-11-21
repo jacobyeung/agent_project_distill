@@ -1,0 +1,18 @@
+--- jn3.sh
++++ jn4.sh
+@@ -49,6 +49,7 @@
+     except ProcessLookupError:break
+     time.sleep(interval)
+ PYJ2
++trap 'status=$?; python3 -B -I -s "$N/j2.py" "$ROOT" "$N" "$X" "$SLURM_JOB_ID" "$$" 600 once || true; exit "$status"' EXIT
+ setsid python3 -B -I -s "$N/j2.py" "$ROOT" "$N" "$X" "$SLURM_JOB_ID" "$$" >>"$N/j2.retry.log" 2>&1 &
+ J2_PID=$!
+ printf '%s SLURM_TMPDIR=%s free_bytes=' "$(date -u +%FT%TZ)" "${SLURM_TMPDIR:-/tmp}"
+@@ -75,7 +76,6 @@
+ # Retrieve the final child status even if the signal interrupted the first wait.
+ wait "$child"
+ status=$?
+-python3 -B -I -s "$N/j2.py" "$ROOT" "$N" "$X" "$SLURM_JOB_ID" "$$" 600 once || true
+ kill -TERM "$J2_PID" 2>/dev/null || true
+ wait "$J2_PID" 2>/dev/null || true
+ exit "$status"

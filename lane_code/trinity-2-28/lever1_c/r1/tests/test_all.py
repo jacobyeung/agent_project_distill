@@ -18,7 +18,7 @@ import relift as R
 import depth_format as D
 
 
-def temp():return Path(tempfile.mkdtemp(dir=HERE/'tests',prefix='case_'))
+def temp():return Path(tempfile.mkdtemp(dir=HERE.parent/'r1_fixtures_old',prefix='case_'))
 
 
 class ReliftTests(unittest.TestCase):

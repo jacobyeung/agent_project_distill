@@ -9,6 +9,7 @@ import subprocess
 import sys
 import tarfile
 import tempfile
+import time
 import unittest
 from unittest.mock import patch
 HERE=Path(__file__).resolve().parents[1]
@@ -19,7 +20,7 @@ DL=Path('/scratch/jjyeung/orch_n30/reads228/dl')
 class Vpy(unittest.TestCase):
     def test_pinned_production_prebulk(self):
         raw=(HERE/'out/delivery.tgz').read_bytes();outer=A.unpack(raw);inner=A.unpack(outer['0.tgz'])
-        base=Path(tempfile.mkdtemp(prefix='vpy_',dir=HERE/'tests'));p=base/'p';p.mkdir()
+        base=Path(tempfile.mkdtemp(prefix='vpy_',dir=HERE.parent/'r1_fixtures_old'));p=base/'p';p.mkdir()
         for name,data in inner.items():
             dest=p/name;dest.parent.mkdir(parents=True,exist_ok=True);dest.write_bytes(data)
         sys.path.insert(0,str(p))
@@ -46,7 +47,7 @@ class Vpy(unittest.TestCase):
         local_bwrap=Path('/usr/bin/bwrap')
         self.assertTrue(local_bwrap.is_file())
         asset_bwrap=assets['bwrap_pin']['path']
-        original_copy=S.copy_parts;original_environment=boot.environment_archive
+        original_copy=S.copy_parts;original_environment=boot.environment_archive;original_path=boot.Path
         evidence=dict(delivery_sha256=A.sha(raw),local_archives=str(DL),root=str(root),
                       bulk_bytes=0,archives=[],namespace='production argv plus a same-location bind for the scratch fixture')
         def copied(parts,dest,opener,**kwargs):
@@ -56,7 +57,7 @@ class Vpy(unittest.TestCase):
             # Reuse only the authenticated immutable transport copy. Extraction
             # and all pre-bulk member selection still run through job.stage.
             cache=HERE/'tests/vpy_inguub3c/j/a/1'
-            if dest.name=='1' and cache.exists():
+            if dest.name=='1' and cache.exists() and base.is_relative_to(HERE):
                 whole=hashlib.sha256()
                 with cache.open('rb') as source:
                     for part in parts:
@@ -70,11 +71,12 @@ class Vpy(unittest.TestCase):
                 return dict(bytes=cache.stat().st_size,sha256=whole.hexdigest())
             return original_copy(parts,dest,lambda part:mapping[part['path']].open('rb'),**kwargs)
         def mapped_path(value):return Path(mapping.get(str(value),value))
-        inert=base/'0.sh';inert.write_text('#!/bin/sh\nexit 0\n');inert.chmod(0o700)
-        evidence['policy_fixture']='The authenticated vnice script is real; its terminator helper is bound to an inert script to prohibit process signals and cleanup deletion.'
+        inert=base/'0.sh';inert.write_text('#!/bin/sh\nexec sleep 30\n');inert.chmod(0o700)
+        evidence['policy_fixture']='The authenticated vnice script is real; its terminator helper retains stdout/stderr for its real 30-second sleep interval, without signals or deletion.'
+        original_namespace=J.namespace
         def namespace():
             for name in ('sj','fsw','m/ap'):(root/name).mkdir(parents=True,exist_ok=True)
-            return J.namespace(root)+['--bind',str(root),str(root),'--ro-bind',str(inert),inputs['policy']['terminator']]
+            return original_namespace(root)+['--bind',str(root),str(root),'--ro-bind',str(inert),inputs['policy']['terminator']]
         env=J.environment(root);env.update(OMP_NUM_THREADS='1',MKL_NUM_THREADS='1',OPENBLAS_NUM_THREADS='1')
         def execute(script,config):
             argv=namespace()+[inputs['python'],'-B','-I',str(script),str(config)]
@@ -97,6 +99,7 @@ class Vpy(unittest.TestCase):
             result=original_environment(spec,r,s,**kwargs)
             evidence['archives'].append(result)
             return result
+        production_launch=boot.launch
         class BootComplete(Exception):pass
         def launch(r,c,i,j,pre_bytes,seconds):
             self.assertEqual(i,inputs)
@@ -105,11 +108,21 @@ class Vpy(unittest.TestCase):
             config=dict(package=cfg['logical']+'/p',output=cfg['logical']+'/r',python=inputs['python'],
                         cache_root=cfg['logical']+'/r/cache/0',prefix=['bash',inputs['policy']['vnice']])
             (dispatch/'4.json').write_text(json.dumps(dict(action=4,config=config,package=config['package'],plan=cfg['plan_sha256'],job='173974')))
-            evidence['fixed']=execute(dispatch/'5.py',dispatch/'4.json')
-            (HERE/'out/VPY_TRACE.log').write_text(evidence['fixed']['stderr'])
-            self.assertEqual(evidence['fixed']['returncode'],0,evidence['fixed']['stderr'][-10000:])
+            shared=base/'shared'
+            shared.mkdir()
+            def launch_path(value):
+                path=Path(value)
+                return shared if str(path)=='/project/community/jjyeung' else original_path(mapping.get(str(value),value))
+            with patch.object(J,'namespace',side_effect=lambda r:namespace()),patch.object(boot,'Path',side_effect=launch_path):
+                production_launch(r,c,i,j,pre_bytes,seconds)
+            evidence['fixed']=dict(returncode=0,production_capture=True)
             receipt=J.physical(root,cfg['logical']+'/r/metadata/25.json')
             evidence['boot']=A.decode(receipt.read_bytes());self.assertTrue(evidence['boot']['passed'])
+            self.assertEqual(evidence['boot']['modules'],411)
+            self.assertEqual(evidence['boot']['child_returncode'],0)
+            self.assertEqual(evidence['boot']['worker_returncode'],0)
+            self.assertIsNone(evidence['boot']['failed_module'])
+            self.assertEqual(A.decode((shared/cfg['token']/'a/25.json').read_bytes()),evidence['boot'])
             self.assertEqual(evidence['boot']['bulk_bytes'],0)
             evidence.update(pre_bulk_bytes=pre_bytes,stage_seconds=seconds)
             # Resolve all staged links inside the namespace, including absolute

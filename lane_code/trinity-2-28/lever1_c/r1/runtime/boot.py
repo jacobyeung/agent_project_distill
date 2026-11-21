@@ -13,7 +13,7 @@ def check(cfg):
     config=cfg['config'];receipt=Path(config['output'])/'metadata/25.json'
     started=time.monotonic()
     value=dict(passed=False,bulk_bytes=0,python=sys.executable,cwd=os.getcwd(),
-               plan=cfg['plan'],job=cfg['job'],modules=0)
+               plan=cfg['plan'],job=cfg['job'],modules=0,failed_module=None)
     try:
         from g.w import bind_reader_root
         bind_reader_root(Path(config['package'])/'b')
@@ -26,13 +26,16 @@ def check(cfg):
         import importlib
         manifest=json.loads((Path(config['package'])/'g/3.json').read_text())
         for name in manifest['modules']:
+            value['failed_module']=name
             importlib.import_module(name)
             value['modules']+=1
         for name,symbol in manifest['symbols']:
+            value['failed_module']=name
             module=__import__(name,fromlist=[symbol])
             getattr(module,symbol)
-        value['passed']=True
+        value.update(passed=True,failed_module=None)
     except BaseException as error:
+        if value['failed_module'] is None:value['failed_module']=getattr(error,'name',None)
         exception(receipt.with_name('26.json'),error)
         raise
     finally:
@@ -49,8 +52,16 @@ def worker(cfg):
     # Match the production operator: same prefix, interpreter, flags, relative
     # entry/config names, cache root, environment constructor and working dir.
     argv=[*config['prefix'],config['python'],'-B','-I','5.py','30.json']
-    checked_run(argv,env=environment(config,os.environ.get('CUDA_VISIBLE_DEVICES',''),0),
-                cwd=root,stdout=sys.stdout,stderr=sys.stderr,check=True)
+    receipt=Path(config['output'])/'metadata/25.json'
+    status=dict(worker_returncode=None,worker_signal=None)
+    try:
+        result=checked_run(argv,env=environment(config,os.environ.get('CUDA_VISIBLE_DEVICES',''),0),
+                           cwd=root,stdout=sys.stdout,stderr=sys.stderr,check=False)
+        status.update(worker_returncode=result.returncode,worker_signal=-result.returncode if result.returncode<0 else None)
+        if result.returncode:raise subprocess.CalledProcessError(result.returncode,argv)
+    finally:
+        value=json.loads(receipt.read_text()) if receipt.exists() else {}
+        value.update(status);write(receipt,value)
 
 
 def launch(root,cfg,inputs,J,pre_bytes,stage_seconds):
@@ -60,7 +71,8 @@ def launch(root,cfg,inputs,J,pre_bytes,stage_seconds):
     metadata=physical/'metadata';metadata.mkdir(parents=True,exist_ok=True)
     receipt=metadata/'25.json'
     value=dict(passed=False,bulk_bytes=0,pre_bulk_bytes=pre_bytes,
-               stage_seconds=stage_seconds,plan=cfg['plan_sha256'],job=os.environ['SLURM_JOB_ID'])
+               stage_seconds=stage_seconds,plan=cfg['plan_sha256'],job=os.environ['SLURM_JOB_ID'],
+               child_returncode=None,child_signal=None,worker_returncode=None,worker_signal=None,failed_module=None)
     write(receipt,value)
     started=time.monotonic();accepted=False
     try:
@@ -74,8 +86,10 @@ def launch(root,cfg,inputs,J,pre_bytes,stage_seconds):
         env={k:v for k,v in env.items() if 'sam' not in k.lower()}
         env.update(OMP_NUM_THREADS='16',MKL_NUM_THREADS='16',OPENBLAS_NUM_THREADS='16')
         with capture(metadata/'27.json') as log:
-            checked_run(J.namespace(root)+[inputs['python'],'-B','-I',str(dispatch/'5.py'),str(dispatch/'4.json')],
-                        env=env,stdout=log,stderr=subprocess.STDOUT,check=True)
+            child=checked_run(J.namespace(root)+[inputs['python'],'-B','-I',str(dispatch/'5.py'),str(dispatch/'4.json')],
+                        env=env,stdout=log,stderr=subprocess.STDOUT,check=False)
+            value.update(child_returncode=child.returncode,child_signal=-child.returncode if child.returncode<0 else None)
+            if child.returncode:raise subprocess.CalledProcessError(child.returncode,child.args)
         result=json.loads(receipt.read_text())
         if not result.get('passed') or result.get('bulk_bytes')!=0 or result.get('plan')!=cfg['plan_sha256']:
             raise ValueError('E84')
@@ -92,7 +106,11 @@ def launch(root,cfg,inputs,J,pre_bytes,stage_seconds):
     finally:
         if receipt.exists():
             saved=json.loads(receipt.read_text())
+            # The worker writes the initial receipt before the launch exits.
+            saved.pop('child_returncode',None);saved.pop('child_signal',None)
             value.update(saved)
+        tail=metadata/'27.json'
+        value['child_output']=json.loads(tail.read_text()) if tail.exists() else dict(lines=[],limit=200,width=2048)
         value.update(passed=accepted,pre_bulk_bytes=pre_bytes,stage_seconds=stage_seconds,
                      launch_seconds=time.monotonic()-started)
         value['pre_bulk_seconds']=value['stage_seconds']+value['launch_seconds']

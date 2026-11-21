@@ -141,6 +141,60 @@ class FailureTests(unittest.TestCase):
             self.assertEqual(tf.extractfile('metadata/8.json').read(),(out/'metadata/8.json').read_bytes())
         self.evidence['diagnostics']=dict(passed=True,max_lines=200,max_line_chars=2048,authenticated_members=2)
 
+    def test_capture_descendant_holds_pipe(self):
+        from orchard_h10 import e
+        import j
+        path=temp()/'27.json'
+        # The direct child exits while its descendant retains both write ends.
+        code="import subprocess,sys; subprocess.Popen([sys.executable,'-c','import time; time.sleep(3)']); print('child completed',flush=True)"
+        start=time.monotonic()
+        with e.capture(path) as stream:
+            result=subprocess.run([sys.executable,'-I','-B','-c',code],stdout=stream,stderr=subprocess.STDOUT)
+        self.assertEqual(result.returncode,0)
+        self.assertLess(time.monotonic()-start,2)
+        self.assertIn('child completed',j.loads(path.read_bytes())['lines'])
+        self.evidence['descendant_capture']=dict(passed=True,seconds=time.monotonic()-start,descendant_holds_pipe_seconds=3)
+
+    def test_capture_drains_bounded_tail(self):
+        from orchard_h10 import e
+        import j
+        path=temp()/'27.json'
+        code="import sys; sys.stdout.write(('x'*3000+'\\n')*500); print('last output',flush=True)"
+        with e.capture(path) as stream:
+            result=subprocess.run([sys.executable,'-I','-B','-c',code],stdout=stream,stderr=subprocess.STDOUT)
+        self.assertEqual(result.returncode,0)
+        tail=j.loads(path.read_bytes())
+        self.assertEqual(tail['lines'][-1],'last output')
+        self.assertLessEqual(len(tail['lines']),200)
+        self.assertTrue(all(len(line)<=2048 for line in tail['lines']))
+        self.assertLessEqual(path.stat().st_size,262144)
+
+    def test_boot_signal_receipt(self):
+        from orchard_h10 import boot,common,runner
+        import j
+        root=temp();(root/'a').mkdir();(root/'r/metadata').mkdir(parents=True)
+        config=dict(output=str(root/'r'),python=sys.executable,prefix=[])
+        common.write(root/'r/metadata/25.json',dict(passed=False,failed_module=None,bulk_bytes=0))
+        with patch.object(runner,'control',return_value=root/'a'),patch.object(runner,'environment',return_value={}),patch.object(common,'checked_run',return_value=subprocess.CompletedProcess([], -15)):
+            with self.assertRaises(subprocess.CalledProcessError):boot.worker(dict(config=config))
+        worker=j.loads((root/'r/metadata/25.json').read_bytes())
+        self.assertEqual(worker['worker_returncode'],-15);self.assertEqual(worker['worker_signal'],15)
+        original_path=boot.Path
+        def path(value):return root/'shared' if str(value)=='/project/community/jjyeung' else original_path(value)
+        def exited(argv,**kwargs):
+            common.write(root/'r/metadata/25.json',worker)
+            kwargs['stdout'].write(b'output before signal\n')
+            return subprocess.CompletedProcess(argv,-9)
+        namespace=types.SimpleNamespace(physical=lambda r,p:root/'r',namespace=lambda r:[],environment=lambda r:{})
+        cfg=dict(logical='/scratch/a0',token=self.info['token'],plan_sha256=self.info['plan_sha256'])
+        with patch.object(boot,'Path',side_effect=path),patch.object(common,'checked_run',side_effect=exited),patch.dict(os.environ,SLURM_JOB_ID='123456'):
+            with self.assertRaises(subprocess.CalledProcessError):boot.launch(root,cfg,dict(python=sys.executable,policy=dict(vnice='/tmp/0')),namespace,0,0)
+        receipt=j.loads((root/'shared'/cfg['token']/'a/25.json').read_bytes())
+        self.assertEqual(receipt['child_returncode'],-9);self.assertEqual(receipt['child_signal'],9)
+        self.assertEqual(receipt['worker_signal'],15);self.assertFalse(receipt['passed'])
+        self.assertIn('output before signal',receipt['child_output']['lines'])
+        self.evidence['signal_status']=dict(passed=True,simulated=True,child_signal=9,worker_signal=15)
+
     def test_worker_exception_receipt(self):
         from g import w
         from student_pilot.tower_errors import TowerError
@@ -202,7 +256,7 @@ class FailureTests(unittest.TestCase):
         with self.assertRaises(ValueError):auth['validate_receipt'](dict(got,returned=False),ex,dest/'EXIT.json',fetched,plan,token)
         self.evidence['production_fetch']=dict(passed=True,delivery_sha256=self.info['delivery_sha256'],
             source_archive_sha256=receipt['archive_sha256'],fetched_sha256=BD.B.sha(fetched.read_bytes()),
-            fetched=str(fetched.relative_to(HERE)),traceback=trace,failed_status_accepted=True,
+            fetched=os.path.relpath(fetched,HERE),traceback=trace,failed_status_accepted=True,
             production_script_sha256=BD.B.sha((HERE/'orchard/o_fetch.sh').read_bytes()),
             package_pins_checked=True,plan_pin_checked=True,pool_receipt_checked=True,
             fetched_receipt_checked=True,inner_identity_checked=True,negative_checks=4,

@@ -1,0 +1,76 @@
+{
+  "status": "PASS",
+  "assertions": [
+    "shell syntax and helper AST parse",
+    "stand-in legacy processor PASS",
+    "negative differs only in min_pixels",
+    "negative processor refusal matches exact native name",
+    "stand-in has exactly five preparation/review failures",
+    "negative adds exactly one processor failure",
+    "both exit codes are one",
+    "config bytes unchanged",
+    "945-file tree still sealed",
+    "all inspected kit caller/config/seal bytes unchanged"
+  ],
+  "tree_sha256": "9d2bbb8ad209d91e21e56121785f62b0dddf3c8d9f14db8d23daf6dcd1d3591b",
+  "tree_files": 945,
+  "real_173964_test": "NOT_RUN: real v.json not supplied",
+  "runs": {
+    "standin_verified": {
+      "status": "FAIL",
+      "exit_code": 1,
+      "identity": "4794b27f483798d3a33e8004c98cd5f9972b95d2abf7525d9951cdf6ef2c5e43",
+      "config_sha256": "6d6fda1bedcb6ea2e9961b887d18f472a428975039ac962585d5b0b0365fbf90",
+      "branch_taken": "legacy_C_prime",
+      "elapsed_seconds": 1.288,
+      "max_rss_bytes": 237010944,
+      "runtime": {
+        "cuda_visible_devices": "",
+        "nice": 19,
+        "torch_interop_threads": 1,
+        "torch_threads": 1,
+        "virtual_memory_limit": 15032385536
+      },
+      "full_admit_pass": false,
+      "processor_execution": {
+        "mode": "exact AST node extracted from sealed admit, with native imports and layout",
+        "reached_by_full_native_call": false,
+        "source": "launch_r1/entry.py:78-86",
+        "status": "PASS"
+      },
+      "counts": {
+        "PASS": 16,
+        "NOT_RUN": 13,
+        "FAIL": 5
+      }
+    },
+    "negative_verified": {
+      "status": "FAIL",
+      "exit_code": 1,
+      "identity": "562bd1580a3c687b3469c6d8b2ac96ba692725129fbd10783fa61b5c4d1d94c6",
+      "config_sha256": "032c49b225e54fedef9b5d05b73be5ac75c0d6f2e35b493890d276594fa2aa9c",
+      "branch_taken": "legacy_C_prime",
+      "elapsed_seconds": 1.213,
+      "max_rss_bytes": 237686784,
+      "runtime": {
+        "cuda_visible_devices": "",
+        "nice": 19,
+        "torch_interop_threads": 1,
+        "torch_threads": 1,
+        "virtual_memory_limit": 15032385536
+      },
+      "full_admit_pass": false,
+      "processor_execution": {
+        "mode": "exact AST node extracted from sealed admit, with native imports and layout",
+        "reached_by_full_native_call": false,
+        "source": "launch_r1/entry.py:78-86",
+        "status": "FAIL"
+      },
+      "counts": {
+        "PASS": 15,
+        "NOT_RUN": 13,
+        "FAIL": 6
+      }
+    }
+  }
+}

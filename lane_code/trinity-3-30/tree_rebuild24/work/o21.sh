@@ -1,0 +1,1 @@
+export TZ=UTC; X=/project/community/jjyeung/okh7/x_22c714e1; J=173991; sacct -j $J -X -n -o State,Start,End,ExitCode,NodeList; ls -la $X/o/$J; for f in $X/o/$J/j2.log $X/o/$J/j2.err; do echo "== $f"; tail -8 $f | cut -c1-250; done

@@ -36,7 +36,7 @@ class BootstrapTests(unittest.TestCase):
         (HERE/'out/BOOTSTRAP_CHECKS.json').write_text(json.dumps(cls.evidence,indent=2)+'\n')
 
     def setup_case(self,case):
-        root=HERE/'tests'/('boot_'+uuid.uuid4().hex);root.mkdir();p=root/'package'
+        root=HERE.parent/'r1_fixtures_old'/('boot_'+uuid.uuid4().hex);root.mkdir();p=root/'package'
         unpack(HERE/'out/delivery.tgz',p)
         import ast,io
         line=next(l for l in (p/'BATCH.sh').read_text().splitlines() if l.startswith('b=bytes.fromhex('))

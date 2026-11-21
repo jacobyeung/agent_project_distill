@@ -1,0 +1,830 @@
+out/kit_qdp/b/a.py sha256 8c7ed59211b1c3c9fb03145e1d5959f910a961f204549b75d3248d4d04a9d13c
+13: if root==Path('/tmp') or not root.is_relative_to(Path('/tmp')):raise ValueError('E06')
+14: if root.exists() and any(root.iterdir()):raise ValueError('E04')
+15: root.mkdir(parents=True,mode=0o700,exist_ok=True)
+16: if sys.argv[1] in ('q','r'):
+17:  import os
+18:  sys.path.insert(0,str(kit/'b'))
+19:  from z import screen,write,load
+20:  def refused(kind,value,traceback):
+21:   text=screen(kind.__name__+':'+str(value),read(kit/'k/g.json'),load(kit/'b/wh.json'))
+22:   write(root/'r0.json',dict(status='REFUSE',refusal=text[:100000]))
+23:   sys.__excepthook__(kind,value,traceback)
+24:  sys.excepthook=refused
+25:  job=os.environ.get('SLURM_JOB_ID','')
+26:  if not job.isascii() or not job.isdigit():raise ValueError('R1_ROUTING_JOB_ID_REQUIRED')
+27: src=control['source'];p=kit/src['path']
+28: if hashlib.sha256(p.read_bytes()).hexdigest()!=src['sha256']:raise ValueError('E05')
+29: with tarfile.open(p) as t:t.extractall(root/'s',filter='data')
+30: sys.path.insert(0,str(root/'s'))
+31: from launch_r1.build import verify
+48:  from student_pilot.p3_provenance import load
+49:  from student_pilot.r1_persisted import scope
+50:  sys.path.insert(0,str(kit/'b'))
+51:  from pl import plan_payload
+52:  from z import write
+53:  mode=sys.argv[1];incoming=load(sys.argv[3])
+54:  if '_resolved' not in incoming:raise ValueError('R1_STAGING_PLAN_REQUIRED')
+55:  request,paths,stage=plan_payload(kit,incoming['_resolved'],root,regeneration=mode=='r')
+56:  with scope(paths):
+57:   try:
+58:    if mode=='q':
+59:     from launch_r1.production_proof import run
+60:     from f0 import recording
+61:     with recording(kit,root.parent,os.environ['SLURM_JOB_ID']):
+62:      r=run(request,root/'q',stage=stage)
+63:     if r['status']=='ADMIT':
+64:      from cs import publish
+65:      from student_pilot.p3_provenance import pinned
+66:      publish(kit,root.parent,load(pinned(r['config'])),os.environ['SLURM_JOB_ID'])
+67:    else:
+68:     import os,shutil
+69:     from launch_r1.entry import begin_host,host_environment,check_host_runtime,stage_host,check_host_scene
+70:     from student_pilot.p3_provenance import pinned
+71:     cfg=load(pinned(request['config']))
+72:     directory,job_tmp,host=begin_host(cfg,root/'q',request)
+73:     with host_environment(job_tmp):
+74:      check_host_runtime(cfg,request,host)
+75:      cfg=stage_host(cfg,directory,request,job_tmp,stage=stage)
+76:      check_host_scene(cfg,host)
+77:      from rg import regenerate
+78:      regenerate(cfg,directory)
+79:     r={'status':'ADMIT'}
+80:   finally:stage.close()
+81:  # d.py reads only the fully planned, authenticated configuration.
+82:  request['_paths']=paths
+83:  write(root.parent/'r.json',request)
+84:  write(root.parent/'n.json',load(root/'plan.json')['config'])
+85:  print(json.dumps({'ok':r['status']=='ADMIT'}))
+86:  sys.exit(0 if r['status']=='ADMIT' else 1)
+87: from launch_r1.entry import frame_host,admit,create_job_tmp
+
+out/kit_qdp/b/pl.py sha256 49ce4fcd5ca6b80b1ddd1bf04c787d665a3a3fba1b1163e9ccc10c93da4bdfa8
+32: def plan_payload(kit, resolved, root, *, regeneration=False):
+33:     from student_pilot.r1_persisted import scope
+34:     from student_pilot.p3_provenance import pinned
+35:     from i import refresh
+36:     kit, root = Path(kit), Path(root)
+37:     q = root/'q'
+38:     if q.exists():
+39:         raise ValueError('R1_HOST_JOB_TMP_NOT_FRESH')
+40:     spec = load(kit/'k/p.json')
+41:     if resolved['kit_sha256'] != seal(kit):
+42:         raise ValueError('E32')
+43:     selected = None if regeneration else selection_pin(kit)
+44:     scratch = root/'i'; scratch.mkdir(mode=0o700)
+45:     metadata = scratch/'m'; metadata.mkdir(mode=0o700)
+46:     sources = {}
+47:     def remember(path, h=None, size=None):
+48:         p = Path(path); h = h or sha(p)
+49:         checked(p, h, size)
+50:         sources[h] = str(p)
+51:         return h
+52:     record = resolved['archive']
+53:     archive = tarfile.open(checked(record['path'], record['sha256'], record['bytes'])) if record else None
+54:     try:
+55:         for h, item in resolved['small_files'].items():
+56:             if spec.get('step',400)==400:
+57:                 selected400(item.get('original',item.get('member','')))
+58:                 selected400(item.get('member',''))
+59:             if archive:
+60:                 raw = archive.extractfile(item['member']).read()
+61:                 if len(raw)!=item['bytes'] or hashlib.sha256(raw).hexdigest()!=h:
+62:                     raise ValueError('E33')
+63:                 p=metadata/h; p.write_bytes(raw); remember(p,h)
+64:             else:
+65:                 remember(item['path'],h,item['bytes'])
+186:     request=deepcopy(resolved['request'])
+187:     scene_pool_inputs=None
+188:     if cfg.get('r2_all_stream_exclusions'):
+189:         with scope(sources):
+190:             pool_before=load(pinned(cfg['s1_routing']['selection']))
+191:             scene_pool_inputs={key:pool_before.get(key) for key in ('manifest','tokenizer')}
+192:     cfgpin=write(scratch/'pre.json',cfg)
+193:     refresh_request=dict(request,config=cfgpin,staged_pins=[cfgpin])
+194:     with scope(sources):
+195:         refreshed=refresh(refresh_request,scratch/'pool')
+196:         cfg=load(pinned(refreshed['config']))
+197:     for p in (scratch/'pool').rglob('*'):
+198:         if p.is_file():remember(p)
+199:     extras={}
+268:     entries={}
+269:     copies={}
+270:     def copy_entry(name,p,h=None):
+271:         p=Path(p);h=h or sha(p)
+272:         entries[name]=dict(sha256=h,parts=[str(q/name)],bytes=p.stat().st_size)
+273:         copies[name]=str(p)
+274:     for h,p in sources.items():copy_entry('u/'+h,p,h)
+275:     if early_base is not None:
+276:         for name in ('base','base_tree','base_input.json','base_mounts.json','base_imports.json'):
+277:             p=scratch/name
+278:             if p.is_dir():
+279:                 for f in p.rglob('*'):
+280:                     if f.is_file():copy_entry(name+'/'+str(f.relative_to(p)),f)
+281:             elif p.is_file():copy_entry(name,p)
+282:     copy_entry('source_code.json',codepath,spec['code_sha256']);copy_entry('n.json',cfgpath,cfgh)
+283:     if scene is not None:
+284:         for p in scene.rglob('*'):
+285:             if p.is_file():copy_entry('sc/'+str(p.relative_to(scene)),p)
+286:     if source_record is not None:
+287:         source_path=scratch/'ss.json';write(source_path,source_record)
+288:         copy_entry('ss.json',source_path)
+289:     entries['e']=dict(archive=dict(sha256=resolved['tar_sha256'],bytes=resolved['tar_bytes'],
+290:         parts=[dict(sha256=p['sha256'],bytes=p['bytes']) for p in resolved['parts']]),
+291:         inventory={label:pin['sha256'] for label,pin in handover['pins'].items()})
+292:     # Payload members stay in their authenticated archive until the staging hook.
+293:     for dest,p in extras.items():
+294:         if p.is_dir():
+295:             for f in sorted(p.rglob('*')):
+296:                 if f.is_symlink():raise ValueError('R1_STAGING_SYMLINK')
+297:                 if f.is_file():copy_entry(dest+'/'+str(f.relative_to(p)),f)
+298:         elif p.is_file():copy_entry(dest,p)
+299:         else:raise ValueError('R1_STAGING_PATH_MISSING:'+str(p))
+300:     manifest_path=scratch/'staging.json';manifest_pin=write(manifest_path,dict(entries=entries))
+301:     request['staging']=dict(path=str(q/'u'/manifest_pin['sha256']),sha256=manifest_pin['sha256'])
+302:     sources[manifest_pin['sha256']]=str(manifest_path)
+303:     from launch_r1.entry import temporary_paths
+304:     temporary_paths(cfg,q);temporary_paths(request,q);temporary_paths(load(manifest_path),q)
+305:     final=deepcopy(resolved);final['config']=cfg;final['paths']=paths
+306:     final['_namespace']=str(q)
+307:     def stage(received,directory):
+308:         from z import copy_resolved_payload
+309:         if Path(directory)!=q or received!=entries:raise ValueError('R1_STAGING_PLAN_DIFFERS')
+310:         copy_resolved_payload(kit,final,q)
+311:         for name,p in copies.items():
+312:             target=q/name;target.parent.mkdir(parents=True,exist_ok=True,mode=0o700)
+313:             checked(p,entries[name]['sha256'],entries[name]['bytes'])
+314:             if target.exists():checked(target,entries[name]['sha256'],entries[name]['bytes'])
+315:             else:
+316:                 with Path(p).open('rb') as a,target.open('xb') as b:shutil.copyfileobj(a,b,8<<20)
+317:         shutil.copyfile(manifest_path,q/'u'/manifest_pin['sha256'])
+318:         for p in [q,*[p for p in q.rglob('*') if p.is_dir()]]:p.chmod(0o700)
+319:         if (q/'n.json').read_bytes()!=cfgraw:raise ValueError('R1_STAGING_CONFIG_DIFFERS')
+320:         final_paths={h:str(q/'u'/h) for h in sources}
+321:         final_paths.update(paths)
+322:         final_paths[cfgh]=str(q/'n.json')
+323:         final_paths[spec['code_sha256']]=str(q/'source_code.json')
+324:         # Keep native reads on the authenticated staged bytes after preflight.
+325:         if output:final_paths[output]=str(q/'base/rows.sqlite')
+326:         stage.context=scope(final_paths)
+327:         stage.context.__enter__()
+328:         if output and early_base is None:
+329:             from rb import reconstruct
+330:             generated=reconstruct(cfg,q)
+331:             if str(generated)!=final_paths[output]:raise ValueError('R1_ROUTING_OUTPUT_PATH_DIFFERS')
+332:     def close():
+333:         if stage.context is not None:
+334:             stage.context.__exit__(None,None,None)
+335:             stage.context=None
+336:     stage.context=None
+337:     stage.close=close
+338:     # The map only resolves authenticated bootstrap metadata before q exists.
+339:     sources[cfgh]=str(cfgpath)
+340:     write(root/'plan.json',dict(request=request,config=cfg,entries=entries,generated={output:str(q/'base/rows.sqlite')} if output else {}))
+341:     return request,sources,stage
+
+out/kit_qdp/b/z.py sha256 dedfca5fe699140d56b2a577b6987c3749b8d77533e8f2ea1426094824fb4851
+237:     uploads=spec['uploads'];expected_paths={x['sha256']:ns+'/u/'+x['sha256'] for x in uploads}
+238:     if spec['pin_paths']!=expected_paths:raise ValueError('E49')
+239:     paths.update(spec['pin_paths'])
+240:     paths.update(spec.get('host_paths',{}))
+241:     request=load(kit/'k/r.json')
+242:     if cfg.get('r1_training',{}).get('routing_slices')=='deferred_first_boundary':
+243:         request['routing_base']=cfg['streams']['routing']
+244:     request.update(config=None,staged_pins=[dict(path=v,sha256=h) for h,v in paths.items()],
+245:         room_audit=dict(path=paths[spec['room_sha256']],sha256=spec['room_sha256']),
+246:         frame_roots=spec['frame_roots'],milestone=400,device='cuda:0',memory_gib=180)
+247:     result=dict(schema='q20-resolved-v1',kit_sha256=seal(kit),request=request,config=cfg,paths=paths,
+248:         archive=dict(path=str(milestone/'s.tar'),sha256=sha(milestone/'s.tar'),bytes=(milestone/'s.tar').stat().st_size),
+249:         receipt=dict(path=str(milestone/'e.json'),sha256=sha(milestone/'e.json'),bytes=(milestone/'e.json').stat().st_size),
+250:         small_files=values,parts=verified,tar_sha256=combined.hexdigest(),tar_bytes=total,
+251:         model_manifest=preparation['model'],
+449: def copy_resolved_payload(kit,resolved,root):
+450:     kit=Path(kit);root=Path(root);spec=load(kit/'k/p.json')
+451:     if resolved['kit_sha256']!=seal(kit):raise ValueError('E32')
+452:     if spec.get('step',400)==400:
+453:         for item in resolved['small_files'].values():
+454:             selected400(item.get('original',item.get('member','')))
+455:             selected400(item.get('member',''))
+456:         for pin in load(resolved['receipt']['path'])['pins'].values():selected400(pin['path'])
+457:     safe=name_guard(kit)
+458:     root.mkdir(parents=True,exist_ok=True);u=root/'u';u.mkdir(exist_ok=True)
+459:     record=resolved['archive']
+460:     if record:
+461:         path=checked(record['path'],record['sha256'],record['bytes'])
+462:         with tarfile.open(path) as t:
+463:             for h,item in resolved['small_files'].items():
+464:                 raw=t.extractfile(item['member']).read()
+465:                 if len(raw)!=item['bytes'] or hashlib.sha256(raw).hexdigest()!=h:raise ValueError('E33')
+466:                 (u/h).write_bytes(raw)
+467:     else:
+468:         for h,item in resolved['small_files'].items():
+469:             source=checked(exact_path(item['path']),h,item['bytes'])
+470:             (u/h).write_bytes(source.read_bytes())
+471:     receipt=resolved['receipt'];(root/'e.json').write_bytes(checked(receipt['path'],receipt['sha256'],receipt['bytes']).read_bytes())
+472:     for entry in spec['uploads']:
+473:         source=Path(spec['n_root'])/'u'/entry['sha256']
+474:         checked(source,entry['sha256'],entry['bytes'])
+475:         with source.open('rb') as a,(u/entry['sha256']).open('wb') as b:shutil.copyfileobj(a,b,8<<20)
+476:     for entry in resolved.get('external_metadata',[]):
+477:         source=checked(entry['path'],entry['sha256'],entry['bytes'])
+478:         with source.open('rb') as a,(u/entry['sha256']).open('wb') as b:shutil.copyfileobj(a,b,8<<20)
+479:     source=load(kit/'k/a.json')['source'];shutil.copyfile(kit/source['path'],root/'t.tar')
+480:     (root/'source_code.json').write_bytes(base64.b64decode(load_raw(kit/'k/c0.json')['payload']))
+481:     if sha(root/'source_code.json')!=spec['code_sha256']:raise ValueError('E34')
+482:     for part in resolved['parts']:checked(part['path'],part['sha256'],part['bytes'])
+483:     stream=Joined(resolved['parts']);export=root/'e';export.mkdir(exist_ok=True)
+484:     with tarfile.open(fileobj=stream,mode='r|*') as t:
+485:         for member in t:
+486:             if not member.isfile() or member.issym() or member.islnk():
+487:                 if member.isdir():continue
+488:                 raise ValueError('E35')
+489:             if spec.get('step',400)==400:selected400(member.name)
+490:             safe(member.name)
+491:             path=inside(export,member.name);path.parent.mkdir(parents=True,exist_ok=True)
+492:             with t.extractfile(member) as a,path.open('wb') as b:shutil.copyfileobj(a,b,8<<20)
+493:     while stream.read(8<<20):pass
+494:     if stream.n!=resolved['tar_bytes'] or stream.digest.hexdigest()!=resolved['tar_sha256']:raise ValueError('E36')
+495:     byhash={sha(p):p for p in export.rglob('*') if p.is_file()}
+496:     receipt=load(root/'e.json')
+497:     for label,pin in receipt['pins'].items():
+498:         h=pin['sha256']
+499:         if label.startswith('checkpoint/') and not label.startswith('checkpoint/rng'):continue
+500:         if h not in resolved['small_files']:
+501:             if h not in byhash:raise ValueError('E37:'+label)
+502:             os.link(byhash[h],u/h) if not (u/h).exists() else checked(u/h,h)
+503:     ns=resolved['_namespace']
+504:     # The native reader opens the manifest and its siblings by their export names.
+505:     mp=receipt['pins']['full_weights'];manifest=load(checked(u/mp['sha256'],mp['sha256']))
+506:     native=root/'w';native.mkdir(exist_ok=True)
+507:     names={'full_weights.json':mp['sha256'],manifest['index']['name']:manifest['index']['sha256']}
+508:     names.update({item['name']:item['sha256'] for item in manifest['files']})
+509:     for name,h in names.items():
+510:         safe(name)
+511:         if PurePosixPath(name).name!=name or name in ('.','..'):raise ValueError('E43')
+512:         source=checked(u/h,h);target=inside(native,name)
+513:         if target.exists():checked(target,h)
+514:         else:os.link(source,target)
+515:     return None
+
+work/build24m4z15/j.sh sha256 547d875cd080451930b9bf1ea26987838ae35b5b255756382159e5b3896fe32f
+12: export TMPDIR="$Q_ROOT/tmp" XDG_CACHE_HOME="$Q_ROOT/cache"
+13: export HF_HOME="$Q_ROOT/cache/hf" TORCH_HOME="$Q_ROOT/cache/torch" TRITON_CACHE_DIR="$Q_ROOT/cache/triton"
+14: export CUDA_CACHE_PATH="$Q_ROOT/cache/cu" MPLCONFIGDIR="$Q_ROOT/cache/plot"
+15: mkdir -p "$TMPDIR" "$XDG_CACHE_HOME"
+16: cd "$Q_ROOT"
+17: export PATH=/usr/local/bin:/usr/bin:/bin
+18: AS=/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung
+19: AL=/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung
+20: K=8865619b
+21: X=$AS/ap/$K
+22: R=/project/community/jjyeung/okh7/l_94a76bda
+23: HX="${TK_KIT_HOME:?}"
+24: IN=$R/in
+25: REV=c202236235762e1c871ad0ccb60c8ee5ba337b9a
+26: P=/project/community/jjyeung/c7d31ddd
+27: RR=runs/aws128p_20261025
+28: EPOCHS=/home/jjyeung/6d00e578
+29: S="$Q_ROOT/s"
+30: U=$S/aws/u
+31: HM=$HX
+32: NX="$Q_ROOT/x"
+33: NR="$Q_ROOT/rp"
+34: CUR=$HX/k/0.json
+35: COMMIT=$(/usr/bin/python3 -B -I -c 'import json, sys; print(json.load(open(sys.argv[1]))["commit"])' "$CUR")
+36: tk_step() {
+187:     local key="$1" file sha manifest manifest_sha stamp dest="$S/c7d31ddd/data2root" store parts got
+188:     tk_has "$key" || return 0
+189:     read -r file sha < <(tk_current "$key")
+190:     read -r manifest manifest_sha < <(tk_current "${key}_manifest")
+191:     manifest=$(hp "$manifest")
+192:     sha_is "$manifest" "$manifest_sha"
+193:     if /usr/bin/python3 -B -I -c 'import json,sys; p=json.load(open(sys.argv[1])).get("staged_inputs", {}); sys.exit(0 if sys.argv[2] in p.get("covered_bundles", []) else 1)' "$CUR" "$key"; then
+194:         store=$(/usr/bin/python3 -B -I -c 'import json,sys; print(json.load(open(sys.argv[1]))["stores"].get(sys.argv[2], ""))' "$CUR" "$key")
+195:         /usr/bin/python3 -B -I "$HX/b/f2.py" "$manifest" "$dest" "$manifest_sha" "$store"
+196:         tk_step "frames $key verified through pinned shards"
+197:         return 0
+198:     fi
+199:     stamp="$S/.stamp/$key.$sha.$manifest_sha"
+200:     mkdir -p "$dest"
+201:     if [[ ! -f "$stamp" ]]; then
+202:         parts=$(/usr/bin/python3 -B -I -c 'import json,sys; d=json.load(open(sys.argv[1])); print(" ".join(d.get("bundle_parts", {}).get(sys.argv[2], d.get("f3_parts") if sys.argv[2] == "f3" else [])))' "$CUR" "$key")
+203:         [[ -n "$parts" ]] || parts=$(hp "$file")
+204:         : > "$S/.$key.sha"
+205:         cat $parts | tee >(sha256sum | cut -d' ' -f1 > "$S/.$key.sha.part" && mv "$S/.$key.sha.part" "$S/.$key.sha") \
+206:             | tar --extract --directory="$dest" --skip-old-files --no-same-owner --no-same-permissions
+207:         for _ in $(seq 300); do [[ -s "$S/.$key.sha" ]] && break; sleep 1; done
+208:         got=$(cat "$S/.$key.sha")
+209:         [[ "$got" == "$sha" ]] || { tk_step "frame tar $key sha differs: $got"; return 3; }
+210:         store=$(/usr/bin/python3 -B -I -c 'import json,sys; print(json.load(open(sys.argv[1]))["stores"].get(sys.argv[2], ""))' "$CUR" "$key")
+211:         /usr/bin/python3 -B -I "$HX/b/f2.py" "$manifest" "$dest" "$manifest_sha" $store
+212:         touch "$stamp"
+213:     fi
+214:     tk_step "frames $key verified: ${manifest_sha:0:12}"
+215: }
+264: tk_stage() {
+265:     local mode="$1"
+266:     mkdir -p /tmp/jjyeung && chmod 700 /tmp/jjyeung
+267:     mkdir -p "$S" "$TK_JOBDIR"
+268:     tk_nx
+269:     exec 8>"$S/../stage.lock"
+270:     flock 8
+271:     tk_step "stage $mode on $(hostname): /tmp free $(df -Pk /tmp | awk 'NR==2 {print int($4 / 1048576)}') GiB; mem $(free -g | awk 'NR==2 {print $2}') GiB"
+272:     mkdir -p "$S/c7d31ddd/$RR" "$S/epochs" "$S/c7d31ddd/anyhost" "$S/c7d31ddd/coord" "$S/c7d31ddd/stop" "$S/c7d31ddd/data2root"
+273:     tk_kitx venv "$S/c7d31ddd/venvs"
+274:     tk_venv_shebangs
+275:     tk_kitx closure "$S/c7d31ddd/$CLOSURE_DIR"
+276:     local sa_stamp
+277:     sa_stamp="$S/.stamp/sitealias.${CLOSURE_DIR##*/}.$(cat "$HX/b/sa/sitecustomize.py" "$HX/b/sa/prestage_hooks.py" | sha256sum | cut -c1-16)"
+278:     if [[ ! -f "$sa_stamp" ]]; then
+279:         [[ ! -d "$S/c7d31ddd/$CLOSURE_DIR/site_alias" ]] || mv "$S/c7d31ddd/$CLOSURE_DIR/site_alias" "$S/c7d31ddd/$CLOSURE_DIR/site_alias.closure.$(date +%s)"
+280:         mkdir -p "$S/c7d31ddd/$CLOSURE_DIR/site_alias"
+281:         cp "$HX/b/sa/prestage_hooks.py" "$HX/b/sa/sitecustomize.py" "$S/c7d31ddd/$CLOSURE_DIR/site_alias/"
+282:         touch "$sa_stamp"
+283:     fi
+284:     if [[ ! -d "$S/epochs/$COMMIT" ]]; then
+285:         tk_kitx trainer "$S/epochs/$COMMIT"
+286:         tk_readonly_files "$S/epochs/$COMMIT"
+287:     fi
+288:     if [[ "$mode" != preflight ]] && tk_has trainer_old; then
+289:         local old_commit
+290:         old_commit=$(/usr/bin/python3 -B -I -c 'import json, sys; print(json.load(open(sys.argv[1]))["trainer_old_commit"])' "$CUR")
+291:         if [[ ! -d "$S/epochs/$old_commit" ]]; then
+292:             tk_kitx trainer_old "$S/epochs/$old_commit"
+293:             tk_readonly_files "$S/epochs/$old_commit"
+294:         fi
+295:     fi
+296:     local rfile rsha
+297:     read -r rfile rsha < <(tk_current record)
+298:     cp "$(hp "$rfile")" "$S/c7d31ddd/anyhost/$rsha.json.part" && mv "$S/c7d31ddd/anyhost/$rsha.json.part" "$S/c7d31ddd/anyhost/$rsha.json"
+299:     sha_is "$S/c7d31ddd/anyhost/$rsha.json" "$rsha"
+300:     R1_RUNTIME_RECORD="$P/anyhost/$rsha.json"
+301:     if [[ "$mode" == preflight ]]; then
+302:         tk_stage_fla
+303:         if tk_has np; then tk_kitx np "$S/np226"; fi
+304:         mkdir -p "$U/ap/$K/u" "$NX/u" "$S/c7d31ddd/$RR/models"
+305:         flock -u 8
+306:         tk_step "stage preflight done"
+307:         return
+308:     fi
+309:     tk_stage_model
+310:     tk_kitx art "$S/c7d31ddd/art"
+311:     mkdir -p "$S/c7d31ddd/lb"
+312:     cp -f "$S/c7d31ddd/art/lb/51f013139e77.npz" "$S/c7d31ddd/lb/51f013139e77.npz"
+313:     mkdir -p "$S/c7d31ddd/$RR/frozen" "$S/c7d31ddd/$RR/prestage" "$S/c7d31ddd/$RR/incoming_r1" "$S/c7d31ddd/data2root/t6tk"
+314:     tk_stage_small
+315:     tk_stage_extra
+316:     tk_stage_tars
+317:     tk_stage_fla
+318:     if tk_has np; then tk_kitx np "$S/np226"; fi
+319:     local import_mode=metadata
+320:     if [[ "$mode" != reuse && -z "${TK_LIGHT:-}" ]]; then import_mode=full; fi
+321:     /usr/bin/python3 -B -I "$Q_KIT/b/s.py" "$Q_KIT" "$CUR" "$HX" "$S" "$import_mode"
+322:     if [[ "$mode" != reuse && -z "${TK_LIGHT:-}" ]]; then
+323:         local key
+324:         for key in f3 f4 f5 f6 f7 f8 f9 f10 f11 f12 f13 f14; do tk_stage_bundle "$key"; done
+325:         tk_stage_init
+326:     fi
+327:     mkdir -p "$U/ap/$K"
+328:     mkdir -p "$U/ap/$K/u" "$NX/u"
+329:     flock -u 8
+330:     tk_step "stage $mode done"
+333: tk_bwrap() {
+334:     local bw sha
+335:     read -r bw sha < <(tk_current bwrap)
+336:     [[ -x "$bw" ]] && sha_is "$bw" "$sha"
+337:     BW=("$bw")
+338:     local entry
+339:     for entry in /* /.[!.]* /..?*; do
+340:         case "$entry" in /home|/dev|/proc) continue ;; esac
+341:         [[ -e "$entry" || -L "$entry" ]] || continue
+342:         if [[ -L "$entry" ]]; then BW+=(--symlink "$(readlink "$entry")" "$entry"); else BW+=(--ro-bind "$entry" "$entry"); fi
+343:     done
+344:     BW+=(--tmpfs /tmp --bind "$Q_ROOT" "$Q_ROOT" --dev-bind /dev /dev --proc /proc
+345:         --tmpfs /home --dir /home/jjyeung
+346:         --ro-bind "$U" "$AS"
+347:         --ro-bind "$U" "$AL"
+348:         --bind "$NX" "$X"
+349:         --bind "$NR" "$X/runs"
+350:         --ro-bind "$U/ap/$K/u" "$X/u"
+351:         --ro-bind "$S/c7d31ddd/data2root" "$X/data2root"
+352:         --ro-bind "$S/c7d31ddd/$RR/models" "$X/models"
+353:         --ro-bind "$S/c7d31ddd" "$P"
+354:         --ro-bind "$S/epochs" "$EPOCHS"
+355:         --bind "$TK_JOBDIR" "$TK_JOBDIR"
+356:         --remount-ro /home
+357:         --unshare-user --uid "$(id -u)" --gid "$(id -g)")
+358: }
+359: 
+360: tk_env() {
+361:     export R1_OPAQUE_LOGS=1
+362:     export Q_E5=6d38613965 R1_MODEL_DIR=a32330d0
+363:     export R1_MOUNT="$X" R1_TRAINER="$EPOCHS/$COMMIT" TRAINER="$EPOCHS/$COMMIT" ANYHOST_JOBS="$P/$CLOSURE_DIR"
+364:     export R1_RUNTIME_RECORD ANYHOST_NEUTRAL_RUNTIME="$R1_RUNTIME_RECORD"
+365:     export PILOT_VENV="$P/venvs/rwtrain_torch211_cu129"
+366:     export PATH="$ANYHOST_JOBS/provenance_bin:$PILOT_VENV/bin:/usr/local/bin:/usr/bin:/bin"
+367:     export PYTHONDONTWRITEBYTECODE=1 PYTHONNOUSERSITE=1 PYTHONPATH="$ANYHOST_JOBS/site_alias"
+368:     export Q_E1=1 Q_E2=orchard A_SITE_PROFILE="$X/b/profile.json"
+369:     export Q_E3="$X/models"
+370:     export Q_E4="{\"/data2\": \"$X/data2root\"}"
+371:     export C1_INIT_LOCAL="$P/init"
+372:     export HF_HOME="$TK_JOBDIR/cache/hf" HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 HF_HUB_DISABLE_TELEMETRY=1
+373:     export OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 TOKENIZERS_PARALLELISM=false WANDB_DISABLED=true
+374:     export Q_E6=1
+375:     export TMPDIR="$TK_JOBDIR/tmp"
+376:     export XDG_CACHE_HOME="$TK_JOBDIR/cache" TORCH_HOME="$TK_JOBDIR/cache/torch" TRITON_CACHE_DIR="$TK_JOBDIR/cache/triton"
+377:     mkdir -p "$TMPDIR"
+378: }
+398: tk_env
+399: if [[ "${Q_MODE:-q}" == r ]]; then export OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8; fi
+400: tk_pythonpath c
+401: tk_bwrap
+402: export PATH="$(dirname "${BW[0]}"):$PATH"
+403: BW+=(--bind "$Q_ROOT" "$Q_NS")
+404: Q_LIVE=$(/usr/bin/python3 -B -I -s "$Q_KIT/b/rv.py" --live "$Q_ROOT" "${SLURM_JOB_ID:?}")
+405: BW+=(--bind "$Q_LIVE" "$Q_LIVE")
+406: if [[ "${Q_CAPTURE:-0}" == 1 ]]; then
+407:     /usr/bin/python3 -B "$Q_KIT/b/w.py" "$Q_ROOT/args.json" "${BW[@]}"
+408:     exit 0
+409: fi
+410: # Both invocations use the same logical namespace and separate physical roots.
+411: mkdir -p "$Q_ROOT/dr"
+412: cp "$Q_ROOT/r.json" "$Q_ROOT/dr/r.json"
+413: set +e
+414: "${BW[@]}" --bind "$Q_ROOT/dr" "$Q_NS" "$PILOT_VENV/bin/python" -B -s "$Q_KIT/b/a.py" r "$Q_NS/p" "$Q_NS/r.json" 2>&1 | /usr/bin/python3 -B "$Q_KIT/b/l.py" "$Q_KIT" > "$Q_ROOT/dr/q.log"
+415: rc=${PIPESTATUS[0]}
+416: if [[ "$rc" != 0 ]]; then exit "$rc"; fi
+417: cp "$Q_ROOT/dr/p/routing_selection.json" "$Q_ROOT/routing_selection.json"
+418: /usr/bin/python3 -B -I -s "$Q_KIT/b/ep.py" "$Q_KIT" "$Q_ROOT" "${SLURM_JOB_ID:?}" 0
+419: "${BW[@]}" "$PILOT_VENV/bin/python" -B -s "$Q_KIT/b/g.py"
+420: rc=$?
+421: if [[ "$rc" != 0 ]]; then exit "$rc"; fi
+422: "${BW[@]}" "$PILOT_VENV/bin/python" -B -s "$Q_KIT/b/a.py" q "$Q_NS/p" "$Q_NS/r.json" 2>&1 | /usr/bin/python3 -B "$Q_KIT/b/l.py" "$Q_KIT" > "$Q_ROOT/q.log"
+423: rc=${PIPESTATUS[0]}
+424: "${BW[@]}" "$PILOT_VENV/bin/python" -B -s "$Q_KIT/b/d.py" "$Q_NS/p/s" "$Q_NS/r.json" "$Q_NS/n.json" "$Q_NS/rooms.json" 2>&1 | /usr/bin/python3 -B "$Q_KIT/b/l.py" "$Q_KIT" > "$Q_ROOT/rooms.log"
+425: rr=${PIPESTATUS[0]}
+426: if [[ "$rc" == 0 && "$rr" == 0 ]]; then
+427: "${BW[@]}" "$PILOT_VENV/bin/python" -B -s "$Q_KIT/b/h.py" "$Q_NS/p" "$Q_NS/v.json" 2>&1 | /usr/bin/python3 -B "$Q_KIT/b/l.py" "$Q_KIT" > "$Q_ROOT/h.log"
+428: rc=${PIPESTATUS[0]}
+429: if [[ "$rc" == 0 ]]; then
+430: "${BW[@]}" nice -n 10 "$PILOT_VENV/bin/python" -B -s "$Q_KIT/b/rv.py" "$Q_NS" "$Q_NS/v.json" "${SLURM_JOB_ID:?}" 2>&1 | /usr/bin/python3 -B "$Q_KIT/b/l.py" "$Q_KIT" > "$Q_ROOT/rv.log"
+431: rc=${PIPESTATUS[0]}
+432: fi
+433: fi
+434: /usr/bin/python3 -B "$Q_KIT/b/o.py" "$Q_ROOT" "$rc" "$rr"
+435: exit "$rc"
+
+work/tree_r1c/launch_r1/entry.py sha256 74665f35d5152323ff85f1a9b81d2b66da08206a6076347c208f71885a009a59
+117: def begin_host(cfg, root, request, *, job_tmp_token=None):
+118:     """Establish freshness and confinement before staging any job inputs."""
+119:     from student_pilot.carrier_c1_run import identity
+120:     root = Path(root).resolve()
+121:     job_tmp = fresh_tmp(root, request, job_tmp_token)
+122:     if root.exists() and any(root.iterdir()):
+123:         raise ValueError('R1_HOST_ROOT_NOT_EMPTY')
+124:     temporary_paths(cfg, job_tmp)
+125:     temporary_paths(request, job_tmp)
+126:     if job_tmp_token is None:
+127:         job_tmp.mkdir(mode=0o700, parents=False, exist_ok=False)
+128:     root.mkdir(parents=True, mode=0o700, exist_ok=True)
+129:     root.chmod(0o700)
+130:     result = dict(status='FAIL', config_identity=identity(cfg), assertions={k:False for k in ASSERTIONS},
+131:                   missing=[], loader_audit={'complete':False})
+132:     result['assertions']['empty_root'] = True
+133:     result['assertions']['job_tmp'] = True
+134:     return root, job_tmp, result
+135: 
+136: 
+137: @contextmanager
+138: def host_environment(job_tmp):
+139:     """Confine caches and private directories, restoring the caller on refusal."""
+140:     environment = ('TMPDIR', 'XDG_CACHE_HOME', 'HF_HOME', 'TRITON_CACHE_DIR', 'TORCH_HOME')
+141:     saved = {name: os.environ.get(name) for name in environment}
+142:     saved_tempdir = tempfile.tempdir
+143:     saved_cwd = Path.cwd()
+144:     for name in environment:
+145:         os.environ[name] = str(job_tmp if name == 'TMPDIR' else job_tmp/name.lower())
+146:     tempfile.tempdir = str(job_tmp)
+147:     os.chdir(job_tmp)
+148:     previous_umask = os.umask(0o077)
+149:     try:
+150:         yield
+151:     finally:
+152:         os.umask(previous_umask)
+153:         tempfile.tempdir = saved_tempdir
+154:         os.chdir(saved_cwd)
+155:         for name, value in saved.items():
+156:             if value is None:
+157:                 os.environ.pop(name, None)
+
+work/tree_r1c/launch_r1/production_proof.py sha256 5f617300cfb88e5914ca4b516e5682fa861d9ccde9cc38712705b5c8bd341d95
+89:         from .entry import (begin_host, host_environment, check_host_runtime, stage_host,
+90:                             check_host_scene, check_host_selection, finish_host)
+91:         root, job_tmp, host = begin_host(cfg, root, request)
+92:         environment.enter_context(host_environment(job_tmp))
+93:         check_host_runtime(cfg, request, host)
+94:         cfg = stage_host(cfg, root, request, job_tmp, stage=stage, result=host)
+95:         check_host_scene(cfg, host, record=True)
+96:         check_host_selection(cfg, root, request, host, record=True)
+97:         if cfg['r1_training'].get('direction_twins'):
+98:             from student_pilot.r1_direction_twins import augment
+116:         memory = request.get('memory_gib',192)
+117:         if type(memory) is not int or not 8<=memory<=512:
+118:             raise ValueError('R1_PROOF_MEMORY_REQUEST_INVALID')
+119:         device = request.get('device','cpu')
+120:         if device not in ('cpu','cuda:0'):
+121:             raise ValueError('R1_PROOF_DEVICE_INVALID')
+122:         # Refuse missing component evidence before writing capacity-sized stores.
+123:         from student_pilot.r1_training import training_components
+124:         with scope(closure['paths']):
+125:             training_components(cfg['r1_training']['registry'], cfg)
+126:         result['steps'].append('training_components')
+127:         # Produce and bind the witness before native prepare validates the init boundary.
+128:         from .p_opener_witness import produce as opener
+129:         with scope(closure['paths']):
+130:             cfg['routing_vocabulary'] = opener(cfg,root/'v.json')
+131:             from student_pilot.r1_handover import bind_target
+132:             cfg = bind_target(cfg,root/'m.json')
+133:         write(root/'c.json',cfg)
+134:         config_pin = file_pin(root/'c.json')
+135:         result['steps'].append('p_opener_witness')
+136:         from student_pilot.s1_admission import admit
+137:         directory=root/'p';directory.mkdir(exist_ok=True)
+138:         with scope(closure['paths']):
+139:             visible = os.environ.get('CUDA_VISIBLE_DEVICES')
+140:             os.environ['CUDA_VISIBLE_DEVICES'] = ''
+141:             try:
+142:                 prepared = admit(config_pin,directory,request['frame_roots'],threads=8,
+143:                                  memory_gib=memory,prepare_only=True)
+144:             finally:
+148:                     os.environ['CUDA_VISIBLE_DEVICES'] = visible
+149:         result['steps'].extend(['s1_routing.build',
+150:             *([] if minimal else ['r1_routing.compose_native']), 's1_admission.prepare'])
+151:         from student_pilot.r1_population import bind_prepared
+152:         with scope(closure['paths']):
+153:             produced = bind_prepared(load(pinned(prepared['config'])),root/'b')
+154:         cfg = load(pinned(produced));result['config']=produced
+155:         result['steps'].append('r1_population.bind_prepared')
+156:         from student_pilot.r1_persisted import admission, scope
+157:         with scope(closure['paths']):
+158:             result['config'] = bind_handover(cfg,root/'h')
+159:             cfg = load(pinned(result['config']))
+160:             handover=admission(cfg,weights=bool(request.get('weights')))
+161:         result['handover']={k:v for k,v in handover.items() if k!='paths'}
+162:         result['absolute_resume_step']=handover['absolute_resume_step']
+163:         result['init_milestone'] = handover['init_milestone']
+164:         expected_start = 0 if init_policy(cfg['r1_training']) is not None else step
+165:         if result['init_milestone'] not in (400,600) or result['absolute_resume_step'] != expected_start:
+166:             raise ValueError('R1_PROOF_EXPORT_STEP_REQUIRED')
+167:         result['steps'].append('persisted_handover')
+168:         # The receipt and audit must name the config published by the final bind.
+169:         from student_pilot.r1_loader import production_audit
+170:         with scope(closure['paths']):
+171:             result['audit']=production_audit(cfg,root/'a')
+172:         result['steps'].append('r1_loader.production_audit')
+173:         if request.get('weights'):
+174:             with scope(handover['paths']):
+175:                 result['forward']=forward(cfg,root,result['absolute_resume_step'],device)
+176:             result['steps'].append('all_rank_full_forward')
+177:         finish_host(cfg, root, host, result['audit'], named_refusals=True)
+178:         write(root/'host.json', host)
+179:         result['host_receipt'] = file_pin(root/'host.json')
+180:         result['status']='ADMIT'
+181:     except (ValueError,KeyError,TypeError,OSError,RuntimeError,ImportError) as error:
+182:         result['refusal']=type(error).__name__+':'+str(error)
+183:     finally:
+184:         environment.close()
+185:     write(root/'RESULT.json',result)
+186:     return result
+187: 
+188: 
+189: def run(request, output, *, stage=None):
+190:     """Run host checks around staging; a kit may supply its authenticated copier."""
+191:     from student_pilot.r1_persisted import scope, proof_scope
+192:     try:
+193:         staging = verify_staging(request)
+194:     except (ValueError,KeyError,TypeError,OSError):
+195:         return _run(request,output,stage=stage)
+196:     with proof_scope(), scope({p['sha256']:p['path'] for p in staging}):
+197:         return _run(request,output,stage=stage)
+198: 
+199: 
+200: def main(argv=None):
+201:     parser=argparse.ArgumentParser()
+202:     parser.add_argument('request');parser.add_argument('output')
+203:     args=parser.parse_args(argv)
+204:     result=run(load(args.request),args.output)
+
+work/tree_r1c/student_pilot/s1_admission.py sha256 ff718a8d063627a359d5ab6d7715f2b23156dc9805cb2f5f2e8756de56b129a8
+133: def admit(config_pin, output, roots, *, threads=16, memory_gib=256, sample_size=64, max_seconds=86400,
+134:           rank_limit=None, attempt=None, prepare_only=False):
+135:     if os.environ.get("CUDA_VISIBLE_DEVICES") != "":
+136:         raise ValueError("The admission command requires CUDA_VISIBLE_DEVICES to be empty")
+137:     if type(threads) is not int or not 1 <= threads <= 16 or not 8 <= memory_gib <= 512:
+138:         raise ValueError("Admission resources are outside the CPU-only bounds")
+139:     soft, hard = resource.getrlimit(resource.RLIMIT_AS)
+140:     limit = int(memory_gib * (1 << 30))
+141:     resource.setrlimit(resource.RLIMIT_AS, (min(value for value in (soft, hard, limit) if value > 0), hard))
+142:     import torch
+143:     torch.set_num_threads(threads)
+144:     if torch.get_num_interop_threads() != 1:
+145:         torch.set_num_interop_threads(1)
+184:     def prepare_phase(directory):
+185:         from .mdg_parent import bind as bind_parent_grounding
+186:         parent_grounding = bind_parent_grounding(cfg, directory)
+187:         point = load(pinned(before["pointing"]))
+188:         scene_filter = Exclusions(cfg["dev_scene_exclusions"], cfg["benchmark_scene_exclusions"])
+189:         rebuilt = data.build_stream(before["pointing"], point["division"], directory / "pointing", "pointing",
+190:                                     training_mode=cfg["training_mode"], geometry_online=cfg.get("geometry_online"),
+191:                                     remove_files=cfg["remove_files"], ground_target_filter=True,
+192:                                     source_receipt=True, scene_filter=scene_filter)
+193:         vqa = load(pinned(before["vqa"]))
+194:         rebuilt_vqa = data.build_stream(before["vqa"], vqa["division"], directory / "vqa", "vqa",
+195:                                        training_mode=cfg["training_mode"], geometry_online=cfg.get("geometry_online"),
+196:                                        remove_files=cfg["remove_files"], source_receipt=True,
+197:                                        scene_filter=Exclusions(cfg["dev_scene_exclusions"],
+198:                                                                cfg["benchmark_scene_exclusions"]))
+199:         selected = {**cfg, "streams": {**before, "pointing": file_pin(directory / "pointing/receipt.json"),
+200:                                        "vqa": file_pin(directory / "vqa/receipt.json")},
+201:                     "preparation_output": str(directory / "prepared")}
+202:         if has_mdg:
+203:             selected["mdg"] = {**cfg["mdg"], "confusers": parent_grounding["confusers"]}
+204:         routing_outputs = []
+205:         if cfg.get("s1_routing"):
+206:             from .mdg_parent import model_pin
+207:             from .s1_routing import build as build_routing
+208:             routed = build_routing(cfg, directory / "routing", point["division"], model_pin(cfg))
+209:             selected["streams"]["routing"] = file_pin(directory / "routing/receipt.json")
+210:             routing_outputs = [selected["streams"]["routing"], routed["database"], routed["materialization"],
+211:                                *local_pins(load(pinned(routed["materialization"])), directory)]
+212:             if cfg.get('r1_training'):
+213:                 from .r1_coverage import deferred
+214:                 if not deferred(cfg):
+215:                     from .r1_routing import compose_native
+216:                     composed = compose_native(cfg, selected['streams']['routing'], directory/'composed')
+217:                     selected['streams']['routing'] = file_pin(directory/'composed/receipt.json')
+218:                     routing_outputs.extend([selected['streams']['routing'], composed['database'], composed['source_membership']])
+219:         selected.pop("preparation", None)
+220:         selected.pop("admission", None)
+221:         selected["recipe"] = run.recipe_for(selected)
+222:         if selected.get('r1_training',{}).get('handover_receipt'):
+223:             from .r1_handover import bind_target
+224:             selected = bind_target(selected,directory/'handover.json')
+225:         receipt = run.prepare(selected)
+226:         preparation = directory / "prepared/receipt.json"
+227:         if not has_mdg:
+228:             receipt = {**receipt, "stream_status": presence, "native_preparation": file_pin(preparation)}
+253: 
+254:     def frame_phase(directory):
+255:         frames = audit_frames(receipt, roots, directory, sample_size=sample_size)
+256:         frames.update(presence)
+257:         write(directory / "frames.json", frames)
+258:         return dict(report=file_pin(directory / "frames.json"),
+259:                     outputs=[file_pin(directory / "frames.json"), frames["inventory"]], **presence)
+260: 
+261:     frame_result, frames_reused = phases.run("frames", frame_phase)
+262:     frames = load(pinned(frame_result["report"]))
+263:     if frames_reused:
+
+work/tree_r1c/student_pilot/carrier_c1_data.py sha256 9ccee823404c8dc225c6f7d73a9f1c31d5b18cc40cd77a79c331c9021174b701
+605:     out = Path(output); out.mkdir(parents=True, exist_ok=False)
+606:     conn = sqlite3.connect(out/'rows.sqlite')
+607:     conn.execute('CREATE TABLE rows (i INTEGER PRIMARY KEY, row TEXT NOT NULL, target TEXT NOT NULL)')
+608:     seen, scenes, count = set(), set(), 0
+609:     try:
+659:                 conn.execute('INSERT INTO rows VALUES (?,?,?)', (count, json.dumps(row), '{}'))
+660:                 count += 1
+661:         if not count:
+662:             raise ValueError('Empty C1 preservation stream')
+663:         conn.commit()
+664:     finally:
+665:         conn.close()
+666:     receipt = dict(schema='c1-stream-v1', stream=stream, count=count, scenes=len(scenes),
+667:                    source=source, division=division_pin, database=file_pin(out/'rows.sqlite'),
+668:                    gt_masks_only=stream == 'pointing', heldout_overlap=0)
+669:     if remove_files:
+670:         receipt['removals'] = removals.report()
+671:     if targets is not None and (remove_files or ground_target_filter):
+672:         receipt['target_filter'] = targets.report()
+673:     if source_receipt:
+674:         receipt['source_receipt'] = source
+675:     if scene_filter is not None:
+676:         receipt['source_scene_exclusions'] = scene_filter.report()
+677:     write(out/'receipt.json', receipt)
+
+work/tree_r1c/student_pilot/first_batch_progress.py sha256 5f4d1f762cdcfc7f80a9685b07caa9e0d9cda861f605798298ea95dcd237e6c3
+22:     def __init__(self, directory, binding):
+23:         self.root = Path(directory).resolve()
+24:         self.binding = binding
+25: 
+26:     def run(self, name, action):
+27:         if not re.fullmatch("[a-z_]+", name):
+28:             raise ValueError("Invalid admission phase")
+29:         marker = self.root / f"phase_{name}.complete.json"
+30:         if marker.exists():
+31:             value = load(marker)
+32:             payload = Path(value.get("payload", {}).get("path", "."))
+33:             if (value.get("schema") != "s1-admission-phase-v1" or value.get("binding") != self.binding
+34:                     or marker.is_symlink() or payload.is_symlink() or not payload.resolve().is_relative_to(self.root)):
+35:                 raise ValueError("Admission phase binding differs")
+36:             result = load(pinned(value["payload"]))
+37:             for pin in result["outputs"]:
+38:                 pinned(pin)
+39:             return result, True
+40:         directory = self.root / (name+"_"+uuid.uuid4().hex)
+41:         directory.mkdir()
+42:         started = time.perf_counter()
+43:         result = action(directory)
+44:         result["resources"] = dict(seconds=time.perf_counter()-started,
+45:                                    peak_rss_kib=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss)
+46:         for pin in result["outputs"]:
+47:             pinned(pin)
+48:         write(directory / "result.json", result)
+49:         publish(marker, dict(schema="s1-admission-phase-v1", binding=self.binding,
+50:                              payload=file_pin(directory / "result.json")))
+
+work/tree_r1c/student_pilot/s1_routing.py sha256 122353169d335771b97cb08ff31f0b1f12d904e2b42b1afb75c5fc31be35f3e3
+242:     filters = Exclusions(cfg["dev_scene_exclusions"], cfg["benchmark_scene_exclusions"])
+243:     removals = Removals(cfg["remove_files"])
+244:     database = output / "rows.sqlite"
+245:     connection = sqlite3.connect(":memory:" if audit_only else database)
+246:     if audit_only:
+247:         connection.execute("PRAGMA temp_store=MEMORY")
+248:     connection.execute("CREATE TABLE candidates (k INTEGER PRIMARY KEY, qid TEXT NOT NULL, question_type TEXT NOT NULL, origin TEXT NOT NULL, source TEXT NOT NULL, row TEXT NOT NULL)")
+249:     connection.execute("CREATE INDEX candidate_qids ON candidates(qid,origin)")
+
+out/kit_qdp/b/rb.py sha256 cb7642eff18e212f655805032d93343a84476266d79f790f78360271004c3e97
+409: def command(root, control, tree, mounts, env=None):
+410:     import shutil
+411:     binary = shutil.which("bwrap")
+412:     if not binary: raise ValueError("R1_BINARY_MISSING:bwrap")
+413:     # Native rows retain logical provenance paths. Bind the staged bytes there
+414:     # in a private view instead of rewriting the paths embedded in those rows.
+415:     roots = sorted({"/"+Path(p).parts[1] for p in mounts if not p.startswith("/tmp/")})
+416:     if any(p not in ("/scratch", "/lustre", "/home", "/data", "/data2", "/data3", "/project") for p in roots):
+417:         raise ValueError("R1_RECONSTRUCTION_PATH_INVALID")
+418:     cmd = [binary, "--ro-bind", "/usr", "/usr", "--symlink", "usr/bin", "/bin",
+419:            "--symlink", "usr/lib", "/lib", "--symlink", "usr/lib64", "/lib64",
+420:            "--ro-bind", "/etc", "/etc", "--dev-bind", "/dev", "/dev", "--proc", "/proc", "--tmpfs", "/tmp"]
+421:     env = environment() if env is None else env
+422:     cmd += ["--bind", str(root), str(root)]
+423:     for p in [*env["binds"], Path(__file__).resolve().parent, Path(tree)]:
+424:         cmd += ["--ro-bind", str(p), str(p)]
+425:     for target, item in sorted(mounts.items()): cmd += ["--ro-bind", item["source"], target]
+426:     cmd += ["--chdir", str(root), env["executable"], "-I", "-s", "-S", "-B", str(Path(__file__).resolve()), str(control), str(tree)]
+427:     return cmd
+428: 
+429: 
+
+out/kit_qdp/b/sc.py sha256 065438918786f1d948f79f7fa6f68a46ff6405df578fe7c54c0a633b6b74c792
+49:     binary=shutil.which('bwrap')
+50:     if not binary:raise ValueError('R1_BINARY_MISSING:bwrap')
+51:     # Build a fresh root so covering /tmp cannot hide a bind source.
+52:     command=[binary]
+53:     for name in sorted(os.listdir('/')):
+54:         if name in ('tmp','proc','dev'):continue
+55:         path='/'+name
+56:         if os.path.islink(path):command+=['--symlink',os.readlink(path),path]
+57:         elif os.path.isdir(path):command+=['--ro-bind',path,path]
+58:     command+=['--dev-bind','/dev','/dev','--proc','/proc','--tmpfs','/tmp']
+59:     for path in sorted(inputs,key=lambda p:(len(p.parts),str(p))):
+60:         command+=['--ro-bind',str(path),str(path)]
+61:     command+=['--bind',str(physical),str(destination),'--remount-ro','/tmp','--remount-ro','/',
+62:               '--chdir',str(parent),sys.executable,'-B','-s',str(Path(__file__).resolve()),str(control),str(trainer)]
+63:     start=time.monotonic()
+64:     try:subprocess.run(command,check=True)
+
+out/kit_qdp/b/ep.py sha256 ca78dc2102d81408c6ae8ff14e1199f0604c0e984cc5e386a4b7c73cbc98b13c
+14: def publish(kit, root, job, status):
+15:     kit,root=Path(kit).resolve(),Path(root).resolve()
+16:     if not job or not job.isascii() or not job.isdigit():raise ValueError('R1_EVIDENCE_JOB_INVALID')
+17:     target=Path(load(kit/'k/p.json')['n_root'])/'o'/job
+18:     if not target.is_absolute() or '..' in target.parts:raise ValueError('R1_EVIDENCE_TARGET_INVALID')
+19:     if any(p.is_symlink() for p in (target,*target.parents)):raise ValueError('R1_EVIDENCE_TARGET_INVALID')
+20:     if any((target.resolve()==p or p in target.resolve().parents) for p in (kit,root)):raise ValueError('R1_EVIDENCE_TARGET_INVALID')
+21:     target.mkdir(parents=True,exist_ok=True,mode=0o700)
+22:     policy,white=load(kit/'k/g.json'),load(kit/'b/wh.json')
+23:     entries=[(n,root/n,300_000,'tail') for n in ('q.log','rooms.log','h.log','rv.log','t.log')]
+24:     entries += [('r.log',root/'dr/q.log',300_000,'tail'),('q.steps',root/(job+'.steps'),100_000,'tail')]
+25:     entries += [(n,root/p,100_000,'json') for n,p in (
+26:         ('q0.json','p/q/RESULT.json'),('r0.json','p/r0.json'),('q1.json','dr/p/r0.json'),
+27:         ('q2.json','p/q/host.json'),('RESULT.json','o/RESULT.json'))]
+28:     selected=root/'routing_selection.json'
+
+out/kit_qdp/b/rv.py sha256 e5b5f33c4d70d63889b5b238b2568460f5b2a45c046f3ab0c235ab0fdf8b7773
+51: 
+52: def location(kit, root, job):
+53:     target = Path(load(kit / "k/p.json")["n_root"])
+54:     if not target.is_absolute() or ".." in target.parts or not job.replace("_", "").isalnum():
+55:         raise ValueError("R1_REVIEW_FILE_UNUSABLE")
+56:     live = target / "o" / job / "live"
+57:     review = target / "n_r" / "review.json"
+58:     for p in (live,):
+59:         if any(v.is_symlink() for v in (p, *p.parents)):
+60:             raise ValueError("R1_REVIEW_FILE_UNUSABLE")
+61:         if any(p.resolve().is_relative_to(v.resolve()) for v in (kit, root / "kit", root / "h")):
+62:             raise ValueError("R1_REVIEW_FILE_UNUSABLE")
+63:     live.mkdir(parents=True, exist_ok=True, mode=0o700)
+64:     return live, review
+65: 
+

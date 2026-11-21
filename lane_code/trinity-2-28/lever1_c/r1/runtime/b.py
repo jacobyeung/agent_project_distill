@@ -100,6 +100,12 @@ def supervise(root, blob, failure=None):
             value=json.loads(boot.read_bytes())
             if value.get('job')==job and value.get('plan')==public['plan_sha256']:
                 write('metadata/25.json',value)
+                write('metadata/27.json',value.get('child_output',dict(lines=[],limit=200,width=2048)))
+        compared=shared/'a/30.json'
+        if compared.exists() and compared.stat().st_size<=150000:
+            value=json.loads(compared.read_bytes())
+            if value.get('job')==job and value.get('plan')==public['plan_sha256']:
+                write('metadata/30.json',value)
         if supervisor_failed:
             value=dict(lines=list(failure_lines),limit=200,width=2048)
             while len(codec.pack(codec.wire_dumps(value)))>262144:value['lines']=value['lines'][1:]

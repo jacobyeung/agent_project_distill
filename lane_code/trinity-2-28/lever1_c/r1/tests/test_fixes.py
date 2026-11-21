@@ -22,7 +22,7 @@ import build_depth as BD
 import layout
 
 
-def temp():return Path(tempfile.mkdtemp(dir=HERE/'tests',prefix='fix_'))
+def temp():return Path(tempfile.mkdtemp(dir=HERE.parent/'r1_fixtures_old',prefix='fix_'))
 
 
 class FixTests(unittest.TestCase):

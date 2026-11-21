@@ -1,34 +1,36 @@
 <!-- boot-order -->
-The boot gate stages the complete CPython tree from runtime group 0, the base environment from group 1, the interpreter wrapper and overlay from input 3 (`a4.tar`), and policy from input 4. It then boots the real worker and imports all 411 audited modules before staging any checkpoint, weight or frame. Runtime group 0's other members, group 2, and inputs 0–2 wait for the successful boot receipt. `boot_order.py:30` selects these archives; `runtime/boot.py:105` authenticates and filters their members.
+The boot gate imports all 411 audited modules before staging any checkpoint, weight or frame. It stages CPython from runtime group 0, the base environment from group 1, `v/py` and its overlay from input 3, and policy from input 4. Pre-bulk authenticated source bytes total **10,237,337,910**, including **3,829,590** package bytes. Runtime group 0's other members and all bulk inputs follow a successful boot receipt.
 
-The missing executable came from selecting input 2 (`a2.tar`) for `v/py`. That archive contains no `v/` members. Input 3 (`a4.tar`, SHA256 `c867d40addcf35c55db1ec511c4dc2b8a4cec80cef9003be93179ef82c30b0ea`) contains the 160-byte executable shell wrapper `v/py`, the 443-byte `v/boot.py`, and the overlay. The wrapper executes the base environment's `bin/python` symlink, which resolves through the uv namespace bind to the staged CPython tree. The failure was an omitted archive, not a dangling `v/py` symlink.
+The pool probe writes and fsyncs 131,072 random bytes, verifies their SHA256, and reserves 131,104 bytes including the ledger write. Both CPU guards read `WRITE_TEST_BYTES` from the sealed pool writer and verify the retained file, receipt, ledger and guarded helper. The cumulative pool and metadata budgets remain unchanged.
 
-Pre-bulk authenticated source bytes total **10,237,337,443**: package **3,829,123**, runtime groups 0–1 **10,088,151,040**, overlay and policy **145,285,120**, and pinned bwrap **72,160**. Group 0 is streamed and only CPython is materialized. These source-read bytes include discarded mixed-archive members; no bulk member is copied or extracted before boot. Production pre-bulk seconds remain unmeasured; metadata/25.json records them for each job.
+`out/WT_OLD_5.py:53` and `:77` preserve the two stale 4 MiB expectations from the placed CPU entry. `revision8.py:49` had reduced the writer to 128 KiB. The first comparison failed deterministically after staging; no job ID, node, time, token or previous placement changed its expected size. The CPU check creates its own fresh `root/wpool/token/.wtest` through `orchard_results.write_test`, the guarded subprocess and `return_io.operate('test')`. It does not compare against a placement-time receipt. Existing tests invoked the operator directly or stopped at boot, so they never exercised this pair of guards.
 
-`tests/test_vpy.py` uses the real pinned archives through the delivered `job.stage`, reproduces the old missing-executable failure, and tests the corrected worker through the production bwrap constructor. The local bwrap executable and an extra same-location bind expose the scratch fixture. The authenticated vnice script runs with its terminator helper bound to an inert script so the test cannot signal processes or delete marker files. The test audits staged links, the ELF loader/shared libraries, and the worker closure; `out/VPY_CHECKS.json` records its result. Missing-module tests also require zero bulk bytes and an authenticated failure through production fetch.
+`tests/test_write_receipt.py` runs the delivered BATCH CPU route and both guards with different job IDs, fresh state and three spent sibling placements. Remote staging and model execution use tiny fixtures; the pool writer, reservation ledger, guarded subprocess, bootstrap dispatch and authenticated fetch are real. The old entry reproduces the mismatch. Wrong receipt sizes, changed evidence sizes or hashes, exhausted budgets, changed settings and later preparation failures all fail with bounded diagnostics.
 
-Token `a7e29d4c8f103` supersedes the placed token `a6f198d3c7b20`; placement and submission use fresh paths and one-use locks.
+`a/30.json` records the CPU failure and up to 16 comparisons, with each expected/found value bounded to 2,048 characters. Supervisor recovery returns the matching job/plan record as `metadata/30.json`, alongside boot status and the traceback. A later CPU failure retains the successful write-test comparison. A failed pool subprocess records its expected and actual exit status and bounded stderr.
 
-The pinned-archive regression passed: 411 modules imported, 2,104 symlinks resolved, and the ELF loader/shared-library audit passed. The old selection reproduced the execvp failure; both cases staged zero bulk bytes.
+`tests/test_vpy.py` separately checks all 411 imports through the real pinned archives, production capture and namespace argv. The host bwrap executable, scratch bindings and sleeping watcher helper are substituted. New fixtures remain in the approved sibling directory; no files are deleted.
+
+Token `ad07f53341bc0` supersedes the placed tokens `a6f198d3c7b20`, `a7e29d4c8f103` and `a38bd627f901e`; placement and submission use fresh paths and one-use locks.
 
 <!-- /boot-order -->
 
 The delivery below uses the approved 50-minute allocation and a 30-minute worker cap. Its forecast is 23.75 worker minutes and 37.75 allocation minutes, leaving 6.25 and 12.25 minutes of headroom. Placement and submission remain with the authorized lane.
 
-The lane can place the depth package at `/project/community/jjyeung/a7e29d4c8f103`. This builder has not placed or submitted the package. The production fetch path has passed a local injected-failure test.
+The lane can place the depth package at `/project/community/jjyeung/ad07f53341bc0`. This builder has not placed or submitted the package. The production fetch path has passed a local injected-failure test.
 
 | Artifact | Bytes |
 | --- | ---: |
-| `out/delivery.tgz` | 3,700,123 |
-| Expanded inner payload (32 MiB limit) | 31,054,038 |
-| Installed package files | 4,251,909 |
-| Installed `BUILD.json` | 59,711 |
-| Streamed `orchard/o_place.sh` | 5,018,265 |
-| Conservative delivery + installed files + descriptor | 8,011,743 |
+| `out/delivery.tgz` | 3,725,962 |
+| Expanded inner payload (32 MiB limit) | 31,056,104 |
+| Installed package files | 4,261,679 |
+| Installed `BUILD.json` | 59,753 |
+| Streamed `orchard/o_place.sh` | 5,052,773 |
+| Conservative delivery + installed files + descriptor | 8,047,394 |
 
-Delivery SHA256: `86836622ee2b2b002510448d5777cfd3023817893b6f3d2649c21a716f055285`.
+Delivery SHA256: `a9d25c7318374eb4a5a5af002a04a81e4e75fe4c7a9715893dc4a9550f5947c7`.
 
-The job uses `a15_cot_apa7e29d4c8f103`, general, `--gres=gpu:1`, `--cpus-per-task=16`, `--mem=200G`, and `--exclude=orchard-community-4`. The worker checks for an H100 before model loading. The inherited submission checker requires a minimum 50-minute allocation. The worker has a 30-minute cap and a deadline 270 seconds before allocation end; termination and reaping allow at most another 25 seconds. Staging and work share a deadline 240 seconds before allocation end. Capture publication stops 90 seconds before allocation end, normal publication stops 10 seconds before it, and the failure-receipt fallback stops two seconds before it. Every transfer uses the remaining time in its window. The forecast is 23.75 worker minutes and 37.75 allocation minutes. This includes 16.75 minutes of T1 replay, six minutes for shared loading, one minute for indexed RGB extraction and telemetry, ten minutes for shared staging, and four minutes for publication. The allowances are unmeasured.
+The job uses `a15_cot_apad07f53341bc0`, general, `--gres=gpu:1`, `--cpus-per-task=16`, `--mem=200G`, and `--exclude=orchard-community-4`. The worker checks for an H100 before model loading. The inherited submission checker requires a minimum 50-minute allocation. The worker has a 30-minute cap and a deadline 270 seconds before allocation end; termination and reaping allow at most another 25 seconds. Staging and work share a deadline 240 seconds before allocation end. Capture publication stops 90 seconds before allocation end, normal publication stops 10 seconds before it, and the failure-receipt fallback stops two seconds before it. Every transfer uses the remaining time in its window. The forecast is 23.75 worker minutes and 37.75 allocation minutes. This includes 16.75 minutes of T1 replay, six minutes for shared loading, one minute for indexed RGB extraction and telemetry, ten minutes for shared staging, and four minutes for publication. The allowances are unmeasured.
 
 After re-review, run these commands from the authorized lane holding this directory. Wait for each background script's printed log to report completion before starting its dependent step. Check job status at most once per minute. The scripts refuse an existing destination and use one-use submission locks; do not retry a killed or failed command automatically.
 
@@ -92,7 +94,7 @@ OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 CUDA_VISIBLE_DEVICES=
 
 The CPU rehearsal runs twice and scans all eight output files by name, raw content, and JSON-decoded string against the deny-list. The item copy retains exact `a0` source bytes; the copied dispatcher uses opaque source storage and passes the numeric entry test. `out/CPU_ENTRY_STUB.json` records every scanned output file and hash.
 
-`out/VALIDATION.json` records `passed=true` for the exact delivery SHA256: 73 tests, both fresh-process import checks, all 335 Python files compiled and all seven shell scripts checked. The required suites cover the CPU rehearsal twice, scans of every produced file, capture doubles, first-write ordering, per-capture telemetry, production failure fetch, source pins and deadlines. `out/IMPORT_AUDIT.json` parses all 345 delivered and embedded Python programs, including the 296 retained sources and 26 vendor files. It walks deferred imports and literal dynamic imports, resolves nonliteral loaders through explicit targets, and lists every excluded site with its reason. Ten external packages use the unchanged authenticated T1 environment pins and T1 execution evidence; local CPU installations do not establish Orchard availability. The audit test fails on any unresolved reachable import. No live Orchard job ran.
+`out/VALIDATION.json` records `passed=true` for the exact delivery SHA256: 84 tests, both fresh-process import checks, all 335 Python files compiled and all seven shell scripts checked. The required suites cover the CPU rehearsal twice, scans of every produced file, capture doubles, first-write ordering, per-capture telemetry, production failure fetch, source pins and deadlines. `out/IMPORT_AUDIT.json` parses all 345 delivered and embedded Python programs, including the 296 retained sources and 26 vendor files. It walks deferred imports and literal dynamic imports, resolves nonliteral loaders through explicit targets, and lists every excluded site with its reason. Ten external packages use the unchanged authenticated T1 environment pins and T1 execution evidence; local CPU installations do not establish Orchard availability. The audit test fails on any unresolved reachable import. No live Orchard job ran.
 
 JSON transport uses an `a0` envelope containing the exact original bytes in hexadecimal. The numeric launchers, import loader, placement/fetch scripts, and local relift CLI decode it. Package pins authenticate stored bytes; preparation and resource checks authenticate the original decoded bytes. Job-owned metadata and capture records use this transport. The runtime environment archive retains its installed third-party library layout.
 

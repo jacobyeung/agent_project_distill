@@ -24,6 +24,19 @@ class LocalPath(pathlib.PosixPath):
 pathlib.Path=LocalPath
 if mode=='child':
     root=LocalPath(work)/('a'+os.environ['SLURM_JOB_ID']+token)
+    if case.startswith('write_'):
+        sys.path.insert(0,str(root/'p'))
+        with tarfile.open(LocalPath(package)/'0.tgz') as archive:
+            for entry in archive:
+                if entry.name.startswith('orchard_h10/') or entry.name=='j.py':
+                    target=root/'p'/entry.name;target.parent.mkdir(parents=True,exist_ok=True)
+                    target.write_bytes(archive.extractfile(entry).read())
+        import importlib
+        importlib.invalidate_caches()
+        from orchard_h10 import job
+        sys.path.insert(0,str(OriginalPath(__file__).parent))
+        from write_fixture import configure
+        configure(job,LocalPath(package),root,case)
     if case.startswith('late_sink_'):
         # Publish an authenticated success with the delivered recovery modules,
         # then exit zero before the supervisor's sink cleanup fails.

@@ -80,7 +80,7 @@ class Review9Tests(unittest.TestCase):
         self.evidence['supervisor_overflow']=dict(passed=True,sink_bytes=524288,production_failure_fetch=True,project_observed_bytes=size,cause=cause)
 
     def test_scheduler_files_and_submission_failure(self):
-        root=Path(tempfile.mkdtemp(dir=HERE/'tests',prefix='sink_'))/'a';root.mkdir()
+        root=Path(tempfile.mkdtemp(dir=HERE.parent/'r1_fixtures_old',prefix='sink_'))/'a';root.mkdir()
         body=b'#!/bin/bash\nulimit -S -f 512\n';(root.parent/'BATCH.sh').write_bytes(body)
         helper=root/'27.py';helper.write_bytes(self.outer['a/27.py'])
         submit=runpy.run_path(str(helper))['submit'];calls=[]
@@ -107,7 +107,7 @@ class Review9Tests(unittest.TestCase):
         batch=self.outer['BATCH.sh'].decode()
         source=batch.split("<<'A'\n",1)[1].rsplit('\nA',1)[0]
         self.assertNotIn('resource.setrlimit',source)
-        root=Path(tempfile.mkdtemp(dir=HERE/'tests',prefix='limit_'))
+        root=Path(tempfile.mkdtemp(dir=HERE.parent/'r1_fixtures_old',prefix='limit_'))
         (root/'27.py').write_bytes(self.outer['a/27.py'])
         header=batch.split('/usr/bin/python3 -I -s -B - ',1)[0].replace('/project/community/jjyeung/'+self.info['token']+'/a/',str(root)+'/')
         code="import os,resource,signal,sys\nassert resource.getrlimit(resource.RLIMIT_FSIZE)[0]==524288\nsignal.signal(signal.SIGXFSZ,signal.SIG_IGN)\nf=os.open(sys.argv[1],os.O_WRONLY|os.O_CREAT,0o600)\ntry:\n for _ in range(256):os.write(f,b'x'*8192)\nexcept OSError:pass\nelse:raise AssertionError('limit absent')\n"

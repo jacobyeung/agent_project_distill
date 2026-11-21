@@ -46,7 +46,8 @@ def patch(nf,pf,B,here,token):
 """)
     s=s.replace("            dest.mkdir(mode=0o700)","            reserve(4*1024**2)\n            dest.mkdir(mode=0o700)")
     s=s.replace("        for name in names:\n            src", "        reserve(incoming)\n        for name in names:\n            src")
-    s=s.replace('4*1024**2','131072')
+    s=s.replace('RESERVE = 100_000', 'RESERVE = 100_000\nWRITE_TEST_BYTES = 131072')
+    s=s.replace('4*1024**2','WRITE_TEST_BYTES')
     pf['orchard_h10/vendor/return_io.py']=s.encode()
     # CPU staging and bulky rehearsal outputs stay on the admitted disk.
     s=nf['a/5.py'].decode().replace("if not entry.name.startswith('orchard_h10/'):continue","if not entry.name.startswith('orchard_h10/') and entry.name!='j.py':continue")

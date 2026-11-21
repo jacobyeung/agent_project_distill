@@ -1,0 +1,1 @@
+A=/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z11b/a_zffhb1q8; ls $A; cat $A/UPLOADS_ARMED.list; echo ---; cat $A/UPLOADS_ARMED_GO.list; echo ---; head -c 1500 $A/UPLOADS_ARMED.json; echo; head -c 800 $A/UPLOADS_ARMED_GO.json

@@ -21,9 +21,13 @@ gpu_only={name:'CUDA backend cannot execute on this CPU host; GPU boot must impo
 # libraries completed successfully without them on the traced CPU path.
 for name in sorted(set(trace['audit_modules'])-set(trace['modules'])-set(gpu_only)):
     excluded[name]='Unsuccessful optional import probe; the real CPU worker completed without this module.'
+pinned=json.loads((ROOT/'tests/pinned_exclusions.json').read_text())
+excluded.update(pinned['drops'])
 required=sorted((set(baseline['modules'])|set(trace['modules']))-set(excluded)-set(gpu_only))
 assert 'student_pilot.carrier_c1_canary' in required
-value=dict(method=trace['method']+'; union with tests/import_baseline.json; no source import scanning',
+value=dict(method=trace['method']+'; union with tests/import_baseline.json; normal-name replay in authenticated pinned Orchard pre-bulk environment; no source import scanning',
+    pinned_environment=pinned['environment'], pinned_drops=pinned['drops'],
+    previous_cpu_modules=3338, previous_gpu_modules=3341,
     trace='out/WORKER_IMPORT_TRACE.json', generator='tests/trace_worker.py',
     generator_sha256=hashlib.sha256((ROOT/'tests/trace_worker.py').read_bytes()).hexdigest(),
     baseline_raw_modules=len(baseline['modules']),baseline_modules=len(set(baseline['modules'])-set(excluded)),

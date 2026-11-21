@@ -1,0 +1,11 @@
+**GO.** No defect found that would waste or invalidate the job. Paths below are relative to `r4kit/`.
+
+- **Cause confirmed:** the old closure directly imported `PIL._typing`. The pinned helper unconditionally imports unavailable `numbers._IntegralLike` (`tmp/pinned/m/ap/19252904/e/lib/python3.12/site-packages/PIL/_typing.py:8`); production Pillow guards its helper import (`PIL/Image.py:207`). This was a package-version mismatch, not forced type checking.
+- **Real pinned CPU replay passed:** authenticated interpreter, environment and a4 overlay; 3,228 imports, no package doubles, zero bulk bytes (`tests/test_pinned.py:24`, `out/PINNED_CHECKS.json:200`). Imports use module names with `TYPE_CHECKING=False` (`src/runtime.py:113`). The recorded receipt exactly matches the delivered closure.
+- **Drops justified:** all 110 drops exactly match pinned probe failures: PIL 1, Accelerate 49, PyAV 53, Torch 1, Transformers 2, torchvision 4 (`tests/pinned_exclusions.json:15`). CPU closure shrinks 3,338→3,228; GPU closure 3,341→3,231. The three CUDA-only imports remain required in GPU mode; real GPU replay remains untested.
+- **Diagnostics fixed:** closure entry and full exception survive worker diagnostics and boot receipt (`src/runtime.py:106`, `src/storage.py:74`, `src/runtime.py:313`). The regression checks a message exceeding 120 characters through authenticated fetch, with zero bulk staging (`tests/test_boot.py:159`).
+- **Token replaced:** `87f4ae5c2f44f` appears in active delivery names; the old token remains as supersession/failure evidence (`PLACE.md:3`). No stale token appeared in the inspected delivery contents.
+- **Guards preserved:** ext4 staging, 44 MB aggregate budget, boot-before-bulk ordering, memory limits and deadlines remain enforced (`src/control.py:28`, `:100`, `:295`, `:485`; `src/monitor.py:38`, `:65`). Naming audit passes; placement resources remain consistent (`NAMING_AUDIT.json`, `PLACE.md:67`).
+- **Validation:** recorded 45 tests pass for this exact delivery (`out/FINAL_CHECKS.json:3`, `:32`). I independently verified every listed checksum and decoded delivered source against reviewed source. BUILD, FORECAST, PLACE and REPORT agree. Tests were not rerun during this read-only review.
+
+Delivery: **4,309,485 bytes**. SHA256: `3998032470651ac870851f39990f638ead7efc6647e2a9c607508ecbe1400cbd`.

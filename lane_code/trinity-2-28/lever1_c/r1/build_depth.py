@@ -64,7 +64,7 @@ def build(out=HERE/'out',scripts=HERE/'orchard'):
     entries=B.read_tar(nf['0.tgz']);pf={m.name:d for m,d in entries};before=dict(pf)
     pub=json.loads(nf['0.json']);plan=json.loads(pf['9.json']);oldtoken=plan['token']
     assert oldtoken=='a52c1dcfae7bb'
-    token='a7e29d4c8f103'
+    token='ad07f53341bc0'
     ref,forecast=reference()
     pf['g/t.py']=(HERE/'runtime/t.py').read_bytes();pf['g/w.py']=(HERE/'runtime/w.py').read_bytes()
     pf['g/d.py']=(HERE/'depth_format.py').read_bytes();pf['g/8.json']=B.jd(ref)
@@ -145,6 +145,8 @@ def build(out=HERE/'out',scripts=HERE/'orchard'):
     input_proof=external_inputs.reshape(nf,pf,B)
     import boot_order
     boot_manifest=boot_order.patch(nf,pf,B,HERE)
+    import write_receipt
+    write_receipt.patch(nf,B,HERE)
     codec=(HERE/'runtime/j.py').read_bytes()
     # Standalone launchers run before the package import loader exists.
     bootstrap=b"\nexec(bytes.fromhex('"+codec.hex().encode()+b"').decode(),_a0:={});_a0['install']()\n"
@@ -167,7 +169,7 @@ def build(out=HERE/'out',scripts=HERE/'orchard'):
     nf['a/1.json']=nf['INPUTS.example.json']=wire.pack(B.jd(inputs))
     # All model/evaluator sources retain their exact bytes; only path resolution changes.
     # One unplaced identity for this repair; all content remains SHA256 sealed.
-    token='a7e29d4c8f103'
+    token='ad07f53341bc0'
     plan['token']=token;plan['stop_margin']=270;plan['return_margin']=240;plan['budget_gpu_seconds']=3000
     plan['payload_pins']={n:dict(bytes=len(d),sha256=B.sha(d)) for n,d in pf.items() if n!='9.json'}
     pf['9.json']=wire.pack(B.jd(plan))
@@ -220,7 +222,7 @@ def build(out=HERE/'out',scripts=HERE/'orchard'):
         mixed_archive='Stream only CPython from runtime group 0; stage group 1 and inputs 3/4; defer other runtime members and all bulk inputs until boot succeeds',
         timing_allowance='Included in the existing unmeasured 600-second staging allowance; no first-seconds claim before runtime provisioning')
     forecast['boot']=boot
-    result=dict(token=token,superseded_tokens=['a6f198d3c7b20'],package='/project/community/jjyeung/'+token,job_name='a15_cot_ap'+token,
+    result=dict(token=token,superseded_tokens=['a6f198d3c7b20','a7e29d4c8f103','a38bd627f901e'],package='/project/community/jjyeung/'+token,job_name='a15_cot_ap'+token,
         forecast=forecast,boot=boot,boot_closure=boot_manifest,
         walltime='00:50:00',delivery_bytes=len(delivery),delivery_sha256=B.sha(delivery),
         payload_expanded_bytes=sum(map(len,pf.values())),layout=layout_proof,external_inputs=input_proof,

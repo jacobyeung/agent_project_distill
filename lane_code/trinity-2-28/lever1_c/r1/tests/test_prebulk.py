@@ -37,6 +37,14 @@ class PrebulkTests(unittest.TestCase):
             self.assertTrue(any("No module named 'a_missing_closure'" in line for line in trace),trace[-30:])
             boot=B.decoded(archive.extractfile('metadata/25.json').read())
             self.assertFalse(boot['passed']);self.assertEqual(boot['bulk_bytes'],0)
+            self.assertEqual(boot['child_returncode'],1)
+            self.assertEqual(boot['worker_returncode'],1)
+            self.assertIsNone(boot['child_signal']);self.assertIsNone(boot['worker_signal'])
+            self.assertEqual(boot['failed_module'],'a_missing_closure')
+            tail=B.decoded(archive.extractfile('metadata/27.json').read())
+            self.assertEqual(tail,boot['child_output'])
+            self.assertTrue(any('a_missing_closure' in line for line in tail['lines']))
+            self.assertEqual(B.decoded((p/'a/25.json').read_bytes()),boot)
         self.assertEqual(B.decoded((p/'a/f/EXIT.json').read_bytes())['status'],'FAILED')
         self.evidence['cases'].append(dict(case=case,passed=True,**counts,boot=boot,production_fetch=True,
             fetched_sha256=B.sha(p/'a/f/0.tgz'),binding='Local interpreter and filesystem replace remote runtime archives and bwrap; worker entry, loader, environment constructor, cwd, stage and fetch are real'))
@@ -66,7 +74,7 @@ class PrebulkTests(unittest.TestCase):
         scope=runpy.run_path(str(HERE/'runtime/boot.py'))
         sys.path.insert(0,str(HERE))
         import build_depth
-        root=Path(tempfile.mkdtemp(dir=HERE/'tests',prefix='mix_'))
+        root=Path(tempfile.mkdtemp(dir=HERE.parent/'r1_fixtures_old',prefix='mix_'))
         path=root/'0.tar'
         with tarfile.open(path,'w') as archive:
             for name,data in [('v/py',b'python fixture'),('q/0',b'policy fixture'),('m544/0',b'weights'),('f/0',b'frames')]:
