@@ -1,8 +1,13 @@
 # tree_rebuild STATUS (successor resumes from this file alone)
-Updated: 2026-11-21T17:44Z by tree_rebuild28 (headless Claude Opus high; session trinity-3-30 /scratch/jjyeung/orch_n30/tree_rebuild28, work trinity-1-18 and 2-28; started 15:26Z; rotate by 01:00Z)
+Updated: 2026-11-21T18:39Z by tree_rebuild28 (headless Claude Opus high; session trinity-3-30 /scratch/jjyeung/orch_n30/tree_rebuild28, work trinity-1-18 and 2-28; started 15:26Z; rotate by 01:00Z)
 W = trinity-1-18:/scratch/jjyeung/orch_n30/tree_rebuild10_w (47 GB 01:21Z; 1-18 /scratch 124 GB free). Mirrors as below.
 
-## Running (17:44Z) — NEWEST FIRST
+## Running (18:39Z) — NEWEST FIRST
+- 18:39Z fix15 DONE: rehearsal ready (work/fix15/RUN.md; start s/o_start.sh at WAITING_REVIEW after gate verdict). RESULT posted.
+- 18:21Z 174198 18:20Z RUNNING 28 min, mode q started (scene receipts), no alarm/hold.
+- 18:02Z ORDER 1757Z: fix15 (opus high) STARTED ~18:04Z building training-start rehearsal (work/fix15, RUN.md), ready by 21:30Z. 174198 staging 18:01Z.
+- 17:52Z STATUS Next rewritten 17:56Z for the 174198 watch.
+- 17:52Z 174134 RELEASED 17:51:00Z (FAILED 1:0 17:51:57Z). 174198 RELEASED 17:52:00Z RUNNING orchard-community-3. Logger wlong4.sh -> tree_rebuild28/work/watch.log. Training-start test not reached (symlinked p/s in scratch).
 - 17:44Z Merged kit 929ab213 INSTALLED X/n 17:43:54Z (old -> X/a24m4z12/n_9e809db4); 174198 SUBMITTED HELD on jn7; SESS_JOB 174198 -> n_ops11; bytes confirm asked of n_review1j.
 - 17:37Z fix14 STOOD DOWN 17:33Z (no step; scratch-layout errors: symlinked p/s at carrier_c1_run.py:188, p/q/r read-only). fix6 owns ORDER 1719Z (started 17:30:53Z); correction + warnings relayed via tree_rebuild27.
 - 17:28Z fix14 two-step training attempt 2 running since 17:26:51Z (4 ranks up). Told tree_rebuild27 to stop fix6 from starting training (collision guard).
@@ -431,11 +436,11 @@ ORCH rulings binding: 0033Z (receipt in allocation, guards), 0034Z (b15 accepted
 
 - trinity-1-18 IO governor node agent restarted once 06:35:58Z per ORCH 0034Z item 3 (old pid 4114313 log silent since 2026-11-17T02:39Z, no stream on the node); new pid 2833402 in tmux iogov_agent, status file fresh. STATE.md keeps showing 1-18 "silent" until a stream registers there: the governor reads agent status only for hosts with records (serial_governor.py:653).
 
-## Next (in order; for a successor of tree_rebuild28; exact at 17:02Z)
-Lane scripts in tree_rebuild28/work: ss.sh (status line + copy), hw2.sh (9-min held wait, exits on inbox/fix6 change), hw3.sh (same without fix6), loop9.sh/m.sh/w3.sh (logger readers; logger tree_rebuild27/work/wlong3.sh -> tree_rebuild27/work/watch.log, J=174134 only: a new job needs a new logger copy with J changed).
-Rulings in force: 1527Z (F1), 1554Z (census rule), ANSWER 1604Z (51 pins kept, census conditions), RULING 1650Z (GO census 94d941e6 + frame 32c31d37; one merged kit; no final seal before walk end or 17:30Z; RELEASE rule item 3; watch plan item 4; record item 5), ANSWER 1653Z (W4 option (i), no fallback).
-Subagents (files): fix6 = tree_rebuild27's walker (tree_rebuild27/work/fix6/REPORT.md; walk n2 at the forward 16:50Z, census publish discovery pass post2). fix12 (mine, merge -> W/w33n/n_go, packet events/tree_rebuild/n33_review, INSTALL.md; work/fix12/REPORT.md). fix13 (mine, W4 cs.py/sv.py option (i) + classify-100 preflight; work/fix13/REPORT.md, DIFF.patch for fix12). Done: fix8 (F1 kit W/w30f1 489f7f0f), fix9 (row keys no leak), fix10 (census diff), fix11 (frame diff).
-1. Post the walk listing (W1-W4 + forward/receipts/gate copy result) when fix6 ends; post W4 vqa/routing/pointing discovery verdicts.
-2. fix13 diff -> fix12 final merge + seal (after 17:30Z or walk end) -> review request to n_review1j (one review: 1650Z item 1 + 1653Z item 5) -> on GO install X/n per INSTALL.md (u/a7682dae first), confirm Orchard bytes (n_review1j).
-3. Fresh job held on X/jn7.sh (98edfd9e, unchanged), ledger line, SESS_JOB id to /scratch/jjyeung/orch_n30/n_ops11/inbox/SESS_JOB (y.json 9ce25396 unchanged), RELEASE 174134 per 1650Z item 3 if still held (hold ends 17:59:50Z by itself), release new job after 174134 has left the queue. New logger (copy wlong3.sh with J). Watch per 1650Z item 4.
-4. First steps RESULT (losses per stream vs P medians, step time, forecast of first export and self-stop). Design records/card per 1650Z item 5.
+## Next (in order; for a successor of tree_rebuild28; exact at 17:56Z)
+State: LAUNCH JOB 174198 (a15_cot_apb2edfac4, advanced 4 H100, orchard-community-3) RUNNING since ~17:51:51Z on X/jn7.sh 98edfd9e + X/n = merged kit 929ab213 (F1 + census 94d941e6 + frame 32c31d37 + room census 4768768f; tar W/w33n/s33n_n_go.tar b0c03db3, mirror 3-30 n30_mirror/tree_rebuild28/fix12/) + sessions 583129d6 (n_ops11). Old kit at X/a24m4z12/n_9e809db4. 174134 ended FAILED 1:0 17:51:57Z by RELEASE.
+Logger: work/wlong4.sh (pid in pgrep -f "bash wlong4.sh") -> work/watch.log, 1/min until GONE. Readers: work/loop9.sh (nine 1-min checks, exits on anomaly incl. hold=YES), work/m.sh. jn7 holds the node on any failure before training (HOLD.txt, tb.txt in X/o/174198); training start cannot be held.
+Forecast (from 174134 + walk): staging ~18:10Z; witness ~18:47Z; stream builds ~19:45Z; :540/:621 ~19:30-19:50Z; frame audit ~81 min single thread (~21:15Z); bind_prepared 20 min; forward 29 min; census publish 14 min; WAITING_REVIEW ~22:30-23:30Z; n_review1j gate; then training: rank-0 preparation check ~250 s after rank start (untested in scratch).
+1. Watch per RULING 1650Z item 4 (1-min around each old failure point and from the forward to first steps/first save; 10 min otherwise); read events/n_ops/N_WATCH_STATUS.md. Any HOLD -> BLOCKER with X/o/174198/tb.txt, debug on the held node via srun --overlap.
+2. First steps RESULT (losses per stream vs P medians, step time, forecast of first export and self-stop); first save + upload rate.
+3. Design records/card per RULING 1650Z item 5 (W1-W4 causes; P passed frame audit since launch_s1 has no begin_host; rule moves owed at first boundary: census into tree). Records: distill_design/N_174134_F1_KIT_20261121.md, N_SCENE_CENSUS_ROWKEY_20261121.md, N_KIT_ADMITTED_CENSUS_20261121.md, N_174134_FRAME_MAP_KIT_20261121.md, N_KIT_CENSUS_POSE_ROOMS_20261121.md, N_LAUNCH_174134_DIVISION_PIN_AND_WALK_20261121.md.
+4. REMOVAL_CANDIDATES: add W/w29f7, W/w30f1, W/w31cen, W/w32frm, W/w33n/test1, Orchard X/up33.tar, X/s33n, X/a24m4z12/n_9e809db4 (after run), node /tmp/a15_f8/f9/f10/f11/f13/dbg_174134 (gone with job), REMOVAL_CANDIDATES_fix13.txt items.

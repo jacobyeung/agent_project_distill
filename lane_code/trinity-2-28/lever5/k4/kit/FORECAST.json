@@ -1,0 +1,23 @@
+{
+  "measured_k3d": {
+    "job": 173701,
+    "staging_seconds": 289.88623428344727,
+    "load_seconds": 16.99498767100158,
+    "total_seconds": 444.58269453048706,
+    "max_32_seconds": 4.9493886940181255,
+    "max_63_seconds": 9.725930406013504,
+    "arm_runs": 20,
+    "frames": 950
+  },
+  "k4_frames": 4100,
+  "k4_arm_runs": 70,
+  "est_94_seconds": 14.947056855717895,
+  "forecast_seconds": 978.8226280096205,
+  "forecast_minutes": 16.313710466827008,
+  "forecast_x1_5_minutes": 24.470565700240513,
+  "guard_seconds": 1971.359813466994,
+  "guard_minutes": 32.85599689111657,
+  "gpu_limit": "00:45:00",
+  "cpu_limit": "01:00:00",
+  "formula": "K3d measured staging + load + sum over 70 arm runs of K3d max arm seconds by frame count (94 frames = 63-frame max x 94/63 x 1.03) + 30 s IO; guard = 600 + 78.2 + sum(1.5 x arm + 3) + 120"
+}

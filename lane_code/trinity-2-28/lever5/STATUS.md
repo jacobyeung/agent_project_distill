@@ -1,0 +1,13 @@
+# lever5 STATUS (trinity-2-28; started 17:44Z 11-21; 10 h timeout ~03:44Z 11-22; rotate at ~02:44Z)
+Lane dir /scratch/jjyeung/orch_n30/lever5 (work/, out/, inbox/). Inherits lever4 (STATUS /scratch/jjyeung/orch_n30/lever4/STATUS.md; scripts /dev/shm/lever4/r1r; compare tool lever4/work/repeat/compare.py + TEST.md). Carriers: Claude only.
+## Owed 1: DONE 18:08Z (RESULT 1808Z)
+- 174160 = CPU check (passed). GPU repeat 174200 COMPLETED 15:24 on orchard-community-3 (same node as 174135; T1 173662 on community-1, repeats inside one job). Depth lever5/r1r/returned/0.gz sha 77174f7da3cd4b124be18f0015ff901ed067c2c8a5b834ae2a8ee9c02e654b4e, GCS gs://cmu-gpucloud-jjyeung/q8/ae71c903/a3b73b53d92a70002a878c/0.gz gen 1795284316374119; governor record lever5_r1rdepth.done.
+- run2 == run1 bit-identical; both differ from T1 identically -> systematic; STOP stands; node test (pin community-1) proposed, not run without order. Files events/lever/files/r1/REPEAT_174200.*.
+## Owed 2: CLOSED by ORCH ANSWER 1751Z (ARKit stays 32 frames; no coverage job). K4 build stopped 18:09Z, local CPU test killed; design in plan record + events/lever/files/BRIEF_K4_COVERAGE_DESIGN.md; k4/ in REMOVAL_CANDIDATES.md.
+## Owed 3: DONE 18:10Z: plan record rank 1 entry (repeat, open node test, ARKit finding) and Status line updated; rank 4 entries were complete.
+## Rulings in force: as lever4 STATUS (0720Z, 0933Z floor 5 GiB, 1213Z not advanced, 1300Z, 1329Z STOP stands, 1620Z).
+## Now (18:18Z), under ORCH ANSWER 1814Z
+- Item 1 DONE: 174208 on orchard-community-1 COMPLETED 14:39, bit-identical to runs 1-2 (depth lever5/r1n/returned/0.gz sha ff460e9c..., GCS .../a3b73b53d92a70002a880c/0.gz gen 1795286085344572; governor lever5_r1ndepth.done). RESULT 1840Z. CPU diagnosis RESULT 1842Z: first capture bit-identical to T1, later 59 differ -> G3T depends on process history; T1 repeats of capture 0 differ by 0.00186 m. Plan rank 1 entry updated. Waiting for tolerance/paired-reading ruling.
+- Answer prepared for item 1 (node case): cell (a) is relifted from the same dump as b-g (relift.py:289-309), so a paired in-dump reading needs no GPU, only a relift gate amendment + review.
+- Item 2: rank 4 dev wording closed, recorded in plan (line ~216).
+- R0 checks (ANSWER 1822Z): check 1 not run (GCS q7/7822a58d holds no named list; Mind size unknown) -> waits. Check 2 stage a DONE (governed lever5_r0mesh_a.done on 2-28; agent there is live once a record exists): counts can't narrow (0 exact, 6 pairs at 0.1%, 363 at 1%); RESULT 1830Z proposes (ii) strided extents ~4 GB; waits for answer. Check 3 deferred, written in R0 record. Inputs: lever5/r0chk/{auth,stage_a,*.txt}.

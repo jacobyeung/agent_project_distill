@@ -50,7 +50,10 @@ def build(admit_standin):
     c4 = dict(schema='r1-protected-census-v1', phase='final', config_identity=ident, status='PASS', streams={})
     for i, s in enumerate(STREAMS):
         files['c%d.json' % i] = enc([])
-        c4['streams'][s] = dict(result=dict(stream=s, source_rows=ADMITTED[s] + 10, admitted_rows=ADMITTED[s], protected_rows=0), refusals=[], status='PASS',
+        k1 = {'pose': 2663, 'routing': 841}.get(s)
+        c4['streams'][s] = dict(result=dict(stream=s, source_rows=ADMITTED[s] + 10, admitted_rows=ADMITTED[s], protected_rows=0,
+                                            resolved=dict(authority_and_aliases=ADMITTED[s], namespace=0, unresolved=0), protected_by_resolution={},
+                                            exposure=({'K1_heldout': dict(status='exposure recorded, not protected', rows=k1)} if k1 else {})), refusals=[], status='PASS',
                                 protected_keys=dict(file='c%d.json' % i, sha256=h(files['c%d.json' % i]), count=0))
         files['e%d.json' % i] = enc(dict(stream=s, admitted_rows=ADMITTED[s], answer_only=0,
                                          databases=[dict(source='0', path='/tmp/q/p/q/p/prepare_x/%s.sqlite' % s, sha256=('ab' * 32), bytes=1)],
@@ -111,6 +114,8 @@ def main():
         v['counts']['units'] = 300; v['counts']['camera_rotation'] += 418
     def nonfinite(v): v['records'][5]['loss'] = float('nan'); v['records'][5]['finite'] = False
     def waiting(v): v['v_sha256'] = '1' * 64
+    def k1(v): v['streams']['routing']['result']['exposure']['K1_heldout']['rows'] = 842
+    def unres(v): v['streams']['pose']['result']['resolved']['unresolved'] = 3
     def outside(v): v['sources']['pose_a2v3']['outside']['dev'] = 1840; v['sources']['pose_a2v3']['admitted']['dev'] = 3778
     cases = [('pass', base, [], 0),
              ('identity_v_sha', mutate(base, 'WAITING_REVIEW.json', waiting), ['identity'], 1),
@@ -119,6 +124,8 @@ def main():
              ('census_protected_row', mutate(base, 'c4.json', protected), ['census'], 1),
              ('item3_units_quota', mutate(base, 'population.json', quota), ['d_population', 'item3_counts'], 1),
              ('first_batch_nan', mutate(base, 'f.json', nonfinite), ['first_batch'], 1),
+             ('census_k1_exposure', mutate(base, 'c4.json', k1), ['census'], 1),
+             ('census_unresolved', mutate(base, 'c4.json', unres), ['census'], 1),
              ('scene_outside_differs', mutate(base, 's4.json', outside), ['scene_census'], 1),
              ('scene_s4_absent', {k: v for k, v in base.items() if k != 's4.json'}, ['scene_census'], 1),
              ('admit_negative_pixels', dict(base, **{'ADMIT.json': enc(neg_admit)}), ['admit_test'], 1),

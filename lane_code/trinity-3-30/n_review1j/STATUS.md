@@ -1,9 +1,10 @@
-# n_review1j STATUS (successor resumes from this file alone) — 17:43Z 2026-11-21
+# n_review1j STATUS (successor resumes from this file alone) — 18:32Z 2026-11-21
 Lane n_review1j: headless Claude Code Opus, trinity-3-30, started 2026-11-21 15:08Z, 10 h timeout (rotate by ~00:00Z 11-22). Brief B/briefs/n_review1j_c.md. B = /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30. Predecessor state: /scratch/jjyeung/orch_n30/n_review1j/STATUS_n_review1i.md (copy of n_review1i STATUS 15:05Z).
 Lanes: tree_rebuild28 from 15:25Z (inbox /scratch/jjyeung/orch_n30/tree_rebuild28/inbox; events B/events/tree_rebuild; tree_rebuild27 ending), n_ops11 (inbox /scratch/jjyeung/orch_n30/n_ops11/inbox). Carriers Claude only.
 
-## Job
-174134 (kit X/n 9e809db4, wrapper X/jn7.sh 98edfd9e) HELD on orchard-community-3 until 17:59:50Z after admit refused at carrier_c1_run.py:542. ORDER 1502Z binds. No RELEASE without ORCH.
+## Job (current first)
+- 174198 (a15_cot_apb2edfac4, advanced) submitted 17:44Z, RELEASED 17:52Z (RUNNING orchard-community-3; 174134 released) on merged kit X/n 929ab213 (installed 17:43:54Z) + jn7.sh 98edfd9e; SESS_JOB to n_ops11. My Orchard bytes check 17:44:53Z ALL_EQUAL (work/o_confirm.out) posted. Release by tree_rebuild28 after sessions and 174134 leaves the queue. Gate (WAITING_REVIEW) about 4.5 h after start, so ~22:20Z (tree_rebuild28 budget). ORDER 1757Z: at WAITING_REVIEW I run the gate FIRST and post PASS/FAIL; tree_rebuild28 then rehearses training start (srun --overlap); n_ops11 installs review.json only after gate PASS AND ORCH answer to the rehearsal. Job waits up to 120 min for review.json.
+- OLD: 174134 (kit X/n 9e809db4, wrapper X/jn7.sh 98edfd9e) HELD on orchard-community-3 until 17:59:50Z after admit refused at carrier_c1_run.py:542. ORDER 1502Z binds. No RELEASE without ORCH.
 
 ## Done
 - 1508Z RESULT started. Gate kit hashes checked: gate.py 7be0fb0b, run_gate.sh fe4dcf06, make_review.py b845a1e6 (kit by path /scratch/jjyeung/orch_n30/n_review1i/work/gate/).
@@ -30,11 +31,11 @@ Lanes: tree_rebuild28 from 15:25Z (inbox /scratch/jjyeung/orch_n30/tree_rebuild2
 - 1713Z walk listing W1-W4 done (forward, receipts, gate copy reached). 1719Z ORDER: 2-step training trial in scratch (not mine). Merged kit packet expected at events/tree_rebuild/n33_review (W/w33n/n_go).
 - fix13 draft (work/fix13/new2/b): sv.PROTECTION table; exposure statuses zeroed in s2 flags, recorded in c4 result.exposure -> my G4 still passes; add an exposure check (routing 841, pose exact) when final.
 - GATE TODO: G4 census (gate.py) fails any s2/c4 K1_heldout != 0 per stream; adapt to the 1716Z table once the merged kit shows the c4/s2 field names (K1 allowed + recorded for pose/routing, exact counts pinned; 0 elsewhere). Retest (pass + negatives).
-- n33 merged kit (events/tree_rebuild/n33_review; 1-18 W/w33n/n_go seal 929ab213, tar b0c03db3, mirror 3-30 n30_mirror/tree_rebuild28/fix12): my GO posted 17:42Z (bytes verified myself, s21.out). OPEN: read fix13 t5 (full publish + armed verify, sv b4b4e20e) in tree_rebuild28/work/fix13/REPORT.md; withdraw GO if it fails.
-- Orchard confirm ready: work/o_confirm.sh vs work/expect_n33.txt (+ jn7.sh 98edfd9e, X/u/a7682dae). Run when tree_rebuild28 says X/n installed.
+- n33 merged kit (events/tree_rebuild/n33_review; 1-18 W/w33n/n_go seal 929ab213, tar b0c03db3, mirror 3-30 n30_mirror/tree_rebuild28/fix12): my GO posted 17:42Z (bytes verified myself, s21.out). t5 PASS 17:48Z (REPORT l.45); RESULT posted; GO stands.
+- Orchard confirm DONE 17:44:53Z (o_confirm.sh/out vs expect_n33.txt): X/n = 929ab213, members equal, jn7 98edfd9e, X/u/a7682dae ok.
 
 ## Owed
 1. Review F1 when tree_rebuild27 posts it (they build in parallel, unsealed until ORCH GO); also any fix for the cause (files, sha256, criteria in READING file "What a true fix looks like"). Tree change or row removal needs ORCH ruling first.
 2. Confirm Orchard bytes (X/n SHA256SUMS + named files; X/jn7.sh) before each release of a new job (template /scratch/jjyeung/orch_n30/n_review1j/work/o46-style: n_review1i/work/o46.sh).
-3. Gate at WAITING_REVIEW: bash /scratch/jjyeung/orch_n30/n_review1j/work/gate/run_gate.sh <job> /scratch/jjyeung/orch_n30/n_review1j/gate_<job> [--local DIR]; PASS -> make_review.py <run dir> <kit8> /scratch/jjyeung/orch_n30/n_review1j/review_<job>.json, copy to n_ops11/inbox; FAIL -> BLOCKER.
+3. Gate at WAITING_REVIEW of 174198 (kit8 = 929ab213): bash /scratch/jjyeung/orch_n30/n_review1j/work/gate/run_gate.sh <job> /scratch/jjyeung/orch_n30/n_review1j/gate_<job> [--local DIR]; PASS -> make_review.py <run dir> <kit8> /scratch/jjyeung/orch_n30/n_review1j/review_<job>.json, copy to n_ops11/inbox; FAIL -> BLOCKER.
 4. Check inbox + B/events/tree_rebuild every 5 min.

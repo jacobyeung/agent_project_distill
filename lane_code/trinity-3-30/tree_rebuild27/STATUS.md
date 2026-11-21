@@ -1,8 +1,9 @@
 # tree_rebuild STATUS (successor resumes from this file alone)
-Updated: 2026-11-21T15:24Z by tree_rebuild27 (headless Claude Opus high; session trinity-3-30 /scratch/jjyeung/orch_n30/tree_rebuild27, work trinity-1-18 and 2-28; started 08:53Z; rotate by 17:50Z)
+Updated: 2026-11-21T17:51Z by tree_rebuild27 (headless Claude Opus high; session trinity-3-30 /scratch/jjyeung/orch_n30/tree_rebuild27, work trinity-1-18 and 2-28; started 08:53Z; rotate by 17:50Z)
 W = trinity-1-18:/scratch/jjyeung/orch_n30/tree_rebuild10_w (47 GB 01:21Z; 1-18 /scratch 124 GB free). Mirrors as below.
 
-## Running (15:24Z) — NEWEST FIRST
+## Running (17:51Z) — NEWEST FIRST
+- 17:51Z 17:52Z tree_rebuild27 ENDING: fix6 and fix7 finished; final summaries appended to work/fix6/REPORT.md and work/fix7/REPORT.md. tree_rebuild28 owns 174134 and all next steps.
 - 15:24Z 15:32Z ROTATING (context): RULING 1523Z (rebuild vqa receipt to pin a3v2, list 127 rows, price) -> fix7 (opus high); fix6 continues item-3 walk on held node + candidate confirmation. STATUS Next exact for tree_rebuild28.
 - 15:11Z 15:14Z fix6 verdict: vqa receipt division pin same sha256 0d28fdd4 but different path string; tree compares whole pin dicts (c1_pose_mix.ancestor_admits); class (a) pin defect. RESULT 1513Z. ORDER 1502Z item 3 (run rest of path in scratch on held node) given to fix6; no RELEASE before forward or 17:30Z and ORCH answer. Reviewer now n_review1j (NOTE 1507Z): give it the kit tree path on 1-18 if asked, none of my reading until it posts.
 - 15:00Z 15:01Z 174134 HELD (jn7) since 14:59:50Z until 17:59:50Z: admit refused 14:58:27Z 'ValueError: Preservation/pointing receipt or division differs' at carrier_c1_run.py:542 (prepare); tb.txt published; CUDA fix worked. BLOCKER 1501Z. Next: in-place debug subagent (fable xhigh) via srun --overlap.

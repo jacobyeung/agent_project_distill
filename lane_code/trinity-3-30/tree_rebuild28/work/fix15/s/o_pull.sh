@@ -1,0 +1,2 @@
+export TZ=UTC; date -u +%TZ
+timeout 80 srun --overlap --jobid 174198 -N1 -n1 bash -c 'R=$(readlink -f /tmp/a15_rh_174198/last); cd $R && tail -c 3000000 log/t.raw.log > log/t.tail.log; tar czf - summary.json log/go.log log/accept.log log/ev_rank0.jsonl log/ev_rank1.jsonl log/ev_rank2.jsonl log/ev_rank3.jsonl log/smi.csv log/t.tail.log log/t.rc log/proof.txt log/job_before.txt log/job_after.txt log/env.txt log/bwrap_args.txt w/top/p/q/r/smoke 2>/dev/null | head -c 15000000 | base64 -w 76'

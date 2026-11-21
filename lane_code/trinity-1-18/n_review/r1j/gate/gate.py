@@ -51,6 +51,9 @@ SCENE_WHOLE = {'camera': (4768, 0), 'pointing': (3640, 2944), 'pool': (9546, 618
                'pose_a3v2': (13440, 22160), 'vqa': (0, 0)}
 SCENE_OUTSIDE = {'camera': (783, 0), 'pointing': (0, 0), 'pool': (1122, 566), 'pose_a2v3': (1841, 159),
                  'pose_a3v2': (0, 0), 'vqa': (0, 0)}
+# Room census exposure (ORCH RULING 1716Z): K1 held-out protects vqa and pointing; pose and routing record their
+# K1 rows as exposure (fix13 t4/t6 counts); every stream resolves every admitted row.
+K1_EXPOSURE = {'pose': 2663, 'routing': 841, 'vqa': None, 'pointing': None}
 E = {s: 'e%d.json' % i for i, s in enumerate(STREAMS)}   # rv.py NAMES: pose e0, vqa e1, routing e2, pointing e3
 
 results = []
@@ -217,7 +220,14 @@ def main():
                 problems.append('%s %s protected_rooms %s' % (E[s], s, rooms))
             if not (res.get('admitted_rows') == sc.get('admitted') == ev.get('admitted_rows')):
                 problems.append('%s admitted c4 %s s2 %s %s %s differ' % (s, res.get('admitted_rows'), sc.get('admitted'), E[s], ev.get('admitted_rows')))
-            summary.append('%s admitted %s (source %s) protected 0 in c4, s2 and %s' % (s, res.get('admitted_rows'), res.get('source_rows'), E[s]))
+            resolved = res.get('resolved') or {}; exp = ((res.get('exposure') or {}).get('K1_heldout') or {})
+            if resolved.get('unresolved') != 0: problems.append('%s resolved.unresolved %s' % (s, resolved.get('unresolved')))
+            if res.get('protected_by_resolution'): problems.append('%s protected_by_resolution %s' % (s, res.get('protected_by_resolution')))
+            if K1_EXPOSURE[s] is None:
+                if exp: problems.append('%s records K1 exposure %s but K1 protects it' % (s, exp.get('rows')))
+            elif exp.get('rows') != K1_EXPOSURE[s] or exp.get('status') != 'exposure recorded, not protected':
+                problems.append('%s K1 exposure %s (%s), expected %d' % (s, exp.get('rows'), exp.get('status'), K1_EXPOSURE[s]))
+            summary.append('%s admitted %s (source %s) protected 0 in c4, s2 and %s; unresolved 0; K1 exposure %s' % (s, res.get('admitted_rows'), res.get('source_rows'), E[s], exp.get('rows', 'none')))
         say('census', not problems, '; '.join(summary) if not problems else '; '.join(problems))
 
     # G5 item 3: actual routing counts within 10% of P's quotas; stream totals under their list ceilings

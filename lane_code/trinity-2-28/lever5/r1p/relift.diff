@@ -1,0 +1,51 @@
+1c1,6
+< """CPU relift of authenticated T1 masks through the deployed geometry and gap code."""
+---
+> """CPU relift of authenticated T1 masks through the deployed geometry and gap code.
+> 
+> Lane copy (lever5) under the gate amendment of ORCH RULING 2026-11-21T18:48Z, made before any cell was read:
+> the gate is (i) every depth-free gap check matches; (ii) cell (a) is relifted from the same dump and the same
+> code path as cells b-g, so every comparison is paired inside one dump; (iii) camera/scale parity and the printed-gap
+> parity of a(dump) against T1 are reported per dataset and do not gate. Nothing else differs from lever1_c/r1/relift.py."""
+208a214,241
+> def _ds(cap):
+>     return {'arkitscenes':'ARKit','scannet':'ScanNet','scannetpp':'ScanNet++','scannetppv2':'ScanNet++'}[cap.split('/')[0]]
+> 
+> 
+> def camera_report(depths):
+>     """Non-gating: per dataset, captures/items within T1's bound and max deviation per field (from each row's parity)."""
+>     out={}
+>     for cap,row in depths.items():
+>         d=out.setdefault(_ds(cap),dict(captures=0,captures_trusted=0,items=0,items_trusted=0,max_deviations={}))
+>         d['captures']+=1;d['captures_trusted']+=bool(row['parity']['trusted'])
+>         for it in row['parity']['items']:
+>             d['items']+=1;d['items_trusted']+=bool(it['trusted'])
+>             for k,v in it['max_deviations'].items():d['max_deviations'][k]=max(d['max_deviations'].get(k,0.0),float(v))
+>     return out
+> 
+> 
+> def gap_report(checks,refs):
+>     """Non-gating: per dataset, items whose a(dump) gap equals the printed T1 gap, differs by 0.01 m, or more."""
+>     out={}
+>     for c in checks:
+>         d=out.setdefault(_ds(refs[c['item_id']]['capture']),{'0.00':0,'0.01':0,'beyond':0,'missing':0})
+>         a,t=c['relift_m'],c['printed_m']
+>         if a is None or t is None:d['0.00' if a is None and t is None else 'missing']+=1
+>         else:
+>             e=round(abs(a-t),2);d['0.00' if e==0 else '0.01' if e<=0.01 else 'beyond']+=1
+>     return out
+> 
+> 
+233,234c266,267
+<     if not all(r['parity']['trusted'] for r in depths.values()):
+<         result.update(status='STOP: depth camera/scale parity failed');dump(args.out,result);return 2
+---
+>     result['gate']='amended 2026-11-21T18:48Z: paired in-dump reading; T1 parity reported, not gating'
+>     result['camera_parity_vs_t1']=camera_report(depths)
+254,256c287,288
+<     result['parity']=dict(items=checks,objects=object_checks,object_fraction=fraction,passed=fraction>=.95)
+<     if fraction<.95:
+<         result.update(status='STOP: registered served-mask parity failed');dump(args.out,result);return 2
+---
+>     result['parity']=dict(items=checks,objects=object_checks,object_fraction=fraction,passed=fraction>=.95,
+>                           gating=False,by_dataset=gap_report(checks,refs))
