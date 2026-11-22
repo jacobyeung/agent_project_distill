@@ -1,5 +1,5 @@
 # tree_rebuild STATUS (successor resumes from this file alone; lane tree_rebuild30 on trinity-3-30)
-Updated: 2026-11-22T12:20Z by tree_rebuild30 (headless Claude Opus high; session trinity-3-30 /scratch/jjyeung/orch_n30/tree_rebuild30). Older lines below are by predecessors.
+Updated: 2026-11-22T15:33Z by tree_rebuild30 (ended; successor tree_rebuild31 to be started on the user's GO). Older lines below are by predecessors.
 W = trinity-1-18:/scratch/jjyeung/orch_n30/tree_rebuild10_w (47 GB 01:21Z; 1-18 /scratch 124 GB free). Mirrors as below.
 
 ## Running (07:17Z) — NEWEST FIRST
@@ -21,6 +21,7 @@ W = trinity-1-18:/scratch/jjyeung/orch_n30/tree_rebuild10_w (47 GB 01:21Z; 1-18 
 - 10:56Z 174444 T+3h18 single-thread stage, no alarm.
 - 12:01:03Z 174444 WAITING_REVIEW (bound ends 14:01:03Z); /tmp 5,694.6 GB. 12:03:21Z rehearsal started (rh_ext/start_174444.out; run /tmp/a15_rh_174444/run_20261122T120321Z). RESULT 1203Z; n_review1l asked to gate.
 - 12:11:53Z 174444 CANCELLED by orch-home-43 (lane ss2) on the user's long-video priority (INBOX_TO_DISTILL_ORCH_20261122T1214Z.md); no training step; rehearsal cut at load_model. n_review1l gate on published files ALL PASS 8/8. BLOCKER 1218Z; user QUESTION saved (default: no resubmission). Logger stopped (state=GONE).
+- 15:33Z rotate: brief briefs/tree_rebuild31_c.md written; successor not started (blocked on the user); RESULT_rotate posted. tree_rebuild30 ENDS.
 <!-- /tr30 top -->
 - 07:17Z Started tree_rebuild30 07:15:49Z (pid 1086774); it posted its start 0716Z. tree_rebuild29 ENDS.
 - 07:08Z n_review1l GO 0707Z on kit ea058fed + jn8. All tree_rebuild29 subagents finished. Successor tree_rebuild30 to start at ~07:16Z if none.
@@ -515,7 +516,7 @@ ORCH rulings binding: 0033Z (receipt in allocation, guards), 0034Z (b15 accepted
 
 - trinity-1-18 IO governor node agent restarted once 06:35:58Z per ORCH 0034Z item 3 (old pid 4114313 log silent since 2026-11-17T02:39Z, no stream on the node); new pid 2833402 in tmux iogov_agent, status file fresh. STATE.md keeps showing 1-18 "silent" until a stream registers there: the governor reads agent status only for hosts with records (serial_governor.py:653).
 
-## Next (in order; for tree_rebuild30 or its successor; exact at 12:20Z 2026-11-22)
+## Next (in order; for tree_rebuild30 or its successor; exact at 15:33Z 2026-11-22)
 State: NO N job. 174444 CANCELLED 12:11:53Z by orch-home-43 (lane ss2) on the user's long-video priority, at its gate before any training step (BLOCKER 1218Z). Long-video job 174465 (lv_slot_1122, 8 h limit) holds the account's 4-GPU slot; ss2 notes its end in /data3/jjyeung/orch_n13_20261026/STOP_NOTICES.md. Orchard X/n = kit ea058fed (reviewed, bytes ALL_EQUAL), X/jn8.sh 2de401bd, X/n_r EMPTY (old verdict at X/n_r_old/review_174246.json).
 1. Resubmission waits for the USER (rerun of work stopped under the user's priority; question in /data2/jjyeung/agent_project_data/SAVED_USER_QUESTIONS.md, default no resubmission). Never on a default.
 2. When the user allows it and 174465 has ended: (a) check X/n_r empty and X/n seal ea058fed; (b) `sbatch --hold X/jn8.sh` (pattern work/i35.sh tail); ledger; (c) sessions: `cd /scratch/jjyeung/orch_n30/n_ops10/work && bash sess2.sh mint <job> && bash sess2.sh install <job>` (y.json 9ce25396; PASS line in n_ops8/work/gcs/install_<job>.out); (d) n_review1m byte check (B/evidence/n_review1l/o_confirm35.sh); (e) release (work/r35.sh with the new job id and sess sha); (f) logger: sed J= in work/w3.sh, start work/wlong.sh (setsid nohup), cadence in work/wsleep.

@@ -15,3 +15,4 @@
 - 10:56Z 174444 T+3h18 single-thread stage, no alarm.
 - 12:01:03Z 174444 WAITING_REVIEW (bound ends 14:01:03Z); /tmp 5,694.6 GB. 12:03:21Z rehearsal started (rh_ext/start_174444.out; run /tmp/a15_rh_174444/run_20261122T120321Z). RESULT 1203Z; n_review1l asked to gate.
 - 12:11:53Z 174444 CANCELLED by orch-home-43 (lane ss2) on the user's long-video priority (INBOX_TO_DISTILL_ORCH_20261122T1214Z.md); no training step; rehearsal cut at load_model. n_review1l gate on published files ALL PASS 8/8. BLOCKER 1218Z; user QUESTION saved (default: no resubmission). Logger stopped (state=GONE).
+- 15:33Z rotate: brief briefs/tree_rebuild31_c.md written; successor not started (blocked on the user); RESULT_rotate posted. tree_rebuild30 ENDS.

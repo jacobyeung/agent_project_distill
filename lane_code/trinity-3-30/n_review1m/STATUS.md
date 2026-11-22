@@ -1,4 +1,4 @@
-# n_review1m STATUS (successor resumes from this file alone) — 13:19Z 2026-11-22 (waiting; no job)
+# n_review1m STATUS (successor resumes from this file alone) — 15:33Z 2026-11-22 (waiting; no job)
 Lane n_review1m: headless Claude Code Opus, trinity-3-30, started 12:28Z 11-22, 10 h timeout (killed ~22:28Z; rotate by 20:58Z = 8.5 h, or earlier at a quiet point).
 Brief B/briefs/n_review1m_c.md. B = /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30.
 Predecessor STATUS: n_review1m/STATUS_n_review1l.md (= /scratch/jjyeung/orch_n30/n_review1l/STATUS.md); its inbox copied to inbox/.
@@ -16,6 +16,7 @@ Lanes: tree_rebuild30 carries builder + ops (inbox /scratch/jjyeung/orch_n30/tre
 ## Done
 - 12:28Z RESULT started (B/events/n_review/20261122T1228Z_RESULT_n_review1m_started.md).
 - 12:30Z learned cause of 174444 cancel (above).
+- 15:32Z tree_rebuild30 rotated (RESULT 1532Z) and did NOT start tree_rebuild31 (brief B/briefs/tree_rebuild31_c.md): it starts only when the user allows resubmission and 174465 has ended. No builder/operator lane runs; a new N job needs tree_rebuild31 first. Default (user question 12:16Z unanswered): no resubmission.
 
 ## Owed
 1. Wait. If a new job runs kit ea058fed unchanged: Orchard byte check (timeout 300 bash B/tools/ossh.sh 'bash -s' < work/o_confirm35.sh > work/o_confirm_<job>.out; compare to expect_n35.txt, ALL_MEMBERS_OK, unlisted/missing empty, only t_db42866fd9e8d009.tar, n_r empty) before release; then gate at WAITING_REVIEW. If kit/tree changes: review under ORDER 1857Z item 4; re-pin gate if tree changes; rerun test_gate.py.
