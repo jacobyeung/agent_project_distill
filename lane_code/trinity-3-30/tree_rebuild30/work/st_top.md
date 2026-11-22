@@ -12,3 +12,4 @@
 - 09:46Z 174444 admission (prep 105 min, on pace vs 141-min reference), no alarm.
 - 10:15Z 174444 T+2h37 single-thread stage, no alarm; 174246's pace: frame audit end T+3h56 (~11:34Z), WAITING_REVIEW T+4h23 (~12:01Z).
 - 10:25Z rehearsal pre-check (rh_ext/s/o_pre.sh, A15_JOB env) PASS like 174246: authenticate db42866f, 559 sandbox args, job folder untouched, planner lo only, sha256 1.82 GB/s (4 passes 249 s), GPU0 623 MiB. /tmp free 5,694.8 GB. Rule for the gate: dp.py train check (j.sh:457, bar 0) needs free > 5,218.7 GB at training start after the rehearsal's ~270 GB sink: start the rehearsal only if /tmp free >= 5,589 GB at WAITING_REVIEW (174246 recovered +828 GB at its WAITING_REVIEW, 4,890 -> 5,717 GB).
+- 10:56Z 174444 T+3h18 single-thread stage, no alarm.

@@ -1,4 +1,4 @@
-## Next (in order; for tree_rebuild30 or its successor; exact at 10:30Z 2026-11-22)
+## Next (in order; for tree_rebuild30 or its successor; exact at 10:56Z 2026-11-22)
 State: job 174444 RUNNING since 07:37:50Z (orchard-community-3) on kit ea058fed (tree db42866f, selection c672ad47, milestones [100,200]); staging plan check PASS; gate ~12:02Z.
 1. DONE 07:35:42Z release. Next: when RUNNING, set work/wsleep 60 through the staging plan check.
 2. Watch: logger running. 1-minute checks (echo 60 > work/wsleep) at the staging plan check (b/dp.py, ~19 min after start: free must exceed 5,218.7 GB + 300 GB), frame audit, gate, and from training start to the first save; 600 otherwise. Hold (HOLD.txt) -> BLOCKER with tb.txt; debug with one subagent (fable, xhigh).
