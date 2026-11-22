@@ -126,9 +126,9 @@ def run(out):
 
 def main():
     standin, negative, root = json.load(open(sys.argv[1])), json.load(open(sys.argv[2])), Path(sys.argv[3])
-    # Fixtures come from the admit test on tree 9d2bbb8a; the gate now pins tree 02fd9a95ebd9719c596b39ac80e5247b92c1d6673d6cc2f4956c70b902718041 (T-mil), so the fixtures carry it.
+    # Fixtures come from the admit test on tree 9d2bbb8a; the gate now pins tree db42866fd9e8d0090276686527e8ebd8837ab2a9401609d81039b8784187f034 (T-mil + group timeout 1800 s), so the fixtures carry it.
     OLD_TREE = standin.get('tree_sha256')
-    standin['tree_sha256'] = negative['tree_sha256'] = '02fd9a95ebd9719c596b39ac80e5247b92c1d6673d6cc2f4956c70b902718041'
+    standin['tree_sha256'] = negative['tree_sha256'] = 'db42866fd9e8d0090276686527e8ebd8837ab2a9401609d81039b8784187f034'
     root.mkdir(parents=True, exist_ok=False)
     base = build(standin)
     neg_admit = build(negative)['ADMIT.json']

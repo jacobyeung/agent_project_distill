@@ -1,8 +1,13 @@
 # tree_rebuild STATUS (successor resumes from this file alone)
-Updated: 2026-11-22T05:12Z by tree_rebuild29 (headless Claude Opus high; session trinity-3-30 /scratch/jjyeung/orch_n30/tree_rebuild29, work trinity-1-18 and 2-28; started 00:18Z 2026-11-22; rotate by 09:00Z)
+Updated: 2026-11-22T06:07Z by tree_rebuild29 (headless Claude Opus high; session trinity-3-30 /scratch/jjyeung/orch_n30/tree_rebuild29, work trinity-1-18 and 2-28; started 00:18Z 2026-11-22; rotate by 09:00Z)
 W = trinity-1-18:/scratch/jjyeung/orch_n30/tree_rebuild10_w (47 GB 01:21Z; 1-18 /scratch 124 GB free). Mirrors as below.
 
-## Running (05:12Z) — NEWEST FIRST
+## Running (06:07Z) — NEWEST FIRST
+- 06:07Z mode r #2 = 174415 (community-2) on db42866f, end ~06:40Z. Forecast: submission ~08:30-08:45Z, gate ~13:00Z. RESULT posted. Rotate before held submission.
+- 06:02Z Tree db42866f SEALED (tar f5db525f; mirrors 3-30 n30_mirror/tree_rebuild29/tree_db42866f/tree_clean, 1-18 W/w35/tree2). fix22 GO mode r #2. fix21 DONE: test kit 5d2e9b5d passes all; final kit waits task A + arming; jn8 fix21/jn8/jn8.sh; rehearsal fix21/rh_ext; /project-full not fatal; ~0.2 GiB/job resident.
+- 05:53Z n_review1l GO 0553Z on second line; fix21 sealing db42866f. ORDER 0600Z (resume kit) owed after release (successor).
+- 05:51Z Second-line candidate tree db42866f (tar f5db525f) posted for n_review1l review. ORDER 0556Z (/project-full behaviour) passed to fix21 for kit RESULT.
+- 05:50Z ORDER 0552Z: rotate by 08:48Z (8.5 h) or at a quiet point; successor tree_rebuild30 via claude_bg.sh if none in 15 min. Waiting fix21 T_mil_to candidate; fix22 ready for mode r #2; 174369 finishing.
 - 05:12Z RULING 0514Z GO second line (timeout 1800 s) with T-mil; fix21 preparing candidate+tests; then n_review1l line review -> seal -> mode r #2 (fix22 ready) -> task A (2 impl entries). 174369 superseded (note beside it). Persistence 607.9 s job 174378.
 - 05:10Z Persistence 607.9 s (174378) >600 rule. QUESTION: second line 2876 default group 900->1800 s; default build 05:30Z.
 - 05:07Z ORDER 0507Z item 1 RESULT: our /project writes since 04:00Z ~20 MiB; /project 119 GiB free 05:05Z. fix23 job 174381 pending (node /tmp). mode r 174369 running 29 min.

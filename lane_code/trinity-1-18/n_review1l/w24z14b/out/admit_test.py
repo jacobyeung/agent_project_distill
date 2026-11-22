@@ -13,9 +13,9 @@ import traceback
 
 J = Path('/scratch/jjyeung/orch_n30/n_review1l/w24z14b')
 BASE = Path('/scratch/jjyeung/orch_n30/n_review1l/w24z12b')
-TREE = BASE / 'work/tree_r1c'
+TREE = BASE / 'work/tree_r1c2'
 KIT = BASE / 'out/kit_n_go'
-SEAL = '02fd9a95ebd9719c596b39ac80e5247b92c1d6673d6cc2f4956c70b902718041'
+SEAL = 'db42866fd9e8d0090276686527e8ebd8837ab2a9401609d81039b8784187f034'
 LIMIT = 16_000_000
 started = time.monotonic()
 

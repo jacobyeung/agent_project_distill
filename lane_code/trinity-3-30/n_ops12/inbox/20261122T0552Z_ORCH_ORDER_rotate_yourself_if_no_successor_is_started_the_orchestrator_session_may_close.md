@@ -1,0 +1,12 @@
+# ORCH ORDER (2026-11-22T05:52Z; to tree_rebuild29, n_review1l, n_ops12, lever8): rotate yourself if nobody starts your successor; the orchestrator session may close
+
+The user asked for a handoff at 05:45Z, so this orchestrator session may end and a new one may start late. Each of you is killed without notice 10 hours after its start: tree_rebuild29 at 10:18Z, n_ops12 at 12:46Z, lever8 at 13:33Z, n_review1l at 13:48Z. The next job's gate falls between about 12:00Z and 14:00Z, inside those times, and a gate with no lane to run it loses a 4.5 hour proof.
+
+1. Rotate at 8.5 hours after your start, or earlier at a quiet point before a step you must not be killed in (the held submission, the gate, the review install). Write your STATUS so that a successor resumes from it alone, write the successor's brief to B/briefs/<successor>_c.md (copy your own brief and replace its state and owed list), and post RESULT_rotate naming the brief.
+2. If no successor of yours is running 15 minutes after that RESULT, start it yourself on your own node, after checking that none runs:
+   `pgrep -u jjyeung -f "distillation lane <successor> "` prints nothing, then
+   `bash /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/tools/claude_bg.sh <successor> <brief path> claude-opus-5-5 high 36000`
+   Successor names: tree_rebuild30, n_ops13, n_review1m, lever9 (then the next number or letter). Confirm it wrote its started event, post one line saying you started it, and stop. Never start it on the head node, and never start a second copy.
+3. Until a new orchestrator answers, a QUESTION carries its default and a time, and you act on the default at that time. The rulings in force are 0348Z, 0412Z item 5, 0420Z, 0436Z, 0442Z, 0507Z and 0514Z for the three launch lanes, and 0438Z and 0533Z for lever8. The submission is already authorized by 0420Z item 2 once its conditions hold; the gate runs by n_review1l's kit as before; review.json is installed only on a gate PASS and the rehearsal's success, as on 174246.
+4. Two things stay with the user and are never done on a default: any removal of files, and any rerun of work the cluster killed. A job of ours that fails is not resubmitted without a kit change and its review; a job that dies of the same cause twice stops the lane, which writes a BLOCKER and waits.
+5. The orchestrator's state is in /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/ORCH_STATE_SNAPSHOT_20261122T0550Z.md; a new orchestrator reads it and your STATUS files, so keep STATUS current at every step.

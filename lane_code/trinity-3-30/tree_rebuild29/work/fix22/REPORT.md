@@ -1,4 +1,4 @@
-STATUS 0436Z fix22: JOB 174369 SUBMITTED 04:36Z (before HOLD 0436Z arrived; let run per order), RUNNING orchard-community-1, folder X/o/174369
+STATUS 0606Z fix22: 174369 COMPLETED 0:0 05:12:34Z (superseded). Mode r 2 = JOB 174415 SUBMITTED 06:04:5xZ RUNNING orchard-community-2, X/o/174415
 
 ## Findings so far
 - CPU mode r precedent: evidence run 173881 (preempt, 16 CPU, 128G, no GPU; `cd X/qd && sbatch --job-name=a15_cot_apd1efc29326c7 ../rcj/rcj.sh r`, tree_rebuild23/work/o9o10.sh) on qd 8ae781f4 + rcj (x.py 7fe00c24, rcj.sh b23393f2, nd.py d7055420, ch.py c931ab55, f.json 8be6cc63, pc.py bd87252b, ps.py 6945292e, P_SAMPLE_I fff742bb). Its outputs are byte-equal to GPU discovery 173912: routing_selection.json a49f117f, receipt.json 38c52f00, materialization.json 6faab9cc, regenerated_sha256 522a3be3, rows.sqlite 5e35c3ce (849,543,168 B). Runtime: staging 703 s + mode r 1,096 s + nsample 196 s + rdiff/proc ~30 s, ~35-40 min wall.

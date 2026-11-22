@@ -1,4 +1,4 @@
-STATUS 2026-11-22T04:37Z fix21: ORDER 0436Z items 4-5 are answered below (pc.py metrics publishing, built and tested). Nothing is sealed (the tree seal waits on the persistence measurement; the tree pins in b35.py are parameterized by the tree35 dir). The rehearsal (fix21r) is running.
+STATUS 2026-11-22T05:58Z fix21: tree db42866f SEALED and mirrored. The TEST kit on db42866f (seal 5d2e9b5d, not for review) passes the full suite on trinity-1-18. The rehearsal is DONE. ORDER 0556Z is answered. The final kit seal, tar, mirror and packet wait for task A and the arming.
 
 # fix21 kit w35 build report
 ## Item 1 (held)
@@ -140,3 +140,65 @@ STATUS 2026-11-22T04:37Z fix21: ORDER 0436Z items 4-5 are answered below (pc.py 
 
 ## Tree pins parameterized
 - in/b35.py takes the tree from a tree35 output folder (TREE35.json: seal, tar, sha, changed file). A second tree line only needs in/tree35.py extended and rerun; the kit's k/a.json, k/7.json, k/c0.json and k/p.json pins follow automatically. b35.py asserts only the base tree 9d2bbb8a and its r1_training.py hash, so a second changed file will need its own loop over the recode step; that is a one-line change.
+
+## T_mil_to: T-mil plus the default group timeout (ORCH RULING 0514Z; persistence measured at 607.9 s)
+- Diff: work/fix21/T_mil_to.diff (b84c5da4), against 9d2bbb8a.
+  - r1_training.py:98 as in 02fd9a95.
+  - carrier_c1_run.py:2874: "(15 min)" -> "(30 min)".
+  - carrier_c1_run.py:2876: `30 if cpu else 900` -> `30 if cpu else 1800`.
+  - The increment over 02fd9a95 alone: T_to_increment.diff (9a905055).
+- Candidate (tb/t4, built by in/tree35.py 'timeout'): seal db42866fd9e8d0090276686527e8ebd8837ab2a9401609d81039b8784187f034; tar t_db42866fd9e8d009.tar, sha256 f5db525fc8efcf69c99ec43fd29ba029f6fd54fc0465c0431780643ecf8e47d5, 2,807,774 B. Not sealed.
+- Tests: T_mil_to_tests.log (8c17eccc).
+  - Gloo world-4 harness (test/tto.py, rd/tto.log, scaled 1/60): new 1800 passes uploads of 607.9 and 1200 and fails at 1900. Old 900 passes 607.9 and fails at 1200.
+  - 28 tree test files (startup and r1 importers): identical outcomes, old vs new.
+  - With LANE_TEST_OUTPUT and R2_PROOFS set: 41 passed and 4 errors on both trees.
+
+## Tree db42866f sealed (n_review1l GO 0428Z and 0553Z); supersedes 02fd9a95
+- work/fix21/sealed_tree2/: tar t_db42866fd9e8d009.tar f5db525f, TREE35.json, T_mil_to.diff b84c5da4, T_to_increment.diff, T_mil_to_tests.log, TREE_SEAL.json, SHA256SUMS.
+- Mirrors, each passing sha256sum -c:
+  - trinity-1-18 /scratch/jjyeung/orch_n30/tree_rebuild10_w/w35/tree2/ (over IB);
+  - trinity-3-30 /scratch/jjyeung/n30_mirror/tree_rebuild29/tree_db42866f/, with the extracted tree in tree_clean/ (digest re-checked = db42866f).
+
+## Item 5: extended gate rehearsal (fix21r; rh_ext/REPORT.md)
+- After its two steps, the rehearsal runs the trainer's own checkpoint(), persistence milestone() (archive copy), export() and milestone() on four ranks inside train(), on the default group, with the job's Budget. Then one pass of the kit's pc.py planner runs against a local recorder, with no network.
+- Scratch: about 270 GB on the node's /tmp, not cleared. Against the plan's margin, 498.8 GB after staging leaves about 229 GB at the first real save.
+- go.log prints PERSIST_SECONDS with a DANGER mark above 800 s or 1600 s.
+- CPU tests all pass, including the dry run as fix15 test 4 on both kits.
+
+## ORDER 0556Z: writes to /project after training starts, and what a full /project does
+The training process cannot write the real /project. j.sh's sandbox (tk_bwrap) binds every top-level host entry read-only, so the real /project is read-only. $X is node-local $Q_ROOT/x, $X/runs is node-local rp, $P is read-only node-local, and the trainer output p/q/r is node /tmp. The one writable real-/project bind is Q_LIVE = X/o/<job>/live (rv.py location()), which only rv.py writes, and rv.py finishes before t.py starts.
+
+Every /project write during training comes from separate processes:
+| writer | what, where, how often | on ENOSPC |
+|---|---|---|
+| jn8 j2.py (setsid loop) | j2.log/j2.err screened tails, up to 300 KB each, X/o/<job>/, every 600 s | exception caught, line in node j2.retry.log, retry next pass; job goes on |
+| jn8 j6.py (setsid loop) | live mirror (mem, alarm, tails, gate.txt, df, live.json), up to 2 MB, X/o/<job>_live/, every 120 s, each snapshot a child under timeout | child exits 1, ignored; retry next cadence; job goes on |
+| pc.py --loop-small (setsid, from pc.sh) | small(): markers, tails, metadata and state, up to 50 MB (copy.json), X/o/<job>/live/, every 600 s; new metrics_<attempt>.jsonl.gz, up to 45 MB each, plus metrics.json, every 300 s | Copier.attempt catches every Exception and notes it in node live_spool/retry.log; the next cadence retries (atomic() reuses its .part name); job goes on |
+| pc.py --loop (uploads) | GCS only; paths() checks X/o/<job>/live, X/n_ck/<job> and X/n_s but writes neither (n_ck is never written) | attempt catches; job goes on |
+| at exit only: o.py | o.tar and RESULT.json up to 50 MB to X/o/<job>/ | OSError caught, local retry.log |
+| at exit: pc.py --final / --small | copy_exit, final small | `|| true` in pc.sh tk_live_finish |
+| at exit: ep.py | evidence copy | errors caught (R1_EVIDENCE_COPY_FAILED), `|| true` |
+| at exit: jn8 j7.py tb and hold, j2 fallback | tb.txt up to 200 KB, HOLD.txt, HOLD_END.txt, j2.fallback.log | `|| true`; no HOLD.txt means no hold ("HOLD record not written; no hold") |
+| before training only | rv.py v.json and WAITING_REVIEW (X/o/<job>/live), cs.py publish (live/c4.json), j6 gate copy (up to 10 MB, X/o/<job>_gate) | before t.py; a failure ends the job before training (pre-training hold) |
+
+- Item 2: no write to /project can kill training, so nothing needs softening. Every writer during training is a separate process that catches the error and retries at its cadence. No tree line is needed.
+- Item 3: checkpoints and exports go to GCS through the upload sessions (pc.py send -> gc.py PUT on the session URLs). The session map is read from X/n_s at the publisher's start and cached on the node (live_spool/private/sess.json), and receipts and claims are node-local, so they do not depend on /project once training runs.
+- GiB per whole job (ORDER 0507Z item 4):
+  - Resident at the end, at most about 0.21 GB: live copy 50 MB, metrics gz 45 MB (about 33 MB expected), o.tar 50 MB, v.json and WAITING_REVIEW (KB), gate copy 10 MB, live mirror 2 MB, logs 0.6 MB, tb 0.2 MB, and mode-q receipts of about 6 MiB (174246 measured). Atomic replaces add up to 95 MB of transient space.
+  - Cumulative bytes written over 24 h, worst case: live copy 144 x 50 MB = 7.2 GB, metrics 288 x 45 MB = 13 GB (3-4 GB expected), mirror 720 x 2 MB = 1.4 GB; under 22 GB in all, with at most 0.3 GB resident at once.
+  - Well under 1 GiB of free /project is needed; the 3 GiB floor covers it.
+
+## TEST kit on tree db42866f, full suite on trinity-1-18 (05:55-05:58Z; s/test2.sh = s/body35b.sh plus stage_test2; rd/test2.out, rd/t18b/)
+- tree35 'timeout' rebuilt from W/w34/n_go reproduces the sealed tar f5db525f byte for byte.
+- The TEST kit W/w35/test2/n_go has seal 5d2e9b5d35aaa3a13933248c94a3e905e863657b6eba49da427e11ec229e9dfe; the local kt/test5 build has the same seal.
+- Changed members vs 7e23bbdd:
+  - k/a.json, k/7.json, k/c0.json, k/p.json, k/c.json, k/n.json, k/j.json, b/pc.py, BUILD.json, SHA256SUMS.txt;
+  - added b/il.py, b/dp.py, k/t_db42866fd9e8d009.tar;
+  - removed k/t_e047002134f979bd.tar.
+- The new code record (decoded k/c0.json) is da19bb3ad9e9227e12bc28161713ae6a1f2a680e559039e290caa2cff0bc6eca (129,141 B). It must be at X/n/u/<sha> before the job stages. 1b5bab59 was the 02fd9a95 record and is superseded.
+- Every test passes:
+  - verify(new tree) equals the seal; py_compile; bash -n;
+  - tchk33, t1_33, fu34 A and B, ut2 ALL PASS (with the new pc.py), st34 all_ok;
+  - tmil, compare_configs, mreaders, dp (preflight, bar edge, 7e23bbdd control, train), til, the jn8 matrix with its jn7 control, tmet (metrics);
+  - the gloo timeout harness: new 607.9 PASS, new 1900 FAIL, old 1200 FAIL.
+- Still owed before the final seal (the coordinator's order of work): task A on the mode r output, the arming (any new k/h.json routing-selection pin and its upload), the final b35 build with those inputs, the tar, the IB mirror, and the n35_review packet (README with criteria and the ORDER 1857Z item 4 table above, INSTALL.md with the move of the old tar and the X/n/u code record).

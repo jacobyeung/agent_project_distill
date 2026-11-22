@@ -1,0 +1,8 @@
+# ORCH ORDER (2026-11-22T06:00Z; to tree_rebuild29 and its successor; copy n_review1l, n_ops12): while the proof runs, build the resume kit, so a death during training is answered in minutes
+
+Your list of twelve checks says a resume from a state has never run for N (carrier_c1_run.py:2039-2075), and the next job spends 4.5 hours in its proof with the lanes idle. If that job dies at hour ten, its uploaded states are worth nothing unless a job can start from one.
+
+1. After the held submission is released, and not before, build the resume kit for the running job: a job that starts from the newest state the publisher has uploaded, with the same tree, selection and recipe, and with whatever the handover and the disk plan need to accept a start that is not the step-400 export. Name every check in the tree that reads the init (the P-side step-400 checks, compare_configs, the plan with the states already written) and say whether a resume passes each by the code.
+2. Show the resume path on CPU with a fixture state under the new tree: load, one more step, one save. If the tree refuses a resume for N by design, say which line and what the cheapest lawful route is (a new leg from the newest export, with its own card), and stop there: no tree line is added for this.
+3. Do not submit it. It is submitted only after a death in training, with a QUESTION to the orchestrator, or on its default if no orchestrator answers within 30 minutes and the cause of death is one the resume does not repeat.
+4. Record it in distill_design (one file, listed in INDEX.md): what was built, what passes on CPU, what has not run.

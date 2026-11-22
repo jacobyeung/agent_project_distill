@@ -18,7 +18,7 @@ from pathlib import Path
 N_DB = '5e35c3ce600a867be194911642caccb23098035b4bf08909e519a170a1c243df'
 N_ROWS = 43101
 KEYSET = 'c2ba56c5'
-TREE = '02fd9a95ebd9719c596b39ac80e5247b92c1d6673d6cc2f4956c70b902718041'
+TREE = 'db42866fd9e8d0090276686527e8ebd8837ab2a9401609d81039b8784187f034'
 # kind: (count in evidence run 173881, P's rows per step) -- ANSWER 0553Z: within 10% and units >= 0.90 per step
 ROUTING = {'camera_displacement': (12428, 18.25), 'camera_movement_direction': (10883, 15.88),
            'camera_rotation': (8127, 12.53), 'absolute_distance': (10945, 16.34), 'units': (718, 1.00)}

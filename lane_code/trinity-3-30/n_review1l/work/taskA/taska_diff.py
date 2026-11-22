@@ -13,6 +13,9 @@ from pathlib import Path
 
 OLD_R1 = 'b05f17046ad109b0ee2f6c810b47c9e3bc100e4676e35c40a7ac02cdc449d019'
 NEW_R1 = '91cdac91f173f5c8ebe2f4e92fbc008ac05bea32a27895809a66ad82a46218bf'
+ALLOWED = {'student_pilot/r1_training.py': (OLD_R1, NEW_R1),
+           'student_pilot/carrier_c1_run.py': ('be11454e49eb23acd9446faf70241c578d793b97eef0e12abdec3622f9390a32',
+                                               '711f091f08ad096ead01456109b279474c62a50b77bd0cbbdc74ee2b4dd3edcd')}
 DB = '5e35c3ce600a867be194911642caccb23098035b4bf08909e519a170a1c243df'
 CHAIN = ['k_dr_p_q_sc_p_p_receipt.json', 'k_dr_p_q_selection_pool_receipt.json', 'materialization.json',
          'receipt.json', 'routing_selection.json']
@@ -28,7 +31,7 @@ def sha(p):
 
 def main(old, new):
     old, new = Path(old), Path(new)
-    mapping = {OLD_R1: NEW_R1}
+    mapping = {a: b for a, b in ALLOWED.values()}
     problems, explained = [], []
     for n in CHAIN:
         so, sn = sha(old / n), sha(new / n)
@@ -38,8 +41,9 @@ def main(old, new):
         diffs = []
         walk(vo, vn, '', diffs)
         for path, a, b in diffs:
-            if path.endswith('/implementation/student_pilot/r1_training.py') and (a, b) == (OLD_R1, NEW_R1):
-                explained.append((n, path, 'implementation r1_training')); continue
+            key = path.split('/implementation/', 1)[1] if '/implementation/' in path else None
+            if key in ALLOWED and (a, b) == ALLOWED[key]:
+                explained.append((n, path, 'implementation ' + key)); continue
             if (n == 'routing_selection.json' and path == '/inputs_pinned/config_sha256' and CONFIG_DERIVED
                     and isinstance(a, str) and isinstance(b, str)):
                 # In-job config digest; kit qd -> c_eb8145adr/qd differs only in tree-derived pins (kqdiff.out).
@@ -48,7 +52,7 @@ def main(old, new):
                 explained.append((n, path, '%s -> %s' % (a[:8], b[:8]))); continue
             problems.append((n, path, str(a)[:120], str(b)[:120]))
         impl = [p for p, a, b in diffs if '/implementation/' in p]
-        if any(not p.endswith('/student_pilot/r1_training.py') for p in impl):
+        if any(p.split('/implementation/', 1)[1] not in ALLOWED for p in impl):
             problems.append((n, 'implementation', 'other implementation entries differ', ','.join(impl)[:200]))
         for a, b in ((so, sn), (do, dn)):
             if a != b:

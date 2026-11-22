@@ -96,4 +96,9 @@ ART='17:00:00.0 r/x/m100/artifact.json'
 res.append(run('no_receipt_10',[raw(T(0),steps=[step(101)],art=ART,rcpt=0),raw(T(11),steps=[step(101),step(102)],art=ART,rcpt=0)],['NO_RECEIPT_10MIN after export m100']))
 res.append(run('receipt_ok',[raw(T(0),steps=[step(101)],art=ART,rcpt=0),raw(T(11),steps=[step(101),step(102)],art=ART,rcpt=4)],['"receipts":4'],['NO_RECEIPT']))
 res.append(run('receipt_wait_9',[raw(T(0),steps=[step(101)],art=ART,rcpt=0),raw(T(9),steps=[step(101),step(102)],art=ART,rcpt=0)],['"receipts":0'],['NO_RECEIPT']))
+# n_ops12: export milestones read from <state dir>/milestones
+for nm,ml in (('mil_skip','200 400'),('mil_keep','100 200')):
+  os.makedirs(W+'/tests/s_'+nm,exist_ok=True); open(W+'/tests/s_'+nm+'/milestones','w').write(ml)
+res.append(run('mil_skip',[ckr(H(17,0),[step(101)],'17:00:00.0 r/x/checkpoint_000001\n'),ckr(H(17,46),[step(101),step(102)],'17:00:00.0 r/x/checkpoint_000001\n')],[],['NO_EXPORT_m100']))
+res.append(run('mil_keep',[ckr(H(17,0),[step(101)],'17:00:00.0 r/x/checkpoint_000001\n'),ckr(H(17,46),[step(101),step(102)],'17:00:00.0 r/x/checkpoint_000001\n')],['NO_EXPORT_m100']))
 print('ALL PASS' if all(res) else 'SOME FAIL', sum(res),'/',len(res))

@@ -201,7 +201,10 @@ if J!='0':
       if newck:S['first_ck']=S.get('first_ck') or newck[0]
       elif not S.get('first_ck') and now-S['step1_t']>=1500:flags.append('NO_FIRST_CK %d min after step 1'%((now-S['step1_t'])/60))
       last_s=allsteps[-1]['step']; due=S.setdefault('ex_due',{})
-      for t in (100,200,400,600,800,1000):
+      # n_ops12: export milestones from D/milestones (e.g. '100 200'); default as before
+      try: MIL=tuple(int(x) for x in open(os.path.join(D,'milestones')).read().split()) or (100,200,400,600,800,1000)
+      except (OSError,ValueError): MIL=(100,200,400,600,800,1000)
+      for t in MIL:
         if last_s>t and 'm%d'%t not in gd:
           due.setdefault(str(t),now)
           if now-due[str(t)]>=2700:flags.append('NO_EXPORT_m%d %d min after step %d'%(t,(now-due[str(t)])/60,t+1))
