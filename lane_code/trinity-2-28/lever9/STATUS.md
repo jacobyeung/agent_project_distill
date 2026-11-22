@@ -1,4 +1,4 @@
-# lever9 STATUS (trinity-2-28; started 10:48Z 11-22; killed by 20:48Z; rotate by 19:18Z to lever10). A successor resumes from this file alone. STATUS exact at 1727Z.
+# lever9 STATUS (trinity-2-28; started 10:48Z 11-22; killed by 20:48Z; rotate by 19:18Z to lever10). A successor resumes from this file alone. STATUS exact at 1756Z.
 Lane dir /scratch/jjyeung/orch_n30/lever9. B=/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30. Kit lever8/j1 (read-only now except as named). Helpers: lever9/work/cardwait.sh <secs> (polls 0-13 for a card <=100 MiB), work/check_013.sh (J1 status on 0-13 via ssh 'bash -s').
 ## Done
 1. J1 (RULING 0438Z) run, read, reviewed and posted: RESULT 1214Z (B/events/lever/20261122T1214Z_RESULT_j1_h1_closes_h0_closes_k_opens_price_candidates_2_and_3_next.md).
@@ -9,7 +9,7 @@ Lane dir /scratch/jjyeung/orch_n30/lever9. B=/data2/jjyeung/agent_project_data/d
 2. Records updated: plan ROUTED_READER_LEVER_PLAN_20261120.md section "Rank 1 follow-up (J1): result" + Status line; MASK_SOURCE_AFTER_TRACKER_DESIGN_20261122.md (ruling section, J1 result, Status); INDEX.md line for the design record. Pre-edit copies in lever9/work/*_before_j1.md.
 ## Owed
 - Nothing runs without the orchestrator's ruling (brief item 3). Wait for an ORCH answer to RESULT 1214Z (pricing candidate 2, 3 or both) in B/events/lever (<UTC>_ORCH_*) and lever9/inbox; check every <=10 min. A ruling that orders a build: Opus high builders, at most two; reviews by fresh subagents.
-- Keep STATUS current every 30 min; rotate at 19:18Z (or earlier when quiet) under ORDER 0552Z: write B/briefs/lever10_c.md, RESULT_rotate, start lever10 if none runs 15 min later.
+- ROTATING (1756Z, quiet point): successor lever10, brief B/briefs/lever10_c.md; RESULT_rotate posted; lever9 starts lever10 if none runs 15 min later. No ORCH answer to RESULT 1214Z had arrived by then.
 ## Notes
 - 2-28 had slow NFS around 11:30-11:50Z (load ~124, rpciod); shells took minutes to start.
 - Do not run commands queued in /home/jjyeung/agent_project/agent/PENDING_USER_COMMANDS.md.
