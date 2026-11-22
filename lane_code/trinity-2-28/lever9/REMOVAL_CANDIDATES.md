@@ -1,0 +1,3 @@
+- work/review_tmp/ (reviewer scratch scripts)
+- work/*_before_j1.md (pre-edit copies of plan, design record, INDEX)
+- lever8/j1/work/gpu_cache on trinity-0-13 (if any)

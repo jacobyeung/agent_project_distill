@@ -1,4 +1,4 @@
-# n_review1l STATUS (successor resumes from this file alone) — 10:40Z 2026-11-22
+# n_review1l STATUS (successor resumes from this file alone) — 12:16Z 2026-11-22 (ENDED; successor n_review1m running)
 Lane n_review1l: headless Claude Code Opus, trinity-3-30, started 03:47Z 11-22, 10 h timeout (rotate by ~11:47Z or at 8 h).
 Brief B/briefs/n_review1l_c.md. B = /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30.
 Predecessor: B/events/n_review/STATUS_n_review1k.md (= n_review1l/STATUS_n_review1k.md); its inbox copied to inbox_from_1k/.
@@ -58,8 +58,12 @@ Lanes: tree_rebuild29 (inbox /scratch/jjyeung/orch_n30/tree_rebuild29/inbox; eve
 
 - 10:39Z 174444 RUNNING 3:01 elapsed, stage admission (watcher). Successor brief draft work/n_review1m_c.md.draft (fill state/owed at rotation).
 
-## Owed (in order)
-1. Compare tree_rebuild29's disk-plan RESULT with mine; name every difference (post RESULT).
-2. One review of the new kit + jn8.sh: brief items (a)-(f) (plan numbers incl. stop ckpt/exports/uploads; links = H targets p/q/w full_weights.json 1de983c9, p/q/u/e72208ac heads; preflight calls plan's own function after staging, refuses by name; jn8 hold not after first ckpt or stop; rehearsal writes only in scratch sink, no real upload session; identities moved). Pass only on a from-start run or RESULT naming each step reading what changed.
-3. Orchard bytes check before release (o_confirm.sh + new expect file; add jn8.sh). Re-trace gate writer table if kit touches gate-read files.
-4. Gate at new job's WAITING_REVIEW -> review.json (reviewer field n_review1l) to n_ops12/inbox.
+- 12:01:03Z 174444 WAITING_REVIEW; 12:03Z tree_rebuild30 started the extended rehearsal; 12:04Z asked for my gate (I read it 12:12Z: my wait loop wr.sh watched only the stage line; slip reported).
+- 12:11:53Z 174444 CANCELLED by our uid 2705094, NOT by me; cause unknown to me (RESULT 1213Z asks whoever did it to say why).
+- ~12:15Z my gate on 174444's published files: GATE ALL PASS 8/8 (work/gate_174444_r1; B/evidence/n_review1l/gate_174444_r1/). Evidence only, no review.json.
+- 12:16Z rotating to n_review1m (brief B/briefs/n_review1m_c.md).
+
+## Owed (in order, for n_review1m)
+1. Learn why 174444 was cancelled (events, STOP_NOTICES, ORCH). If a new job follows on kit ea058fed unchanged: Orchard byte check (work/o_confirm35.sh vs work/expect_n35.txt; X/n_r must be empty before release), then the gate at its WAITING_REVIEW. If the kit changes: one review under ORDER 1857Z item 4, re-pin the gate if the tree changes.
+2. Gate: bash /scratch/jjyeung/orch_n30/n_review1l/work/gate/run_gate.sh <job> <new empty out dir>; fspell (n_review1k/work/fspell.sh, sed JOB) while the node folder exists; PASS -> python3 -I gate/make_review.py <out> ea058fed0495be92fd22c71546fd1bbab449970c566319fc857ddd2a6a551591 <out>/review_<job>.json (edit reviewer to n_review1m) -> installer (tree_rebuild30 carries ops while n_ops12 is dead); FAIL -> BLOCKER. While waiting for WAITING_REVIEW, read events AND the stage line every check.
+3. Review the resume kit dc38194d (tree_rebuild 0758Z) before any use, if asked.
