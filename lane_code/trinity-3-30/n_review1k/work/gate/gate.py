@@ -59,6 +59,11 @@ E = {s: 'e%d.json' % i for i, s in enumerate(STREAMS)}   # rv.py NAMES: pose e0,
 results = []
 
 
+def pooled_routing(counts):
+    """True when the population pools routing into routing_base and names no per-type routing rows."""
+    return (counts.get('routing_base') or 0) > 0 and not any(counts.get(t) for t in ROUTING)
+
+
 def say(point, ok, detail):
     results.append(ok)
     print('GATE %-13s %s %s' % (point, 'PASS' if ok else 'FAIL', detail), flush=True)
@@ -165,10 +170,15 @@ def main():
             b = load(F['binding.json'])
             for key, name in (('population', 'population.json'), ('indices', 'indices.json')):
                 if (b.get(key) or {}).get('sha256') != sha_raw(F[name]): problems.append('binding.json %s pin differs' % key)
-        absent = [t for t in ROUTING if t not in counts]
-        if absent: problems.append('routing kinds absent from population: %s' % absent)
-        total = sum(counts.get(t, 0) for t in ROUTING)
-        offsets = [o for t in ROUTING for o in (idx.get('cells') or {}).get(t, [])]
+        # Minimal kits pool routing into one cell, routing_base (tree r1_population.py:80-83; ORCH ANSWER 0553Z 2026-11-20).
+        pooled = pooled_routing(counts)
+        if pooled:
+            total = counts.get('routing_base', 0); offsets = list((idx.get('cells') or {}).get('routing_base', []))
+        else:
+            absent = [t for t in ROUTING if t not in counts]
+            if absent: problems.append('routing kinds absent from population: %s' % absent)
+            total = sum(counts.get(t, 0) for t in ROUTING)
+            offsets = [o for t in ROUTING for o in (idx.get('cells') or {}).get(t, [])]
         if len(offsets) != len(set(offsets)): problems.append('duplicate routing offsets %d' % (len(offsets) - len(set(offsets))))
         if set(offsets) != set(range(N_ROWS)): problems.append('routing offsets cover %d of range(%d), %d outside' % (
             len(set(offsets) & set(range(N_ROWS))), N_ROWS, len(set(offsets) - set(range(N_ROWS)))))
@@ -179,7 +189,7 @@ def main():
         hits = [p for p, v in shas(rs) if v == N_DB] + ['e2.databases' for d in e2.get('databases', []) if d.get('sha256') == N_DB]
         if not hits: problems.append('neither the prepared routing stream nor e2.databases names %s; e2.databases %s' % (
             N_DB[:8], [(d.get('sha256', '')[:8], d.get('bytes')) for d in e2.get('databases', [])]))
-        say('d_population', not problems, ('routing rows %d = prepared receipt %s = e2 %s; offsets exactly range(%d); database %s named at %s; '
+        say('d_population', not problems, (('routing cell routing_base (pooled); ' if pooled else 'routing per-type cells; ') + 'routing rows %d = prepared receipt %s = e2 %s; offsets exactly range(%d); database %s named at %s; '
             'e2 reader databases %s. Key set %s was established on these database bytes in evidence run 173881; with P1 empty and full offsets the population is that key set.' % (
             total, rcount, ecount, N_ROWS, N_DB[:8], hits[:3], [(d.get('sha256', '')[:8], d.get('bytes')) for d in e2.get('databases', [])], KEYSET))
             if not problems else '; '.join(problems))
@@ -251,13 +261,41 @@ def main():
     miss = need('population.json')
     if miss: say('item3_counts', False, 'missing population.json')
     else:
-        counts = ctx['population.json'].get('counts', {}); total = sum(counts.get(t, 0) for t in ROUTING); problems = []; rows = []
-        for t, (expected, quota) in ROUTING.items():
-            n = counts.get(t, 0); per = n / total * ROUTING_ROWS_PER_STEP if total else 0.0; off = (per - quota) / quota * 100
-            rows.append('%s %d (173881 %d) %.3f/step vs P %.2f = %+.2f%%' % (t, n, expected, per, quota, off))
-            if abs(off) > QUOTA_TOLERANCE: problems.append('%s %+.2f%% beyond %.0f%%' % (t, off, QUOTA_TOLERANCE))
-        units = counts.get('units', 0) / total * ROUTING_ROWS_PER_STEP if total else 0.0
-        if units < UNITS_FLOOR: problems.append('units %.3f/step below %.2f' % (units, UNITS_FLOOR))
+        counts = ctx['population.json'].get('counts', {}); problems = []; rows = []
+        if pooled_routing(counts):
+            # ORCH ANSWER 0553Z: routing_base is accepted when the expected rows per step by type, 64 x count / total, is
+            # within 10% of P's quota and units >= 0.90/step. Type counts: e2.question_types (rv.py:224), the rows of the
+            # admitted routing database; e2 merges units into object_abs_distance, so units comes from the pinned 718 and
+            # is accepted only when object_abs_distance equals the pinned absolute_distance + units.
+            total = counts.get('routing_base', 0); qt = (ctx.get('e2.json') or {}).get('question_types') if 'e2.json' in ctx else None
+            groups = (('camera_displacement', ('camera_displacement',)), ('camera_movement_direction', ('camera_movement_direction',)),
+                      ('camera_rotation', ('camera_rotation',)), ('object_abs_distance', ('absolute_distance', 'units')))
+            if not isinstance(qt, dict) or set(qt) != {g for g, _ in groups}:
+                problems.append('e2.question_types %s does not name exactly %s' % (qt, [g for g, _ in groups]))
+            else:
+                if sum(qt.values()) != total: problems.append('e2.question_types sum %d != routing_base %d' % (sum(qt.values()), total))
+                for g, types in groups:
+                    n = qt[g]; quota = sum(ROUTING[t][1] for t in types); expected = sum(ROUTING[t][0] for t in types)
+                    per = n / total * ROUTING_ROWS_PER_STEP if total else 0.0; off = (per - quota) / quota * 100
+                    rows.append('%s %d (173881 %d) %.3f/step vs P %.2f = %+.2f%%' % ('+'.join(types), n, expected, per, quota, off))
+                    if abs(off) > QUOTA_TOLERANCE: problems.append('%s %+.2f%% beyond %.0f%%' % ('+'.join(types), off, QUOTA_TOLERANCE))
+                if qt['object_abs_distance'] != ROUTING['absolute_distance'][0] + ROUTING['units'][0]:
+                    problems.append('object_abs_distance %d != pinned absolute_distance %d + units %d: units rate unknown' % (
+                        qt['object_abs_distance'], ROUTING['absolute_distance'][0], ROUTING['units'][0]))
+                else:
+                    units = ROUTING['units'][0] / total * ROUTING_ROWS_PER_STEP if total else 0.0
+                    rows.append('units %d (pinned 173881 count; e2 merges it into object_abs_distance) %.3f/step vs P %.2f = %+.2f%%' % (
+                        ROUTING['units'][0], units, ROUTING['units'][1], (units - ROUTING['units'][1]) / ROUTING['units'][1] * 100))
+                    if units < UNITS_FLOOR: problems.append('units %.3f/step below %.2f' % (units, UNITS_FLOOR))
+            rows.insert(0, 'routing_base pooled draw (ANSWER 0553Z rule), %d rows' % total)
+        else:
+            total = sum(counts.get(t, 0) for t in ROUTING)
+            for t, (expected, quota) in ROUTING.items():
+                n = counts.get(t, 0); per = n / total * ROUTING_ROWS_PER_STEP if total else 0.0; off = (per - quota) / quota * 100
+                rows.append('%s %d (173881 %d) %.3f/step vs P %.2f = %+.2f%%' % (t, n, expected, per, quota, off))
+                if abs(off) > QUOTA_TOLERANCE: problems.append('%s %+.2f%% beyond %.0f%%' % (t, off, QUOTA_TOLERANCE))
+            units = counts.get('units', 0) / total * ROUTING_ROWS_PER_STEP if total else 0.0
+            if units < UNITS_FLOOR: problems.append('units %.3f/step below %.2f' % (units, UNITS_FLOOR))
         admitted = {s: ctx[E[s]].get('admitted_rows') if E[s] in ctx else None for s in STREAMS}
         prepared = {s: (((ctx.get('receipt.json') or {}).get('streams') or {}).get(s) or {}).get('count') for s in STREAMS}
         print('INFO item3 admitted rows (e0-e3) %s; prepared receipt counts %s; VQA list stage 181,098 + 7,971 twins = 189,069; pointing 18,116 before the shape filter' % (admitted, prepared))

@@ -1,0 +1,169 @@
+{
+ "schema": "a15-rehearsal-summary-v1",
+ "NOT_EVIDENCE_FOR_THE_CARD": true,
+ "run": "/tmp/a15_rh_174246/run_20261122T021458Z",
+ "result": "ended rc=1",
+ "driver_seconds": 524,
+ "launch_utc": "2026-11-22T02:15:00Z",
+ "ranks_up": 4,
+ "ranks": {
+  "0": {
+   "up": true,
+   "pid": 4046684,
+   "cvd": "0,1,2,3",
+   "master": "orchard-community-3.c.cmu-gpu-cloud.internal:41381",
+   "stage_seconds": {
+    "verify_staging": 41.8,
+    "admit": 130.1,
+    "network_preflight": 0.0,
+    "authenticate": 2.5,
+    "prepared": 233.5,
+    "load_model": 87.6,
+    "fla_check": 0.0
+   },
+   "last": "ERROR:"
+  },
+  "1": {
+   "up": true,
+   "pid": 4046685,
+   "cvd": "0,1,2,3",
+   "master": "orchard-community-3.c.cmu-gpu-cloud.internal:41381",
+   "stage_seconds": {
+    "verify_staging": 41.7,
+    "admit": 129.0,
+    "network_preflight": 0.0,
+    "authenticate": 1.2
+   },
+   "last": "ERROR:"
+  },
+  "2": {
+   "up": true,
+   "pid": 4046686,
+   "cvd": "0,1,2,3",
+   "master": "orchard-community-3.c.cmu-gpu-cloud.internal:41381",
+   "stage_seconds": {
+    "verify_staging": 41.7,
+    "admit": 129.0,
+    "network_preflight": 0.0,
+    "authenticate": 1.2
+   },
+   "last": "ERROR:"
+  },
+  "3": {
+   "up": true,
+   "pid": 4046689,
+   "cvd": "0,1,2,3",
+   "master": "orchard-community-3.c.cmu-gpu-cloud.internal:41381",
+   "stage_seconds": {
+    "verify_staging": 41.8,
+    "admit": 129.0,
+    "network_preflight": 0.0,
+    "authenticate": 1.2
+   },
+   "last": "ERROR:"
+  }
+ },
+ "seconds_launch_to_first_step_begin": null,
+ "seconds_launch_to_first_step_end": null,
+ "steps_done": {},
+ "step_seconds_max_over_ranks": {},
+ "losses_per_stream": {},
+ "losses_finite": false,
+ "peak_gpu_mib_nvidia_smi": {
+  "0": 2482,
+  "1": 623,
+  "2": 623,
+  "3": 623
+ },
+ "peak_allocated_gib_tree": {},
+ "tree_metrics_files": [],
+ "tree_smoke_report": null,
+ "t_rc": "1",
+ "errors": [
+  {
+   "rank": "0",
+   "where": "train",
+   "type": "ValueError",
+   "message": "Startup failed on rank 1: FileNotFoundError: [Errno 2] No such file or directory: '/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/m400/full_weights/full_weights.json'",
+   "traceback": "Traceback (most recent call last):\n  File \"/tmp/a15_rh_174246/rh/u2.py\", line 17, in w\n    try:r=fn(*a,**k)\n          ^^^^^^^^^^\n  File \"/tmp/q_22c714e1/p/s/student_pilot/carrier_c1_run.py\", line 2920, in train\n    agree(startup, error)\n  File \"/tmp/q_22c714e1/p/s/student_pilot/carrier_c1_run.py\", line 3201, in agree\n    raise ValueError(f'Startup failed on rank {failed[0][0]}: {failed[0][1][:400]}')\nValueError: Startup failed on rank 1: FileNotFoundError: [Errno 2] No such file or directory: '/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/m400/full_weights/full_weights.json'\n"
+  },
+  {
+   "rank": "0",
+   "where": "u2",
+   "type": "ValueError",
+   "message": "Startup failed on rank 1: FileNotFoundError: [Errno 2] No such file or directory: '/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/m400/full_weights/full_weights.json'",
+   "traceback": "Traceback (most recent call last):\n  File \"/tmp/a15_rh_174246/rh/u2.py\", line 65, in <module>\n    report=timed('train',train)(cfg,smoke_steps=int(os.environ.get('A15_STEPS','2')))\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/tmp/a15_rh_174246/rh/u2.py\", line 17, in w\n    try:r=fn(*a,**k)\n          ^^^^^^^^^^\n  File \"/tmp/q_22c714e1/p/s/student_pilot/carrier_c1_run.py\", line 2920, in train\n    agree(startup, error)\n  File \"/tmp/q_22c714e1/p/s/student_pilot/carrier_c1_run.py\", line 3201, in agree\n    raise ValueError(f'Startup failed on rank {failed[0][0]}: {failed[0][1][:400]}')\nValueError: Startup failed on rank 1: FileNotFoundError: [Errno 2] No such file or directory: '/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/m400/full_weights/full_weights.json'\n"
+  },
+  {
+   "rank": "1",
+   "where": "load_model",
+   "type": "FileNotFoundError",
+   "message": "[Errno 2] No such file or directory: '/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/m400/full_weights/full_weights.json'",
+   "traceback": "Traceback (most recent call last):\n  File \"/tmp/a15_rh_174246/rh/u2.py\", line 17, in w\n    try:r=fn(*a,**k)\n          ^^^^^^^^^^\n  File \"/tmp/q_22c714e1/p/s/student_pilot/carrier_c1_run.py\", line 829, in load_model\n    model.init_report = init_from_artifact(model, init, verify=verify_assets, part='lm',\n                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/tmp/q_22c714e1/p/s/student_pilot/carrier_c1_run.py\", line 967, in init_from_artifact\n    report['lm_tensors'] = load_export_masters(model, directory)\n                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/tmp/q_22c714e1/p/s/student_pilot/carrier_c1_run.py\", line 1035, in load_export_masters\n    manifest = json.loads((directory/full_ft.EXPORT_MANIFEST).read_text())\n                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/pathlib.py\", line 1029, in read_text\n    with self.open(mode='r', encoding=encoding, errors=errors) as f:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/pathlib.py\", line 1015, in open\n    return io.open(self, mode, buffering, encoding, errors, newline)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nFileNotFoundError: [Errno 2] No such file or directory: '/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/m400/full_weights/full_weights.json'\n"
+  },
+  {
+   "rank": "1",
+   "where": "train",
+   "type": "ValueError",
+   "message": "Startup failed on rank 1: FileNotFoundError: [Errno 2] No such file or directory: '/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/m400/full_weights/full_weights.json'",
+   "traceback": "Traceback (most recent call last):\n  File \"/tmp/a15_rh_174246/rh/u2.py\", line 17, in w\n    try:r=fn(*a,**k)\n          ^^^^^^^^^^\n  File \"/tmp/q_22c714e1/p/s/student_pilot/carrier_c1_run.py\", line 2920, in train\n    agree(startup, error)\n  File \"/tmp/q_22c714e1/p/s/student_pilot/carrier_c1_run.py\", line 3201, in agree\n    raise ValueError(f'Startup failed on rank {failed[0][0]}: {failed[0][1][:400]}')\nValueError: Startup failed on rank 1: FileNotFoundError: [Errno 2] No such file or directory: '/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/m400/full_weights/full_weights.json'\n"
+  },
+  {
+   "rank": "1",
+   "where": "u2",
+   "type": "ValueError",
+   "message": "Startup failed on rank 1: FileNotFoundError: [Errno 2] No such file or directory: '/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/m400/full_weights/full_weights.json'",
+   "traceback": "Traceback (most recent call last):\n  File \"/tmp/a15_rh_174246/rh/u2.py\", line 65, in <module>\n    report=timed('train',train)(cfg,smoke_steps=int(os.environ.get('A15_STEPS','2')))\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/tmp/a15_rh_174246/rh/u2.py\", line 17, in w\n    try:r=fn(*a,**k)\n          ^^^^^^^^^^\n  File \"/tmp/q_22c714e1/p/s/student_pilot/carrier_c1_run.py\", line 2920, in train\n    agree(startup, error)\n  File \"/tmp/q_22c714e1/p/s/student_pilot/carrier_c1_run.py\", line 3201, in agree\n    raise ValueError(f'Startup failed on rank {failed[0][0]}: {failed[0][1][:400]}')\nValueError: Startup failed on rank 1: FileNotFoundError: [Errno 2] No such file or directory: '/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/m400/full_weights/full_weights.json'\n"
+  },
+  {
+   "rank": "2",
+   "where": "load_model",
+   "type": "FileNotFoundError",
+   "message": "[Errno 2] No such file or directory: '/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/m400/full_weights/full_weights.json'",
+   "traceback": "Traceback (most recent call last):\n  File \"/tmp/a15_rh_174246/rh/u2.py\", line 17, in w\n    try:r=fn(*a,**k)\n          ^^^^^^^^^^\n  File \"/tmp/q_22c714e1/p/s/student_pilot/carrier_c1_run.py\", line 829, in load_model\n    model.init_report = init_from_artifact(model, init, verify=verify_assets, part='lm',\n                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/tmp/q_22c714e1/p/s/student_pilot/carrier_c1_run.py\", line 967, in init_from_artifact\n    report['lm_tensors'] = load_export_masters(model, directory)\n                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/tmp/q_22c714e1/p/s/student_pilot/carrier_c1_run.py\", line 1035, in load_export_masters\n    manifest = json.loads((directory/full_ft.EXPORT_MANIFEST).read_text())\n                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/pathlib.py\", line 1029, in read_text\n    with self.open(mode='r', encoding=encoding, errors=errors) as f:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/pathlib.py\", line 1015, in open\n    return io.open(self, mode, buffering, encoding, errors, newline)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nFileNotFoundError: [Errno 2] No such file or directory: '/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/m400/full_weights/full_weights.json'\n"
+  },
+  {
+   "rank": "2",
+   "where": "train",
+   "type": "ValueError",
+   "message": "Startup failed on rank 1: FileNotFoundError: [Errno 2] No such file or directory: '/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/m400/full_weights/full_weights.json'",
+   "traceback": "Traceback (most recent call last):\n  File \"/tmp/a15_rh_174246/rh/u2.py\", line 17, in w\n    try:r=fn(*a,**k)\n          ^^^^^^^^^^\n  File \"/tmp/q_22c714e1/p/s/student_pilot/carrier_c1_run.py\", line 2920, in train\n    agree(startup, error)\n  File \"/tmp/q_22c714e1/p/s/student_pilot/carrier_c1_run.py\", line 3201, in agree\n    raise ValueError(f'Startup failed on rank {failed[0][0]}: {failed[0][1][:400]}')\nValueError: Startup failed on rank 1: FileNotFoundError: [Errno 2] No such file or directory: '/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/m400/full_weights/full_weights.json'\n"
+  },
+  {
+   "rank": "2",
+   "where": "u2",
+   "type": "ValueError",
+   "message": "Startup failed on rank 1: FileNotFoundError: [Errno 2] No such file or directory: '/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/m400/full_weights/full_weights.json'",
+   "traceback": "Traceback (most recent call last):\n  File \"/tmp/a15_rh_174246/rh/u2.py\", line 65, in <module>\n    report=timed('train',train)(cfg,smoke_steps=int(os.environ.get('A15_STEPS','2')))\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/tmp/a15_rh_174246/rh/u2.py\", line 17, in w\n    try:r=fn(*a,**k)\n          ^^^^^^^^^^\n  File \"/tmp/q_22c714e1/p/s/student_pilot/carrier_c1_run.py\", line 2920, in train\n    agree(startup, error)\n  File \"/tmp/q_22c714e1/p/s/student_pilot/carrier_c1_run.py\", line 3201, in agree\n    raise ValueError(f'Startup failed on rank {failed[0][0]}: {failed[0][1][:400]}')\nValueError: Startup failed on rank 1: FileNotFoundError: [Errno 2] No such file or directory: '/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/m400/full_weights/full_weights.json'\n"
+  },
+  {
+   "rank": "3",
+   "where": "load_model",
+   "type": "FileNotFoundError",
+   "message": "[Errno 2] No such file or directory: '/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/m400/full_weights/full_weights.json'",
+   "traceback": "Traceback (most recent call last):\n  File \"/tmp/a15_rh_174246/rh/u2.py\", line 17, in w\n    try:r=fn(*a,**k)\n          ^^^^^^^^^^\n  File \"/tmp/q_22c714e1/p/s/student_pilot/carrier_c1_run.py\", line 829, in load_model\n    model.init_report = init_from_artifact(model, init, verify=verify_assets, part='lm',\n                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/tmp/q_22c714e1/p/s/student_pilot/carrier_c1_run.py\", line 967, in init_from_artifact\n    report['lm_tensors'] = load_export_masters(model, directory)\n                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/tmp/q_22c714e1/p/s/student_pilot/carrier_c1_run.py\", line 1035, in load_export_masters\n    manifest = json.loads((directory/full_ft.EXPORT_MANIFEST).read_text())\n                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/pathlib.py\", line 1029, in read_text\n    with self.open(mode='r', encoding=encoding, errors=errors) as f:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/pathlib.py\", line 1015, in open\n    return io.open(self, mode, buffering, encoding, errors, newline)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nFileNotFoundError: [Errno 2] No such file or directory: '/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/m400/full_weights/full_weights.json'\n"
+  },
+  {
+   "rank": "3",
+   "where": "train",
+   "type": "ValueError",
+   "message": "Startup failed on rank 1: FileNotFoundError: [Errno 2] No such file or directory: '/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/m400/full_weights/full_weights.json'",
+   "traceback": "Traceback (most recent call last):\n  File \"/tmp/a15_rh_174246/rh/u2.py\", line 17, in w\n    try:r=fn(*a,**k)\n          ^^^^^^^^^^\n  File \"/tmp/q_22c714e1/p/s/student_pilot/carrier_c1_run.py\", line 2920, in train\n    agree(startup, error)\n  File \"/tmp/q_22c714e1/p/s/student_pilot/carrier_c1_run.py\", line 3201, in agree\n    raise ValueError(f'Startup failed on rank {failed[0][0]}: {failed[0][1][:400]}')\nValueError: Startup failed on rank 1: FileNotFoundError: [Errno 2] No such file or directory: '/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/m400/full_weights/full_weights.json'\n"
+  },
+  {
+   "rank": "3",
+   "where": "u2",
+   "type": "ValueError",
+   "message": "Startup failed on rank 1: FileNotFoundError: [Errno 2] No such file or directory: '/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/m400/full_weights/full_weights.json'",
+   "traceback": "Traceback (most recent call last):\n  File \"/tmp/a15_rh_174246/rh/u2.py\", line 65, in <module>\n    report=timed('train',train)(cfg,smoke_steps=int(os.environ.get('A15_STEPS','2')))\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/tmp/a15_rh_174246/rh/u2.py\", line 17, in w\n    try:r=fn(*a,**k)\n          ^^^^^^^^^^\n  File \"/tmp/q_22c714e1/p/s/student_pilot/carrier_c1_run.py\", line 2920, in train\n    agree(startup, error)\n  File \"/tmp/q_22c714e1/p/s/student_pilot/carrier_c1_run.py\", line 3201, in agree\n    raise ValueError(f'Startup failed on rank {failed[0][0]}: {failed[0][1][:400]}')\nValueError: Startup failed on rank 1: FileNotFoundError: [Errno 2] No such file or directory: '/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/m400/full_weights/full_weights.json'\n"
+  }
+ ],
+ "tracebacks_in_output": [
+  "Traceback (most recent call last):",
+  "Traceback (most recent call last):",
+  "Traceback (most recent call last):",
+  "Traceback (most recent call last):",
+  "Traceback (most recent call last):\n  File \"<frozen runpy>\", line 198, in _run_module_as_main\n  File \"<frozen runpy>\", line 88, in _run_code\n  File \"/project/community/jjyeung/c7d31ddd/venvs/rwtrain_torch211_cu129/lib/python3.12/site-packages/torch/distributed/run.py\", line 994, in <module>\n    main()\n  File \"/project/community/jjyeung/c7d31ddd/venvs/rwtrain_torch211_cu129/lib/python3.12/site-packages/torch/distributed/elastic/multiprocessing/errors/__init__.py\", line 362, in wrapper\n    return f(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^\n  File \"/project/community/jjyeung/c7d31ddd/venvs/rwtrain_torch211_cu129/lib/python3.12/site-packages/torch/distributed/run.py\", line 990, in main\n    run(args)\n  File \"/project/community/jjyeung/c7d31ddd/venvs/rwtrain_torch211_cu129/lib/python3.12/site-packages/torch/distributed/run.py\", line 981, in run\n    elastic_launch(\n  File \"/project/community/jjyeung/c7d31ddd/venvs/rwtrain_torch211_cu129/lib/python3.12/site-packages/torch/distributed/launcher/api.py\", line 170, in __call__\n    return launch_agent(self._config, self._entrypoint, list(args))\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/project/community/jjyeung/c7d31ddd/venvs/rwtrain_torch211_cu129/lib/python3.12/site-packages/torch/distributed/launcher/api.py\", line 317, in launch_agent\n    raise ChildFailedError("
+ ],
+ "accept": "{\"a15_accept\": \"PASS_STAND_IN_NOT_A_REVIEW\", \"identity\": \"f6250f700cf56d2ed50532f973f8206123f726b6970fdada5c4585109a7bc092\", \"review_pin\": {\"path\": \"/tmp/q_22c714e1/p/rv.json\", \"sha256\": \"4b2711d8d551c04fa6b4fb011f1cb7df63c8e80d24712bb71390c9fce08f1be7\"}, \"preparation\": {\"path\": \"/tmp/q_22c714e1/p/pr.json\", \"sha256\": \"1e96b2265497e6f0bffcffd355ce2cc2d723ecb8b2720786886c0a6ba6678a3a\"}, \"config\": \"/tmp/q_22c714e1/v.json\", \"config_sha256\": \"8a8a29c0d85ab359d0220dd73ad665a4f371e30a5d90b8a3328eaeebf52c380a\", \"seconds\": 1.1}\n"
+}

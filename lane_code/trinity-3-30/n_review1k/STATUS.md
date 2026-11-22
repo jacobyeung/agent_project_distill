@@ -1,4 +1,4 @@
-# n_review1k STATUS (successor resumes from this file alone) — 01:07Z 2026-11-22
+# n_review1k STATUS (successor resumes from this file alone) — 02:20Z 2026-11-22
 Lane n_review1k: headless Claude Code Opus high, trinity-3-30, started 2026-11-21 19:02Z, 10 h timeout (rotate by ~04:00Z 11-22). Brief B/briefs/n_review1k_c.md. B = /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30.
 Predecessor state: STATUS_n_review1j.md here (copy of n_review1j STATUS 19:01Z; full history there). n_review1j inbox copied to inbox_from_1j/.
 Lanes: tree_rebuild29 from 00:18Z 11-22 (inbox /scratch/jjyeung/orch_n30/tree_rebuild29/inbox; events B/events/tree_rebuild), n_ops11 (inbox /scratch/jjyeung/orch_n30/n_ops11/inbox). Carriers Claude only.
@@ -32,7 +32,7 @@ Lanes: tree_rebuild29 from 00:18Z 11-22 (inbox /scratch/jjyeung/orch_n30/tree_re
 
 - 21:15Z tree_rebuild28 RESULT early steps passed; packet events/tree_rebuild/n34_review (kit 1-18 W/w34/n_go seal 7e23bbdd, tar 163cf197, mirror 3-30 n30_mirror/tree_rebuild28/fix17).
 - ~21:31Z my GO RESULT on w34 7e23bbdd (REVIEW_n34_7e23bbdd.md 5f10da72, evidence/n_review1k/). Steps after frame audit unshown, ORCH-accepted.
-- GATE FIX: gate.py required live/s2.json, never written (sv.publish not called). GATE KIT NOW /scratch/jjyeung/orch_n30/n_review1k/work/gate: gate.py ed9594d4, test_gate.py 5d86f529 (19 cases TEST ALL_OK py3.6.8 on 1-18; fixtures F=/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z14/work/build24m4z14/{standin,negative}_verified/ADMIT.json), run_gate.sh ab0c8a3d (+spell.py 227b866b), make_review.py b845a1e6, USAGE c3ea4fec. Copy evidence/n_review1k/gate.
+- GATE FIX: gate.py required live/s2.json, never written (sv.publish not called). GATE KIT NOW /scratch/jjyeung/orch_n30/n_review1k/work/gate: gate.py 390f9f14, test_gate.py 9dacbfc5 (23 cases TEST ALL_OK py3.6.8 on 1-18; fixtures F=/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z14/work/build24m4z14/{standin,negative}_verified/ADMIT.json), run_gate.sh ab0c8a3d (+spell.py 227b866b), make_review.py b845a1e6, USAGE c3ea4fec. Copy evidence/n_review1k/gate.
 - work/expect_n34.txt (from the mirror kit) for the Orchard byte check; o_confirm.sh unchanged (lists the same members).
 
 - 21:36Z Orchard bytes ALL_EQUAL (work/o_confirm34.out) RESULT posted; kit installed X/n 7e23bbdd 21:35Z; job 174246 held on jn7, sessions installed 21:39Z (n_ops11).
@@ -41,7 +41,11 @@ Lanes: tree_rebuild29 from 00:18Z 11-22 (inbox /scratch/jjyeung/orch_n30/tree_re
 
 - ~21:53Z ANSWER 2143Z done: admit test gap (host_receipt_pin NOT_RUN offline) fixed: run_gate.sh ab0c8a3d sends live h0.json + c4.json (as c5.json) + offline_pins.json to 1-18; shown with SYNTHETIC h0 (work/e2e2_run.out): admit point PASS. Route table in GATE_INPUT_WRITERS.md. RESULT posted.
 
+- 02:10:50Z 174246 WAITING_REVIEW (wait ends 04:10:50Z; 80-min mark 03:30:50Z). Gate run 1 (02:12Z): FAIL 2/8 (d_population, item3: gate expected per-type routing cells; kit pools routing_base, r1_population.py:80-83; ORCH ANSWER 0553Z rule). BLOCKER posted with default fix. Gate fixed: gate.py 390f9f14, test_gate.py 9dacbfc5 (23 cases ALL_OK on 1-18, work/t8.out), make_review.py b709850e. Run 2 (02:16Z, gate_174246_r2): GATE ALL PASS 8/8. frames.json + request.json under second name (work/fspell_174246.out). review_174246.json 476d17bd -> n_ops11/inbox. PASS RESULT posted (caveat: gate change at gate; units from pin).
+
+- 02:22Z ORCH ANSWER: PASS accepted with gate change (card review row cites gate.py 390f9f14, test_gate.py 9dacbfc5 and my pin sentence). n_ops11 installs review.json after ORCH answers rehearsal or at 03:30:50Z. First boundary item: reconcile gate and kit population schema in one place.
+
 ## Owed (in order)
 1. DONE (GO 7e23bbdd).
 2. Orchard bytes confirm before each new job release.
-3. Gate at WAITING_REVIEW (bash /scratch/jjyeung/orch_n30/n_review1k/work/gate/run_gate.sh <job> /scratch/jjyeung/orch_n30/n_review1k/gate_<job> [--local DIR]); PASS -> make_review.py -> n_ops11/inbox (installed only after ORCH answers rehearsal, ORDER 1757Z); FAIL -> BLOCKER.
+3. DONE for 174246 (PASS 02:16Z). Next job: gate at WAITING_REVIEW (bash /scratch/jjyeung/orch_n30/n_review1k/work/gate/run_gate.sh <job> /scratch/jjyeung/orch_n30/n_review1k/gate_<job> [--local DIR]); PASS -> make_review.py -> n_ops11/inbox (installed only after ORCH answers rehearsal, ORDER 1757Z); FAIL -> BLOCKER.

@@ -1,0 +1,18 @@
+--- a/rh/L.sh	2026-11-21 21:35:34.183785969 -0500
++++ b/rh/L.sh	2026-11-21 21:35:46.779808547 -0500
+@@ -66,6 +66,15 @@
+ fi
+ # scratch folders for every read-write bind of the job's sandbox
+ mkdir -p "$W/top/p/q/r" "$W/top/j/tmp" "$W/top/cache" "$W/top/tmp" "$W/top/rp" "$W/xo" "$W/xck" "$W/live"
++# fix18 test of the in-job remedy: the two raw paths that ranks 1-3 read from the init artifact (the donor run's
++# folder under $X/runs, which the job backs with its empty $Q_ROOT/rp) become links to the staged copies rank 0
++# authenticates. The job-side equivalent is the same two links under $Q_ROOT/rp/6ed2c7aa/m400 (not made here).
++A15_INIT_HEADS=e72208ac55e342a3ac7972383f63740be323eba28d6c3bd293da1ad47743d4a7
++if [[ "${A15_INIT_LINKS:-1}" == 1 ]]; then
++    mkdir -p "$W/top/rp/6ed2c7aa/m400"
++    [[ -L "$W/top/rp/6ed2c7aa/m400/full_weights" ]] || ln -s "$Q_NS/p/q/w" "$W/top/rp/6ed2c7aa/m400/full_weights"
++    [[ -L "$W/top/rp/6ed2c7aa/m400/heads.pt" ]] || ln -s "$Q_NS/p/q/u/$A15_INIT_HEADS" "$W/top/rp/6ed2c7aa/m400/heads.pt"
++fi
+ # compose NAME: the job folder at NAME, read-only entry by entry, inside the scratch folder $W/top; the
+ # entries training or the post-PASS steps write (v.json, p/rv.json, p/pr.json, p/q/r, j, cache, tmp, rp)
+ # are scratch. Symlinks are recreated as symlinks; nothing is bound over a symlink.

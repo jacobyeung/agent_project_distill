@@ -1,0 +1,60 @@
+{
+ "mode": "old_tripped",
+ "job": "174294",
+ "pid": 2192128,
+ "end": "raised",
+ "error": "ValueError: Non-opaque Slurm surface: /tmp/a174294c8b836b4ae5365wh1sx88/6.py",
+ "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/lever7/nfa/fix2/t/rehearse_root.py\", line 80, in <module>\n    runpy.run_path(entry, run_name='__main__')\n  File \"<frozen runpy>\", line 287, in run_path\n  File \"<frozen runpy>\", line 98, in _run_module_code\n  File \"<frozen runpy>\", line 88, in _run_code\n  File \"/scratch/jjyeung/orch_n30/lever7/nfa/fix2/t/P_old/a/5.py\", line 182, in <module>\n    if __name__=='__main__':main()\n                            ^^^^^^\n  File \"/scratch/jjyeung/orch_n30/lever7/nfa/fix2/t/P_old/a/5.py\", line 134, in main\n    bundle_guard=check_bundle_guard(package,root)\n                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/lever7/nfa/fix2/t/P_old/a/5.py\", line 49, in check_bundle_guard\n    receipt = results.write_test(str(pool), token)\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/tmp/a174294c8b836b4ae5365wh1sx88/bootstrap/orchard_h10/vendor/orchard_results.py\", line 56, in write_test\n    result=pool_operation('test',pool,token,timeout=60)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/lever7/nfa/fix2/t/rehearse_root.py\", line 44, in pool_operation\n    return real_po(action, pool, token, local=local, timeout=timeout)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/tmp/a174294c8b836b4ae5365wh1sx88/bootstrap/orchard_h10/vendor/orchard_results.py\", line 41, in pool_operation\n    process=subprocess.Popen(argv,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/tmp/a174294c8b836b4ae5365wh1sx88/bootstrap/orchard_h10/common.py\", line 105, in spawn\n    opaque(argv)\n  File \"/tmp/a174294c8b836b4ae5365wh1sx88/bootstrap/orchard_h10/common.py\", line 38, in opaque\n    raise ValueError('Non-opaque Slurm surface: '+str(value))\nValueError: Non-opaque Slurm surface: /tmp/a174294c8b836b4ae5365wh1sx88/6.py\n",
+ "roots": [
+  "/tmp/a174294c8b836b4ae5365wh1sx88"
+ ],
+ "root_modes": {
+  "/tmp/a174294c8b836b4ae5365wh1sx88": "0o700"
+ },
+ "root_has": {
+  "/tmp/a174294c8b836b4ae5365wh1sx88": [
+   "0.json",
+   "0.py",
+   "6.py",
+   "7.py",
+   "bootstrap"
+  ]
+ },
+ "log": [
+  [
+   "imported",
+   "orchard_h10.common",
+   "/tmp/a174294c8b836b4ae5365wh1sx88/bootstrap/orchard_h10/common.py"
+  ],
+  [
+   "imported",
+   "orchard_h10.job",
+   "/tmp/a174294c8b836b4ae5365wh1sx88/bootstrap/orchard_h10/job.py"
+  ],
+  [
+   "imported",
+   "orchard_h10.export_pins",
+   "/tmp/a174294c8b836b4ae5365wh1sx88/bootstrap/orchard_h10/export_pins.py"
+  ],
+  [
+   "imported",
+   "orchard_results",
+   "/tmp/a174294c8b836b4ae5365wh1sx88/bootstrap/orchard_h10/vendor/orchard_results.py"
+  ],
+  [
+   "imported",
+   "orchard_job",
+   "/tmp/a174294c8b836b4ae5365wh1sx88/bootstrap/orchard_h10/vendor/orchard_job.py"
+  ],
+  [
+   "stage_stub",
+   "/tmp/a174294c8b836b4ae5365wh1sx88"
+  ],
+  [
+   "pool_operation",
+   "test",
+   "/tmp/a174294c8b836b4ae5365wh1sx88/wpool",
+   "c8b836b4ae536"
+  ]
+ ]
+}

@@ -1,0 +1,18 @@
+{
+ "mode": "exists",
+ "job": "174294",
+ "pid": 2192947,
+ "end": "raised",
+ "error": "FileExistsError: [Errno 17] File exists: '/tmp/a174294-2192947'",
+ "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/lever7/nfa/fix2/t/rehearse_root.py\", line 84, in <module>\n    runpy.run_path(entry, run_name='__main__')\n  File \"<frozen runpy>\", line 287, in run_path\n  File \"<frozen runpy>\", line 98, in _run_module_code\n  File \"<frozen runpy>\", line 88, in _run_code\n  File \"/scratch/jjyeung/orch_n30/lever7/nfa/fix2/t/P_new/a/5.py\", line 183, in <module>\n    if __name__=='__main__':main()\n                            ^^^^^^\n  File \"/scratch/jjyeung/orch_n30/lever7/nfa/fix2/t/P_new/a/5.py\", line 118, in main\n    root=Path('/tmp')/('a%s-%d'%(job,os.getpid()));root.mkdir(mode=0o700)\n                                                   ^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py\", line 1311, in mkdir\n    os.mkdir(self, mode)\nFileExistsError: [Errno 17] File exists: '/tmp/a174294-2192947'\n",
+ "roots": [
+  "/tmp/a174294-2192947"
+ ],
+ "root_modes": {
+  "/tmp/a174294-2192947": "0o700"
+ },
+ "root_has": {
+  "/tmp/a174294-2192947": []
+ },
+ "log": []
+}

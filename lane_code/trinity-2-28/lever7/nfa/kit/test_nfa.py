@@ -171,10 +171,14 @@ class Operator(unittest.TestCase):
         self.assertEqual(OP.IDX, ITEMS['forward_indices'])
 
 
+CALLS = []
+
+
 def fake_worker(i, first_rows, ids):
     """Stand-in for runner.run in the CPU rehearsal: writes what the worker writes."""
     def execute(cfg, cards, end, prefix=()):
         assert cards == [''] and cfg['q'] == i
+        CALLS.append((i, list(cfg['types'])))
         t = ORDER.index(cfg['types'][0])
         d = Path(cfg['output']) / 'metadata/journals' / str(t) / '0'; d.mkdir(parents=True)
         (d / 'environment.json').write_text(json.dumps(dict(binding=dict(
@@ -199,13 +203,25 @@ class Rehearsal(unittest.TestCase):
         k = dict(zip(ITEMS['forward_ids'], ITEMS['forward_types']))
         return [x for x in ids if k[x] == kind]
 
+    # CPU check, fix 1: read 0 runs on CPU its first item outside type 3 (the first camera item).
+    CAM = [k for k in ITEMS['forward_type_sequence'] if k != 'object_abs_distance']
+
     def test_pass(self):
         rev = self.first_type(ITEMS['reverse_ids'], ITEMS['reverse_type_sequence'][0])
-        fwd = self.first_type(ITEMS['forward_ids'], ITEMS['forward_type_sequence'][0])
+        fwd = self.first_type(ITEMS['forward_ids'], self.CAM[0])
         row = dict(id=fwd[0], complete=True, seconds=1.0, output=dict(text='t', finish='eos', scores=dict(answer=1)))
+        CALLS.clear()
         r = self.run_case('reh1', rev, fwd, [row])
         self.assertTrue(r['passed']); self.assertEqual([x['read'] for x in r['reads']], [1, 0])
         self.assertTrue(r['reads'][1]['first']['exact'])
+        # Read 1 keeps the exact reversed type sequence; read 0 on CPU drops only type 3.
+        self.assertEqual(CALLS, [(1, ITEMS['reverse_type_sequence']), (0, self.CAM)])
+        self.assertEqual(r['reads'][0]['types'], [2, 1, 0, 3]); self.assertEqual(r['reads'][1]['types'], [0, 1, 2])
+        self.assertEqual(r['reads'][1]['cpu_skipped_types'], [3])
+        first_cam = next(j for j, k in enumerate(ITEMS['forward_types']) if k != 'object_abs_distance')
+        self.assertEqual(r['reads'][1]['first']['position'], first_cam)
+        self.assertEqual(ITEMS['forward_ids'][first_cam], fwd[0])
+        self.assertEqual(ITEMS['forward_types'][first_cam], 'camera_displacement')
         from orchard_h10.common import opaque
         opaque([json.dumps(r)])  # REHEARSAL.json and 1.log land on the shared filesystem
 
@@ -217,9 +233,40 @@ class Rehearsal(unittest.TestCase):
 
     def test_missing_record_fails(self):
         rev = self.first_type(ITEMS['reverse_ids'], ITEMS['reverse_type_sequence'][0])
-        fwd = self.first_type(ITEMS['forward_ids'], ITEMS['forward_type_sequence'][0])
-        with self.assertRaises(ValueError):
+        fwd = self.first_type(ITEMS['forward_ids'], self.CAM[0])
+        with self.assertRaises(ValueError) as e:
             self.run_case('reh3', rev, fwd, [])
+        self.assertIn('E72 read 0', str(e.exception))
+
+    def test_type3_first_item_fails(self):
+        # The pre-fix selection (read 0's first item, a type-3 item) no longer passes the CPU check.
+        rev = self.first_type(ITEMS['reverse_ids'], ITEMS['reverse_type_sequence'][0])
+        d = self.first_type(ITEMS['forward_ids'], 'object_abs_distance')
+        row = dict(id=d[0], complete=True, seconds=1.0, output=dict(text='t', finish='eos'))
+        with self.assertRaises(ValueError) as e:
+            self.run_case('reh4', rev, d, [row])
+        self.assertIn('E72 read 0', str(e.exception))
+
+    def test_second_item_rows(self):
+        # The stop marker can land after the worker started its next item: two rows in order pass;
+        # two rows out of order or three rows fail.
+        rev = self.first_type(ITEMS['reverse_ids'], ITEMS['reverse_type_sequence'][0])
+        fwd = self.first_type(ITEMS['forward_ids'], self.CAM[0])
+        row = lambda x: dict(id=x, complete=True, seconds=1.0, output=dict(text='t', finish='eos'))
+        r = self.run_case('reh6', rev, fwd, [row(fwd[0]), row(fwd[1])])
+        self.assertTrue(r['passed']); self.assertEqual(r['reads'][1]['records'], 2)
+        for name, rows in (('reh7', [row(fwd[1]), row(fwd[0])]), ('reh8', [row(x) for x in fwd[:3]])):
+            with self.assertRaises(ValueError) as e:
+                self.run_case(name, rev, fwd, rows)
+            self.assertIn('E72 read 0', str(e.exception))
+
+    def test_reverse_bound_wrong_fails_with_camera_read0(self):
+        fwd = self.first_type(ITEMS['forward_ids'], self.CAM[0])
+        row = dict(id=fwd[0], complete=True, seconds=1.0, output=dict(text='t', finish='eos'))
+        rev = self.first_type(ITEMS['reverse_ids'], ITEMS['reverse_type_sequence'][0])
+        with self.assertRaises(ValueError) as e:
+            self.run_case('reh5', rev[::-1], fwd, [row])
+        self.assertIn('E72 read 1', str(e.exception))
 
 
 class WorkerEntry(unittest.TestCase):
@@ -440,6 +487,19 @@ class Package(unittest.TestCase):
             sp.Popen = kept
         self.assertTrue(proof['passed'])
         self.assertEqual(proof['operator_sha256'], hashlib.sha256((pkg / 'a/6.py').read_bytes()).hexdigest())
+
+    def test_job_root(self):
+        """CPU check root is /tmp/a<job>-<pid>, made exclusively; the GPU root stays 'a'+job+token."""
+        from orchard_h10.common import opaque
+        cpu = self.placed['a/5.py'].decode()
+        self.assertNotIn('mkdtemp', cpu)
+        line = re.findall(r"^\s*root=Path\('/tmp'\)/\((.+?)\);root\.mkdir\(mode=0o700\)$", cpu, re.M)
+        self.assertEqual(line, ["'a%s-%d'%(job,os.getpid())"])
+        self.assertIn("r=Path('/tmp')/('a'+j+'%s')\nr.mkdir(mode=0o700)" % self.token, self.placed['BATCH.sh'].decode())
+        for job, pid in ((100000, 1), (174294, 2192596), (9999999, 9999999)):
+            opaque(['/tmp/a%d-%d/6.py' % (job, pid), '/tmp/a%d%s/6.py' % (job, self.token)])
+        with self.assertRaises(ValueError):
+            opaque(['/tmp/a174294c8b836b4ae5365wh1sx88/6.py'])
 
     def test_opaque_surfaces(self):
         from orchard_h10.common import opaque, submit_argv

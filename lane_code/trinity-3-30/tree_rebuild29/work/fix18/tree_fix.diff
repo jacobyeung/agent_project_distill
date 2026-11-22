@@ -1,0 +1,31 @@
+--- a/student_pilot/carrier_c1_run.py	2026-11-21 21:35:34.180785725 -0500
++++ b/student_pilot/carrier_c1_run.py	2026-11-21 21:35:34.217788729 -0500
+@@ -926,7 +926,9 @@
+     if part not in ('lm', 'heads'):
+         raise ValueError('init part must be lm or heads')
+     local = init_mirror(spec['artifact'])
+-    artifact = load(local/'artifact.json' if local else (pinned(spec['artifact']) if verify else spec['artifact']['path']))
++    # Ranks that skip hashing still read the relocated copy the verifying rank authenticated.
++    from .r1_persisted import relocated
++    artifact = load(local/'artifact.json' if local else (pinned(spec['artifact']) if verify else relocated(spec['artifact'])))
+     if local and sha256(local/'artifact.json') != spec['artifact']['sha256']:
+         raise ValueError('Staged init artifact differs from its pin')
+     if artifact.get('schema') != 'carrier-c1-artifact-v1' or artifact.get('pose_backing') != 'lm_final_norm':
+@@ -960,7 +962,7 @@
+         report['ground_token_ids'] = opener_ids
+     if part == 'lm':
+         if spec['lm'] == 'full':
+-            directory = local/'full_weights' if local else Path(artifact['full_weights']['path']).parent
++            directory = local/'full_weights' if local else Path(relocated(artifact['full_weights'])).parent
+             if not local and verify:
+                 directory = pinned(artifact['full_weights']).parent
+                 full_ft.read_export(directory)
+@@ -973,7 +975,7 @@
+     # A pre-teacher init (C1-a) with the teacher package added: the 2H projector keeps its planned init.
+     fresh = live_teacher and not teacher_space
+     keep = lambda key: key.split('.')[0] in spec['heads'] and not (fresh and key.startswith('pose.projector.'))
+-    heads_path = local/'heads.pt' if local else (pinned(artifact['heads']) if verify else Path(artifact['heads']['path']))
++    heads_path = local/'heads.pt' if local else (pinned(artifact['heads']) if verify else Path(relocated(artifact['heads'])))
+     state = torch.load(heads_path, map_location='cpu', weights_only=True)
+     if spec['lm'] == 'full' and opener_ids:
+         from .ground_tokens import retain_warm_rows

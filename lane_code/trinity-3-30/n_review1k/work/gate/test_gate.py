@@ -19,15 +19,20 @@ def enc(v): return (json.dumps(v, sort_keys=True, separators=(',', ':')) + '\n')
 def h(b): return hashlib.sha256(b).hexdigest()
 
 
-def build(admit_standin):
+QT = {'camera_displacement': 12428, 'camera_movement_direction': 10883, 'camera_rotation': 8127, 'object_abs_distance': 11663}
+
+
+def build(admit_standin, pooled=False):
     files = {}
-    pop = dict(schema='r1-population-v1', complete=True, after_all_filters=True, counts=dict(KINDS, relative_distance=19827, pose_cell=90000))
+    rcounts = dict({k: 0 for k in KINDS}, routing_base=43101) if pooled else dict(KINDS)
+    pop = dict(schema='r1-population-v1', complete=True, after_all_filters=True, counts=dict(rcounts, relative_distance=19827, pose_cell=90000))
     rf = dict(parent=dict(path='/tmp/x/receipt.json', sha256='0' * 64), refusals={'pose': {}, 'vqa': {'ValueError:x': 3}, 'routing': {}, 'pointing': {}})
     files['reader_filters.json'] = enc(rf)
     pop['evidence'] = [dict(path='p/q/b/reader_filters.json', sha256=h(files['reader_filters.json']))]
     files['population.json'] = enc(pop)
     off, cells = 0, {}
-    for k, n in KINDS.items(): cells[k] = list(range(off, off + n)); off += n
+    for k, n in KINDS.items(): cells[k] = [] if pooled else list(range(off, off + n)); off += n
+    if pooled: cells['routing_base'] = list(range(43101))
     files['indices.json'] = enc(dict(population_sha256=h(files['population.json']), cells=cells))
     files['binding.json'] = enc(dict(schema='r1-sampling-v1', population=dict(path='b/population.json', sha256=h(files['population.json'])),
                                      indices=dict(path='b/indices.json', sha256=h(files['indices.json']))))
@@ -58,7 +63,7 @@ def build(admit_standin):
                                 counts=dict({k: 0 for k in PROT}, source=ADMITTED[s] + 10, admitted=ADMITTED[s], unresolved=0))
         files['e%d.json' % i] = enc(dict(stream=s, admitted_rows=ADMITTED[s], answer_only=0,
                                          databases=[dict(source='0', path='/tmp/q/p/q/p/prepare_x/%s.sqlite' % s, sha256=('ab' * 32), bytes=1)],
-                                         protected_rooms={'bench_v2': dict(rows=0), 'dev_s1': dict(rows=0)}, question_types={}))
+                                         protected_rooms={'bench_v2': dict(rows=0), 'dev_s1': dict(rows=0)}, question_types=dict(QT) if s == 'routing' else {}))
     files['c4.json'] = enc(c4)
     files['s2.json'] = enc(dict(status='PASS', refusal=None, counts={s: dict({k: 0 for k in PROT}, admitted=ADMITTED[s]) for s in STREAMS}))
     W = dict(camera=(4768, 0), pointing=(3640, 2944), pool=(9546, 6183), pose_a2v3=(5618, 5039), pose_a3v2=(13440, 22160), vqa=(0, 0))
@@ -136,10 +141,18 @@ def main():
     def unres(v): v['streams']['pose']['result']['resolved']['unresolved'] = 3
     def outside(v): v['sources']['pose_a2v3']['outside']['dev'] = 1840; v['sources']['pose_a2v3']['admitted']['dev'] = 3778
     def s2prot(v): v['counts']['pose']['dev'] = 1
+    pooled = build(standin, pooled=True)
+    def short(v): v['cells']['routing_base'] = v['cells']['routing_base'][:-1]
+    def rate(v): v['question_types']['camera_rotation'] -= 3000; v['question_types']['camera_displacement'] += 3000
+    def unitsx(v): v['question_types']['object_abs_distance'] -= 63; v['question_types']['camera_rotation'] += 63
     def planted(v): v['streams']['routing']['counts']['dev'] = 1
     def h0pin(v): v['protected_census']['sha256'] = '0' * 64
     cases = [('pass', base, [], 0),
              ('pass_s2_absent', {k: v for k, v in base.items() if k != 's2.json'}, [], 0),
+             ('pass_routing_base_pooled', pooled, [], 0),
+             ('pooled_offsets_short', mutate(pooled, 'indices.json', short), ['d_population'], 1),
+             ('pooled_rate_off', mutate(pooled, 'e2.json', rate), ['item3_counts'], 1),
+             ('pooled_units_unknown', mutate(pooled, 'e2.json', unitsx), ['item3_counts'], 1),
              ('census_s2_protected', mutate(base, 's2.json', s2prot), ['census'], 1),
              ('census_planted_row_repinned', repin(mutate(base, 'c4.json', planted)), ['census'], 1),
              ('census_h0_pin_differs', mutate(base, 'h0.json', h0pin), ['census'], 1),

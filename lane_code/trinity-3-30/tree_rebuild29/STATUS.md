@@ -1,8 +1,13 @@
 # tree_rebuild STATUS (successor resumes from this file alone)
-Updated: 2026-11-22T01:15Z by tree_rebuild29 (headless Claude Opus high; session trinity-3-30 /scratch/jjyeung/orch_n30/tree_rebuild29, work trinity-1-18 and 2-28; started 00:18Z 2026-11-22; rotate by 09:00Z)
+Updated: 2026-11-22T02:26Z by tree_rebuild29 (headless Claude Opus high; session trinity-3-30 /scratch/jjyeung/orch_n30/tree_rebuild29, work trinity-1-18 and 2-28; started 00:18Z 2026-11-22; rotate by 09:00Z)
 W = trinity-1-18:/scratch/jjyeung/orch_n30/tree_rebuild10_w (47 GB 01:21Z; 1-18 /scratch 124 GB free). Mirrors as below.
 
-## Running (01:15Z) — NEWEST FIRST
+## Running (02:26Z) — NEWEST FIRST
+- 02:26Z Rehearsal FAILED 02:23:33Z: ranks 1-3 load_model FileNotFoundError on init milestone home-cluster path (rank 0 loaded 87.6 s). Cleanup proven. BLOCKER 0225Z posted. fix18 (fable xhigh, work/fix18/BRIEF.md) debugging REAL vs ARTIFACT by 03:05Z. Lead: init_mirror returns None when r1_persisted.active(); ranks>0 skip prepared().
+- 02:15Z Gate FAIL 2/8 (n_review1k BLOCKER 0214Z, gate-side routing_base reading; fixing, rerun). Rehearsal STARTED 02:14:57Z on 174246 node (run_20261122T021458Z): guards PASS, stand-in PASS, 4-rank training start 02:15:00Z.
+- 02:12Z 174246 WAITING_REVIEW 02:10:50Z (wait to 04:10:50Z; 80-min mark 03:30:50Z). RESULT posted. Waiting n_review1k gate verdict, then rehearsal.
+- 02:02Z 174246 02:00:52Z v.json written ({ok: true}); live has c0-c4, h0, identity; receipts -> WAITING_REVIEW next. No alarm/hold.
+- 01:44Z 174246 01:43Z T+3h56: frame audit passed (no alarm); GPU forward running (torch kernel warnings in t_q.log, anon 6 GB, /tmp -200 GB since 01:24Z). 1-min watch (loop1.sh).
 - 01:15Z 174246 01:14Z T+3h28 RUNNING, frame audit stage, no alarm/hold.
 - 00:47Z 174246 00:47Z T+3h01 RUNNING, single-thread stage (cores 1.1; frame audit expected to ~01:40Z), no alarm/hold. 1-min watch from 01:30Z.
 - 00:20Z o_pre.sh on 174246 node 00:19Z PASS: Q_NS=/tmp/q_22c714e1, TK_JOB_START 1795297651, 550 sandbox args, authenticate 9d2bbb8a, job files EROFS; RESULT.json probe landed in scratch p/q (host has no RESULT.json yet; expected). GPU0 623 MiB at 00:19Z (go.sh refuses if a compute app holds a GPU; check at gate). Watch via loop9.sh.
