@@ -1,0 +1,3 @@
+hostname -s
+for d in /scratch/jjyeung/orch_n30/cont_ops/work/d0/readk /scratch/jjyeung/orch_n30/h10_score/work/results/170706 /scratch/jjyeung/orch_n30/h10_stage/work/results/170631 /scratch/jjyeung/orch_n30/h10_score/work/from118/results/170631 /scratch/jjyeung/orch_n30/reader_r1/work/fix7/b1/work/scores; do echo "== $d"; ls -la "$d" 2>&1 | head -25; done
+for f in /scratch/jjyeung/orch_n30/cont_ops/work/d0/readk/A544.jsonl /scratch/jjyeung/orch_n30/h10_stage/work/results/170631/result.tar.gz /scratch/jjyeung/orch_n30/h10_score/work/from118/results/170631/result.tar.gz; do [ -f "$f" ] && sha256sum "$f"; done
