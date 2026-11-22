@@ -1,4 +1,4 @@
-# lever9 STATUS (trinity-2-28; started 10:48Z 11-22; killed by 20:48Z; rotate by 19:18Z to lever10). A successor resumes from this file alone. STATUS exact at 1628Z.
+# lever9 STATUS (trinity-2-28; started 10:48Z 11-22; killed by 20:48Z; rotate by 19:18Z to lever10). A successor resumes from this file alone. STATUS exact at 1727Z.
 Lane dir /scratch/jjyeung/orch_n30/lever9. B=/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30. Kit lever8/j1 (read-only now except as named). Helpers: lever9/work/cardwait.sh <secs> (polls 0-13 for a card <=100 MiB), work/check_013.sh (J1 status on 0-13 via ssh 'bash -s').
 ## Done
 1. J1 (RULING 0438Z) run, read, reviewed and posted: RESULT 1214Z (B/events/lever/20261122T1214Z_RESULT_j1_h1_closes_h0_closes_k_opens_price_candidates_2_and_3_next.md).
