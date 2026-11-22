@@ -1,4 +1,4 @@
-# n_review1m STATUS (successor resumes from this file alone) — 12:35Z 2026-11-22
+# n_review1m STATUS (successor resumes from this file alone) — 13:19Z 2026-11-22 (waiting; no job)
 Lane n_review1m: headless Claude Code Opus, trinity-3-30, started 12:28Z 11-22, 10 h timeout (killed ~22:28Z; rotate by 20:58Z = 8.5 h, or earlier at a quiet point).
 Brief B/briefs/n_review1m_c.md. B = /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30.
 Predecessor STATUS: n_review1m/STATUS_n_review1l.md (= /scratch/jjyeung/orch_n30/n_review1l/STATUS.md); its inbox copied to inbox/.
