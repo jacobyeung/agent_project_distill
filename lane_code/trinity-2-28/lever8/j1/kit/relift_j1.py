@@ -13,6 +13,10 @@ Parity stop (before any h1/h0 cell): over every (item, operand, anchor) whose T1
   operand-frames: a one-to-one IoU >= 0.95 pairing at 480x640 covers every proposal on either side with score >= 0.3 and
   score x presence >= 0.06; proposals under either level may stay unpaired; two empty lists match. The strict rule (same count,
   every proposal paired) is reported beside it. Below the bar, h1 and h0 are not computed and the result says so; k is read.
+Pick-agreement gate (per arm, review finding 3.1): on the same operand-frames, h1's rule and h0's rule are applied to J1's pool
+  and to the dump's pool; the picks agree when their 480x640 masks have IoU >= 0.95 or both are empty. An arm is read only when
+  the pool gate passes and its picks agree on >= 95%; otherwise its status says why, and k is still read. parity.picks holds the
+  counts.
 Reading (fixed before any value exists), for X in h1, h0, k, on all 117 items (the only population that decides):
   X - a with relift's Bootstrap (10,000 physical-room draws, seed 20261120, item weighting); share (X-a)/(e-a) (ratio of item means,
   interval from the same draws); verdict: X - a >= 8 with lower bound > 0 -> source (h0, k: opens); X - a <= 4 with upper bound
@@ -38,6 +42,19 @@ ARMS = ('h1', 'h0', 'k')
 CELLS = ('a', 'e') + ARMS
 ORACLE = {'h0': True, 'k': True, 'h1': False}
 REFUSAL = 'parity below 95% of operand-frames: h1 and h0 are not read; k is read'
+
+
+def gates(par):
+    """(text arms to read, status) from the pool gate and each arm's pick-agreement gate."""
+    read, why = [], []
+    for k in ('h1', 'h0'):
+        if not par['passed']:
+            why.append('%s not read: pool parity %d/%d below 95%%' % (k, par['matched'], par['operand_frames']))
+        elif not par['picks'][k]['passed']:
+            why.append('%s not read: %s picks agree on %d/%d operand-frames, below 95%%' % (k, k, par['picks'][k]['agree'], par['picks'][k]['operand_frames']))
+        else:
+            read.append(k)
+    return read, 'complete' if not why else 'complete (%s; k is read)' % '; '.join(why)
 
 
 # ---------------------------------------------------------------- relift
@@ -135,18 +152,24 @@ def parity(R, rows, items, objects, store):
     by_item = {}
     for o in objects:
         by_item.setdefault(o['item_id'], []).append(o)
-    counts = {d: dict(frames=0, matched=0, strict=0, unpaired_clear_frames=0) for d in G.DATASETS3}
-    no_call = 0; worst = []
+    counts = {d: dict(frames=0, matched=0, strict=0, unpaired_clear_frames=0, h1_agree=0, h0_agree=0) for d in G.DATASETS3}
+    no_call = 0; worst = []; inst_cap = [None, None]
     for it in items:
         cap = it['capture']; served = {o['name'].strip().lower(): o for o in rows[it['item_id']]['objects']}
         text = store.capture(cap)['text']
+        if inst_cap[0] != cap:
+            with np.load(it['gt_path'], allow_pickle=False) as z:
+                inst_cap[:] = [cap, z['inst'].copy()]
+        inst = inst_cap[1]
         for o in by_item[it['item_id']]:
             obj = served.get(o['name'].strip().lower())
             if obj is None:
                 no_call += 1; continue
             theirs = dump_frames(R, obj); mine = text[o['name'].strip().lower()]
-            c = counts[G.fine(cap)]
+            c = counts[G.fine(cap)]; target = inst == o['instance_id']
             for f in range(32):
+                agree = S.pick_match(mine[f], theirs[f], target[f])
+                c['h1_agree'] += agree['h1']; c['h0_agree'] += agree['h0']
                 ok, why = S.frame_match(mine[f], theirs[f])
                 c['frames'] += 1; c['matched'] += ok; c['strict'] += why['strict']; c['unpaired_clear_frames'] += not ok
                 if why.get('min_pair_iou') is not None:
@@ -154,7 +177,11 @@ def parity(R, rows, items, objects, store):
     frames = sum(c['frames'] for c in counts.values()); matched = sum(c['matched'] for c in counts.values())
     strict = sum(c['strict'] for c in counts.values())
     fraction = matched/frames if frames else 0.
-    return dict(rule=S.__doc__.split('Parity (frame_match, the registered gate): ')[1].strip(), bar=S.PARITY_BAR, iou=S.PARITY_IOU,
+    picks = {}
+    for k in ('h1', 'h0'):
+        n = sum(c[k+'_agree'] for c in counts.values()); fr = n/frames if frames else 0.
+        picks[k] = dict(agree=n, operand_frames=frames, fraction=fr, passed=fr >= S.PARITY_BAR)
+    return dict(picks=picks, pick_rule=S.__doc__.split('Pick agreement (pick_match, a second gate per arm, review finding 3.1): ')[1].strip(), rule=S.__doc__.split('Parity (frame_match, the registered gate): ')[1].strip(), bar=S.PARITY_BAR, iou=S.PARITY_IOU,
                 operand_frames=frames, matched=matched, fraction=fraction, passed=fraction >= S.PARITY_BAR,
                 strict_matched=strict, strict_fraction=strict/frames if frames else 0., operands_without_ground_call=no_call,
                 min_pair_iou=min(worst, default=None), by_dataset=counts)
@@ -172,12 +199,14 @@ def share(boot, rr, k):
 
 
 def compute(R, fresh, store, read_text):
-    """Rows, per-item records and statistics. read_text False (parity failed) leaves h1 and h0 out entirely."""
+    """Rows, per-item records and statistics. read_text: True (h1 and h0), False (neither) or the set of text arms whose gates
+    passed; an arm left out appears nowhere."""
     refs = {r['item_id']: r for r in json.loads(G.ITEMS.read_text())['items']}
     items, objects, _ = G.eligible(R, refs)
     rows = R.read_records(R.BASE/'cap/t1.gz', refs)
     depths = G.depth_rows(R)
-    arms = ARMS if read_text else ('k',)
+    text_arms = ('h1', 'h0') if read_text is True else () if not read_text else tuple(a for a in ('h1', 'h0') if a in read_text)
+    arms = text_arms + ('k',)
     cells = ('a', 'e') + arms
     by_item = {}
     for o in objects:
@@ -197,9 +226,12 @@ def compute(R, fresh, store, read_text):
             name = o['name']; target = inst == o['instance_id']; obj = served.get(name.strip().lower())
             masks = dict(a=R.masks_array(obj['selected_masks']) if obj else np.zeros((32,)+G.GRID, bool), e=target,
                          k=det['k'][o['instance_id']])
-            if read_text:
+            if text_arms:
                 frames = [[dict(p, mask240=S.to_grid(p['mask480'])) for p in fr] for fr in det['text'][name.strip().lower()]]
-                masks['h1'] = S.arm_h1(frames); masks['h0'] = S.arm_h0(frames, target)
+                if 'h1' in text_arms:
+                    masks['h1'] = S.arm_h1(frames)
+                if 'h0' in text_arms:
+                    masks['h0'] = S.arm_h0(frames, target)
             for k in cells:
                 if masks[k].shape != (32,)+G.GRID:
                     raise ValueError('mask grid differs for cell '+k)
@@ -281,7 +313,9 @@ def markdown(res):
          'gating) %d (%.4f).' % (
              res['status'], res['parity']['matched'], res['parity']['operand_frames'], res['parity']['fraction'],
              'passed' if res['parity']['passed'] else 'FAILED: ' + REFUSAL, res['parity']['strict_matched'],
-             res['parity']['strict_fraction']), '']
+             res['parity']['strict_fraction']),
+         'Pick agreement (h1, h0 rules on both pools; gate 0.95 each): ' + '; '.join('%s %d/%d (%s)' % (
+             k, v['agree'], v['operand_frames'], 'passed' if v['passed'] else 'FAILED') for k, v in res['parity']['picks'].items()), '']
     def f(m):
         return 'n/a' if m['mean'] is None else '%+.1f [%+.1f, %+.1f]' % (m['mean'], *m['ci95'])
     L += ['| dataset | items | rooms | ' + ' | '.join(k+' - a' for k in res['arms_read']) + ' | e - a |', '|---|---|---|' + '---|'*(len(res['arms_read'])+1)]
@@ -319,9 +353,10 @@ def main(argv=None):
     rows = R.read_records(R.BASE/'cap/t1.gz', refs)
     par = parity(R, rows, items, objects, store)
     fresh = fresh_relift(R)
-    res = compute(R, fresh, store, par['passed'])
+    read, status = gates(par)
+    res = compute(R, fresh, store, set(read))
     records = res.pop('records')
-    res.update(status='complete' if par['passed'] else 'complete (k only; %s)' % REFUSAL, parity=par, supply=supply(fresh, refs, res['rows']),
+    res.update(status=status, parity=par, supply=supply(fresh, refs, res['rows']),
                detect=str(args.detect), detect_contract_digest=store.contract,
                definitions=dict(h1=S.__doc__.split('Arms')[1].split('Parity')[0].strip(), parity=S.frame_match.__doc__,
                                 reading=__doc__.split('Reading (fixed before any value exists), ')[1].split('Outputs:')[0].strip(),

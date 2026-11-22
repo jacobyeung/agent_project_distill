@@ -2,8 +2,8 @@
   1. toy store = the bound GT instance (top proposal and box mask equal GT) -> h1 == e, h0 == e, k == e on all 117 items (cells
      and gaps), precision/recall 1 and no mask on a GT-empty anchor; statistics carry every registered field.
   2. toy store = the served masks (the selected track's mask is the only proposal) -> h1 == a on all 117 items.
-  3. toy store = the dump's own proposal pool -> the parity matcher passes on every operand-frame.
-  4. refusal: the GT store fails parity; compute without the text arms has no h1 or h0 anywhere and k still equals e; the full
+  3. toy store = the dump's own proposal pool -> the pool gate and both pick gates pass on every operand-frame.
+  4. refusal: the GT store fails parity; a failed pick gate drops only its own arm; compute without the text arms has no h1 or h0 anywhere and k still equals e; the full
      main() on toy detector files (GT layout) writes the k-only status; a detector directory missing a capture is refused.
   5. needed-items records exist exactly for undecided arms, and supply lists relift's exclusions.
 compute() asserts that its a and e equal a fresh in-process relift.run and that relift.stats over the fresh rows equals it.
@@ -118,6 +118,7 @@ print('PASS toy served store: h1 == a on 117 items (cells and gaps)', flush=True
 
 # 3. dump pool store -> parity passes on every operand-frame
 par = RJ.parity(R, rows, items, objects, Toy(pool_text))
+assert all(par['picks'][k]['passed'] and par['picks'][k]['agree'] == par['operand_frames'] for k in ('h1', 'h0'))
 assert par['passed'] and par['matched'] == par['operand_frames'] == par['strict_matched'] and par['operand_frames'] == 32*(len(objects)-par['operands_without_ground_call'])
 print('PASS parity matcher on the dump pool against itself: every operand-frame matches (%d operand-frames, %d operands without '
       'a ground call)' % (par['operand_frames'], par['operands_without_ground_call']), flush=True)
@@ -125,6 +126,16 @@ print('PASS parity matcher on the dump pool against itself: every operand-frame 
 # 4. refusal
 par_gt = RJ.parity(R, rows, items, objects, Toy(gt_text))
 assert not par_gt['passed']
+read, status = RJ.gates(par_gt)
+assert read == [] and 'h1 not read: pool parity' in status and 'h0 not read: pool parity' in status and status.endswith('k is read)')
+fake = dict(passed=True, matched=10, operand_frames=10, picks=dict(h1=dict(agree=10, operand_frames=10, passed=True),
+                                                                   h0=dict(agree=9, operand_frames=10, passed=False)))
+read, status = RJ.gates(fake)
+assert read == ['h1'] and 'h0 not read: h0 picks agree on 9/10' in status and 'h1 not read' not in status
+res5 = RJ.compute(R, fresh, Toy(gt_text), {'h1'})
+assert all('h0' not in r and 'h0' not in r['gaps'] and 'h1' in r for r in res5['rows']) and res5['arms_read'] == ['h1', 'k']
+assert equal(res5['rows'], 'h1', 'e') and {r['arm'] for r in res5['records']} == {'a', 'e', 'h1', 'k'}
+print('PASS pick gate: a failed h0 pick gate drops only h0 (rows, statistics, records), h1 and k still read; statuses name the cause', flush=True)
 res4 = RJ.compute(R, fresh, Toy(gt_text), False)
 assert all('h1' not in r and 'h0' not in r and 'h1' not in r['gaps'] for r in res4['rows'])
 assert all(set(s['cells']) == {'a', 'e', 'k'} and set(s['versus_a']) == {'k-a', 'e-a'} for s in res4['statistics'])
@@ -152,12 +163,12 @@ buf = io.StringIO()
 with contextlib.redirect_stdout(buf):
     assert RJ.main(['--detect', str(toy), '--out', str(out/'RELIFT_J1.json'), '--items-out', str(out/'ITEMS_J1.jsonl')]) == 0
 got = G.read_json(out/'RELIFT_J1.json')
-assert buf.getvalue().strip() == got['status'] and got['status'].startswith('complete (k only;') and not got['parity']['passed']
+assert buf.getvalue().strip() == got['status'] and 'h1 not read' in got['status'] and 'h0 not read' in got['status'] and got['status'].endswith('k is read)') and not got['parity']['passed']
 assert got['arms_read'] == ['k'] and equal(got['rows'], 'k', 'e') and (out/'RELIFT_J1.md').is_file()
 assert sum(1 for _ in (out/'ITEMS_J1.jsonl').open()) == 117*3
 assert got['supply']['excluded_items'] and {x['item_id'] for x in got['supply']['excluded_items']} == {e['item_id'] for e in fresh['exclusions']}
 assert len(refs) == 117 + len(got['supply']['excluded_items'])
-print('PASS main() on toy detector files: parity fails, status says k only, k == e, RELIFT_J1.md and 351 per-item rows written; '
+print('PASS main() on toy detector files: parity fails, status says h1 and h0 not read, k == e, RELIFT_J1.md and 351 per-item rows written; '
       'supply lists relift\'s %d excluded manifest items' % len(got['supply']['excluded_items']), flush=True)
 victim = sorted(pc)[0]
 (toy/(G.stub(victim)+'.json.gz')).rename(toy/'moved_aside.gz')

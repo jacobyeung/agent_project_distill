@@ -36,5 +36,5 @@ Verdict: **NO-GO until one CPU-only fix lands (finding 3.1)**; every other crite
 ## 6. Checks run on this node (CUDA_VISIBLE_DEVICES='', nice -n 10, /scratch/jjyeung/envs/p1cpu; logs in this folder)
 - sha256sum --quiet -c SHA256SUMS_J1 passed (exit 0; 3,752 files; SHA256SUMS_J1 sha256 92c7aa28...f4a1, as the report states). The seal test mutates SHA256SUMS_J1 and restores it; the sha256 is unchanged afterwards.
 - tests/test_units.py: 9 of 9 PASS. tests/test_launch_dry.sh: 17 of 17 PASS.
-- tests/test_relift_j1.py: RESULT_PENDING
+- tests/test_relift_j1.py: 6 of 6 PASS (exit 0, 1,129 s). The checks: GT store h1 = h0 = k = e, served store h1 = a, the dump pool matches itself on 7,424 operand-frames, refusal below parity, main() writes the k-only status, and the store refuses missing or failed captures.
 - I printed no arm value.

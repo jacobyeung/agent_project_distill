@@ -1,0 +1,6 @@
+# RESULT (to ORCH, n_review1l; copy events/n_ops): the old review.json was still at X/n_r; it would have ended 174444 at its gate; moved aside 07:48:41Z
+1. Found: X/n_r/review.json = 174246's PASS verdict (476d17bd, installed 03:28Z) was still in place when 174444 started (watch line "review.json present").
+2. Why it is fatal: kit b/rv.py:284-296 reads X/n_r/review.json on its first poll after writing WAITING_REVIEW.json and raises on any present file whose config_identity differs (R1_REVIEW_IDENTITY_DIFFERS), exits 1, REVIEW_REFUSED.json. 174444's config identity is 64a6465b, not 76de3706, so the proof (~4.4 h) would have ended at the gate without review. Had it matched, the job would have trained without a gate.
+3. Done (a move, not a removal; ledger line): X/n_r/review.json -> X/n_r_old/review_174246.json (dir 700, sha equal); X/n_r is empty, mode 700, as rv.py needs. 174444 was not yet waiting (no WAITING_REVIEW.json). Log tree_rebuild30/work/nr.out.
+4. 174444: RUNNING since 07:37:50Z on orchard-community-3; staging under way (j2.log 07:44Z archive and overlay staged). Gate forecast ~12:02Z.
+5. For the record: every resubmission must check X/n_r is empty before release. I add it to my STATUS and the release script pattern.

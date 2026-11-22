@@ -23,6 +23,9 @@ Parity (frame_match, the registered gate): pair the two sides' retained proposal
   has a partner; proposals inside the boundary may stay unpaired (bf16 rounding moves them across the 0.05 floor, the cap of 30
   and the order of near-equal low-score queries; the CPU rehearsal showed this tail is where identical code disagrees). Two
   empty lists match. frame_match_strict (same count and every proposal paired) is reported beside it and does not gate.
+Pick agreement (pick_match, a second gate per arm, review finding 3.1): on every operand-frame, h1's rule and h0's rule are
+  applied to J1's pool and to the dump's pool; the two picks agree when their 480x640 masks have IoU >= 0.95 or both are empty.
+  An arm is read only when the pool gate passes and its own picks agree on >= 95% of operand-frames.
 """
 import math
 import numpy as np
@@ -194,3 +197,23 @@ def needed_items(rows, key, z=1.959963984540054):
     out.update(bar=bar, margin=margin, rooms_needed=int(math.ceil(rooms_needed)),
                items_needed=int(math.ceil(rooms_needed*N/R)), already_clears=z*se < margin)
     return out
+
+
+# ---------------------------------------------------------------- pick agreement
+
+def pick_h1(props):
+    """h1's pick on one anchor as a 480x640 mask (zeros when h1 keeps nothing); props are dict(mask480, score, presence)."""
+    i = top1(props)
+    return np.asarray(props[i]['mask480'], bool) if i is not None else np.zeros(CANVAS, bool)
+
+
+def pick_h0(props, gt240):
+    """h0's pick on one anchor as a 480x640 mask (zeros when h0 keeps nothing)."""
+    i = iou_oracle([to_grid(p['mask480']) for p in props], gt240)
+    return np.asarray(props[i]['mask480'], bool) if i is not None else np.zeros(CANVAS, bool)
+
+
+def pick_match(mine, theirs, gt240, thr=PARITY_IOU):
+    """dict(h1=bool, h0=bool): whether each arm's pick on J1's pool agrees with its pick on the dump's pool
+    (480x640 IoU >= thr, or both empty)."""
+    return dict(h1=iou(pick_h1(mine), pick_h1(theirs)) >= thr, h0=iou(pick_h0(mine, gt240), pick_h0(theirs, gt240)) >= thr)

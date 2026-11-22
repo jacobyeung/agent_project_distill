@@ -1,5 +1,5 @@
 """J1 synthetic unit tests (CPU, numpy only; p1cpu or the SAM 3 interpreter). No real output is read.
-top-1 rule, IoU-oracle rule, box from GT, grid resize, parity matcher, precision/recall toy, verdict bars, needed-items toy,
+top-1 rule, IoU-oracle rule, box from GT, grid resize, parity matcher, pick agreement, precision/recall toy, verdict bars, needed-items toy,
 detector-file round trip through relift_j1.DetectStore's decoding."""
 import math, sys
 from pathlib import Path
@@ -90,6 +90,19 @@ assert not S.frame_match([Q(A, .29)], [Q(B)])[0]                             # t
 assert S.frame_match([Q(A94, .2)], [Q(A, .25)])[0]                           # both in the tail: unpaired allowed
 assert S.iou(np.zeros(S.CANVAS, bool), np.zeros(S.CANVAS, bool)) == 1. and S.frame_match([Q(np.zeros(S.CANVAS, bool))], [Q(np.zeros(S.CANVAS, bool))])[0]   # empty == empty
 ok('parity_matcher')
+
+# pick agreement (review 3.1): both arms' picks on J1's pool against the dump's pool
+gtA = S.to_grid(A); E0 = np.zeros(S.CANVAS, bool)
+same = S.pick_match([Q(A, .9), Q(B, .5)], [Q(A, .9), Q(B, .5)], gtA); assert same == dict(h1=True, h0=True)
+swap = S.pick_match([Q(A, .61), Q(B, .60)], [Q(B, .61), Q(A, .60)], gtA)   # near-equal scores swap rank: pool gate passes
+assert S.frame_match([Q(A, .61), Q(B, .60)], [Q(B, .61), Q(A, .60)])[0] and not swap['h1'] and swap['h0']
+sub = S.pick_match([Q(B, .9), Q(A, .2)], [Q(B, .9)], gtA)                  # an exempt sub-0.3 proposal wins h0 on one side only
+assert S.frame_match([Q(B, .9), Q(A, .2)], [Q(B, .9)])[0] and sub['h1'] and not sub['h0']
+emp = S.pick_match([], [], gtA); assert emp == dict(h1=True, h0=True)       # both empty
+low = S.pick_match([Q(A, .25)], [Q(A94, .2)], np.zeros(S.GRID, bool)); assert low == dict(h1=True, h0=True)  # nothing picked either side
+one = S.pick_match([Q(A, .9)], [], gtA); assert one == dict(h1=False, h0=False)
+assert S.iou(S.pick_h1([Q(E0, .9)]), S.pick_h1([])) == 1.                   # an empty picked mask equals no pick
+ok('pick_agreement')
 
 # precision / recall toy and the empty-GT count
 pred = np.zeros((3, 4, 4), bool); truth = np.zeros((3, 4, 4), bool)

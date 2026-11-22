@@ -1,0 +1,151 @@
+{
+ "passed": 20,
+ "total": 20,
+ "checks": [
+  {
+   "check": "A all ranks PASS",
+   "ok": true,
+   "detail": []
+  },
+  {
+   "check": "A stopped at step 2, newest state step 2",
+   "ok": true,
+   "detail": "/tmp/q_rs36/p/q/r/checkpoint_000002_a4d9e61450b44748bfcebf69344df058/complete.json"
+  },
+  {
+   "check": "A control reached step 3",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "rs B PASS (binding equal, parts/archive/marker digests, latest_resume == staged state)",
+   "ok": true,
+   "detail": {
+    "event": "resume_stage",
+    "pin": {
+     "path": "/tmp/q_rs36/p/q/r/checkpoint_000002_a4d9e61450b44748bfcebf69344df058/complete.json",
+     "sha256": "8e5be1d933a216a8d89fab62b89920a95b7b6ee4ba51d2a1a54b14b0dc13f255"
+    },
+    "source_job": "174444",
+    "status": "PASS",
+    "step": 2
+   }
+  },
+  {
+   "check": "rs Bx REFUSE RS_BINDING_DIFFERS on preparation only",
+   "ok": true,
+   "detail": [
+    "preparation"
+   ]
+  },
+  {
+   "check": "rs Bc REFUSE RS_PART_DIGEST",
+   "ok": true,
+   "detail": "RS_PART_DIGEST"
+  },
+  {
+   "check": "B all ranks PASS",
+   "ok": true,
+   "detail": []
+  },
+  {
+   "check": "B bound == A bound (new run folder, same namespace)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "tree refuses latest_resume for a foreign preparation pin",
+   "ok": true,
+   "detail": "No complete C1 resume state"
+  },
+  {
+   "check": "tree refuses restore for a foreign preparation pin (every rank)",
+   "ok": true,
+   "detail": "C1 resume binding differs"
+  },
+  {
+   "check": "loaded step 2 on every rank",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "loaded weights == A step-2 weights, bitwise, every rank",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "a fresh start over the restored state is refused",
+   "ok": true,
+   "detail": "Complete C1 resume state exists; resume instead of starting fresh"
+  },
+  {
+   "check": "B trained exactly step 3",
+   "ok": true,
+   "detail": {
+    "first_step": 3,
+    "last_step": 3,
+    "stop_reason": "budget_or_signal"
+   }
+  },
+  {
+   "check": "step-3 losses finite",
+   "ok": true,
+   "detail": {
+    "step": 3,
+    "stream_means": {
+     "pose": 0.3049110770225525,
+     "vqa": 4.185172080993652,
+     "pointing": 4.185172080993652
+    },
+    "components": {
+     "pose": 0.15245553851127625,
+     "depth": 0.29029977321624756,
+     "depth_fov": 0.32085761427879333,
+     "vqa": 1.046293020248413,
+     "pointing": 1.046293020248413,
+     "routing": 0.0
+    }
+   }
+  },
+  {
+   "check": "save written: complete state step 3 is newest",
+   "ok": true,
+   "detail": {
+    "path": "/tmp/q_rs36/p/q/r/checkpoint_000003_30167685353d48c095fb6bd22308be57/complete.json",
+    "sha256": "9447aaf94372da077a821a91205a30fb3e442e64cffa0c36739d482a89b38d05"
+   }
+  },
+  {
+   "check": "export m3 written",
+   "ok": true,
+   "detail": {
+    "path": "/tmp/q_rs36/p/q/r/m3/artifact.json",
+    "sha256": "992e72de72b9382cdf8a76ef1947af3db549e6cc39e64a04c5605d4f7c08de95"
+   }
+  },
+  {
+   "check": "persistence archived the new state and m3 (local receipts)",
+   "ok": true,
+   "detail": [
+    "9447aaf94372da077a821a91205a30fb3e442e64cffa0c36739d482a89b38d05.local.claim",
+    "9447aaf94372da077a821a91205a30fb3e442e64cffa0c36739d482a89b38d05.local.json",
+    "9447aaf94372da077a821a91205a30fb3e442e64cffa0c36739d482a89b38d05.tar",
+    "992e72de72b9382cdf8a76ef1947af3db549e6cc39e64a04c5605d4f7c08de95.local.claim",
+    "992e72de72b9382cdf8a76ef1947af3db549e6cc39e64a04c5605d4f7c08de95.local.json",
+    "992e72de72b9382cdf8a76ef1947af3db549e6cc39e64a04c5605d4f7c08de95.tar"
+   ]
+  },
+  {
+   "check": "resumed step-3 weights == uninterrupted control step-3 weights, bitwise, every rank",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "publisher receipt for the restored state copied (no re-archive, no re-send)",
+   "ok": true,
+   "detail": [
+    "gcs_checkpoint_000002_a4d9e61450b44748bfcebf69344df058.done"
+   ]
+  }
+ ]
+}
