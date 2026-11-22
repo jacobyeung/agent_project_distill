@@ -1,0 +1,886 @@
+{
+ "schema": "stab-price-v1",
+ "registration": "DESIGN_STAB.md (lane lever7, 2026-11-21)",
+ "review_go": {
+  "path": "/scratch/jjyeung/orch_n30/lever7/stab/REVIEW_GO",
+  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+ },
+ "tau_deg": 3.7300352892497166,
+ "void_fit": false,
+ "tau_json_sha256": "2d82d31fbb296d5158ca8c45d0540c8003727571581bfe32baad1eb8feacf282",
+ "flagged_captures": [
+  "arkitscenes/41069053",
+  "arkitscenes/41254810",
+  "arkitscenes/42446097",
+  "arkitscenes/42446117",
+  "arkitscenes/42899829",
+  "arkitscenes/44358634",
+  "scannet/scene0642_01",
+  "scannetppv2/38fcf02d0b",
+  "scannetppv2/623c973c56",
+  "scannetppv2/80ffca8a48"
+ ],
+ "fragile_captures": [
+  "arkitscenes/41069054",
+  "arkitscenes/41098140",
+  "arkitscenes/41254810",
+  "arkitscenes/41291639",
+  "arkitscenes/42897921",
+  "arkitscenes/42899532",
+  "scannetppv2/307e3262f1",
+  "scannetppv2/38fcf02d0b",
+  "scannetppv2/623c973c56",
+  "scannetppv2/80ffca8a48",
+  "scannetppv2/ca3b651c23"
+ ],
+ "joins": {
+  "base|camera_displacement": 150,
+  "base|camera_rotation": 150,
+  "base|camera_movement_direction": 150,
+  "base|object_abs_distance": 150,
+  "side|object_abs_distance": 150,
+  "own|camera_displacement": 150,
+  "own|camera_rotation": 150,
+  "own|camera_movement_direction": 150,
+  "own|object_abs_distance": 150,
+  "direct|camera_displacement": 150,
+  "direct|camera_rotation": 150,
+  "direct|camera_movement_direction": 150,
+  "direct|object_abs_distance": 150
+ },
+ "frames": {
+  "base|camera_displacement": {
+   "equal": 150,
+   "layouts": [
+    "duplicate"
+   ]
+  },
+  "own|camera_displacement": {
+   "equal": 150,
+   "layouts": [
+    "duplicate"
+   ]
+  },
+  "direct|camera_displacement": {
+   "capture_equal": 150,
+   "anchor_equal": null
+  },
+  "base|camera_rotation": {
+   "equal": 150,
+   "layouts": [
+    "duplicate"
+   ]
+  },
+  "own|camera_rotation": {
+   "equal": 150,
+   "layouts": [
+    "duplicate"
+   ]
+  },
+  "direct|camera_rotation": {
+   "capture_equal": 150,
+   "anchor_equal": null
+  },
+  "base|camera_movement_direction": {
+   "equal": 150,
+   "layouts": [
+    "duplicate"
+   ]
+  },
+  "own|camera_movement_direction": {
+   "equal": 150,
+   "layouts": [
+    "duplicate"
+   ]
+  },
+  "direct|camera_movement_direction": {
+   "capture_equal": 150,
+   "anchor_equal": null
+  },
+  "base|object_abs_distance": {
+   "equal": 150,
+   "layouts": [
+    "duplicate"
+   ]
+  },
+  "side|object_abs_distance": {
+   "equal": 150,
+   "layouts": [
+    "duplicate"
+   ]
+  },
+  "own|object_abs_distance": {
+   "equal": 150,
+   "layouts": [
+    "duplicate"
+   ]
+  },
+  "direct|object_abs_distance": {
+   "capture_equal": 150,
+   "anchor_equal": null
+  },
+  "direct_anchor_level": "unchecked: needs the e193c2a3c full return (39.7 MB, IO governor)"
+ },
+ "primary": {
+  "types": {
+   "camera_displacement": {
+    "n": 150,
+    "flagged": 4,
+    "by_baseline": {
+     "base": {
+      "baseline_score": 82.33333333333333,
+      "arms": {
+       "own": {
+        "swap_score": 81.06666666666666,
+        "diff": -1.2666666666666666,
+        "ci95": [
+         -3.3333333333333335,
+         0.0
+        ],
+        "ci99375": [
+         -4.548250211571013,
+         0.0
+        ],
+        "rooms": 36,
+        "flagged_changed": 3,
+        "unflagged_changed": 0,
+        "passes": false,
+        "closes": true
+       },
+       "direct": {
+        "swap_score": 80.66666666666667,
+        "diff": -1.6666666666666667,
+        "ci95": [
+         -4.112168375037684,
+         0.0
+        ],
+        "ci99375": [
+         -5.588418657960547,
+         0.0
+        ],
+        "rooms": 36,
+        "flagged_changed": 4,
+        "unflagged_changed": 0,
+        "passes": false,
+        "closes": true
+       }
+      },
+      "oracle": {
+       "swap_score": 82.33333333333333,
+       "diff": 0.0,
+       "ci95": [
+        0.0,
+        0.0
+       ],
+       "ci99375": [
+        0.0,
+        0.0
+       ]
+      }
+     }
+    },
+    "decidability": {
+     "items": 4,
+     "rooms": 3,
+     "ceiling_points": 2.6666666666666665,
+     "decidable": false,
+     "can_pass": false,
+     "label": "too few to decide"
+    }
+   },
+   "camera_rotation": {
+    "n": 150,
+    "flagged": 12,
+    "by_baseline": {
+     "base": {
+      "baseline_score": 75.6,
+      "arms": {
+       "own": {
+        "swap_score": 71.93333333333334,
+        "diff": -3.6666666666666665,
+        "ci95": [
+         -8.962962962962964,
+         0.0
+        ],
+        "ci99375": [
+         -11.359135670397192,
+         0.0
+        ],
+        "rooms": 34,
+        "flagged_changed": 9,
+        "unflagged_changed": 0,
+        "passes": false,
+        "closes": true
+       },
+       "direct": {
+        "swap_score": 70.8,
+        "diff": -4.8,
+        "ci95": [
+         -10.948916658967015,
+         0.0
+        ],
+        "ci99375": [
+         -13.761652641421229,
+         0.0
+        ],
+        "rooms": 34,
+        "flagged_changed": 9,
+        "unflagged_changed": 0,
+        "passes": false,
+        "closes": true
+       }
+      },
+      "oracle": {
+       "swap_score": 75.6,
+       "diff": 0.0,
+       "ci95": [
+        0.0,
+        0.0
+       ],
+       "ci99375": [
+        0.0,
+        0.0
+       ]
+      }
+     }
+    },
+    "decidability": {
+     "items": 12,
+     "rooms": 3,
+     "ceiling_points": 8.0,
+     "decidable": true,
+     "can_pass": false,
+     "label": "can close, cannot pass"
+    }
+   },
+   "camera_movement_direction": {
+    "n": 150,
+    "flagged": 15,
+    "by_baseline": {
+     "base": {
+      "baseline_score": 94.66666666666667,
+      "arms": {
+       "own": {
+        "swap_score": 93.33333333333333,
+        "diff": -1.3333333333333333,
+        "ci95": [
+         -3.3333333333333335,
+         0.0
+        ],
+        "ci99375": [
+         -4.384384204123449,
+         0.0
+        ],
+        "rooms": 36,
+        "flagged_changed": 2,
+        "unflagged_changed": 0,
+        "passes": false,
+        "closes": true
+       },
+       "direct": {
+        "swap_score": 91.33333333333333,
+        "diff": -3.3333333333333335,
+        "ci95": [
+         -8.78418918918919,
+         0.0
+        ],
+        "ci99375": [
+         -11.916057050274953,
+         0.0
+        ],
+        "rooms": 36,
+        "flagged_changed": 7,
+        "unflagged_changed": 0,
+        "passes": false,
+        "closes": true
+       }
+      },
+      "oracle": {
+       "swap_score": 95.33333333333333,
+       "diff": 0.6666666666666666,
+       "ci95": [
+        0.0,
+        2.2058823529411766
+       ],
+       "ci99375": [
+        0.0,
+        2.9796158098396743
+       ]
+      }
+     }
+    },
+    "decidability": {
+     "items": 15,
+     "rooms": 3,
+     "ceiling_points": 10.0,
+     "decidable": true,
+     "can_pass": false,
+     "label": "can close, cannot pass"
+    }
+   },
+   "object_abs_distance": {
+    "n": 150,
+    "flagged": 16,
+    "by_baseline": {
+     "base": {
+      "baseline_score": 28.266666666666666,
+      "arms": {
+       "own": {
+        "swap_score": 27.199999999999996,
+        "diff": -1.0666666666666667,
+        "ci95": [
+         -3.289515323117921,
+         0.5195654019183418
+        ],
+        "ci99375": [
+         -4.685618324038194,
+         0.958119047619042
+        ],
+        "rooms": 46,
+        "flagged_changed": 4,
+        "unflagged_changed": 0,
+        "passes": false,
+        "closes": true
+       },
+       "direct": {
+        "swap_score": 28.733333333333334,
+        "diff": 0.4666666666666667,
+        "ci95": [
+         -1.5384615384615385,
+         2.808275136538633
+        ],
+        "ci99375": [
+         -2.698224650825324,
+         3.9961425781249886
+        ],
+        "rooms": 46,
+        "flagged_changed": 6,
+        "unflagged_changed": 0,
+        "passes": false,
+        "closes": false
+       }
+      },
+      "oracle": {
+       "swap_score": 30.333333333333332,
+       "diff": 2.066666666666667,
+       "ci95": [
+        0.2877183967112025,
+        4.820176002055498
+       ],
+       "ci99375": [
+        0.0,
+        6.327924852864801
+       ]
+      }
+     },
+     "side": {
+      "baseline_score": 26.933333333333334,
+      "arms": {
+       "own": {
+        "swap_score": 25.53333333333333,
+        "diff": -1.4,
+        "ci95": [
+         -3.478341384863124,
+         0.0
+        ],
+        "ci99375": [
+         -4.6883765868140905,
+         0.0
+        ],
+        "rooms": 46,
+        "flagged_changed": 3,
+        "unflagged_changed": 0,
+        "passes": false,
+        "closes": true
+       },
+       "direct": {
+        "swap_score": 27.066666666666666,
+        "diff": 0.13333333333333333,
+        "ci95": [
+         -2.5582104367555303,
+         2.7966101694915255
+        ],
+        "ci99375": [
+         -3.873650446537806,
+         4.206334889643451
+        ],
+        "rooms": 46,
+        "flagged_changed": 6,
+        "unflagged_changed": 0,
+        "passes": false,
+        "closes": false
+       }
+      },
+      "oracle": {
+       "swap_score": 28.733333333333334,
+       "diff": 1.8,
+       "ci95": [
+        0.0,
+        4.444444444444445
+       ],
+       "ci99375": [
+        0.0,
+        5.867180050063571
+       ]
+      }
+     }
+    },
+    "decidability": {
+     "items": 16,
+     "rooms": 8,
+     "ceiling_points": 10.666666666666666,
+     "decidable": true,
+     "can_pass": true,
+     "label": "can pass or close"
+    }
+   }
+  },
+  "reading": {
+   "verdict": "undecided",
+   "decidable_types": [
+    "camera_rotation",
+    "camera_movement_direction",
+    "object_abs_distance"
+   ],
+   "passes": [],
+   "passes_held_for_frames": [],
+   "cannot_pass_types": [
+    "camera_rotation",
+    "camera_movement_direction"
+   ],
+   "too_few_types": [
+    "camera_displacement"
+   ]
+  }
+ },
+ "fragile_flipped": {
+  "types": {
+   "camera_displacement": {
+    "n": 150,
+    "flagged": 8,
+    "by_baseline": {
+     "base": {
+      "baseline_score": 82.33333333333333,
+      "arms": {
+       "own": {
+        "swap_score": 81.8,
+        "diff": -0.5333333333333332,
+        "ci95": [
+         -2.0909619450317125,
+         0.5882352941176471
+        ],
+        "ci99375": [
+         -2.930972629745095,
+         0.9355686503428833
+        ],
+        "rooms": 36,
+        "flagged_changed": 7,
+        "unflagged_changed": 0,
+        "passes": false,
+        "closes": true
+       },
+       "direct": {
+        "swap_score": 79.26666666666667,
+        "diff": -3.066666666666667,
+        "ci95": [
+         -7.424242424242424,
+         0.0
+        ],
+        "ci99375": [
+         -9.699692118226606,
+         0.0
+        ],
+        "rooms": 36,
+        "flagged_changed": 7,
+        "unflagged_changed": 0,
+        "passes": false,
+        "closes": true
+       }
+      },
+      "oracle": {
+       "swap_score": 82.66666666666667,
+       "diff": 0.33333333333333337,
+       "ci95": [
+        0.0,
+        0.9917513090656739
+       ],
+       "ci99375": [
+        0.0,
+        1.3320475260416629
+       ]
+      }
+     }
+    },
+    "decidability": {
+     "items": 8,
+     "rooms": 3,
+     "ceiling_points": 5.333333333333333,
+     "decidable": false,
+     "can_pass": false,
+     "label": "too few to decide"
+    }
+   },
+   "camera_rotation": {
+    "n": 150,
+    "flagged": 7,
+    "by_baseline": {
+     "base": {
+      "baseline_score": 75.6,
+      "arms": {
+       "own": {
+        "swap_score": 74.33333333333333,
+        "diff": -1.2666666666666666,
+        "ci95": [
+         -3.257575757575758,
+         0.0
+        ],
+        "ci99375": [
+         -4.391691600177307,
+         0.0
+        ],
+        "rooms": 34,
+        "flagged_changed": 6,
+        "unflagged_changed": 0,
+        "passes": false,
+        "closes": true
+       },
+       "direct": {
+        "swap_score": 73.06666666666666,
+        "diff": -2.533333333333333,
+        "ci95": [
+         -6.605032206119162,
+         0.0
+        ],
+        "ci99375": [
+         -9.425729662805807,
+         0.0
+        ],
+        "rooms": 34,
+        "flagged_changed": 6,
+        "unflagged_changed": 0,
+        "passes": false,
+        "closes": true
+       }
+      },
+      "oracle": {
+       "swap_score": 75.6,
+       "diff": 0.0,
+       "ci95": [
+        0.0,
+        0.0
+       ],
+       "ci99375": [
+        0.0,
+        0.0
+       ]
+      }
+     }
+    },
+    "decidability": {
+     "items": 7,
+     "rooms": 3,
+     "ceiling_points": 4.666666666666667,
+     "decidable": false,
+     "can_pass": false,
+     "label": "too few to decide"
+    }
+   },
+   "camera_movement_direction": {
+    "n": 150,
+    "flagged": 10,
+    "by_baseline": {
+     "base": {
+      "baseline_score": 94.66666666666667,
+      "arms": {
+       "own": {
+        "swap_score": 95.33333333333333,
+        "diff": 0.6666666666666666,
+        "ci95": [
+         0.0,
+         2.272727272727273
+        ],
+        "ci99375": [
+         0.0,
+         3.2990956509957803
+        ],
+        "rooms": 36,
+        "flagged_changed": 1,
+        "unflagged_changed": 0,
+        "passes": false,
+        "closes": false
+       },
+       "direct": {
+        "swap_score": 90.0,
+        "diff": -4.666666666666667,
+        "ci95": [
+         -11.382113821138212,
+         0.0
+        ],
+        "ci99375": [
+         -14.773907495359763,
+         0.0
+        ],
+        "rooms": 36,
+        "flagged_changed": 7,
+        "unflagged_changed": 0,
+        "passes": false,
+        "closes": true
+       }
+      },
+      "oracle": {
+       "swap_score": 95.33333333333333,
+       "diff": 0.6666666666666666,
+       "ci95": [
+        0.0,
+        2.272727272727273
+       ],
+       "ci99375": [
+        0.0,
+        3.2990956509957803
+       ]
+      }
+     }
+    },
+    "decidability": {
+     "items": 10,
+     "rooms": 3,
+     "ceiling_points": 6.666666666666667,
+     "decidable": true,
+     "can_pass": false,
+     "label": "can close, cannot pass"
+    }
+   },
+   "object_abs_distance": {
+    "n": 150,
+    "flagged": 37,
+    "by_baseline": {
+     "base": {
+      "baseline_score": 28.266666666666666,
+      "arms": {
+       "own": {
+        "swap_score": 26.733333333333334,
+        "diff": -1.5333333333333334,
+        "ci95": [
+         -4.672908937209412,
+         1.1428571428571428
+        ],
+        "ci99375": [
+         -5.895494140317761,
+         1.9198005050505045
+        ],
+        "rooms": 46,
+        "flagged_changed": 10,
+        "unflagged_changed": 0,
+        "passes": false,
+        "closes": false
+       },
+       "direct": {
+        "swap_score": 30.666666666666668,
+        "diff": 2.4,
+        "ci95": [
+         -2.569602272727273,
+         7.7855445030361095
+        ],
+        "ci99375": [
+         -4.55558012678756,
+         9.927657452265594
+        ],
+        "rooms": 46,
+        "flagged_changed": 19,
+        "unflagged_changed": 0,
+        "passes": false,
+        "closes": false
+       }
+      },
+      "oracle": {
+       "swap_score": 34.333333333333336,
+       "diff": 6.066666666666666,
+       "ci95": [
+        1.2675610625779998,
+        12.597496434201636
+       ],
+       "ci99375": [
+        0.5365062286141998,
+        15.454545454545455
+       ]
+      }
+     },
+     "side": {
+      "baseline_score": 26.933333333333334,
+      "arms": {
+       "own": {
+        "swap_score": 25.4,
+        "diff": -1.5333333333333334,
+        "ci95": [
+         -3.9694937135159405,
+         0.5769230769230769
+        ],
+        "ci99375": [
+         -4.9393918265655214,
+         1.2051874014972406
+        ],
+        "rooms": 46,
+        "flagged_changed": 8,
+        "unflagged_changed": 0,
+        "passes": false,
+        "closes": true
+       },
+       "direct": {
+        "swap_score": 29.333333333333332,
+        "diff": 2.4,
+        "ci95": [
+         -3.206246169276202,
+         8.445994420087679
+        ],
+        "ci99375": [
+         -5.2931807400379505,
+         10.95666620992047
+        ],
+        "rooms": 46,
+        "flagged_changed": 17,
+        "unflagged_changed": 0,
+        "passes": false,
+        "closes": false
+       }
+      },
+      "oracle": {
+       "swap_score": 32.2,
+       "diff": 5.266666666666667,
+       "ci95": [
+        1.07339588377724,
+        10.901679005817027
+       ],
+       "ci99375": [
+        0.29158085562977976,
+        13.343965144577128
+       ]
+      }
+     }
+    },
+    "decidability": {
+     "items": 37,
+     "rooms": 11,
+     "ceiling_points": 24.666666666666668,
+     "decidable": true,
+     "can_pass": true,
+     "label": "can pass or close"
+    }
+   }
+  },
+  "reading": {
+   "verdict": "undecided",
+   "decidable_types": [
+    "camera_movement_direction",
+    "object_abs_distance"
+   ],
+   "passes": [],
+   "passes_held_for_frames": [],
+   "cannot_pass_types": [
+    "camera_movement_direction"
+   ],
+   "too_few_types": [
+    "camera_displacement",
+    "camera_rotation"
+   ]
+  },
+  "reading_changes": false
+ },
+ "bootstrap": {
+  "draws": 10000,
+  "seed": 20261115,
+  "unit": "room_key",
+  "estimator": "ratio of sums (h1eval.statistics.bootstrap)",
+  "levels": {
+   "bonferroni": 0.99375,
+   "closed": 0.95
+  }
+ },
+ "rules": "Per type, per arm (own = own heads 170631/170706, decline = direct read 169526): an item on a capture whose K5 disagreement exceeds tau (TAU.json) takes the arm's banked answer; every other item keeps the baseline's (171253). Item score: score_nfa.item_score (0 for a capped read, else output.scores.answer) for 171253 and own rows; the direct read's compact score, zeroed on a forced close, token cap, error finish or parse failure (capped_zeroed). Difference swap - baseline in points over all 150 items (unflagged items differ by 0); paired room bootstrap (resample room_key with replacement, ratio of sums, 10,000 draws, seed 20261115, h1eval.statistics draw order); Bonferroni 99.375% two-sided interval (2 arms x 4 types); 95% two-sided interval. Decidable type: >= 10 flagged items in >= 3 rooms and ceiling 100 x flagged / 150 >= 2 points. Lane ruling (F1, before any score): a decidable type with fewer than 6 flagged rooms is labelled \"can close, cannot pass\" (a bootstrap draw with no flagged room gives exactly 0, so its 0.3125th percentile cannot exceed 0); it may close but never pass. A pass needs >= 6 flagged rooms plus the decidable rule. Worth building: some type that can pass and arm with difference >= +1.0 and 99.375% lower bound > 0. Closed: on every decidable type both arms' 95% upper bounds < +1.0. Too few: no decidable type. Else undecided. Conservative choices (not fixed by the design): distance passes only if it passes against both 171253 distance reads (read 1, the pinned candidates_argmax baseline; read 0 null_argmax, which holds the registered 26.93 and matches the own arm's selector) and closes only if it closes against both; a decline-arm pass counts as undecided while the direct read's anchor frames are unchecked. Oracle: best of the three arms per flagged item (ceiling, reported only). Fragile-flag sensitivity: flags of captures with tau/2 <= disagreement <= 2 tau flipped, everything repriced and the reading reported beside.",
+ "inputs": {
+  "k5_reference": {
+   "path": "/scratch/jjyeung/orch_n30/lever6/k5b/kit/REFERENCE_K5.json",
+   "sha256": "b570a994de0cb051f59c00e28b6d720d0a26c99c48d69c1d2aecbe164fbaf996",
+   "bytes": 1198660
+  },
+  "k5_g0": {
+   "path": "/scratch/jjyeung/orch_n30/lever6/k5b/ret/g0/50.json",
+   "sha256": "ccc1f7e2c63f0868b6baf8c1ccdae00d974a230c8bd77904db965765a182afe5",
+   "bytes": 3521029
+  },
+  "k5_g1": {
+   "path": "/scratch/jjyeung/orch_n30/lever6/k5b/ret/g1/51.json",
+   "sha256": "c086a16c1e045b18d76c365fda26fc13eb709c134a13864bc5c25dc57cdd11e9",
+   "bytes": 3521037
+  },
+  "score_k5": {
+   "path": "/scratch/jjyeung/orch_n30/lever6/k5b/kit/score_k5.py",
+   "sha256": "3ff86b25477339de7dd72a8136f5f40d8b209954a872601a0eb297e49a28eae3",
+   "bytes": 12258
+  },
+  "gt_v2": {
+   "path": "/scratch/jjyeung/orch_n30/cont_ops24_c/gbuild/gt/v2.py",
+   "sha256": "42066b8b45c5bc4ead1149858100358003d83f7077ba3a3d2b713905ca8c9ff7",
+   "bytes": 10155
+  },
+  "camera_split": {
+   "path": "/scratch/jjyeung/orch_n30/cont_ops24_c/cap/score_t1/CAMERA_SPLIT.json",
+   "sha256": "453d7db15085a57f601fb88100873c9fa1faaa1f278cb5eeecad292345850c6d",
+   "bytes": 233580
+  },
+  "k5s": {
+   "path": "/scratch/jjyeung/orch_n30/lever7/k5s/K5S.json",
+   "sha256": "d54b3ab1811c530117b1609c98e8a29ce5a6ab5bd705a4d7f8c040aa03fc7908",
+   "bytes": 33646
+  },
+  "items": {
+   "path": "/scratch/jjyeung/orch_n30/lever7/nfa/ref/payload/items/devs1_routed.json",
+   "sha256": "2849206e3eb66f40b3e2fba49cfe84abe3c0465a318f85aaeaeca6ff6f26fe21",
+   "bytes": 1440816
+  },
+  "base_disp": {
+   "path": "/scratch/jjyeung/orch_n30/lever7/nfa/ref/ret/metadata/reads/0/metadata/journals/0/0/items.jsonl",
+   "sha256": "621b8503d78d956c6502bd402566daed01fd7e95c4703fa6e9bd69ba88232f81",
+   "bytes": 1529383
+  },
+  "base_rot": {
+   "path": "/scratch/jjyeung/orch_n30/lever7/nfa/ref/ret/metadata/reads/0/metadata/journals/1/0/items.jsonl",
+   "sha256": "9c181501231e3d460131d7ebc9b95b67354111c0a7a19034123c372bb1945b02",
+   "bytes": 1429529
+  },
+  "base_dir": {
+   "path": "/scratch/jjyeung/orch_n30/lever7/nfa/ref/ret/metadata/reads/0/metadata/journals/2/0/items.jsonl",
+   "sha256": "dfd3cbba12623e6b98c524c4cac0113f74c16d795be7673fc27f2d2bdff04e06",
+   "bytes": 1579224
+  },
+  "base_dist_r0_null": {
+   "path": "/scratch/jjyeung/orch_n30/lever7/nfa/ref/ret/metadata/reads/0/metadata/journals/3/0/items.jsonl",
+   "sha256": "78a2781a06814516f836339fdde089e588d4299323de0025cc5bb5ebea1bd562",
+   "bytes": 4961445
+  },
+  "base_dist_r1_cand": {
+   "path": "/scratch/jjyeung/orch_n30/lever7/nfa/ref/ret/metadata/reads/1/metadata/journals/3/0/items.jsonl",
+   "sha256": "d30aa74917ee66d0e023a7c7a2e5925386e9ae615a6fee775409610545f87bd5",
+   "bytes": 4395321
+  },
+  "own_cam_170631": {
+   "path": "/scratch/jjyeung/orch_n30/lever7/stab/banked/own/170631_items.jsonl",
+   "sha256": "9a74924a89badccbc30b8a9e59cae3d99ebedda3069a430a45b991ef1e25a81a",
+   "bytes": 12272848
+  },
+  "own_dist_170706": {
+   "path": "/scratch/jjyeung/orch_n30/lever7/stab/banked/own/170706_items.jsonl",
+   "sha256": "826385c63cd9f44e131733f83609c9e712714ac4a0f4513b37161cd7bf3a7a2a",
+   "bytes": 5529114
+  },
+  "direct_169526": {
+   "path": "/scratch/jjyeung/orch_n30/lever7/stab/banked/DIRECT_B2048_COMPACT.json",
+   "sha256": "0ece1ea5e9f04c50fad3060ee94b9867fc789dfcbf765d2f6040cff24ce98428",
+   "bytes": 770752
+  },
+  "score_nfa": {
+   "path": "/scratch/jjyeung/orch_n30/lever7/nfa/kit/score_nfa.py",
+   "file_sha256": "ca2bf291718a1caaa0ec817392ebe5004399ee052cc3e431c790dcf542a64aea",
+   "item_score_source_sha256": "19e48d2c480d3f91c0fd0956b216038fcf404b99f290ba5b579291d013d3f243"
+  }
+ }
+}

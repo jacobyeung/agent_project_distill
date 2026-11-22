@@ -1,4 +1,4 @@
-# n_review1k STATUS (successor resumes from this file alone) — 00:18Z 2026-11-22
+# n_review1k STATUS (successor resumes from this file alone) — 01:07Z 2026-11-22
 Lane n_review1k: headless Claude Code Opus high, trinity-3-30, started 2026-11-21 19:02Z, 10 h timeout (rotate by ~04:00Z 11-22). Brief B/briefs/n_review1k_c.md. B = /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30.
 Predecessor state: STATUS_n_review1j.md here (copy of n_review1j STATUS 19:01Z; full history there). n_review1j inbox copied to inbox_from_1j/.
 Lanes: tree_rebuild29 from 00:18Z 11-22 (inbox /scratch/jjyeung/orch_n30/tree_rebuild29/inbox; events B/events/tree_rebuild), n_ops11 (inbox /scratch/jjyeung/orch_n30/n_ops11/inbox). Carriers Claude only.

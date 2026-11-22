@@ -329,12 +329,17 @@ class Scorer(unittest.TestCase):
                 row['output']['scores']['answer'] = 0.9  # every item 10 points lower in reverse
         v = SCORE.score(synth('s3', edit), KIT / 'ITEMS_NFA.json')['types'][kind]
         self.assertAlmostEqual(v['difference']['value'], -10.0)
-        self.assertTrue(v['interval_fails']); self.assertFalse(v['share_fails'])
+        self.assertTrue(v['points_fails']); self.assertTrue(v['interval_beyond_margin']); self.assertFalse(v['share_fails'])
         def small(read, row):
             if read == 1 and row['type'] == kind:
                 row['output']['scores']['answer'] = 0.997  # -0.3 points: inside the margin
         v = SCORE.score(synth('s4', small), KIT / 'ITEMS_NFA.json')['types'][kind]
-        self.assertFalse(v['interval_fails'])
+        self.assertFalse(v['points_fails']); self.assertFalse(v['interval_beyond_margin'])
+        def one(read, row):
+            if read == 1 and row['type'] == kind and row['id'] == ITEMS['forward_ids'][ITEMS['forward_types'].index(kind)]:
+                row['output']['scores']['answer'] = 0.0  # one item drops a full point: |diff| >= 0.5
+        v = SCORE.score(synth('s4b', one), KIT / 'ITEMS_NFA.json')['types'][kind]
+        self.assertTrue(v['points_fails'])
 
     def test_capped_and_missing(self):
         kind = 'camera_displacement'; ids = [x for x, k in zip(ITEMS['forward_ids'], ITEMS['forward_types']) if k == kind]

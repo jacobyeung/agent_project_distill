@@ -1,8 +1,10 @@
 # tree_rebuild STATUS (successor resumes from this file alone)
-Updated: 2026-11-22T00:20Z by tree_rebuild29 (headless Claude Opus high; session trinity-3-30 /scratch/jjyeung/orch_n30/tree_rebuild29, work trinity-1-18 and 2-28; started 00:18Z 2026-11-22; rotate by 09:00Z)
+Updated: 2026-11-22T01:15Z by tree_rebuild29 (headless Claude Opus high; session trinity-3-30 /scratch/jjyeung/orch_n30/tree_rebuild29, work trinity-1-18 and 2-28; started 00:18Z 2026-11-22; rotate by 09:00Z)
 W = trinity-1-18:/scratch/jjyeung/orch_n30/tree_rebuild10_w (47 GB 01:21Z; 1-18 /scratch 124 GB free). Mirrors as below.
 
-## Running (00:20Z) — NEWEST FIRST
+## Running (01:15Z) — NEWEST FIRST
+- 01:15Z 174246 01:14Z T+3h28 RUNNING, frame audit stage, no alarm/hold.
+- 00:47Z 174246 00:47Z T+3h01 RUNNING, single-thread stage (cores 1.1; frame audit expected to ~01:40Z), no alarm/hold. 1-min watch from 01:30Z.
 - 00:20Z o_pre.sh on 174246 node 00:19Z PASS: Q_NS=/tmp/q_22c714e1, TK_JOB_START 1795297651, 550 sandbox args, authenticate 9d2bbb8a, job files EROFS; RESULT.json probe landed in scratch p/q (host has no RESULT.json yet; expected). GPU0 623 MiB at 00:19Z (go.sh refuses if a compute app holds a GPU; check at gate). Watch via loop9.sh.
 - 00:19Z tree_rebuild29 STARTED 00:18Z (Opus high, trinity-3-30). Owns 174246 (RUNNING T+2h31 00:18Z, prepare, no alarm/hold). Rehearsal confirmed adapted to 7e23bbdd (go.sh 105/115 $Q_NS; Trinity test 4 PASS). Next: o_pre.sh once; watch.
 - 00:12Z ROTATING (9 h): STATUS Next exact for tree_rebuild29. 174246 T+2h25 in prepare, no alarm/hold. No subagent of mine running.

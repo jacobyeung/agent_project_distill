@@ -145,7 +145,9 @@ def score(returned, items_path, out=None):
         changed = sum(p['changed'] for p in per)
         share = changed / len(per) if per else None
         lo, hi = diff['ci95'] if diff['ci95'] else (None, None)
-        interval_fails = lo is not None and (lo >= MARGIN or hi <= -MARGIN)
+        # ANSWER 1902Z as written (RULING 2310Z item 2): the paired difference itself, |diff| >= 0.5 points; the interval is printed, not used.
+        points_fails = diff.get('value') is not None and abs(diff['value']) >= MARGIN
+        interval_beyond_margin = lo is not None and (lo >= MARGIN or hi <= -MARGIN)
         share_fails = share is not None and share > SHARE
         result['types'][kind] = dict(
             planned=planned, forward_n=sum(x in f for x in ids), reverse_n=sum(x in r for x in ids),
@@ -157,8 +159,8 @@ def score(returned, items_path, out=None):
             score_changed=sum(p['forward'] != p['reverse'] for p in per),
             unscored=sum(p['unscored'] for p in per),
             capped=[sum(p['finish'][0] == 'max_calls' for p in per), sum(p['finish'][1] == 'max_calls' for p in per)],
-            interval_fails=interval_fails, share_fails=share_fails,
-            floor_fails=bool(interval_fails or share_fails) if per else None,
+            points_fails=points_fails, interval_beyond_margin=interval_beyond_margin, share_fails=share_fails,
+            floor_fails=bool(points_fails or share_fails) if per else None,
             changed_ids=[p['id'] for p in per if p['changed']])
     if out:
         out = Path(out); out.mkdir(parents=True, exist_ok=True)
