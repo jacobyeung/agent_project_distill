@@ -15,6 +15,9 @@ W = trinity-1-18:/scratch/jjyeung/orch_n30/tree_rebuild10_w (47 GB 01:21Z; 1-18 
 - 08:0xZ resume kit (ORDER 0600Z) DONE by subagent resume36: kit copy seal dc38194d (changes tar a547fc4e; rs.py, u.py, k/j.json), CPU 20/20, not submitted; works only with an equal binding (pr.json byte-equal; carrier_c1_run.py:2056-2058). Mirror trinity-1-18 /scratch/jjyeung/n30_mirror/tree_rebuild30/resume36 (equal). Record distill_design/N_174444_RESUME_KIT_20261122.md. RESULT 0808Z. QUESTION 0736Z default taken at 08:05Z: I do n_ops12's duties (review.json install, first-steps readings).
 - 08:48Z 174444 at admission (prep 47 min), no alarm; mem cur 678 G of 800 G (file cache 653 G).
 - 09:17Z 174444 admission (prep 77 min), no alarm.
+- 09:46Z 174444 admission (prep 105 min, on pace vs 141-min reference), no alarm.
+- 10:15Z 174444 T+2h37 single-thread stage, no alarm; 174246's pace: frame audit end T+3h56 (~11:34Z), WAITING_REVIEW T+4h23 (~12:01Z).
+- 10:25Z rehearsal pre-check (rh_ext/s/o_pre.sh, A15_JOB env) PASS like 174246: authenticate db42866f, 559 sandbox args, job folder untouched, planner lo only, sha256 1.82 GB/s (4 passes 249 s), GPU0 623 MiB. /tmp free 5,694.8 GB. Rule for the gate: dp.py train check (j.sh:457, bar 0) needs free > 5,218.7 GB at training start after the rehearsal's ~270 GB sink: start the rehearsal only if /tmp free >= 5,589 GB at WAITING_REVIEW (174246 recovered +828 GB at its WAITING_REVIEW, 4,890 -> 5,717 GB).
 <!-- /tr30 top -->
 - 07:17Z Started tree_rebuild30 07:15:49Z (pid 1086774); it posted its start 0716Z. tree_rebuild29 ENDS.
 - 07:08Z n_review1l GO 0707Z on kit ea058fed + jn8. All tree_rebuild29 subagents finished. Successor tree_rebuild30 to start at ~07:16Z if none.
@@ -509,7 +512,7 @@ ORCH rulings binding: 0033Z (receipt in allocation, guards), 0034Z (b15 accepted
 
 - trinity-1-18 IO governor node agent restarted once 06:35:58Z per ORCH 0034Z item 3 (old pid 4114313 log silent since 2026-11-17T02:39Z, no stream on the node); new pid 2833402 in tmux iogov_agent, status file fresh. STATE.md keeps showing 1-18 "silent" until a stream registers there: the governor reads agent status only for hosts with records (serial_governor.py:653).
 
-## Next (in order; for tree_rebuild30 or its successor; exact at 09:17Z 2026-11-22)
+## Next (in order; for tree_rebuild30 or its successor; exact at 10:30Z 2026-11-22)
 State: job 174444 RUNNING since 07:37:50Z (orchard-community-3) on kit ea058fed (tree db42866f, selection c672ad47, milestones [100,200]); staging plan check PASS; gate ~12:02Z.
 1. DONE 07:35:42Z release. Next: when RUNNING, set work/wsleep 60 through the staging plan check.
 2. Watch: logger running. 1-minute checks (echo 60 > work/wsleep) at the staging plan check (b/dp.py, ~19 min after start: free must exceed 5,218.7 GB + 300 GB), frame audit, gate, and from training start to the first save; 600 otherwise. Hold (HOLD.txt) -> BLOCKER with tb.txt; debug with one subagent (fable, xhigh).

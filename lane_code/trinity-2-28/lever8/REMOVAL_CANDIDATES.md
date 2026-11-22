@@ -1,0 +1,3 @@
+- j1/work/{smoke1,smoke_tmp,probe*.py,diag_*.py,parity_*.py,toy_detect_*,toy_out_*,dry_launch*,gpu_cache,*_inner_*.sh}, j1/kit/__pycache__
+- nfa/ret3, nfa/ret/g/x
+- Orchard c8b836b4ae536/*.pre1, *.pre2
