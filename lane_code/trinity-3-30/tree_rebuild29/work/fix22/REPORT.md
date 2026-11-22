@@ -1,4 +1,11 @@
-STATUS 0606Z fix22: 174369 COMPLETED 0:0 05:12:34Z (superseded). Mode r 2 = JOB 174415 SUBMITTED 06:04:5xZ RUNNING orchard-community-2, X/o/174415
+STATUS 0702Z fix22 DONE: 174415 (tree db42866f, qd 01d9f931, X/c_01d9f931r) COMPLETED 0:0 06:04:56-06:38:00Z; rows.sqlite 5e35c3ce (849,543,168 B), P DB 4e8e6c04 equal_target; task A PASS by n_review1l; no loop of mine runs.
+
+## Final (0702Z)
+- 174369 (tree 02fd9a95, superseded by db42866f): COMPLETED 0:0 05:12:34Z. Note X/o/174369_SUPERSEDED.txt written. Hashes: rows.sqlite 5e35c3ce (849,543,168 B), receipt d3f6e9dc (34,057 B), digest 91667c46, materialization 6c14fb3c (49,941 B), routing_selection 5313afdf (10,997 B), config_sha256 dbba4723. cmp_sel: every row check equal; two values had no published file: materialization /relocation/sha256 (p/q/selection/pool/relocation.json) and k_refresh /config/sha256 (p/i/pool/c.json).
+- 174415: srun --overlap step 174415.0 copied p/i/pool/c.json to X/o/174415_x/k_dr_p_i_pool_c.json (207c2deb, 28,434 B) at 06:17:22Z. relocation.json was not at dr/p/q/selection/pool/relocation.json by 06:22Z, my last read; the step log otherwise holds only slurmstepd cgroup read errors. Nothing was moved into X/o/174415. I did not fetch 174415's other outputs; n_review1l fetched them.
+- Orchard removal candidates (nothing removed): X/c_eb8145adr, X/s29r.tar, X/s29r/, X/o/174369, X/o/174369_SUPERSEDED.txt, X/s29r2.tar, X/s29r2/, X/o/174415_x, X/u/1b5bab59... (the 02fd9a95 code capsule). Keep X/c_01d9f931r, X/u/da19bb3a... and X/o/174415.
+- Trinity removal candidates, all under fix22: dry/, pkg/cand6fa1*, pkg/dry2, in/, tree02/, d174369/.
+- rm_guard blocked four of my commands and queued them in /home/jjyeung/agent_project/agent/PENDING_USER_COMMANDS.md: an rm of fix22/dry/fin and three heredoc writes it could not parse. All four can be discarded.
 
 ## Findings so far
 - CPU mode r precedent: evidence run 173881 (preempt, 16 CPU, 128G, no GPU; `cd X/qd && sbatch --job-name=a15_cot_apd1efc29326c7 ../rcj/rcj.sh r`, tree_rebuild23/work/o9o10.sh) on qd 8ae781f4 + rcj (x.py 7fe00c24, rcj.sh b23393f2, nd.py d7055420, ch.py c931ab55, f.json 8be6cc63, pc.py bd87252b, ps.py 6945292e, P_SAMPLE_I fff742bb). Its outputs are byte-equal to GPU discovery 173912: routing_selection.json a49f117f, receipt.json 38c52f00, materialization.json 6faab9cc, regenerated_sha256 522a3be3, rows.sqlite 5e35c3ce (849,543,168 B). Runtime: staging 703 s + mode r 1,096 s + nsample 196 s + rdiff/proc ~30 s, ~35-40 min wall.

@@ -1,0 +1,4 @@
+### tree_rebuild30 (started 07:16Z on trinity-3-30; lane /scratch/jjyeung/orch_n30/tree_rebuild30; 10 h timeout ~17:15Z, rotate by ~15:45Z)
+- 07:18Z Kit w35 ea058fed INSTALLED X/n (old -> X/a24m4z12/n_7e23bbdd; t_e047 tar gone; X/u/c672ad47 placed, da19bb3a present; v.py ea058fed; log work/i35.out). Job 174444 (a15_cot_apb2edfac4, advanced, jn8 2de401bd) SUBMITTED HELD. SESS_JOB 174444 -> n_ops12/inbox; byte check asked of n_review1l (inbox note 0718Z). RESULT 0718Z.
+- Logger: work/wlong.sh + work/w3.sh (J=174444), log work/watch.log, cadence in work/wsleep (120 now; 60 around checkpoints), stop check tail -5 (records are 5 lines). One logger only (pgrep -f tree_rebuild30/work/wlong).
+- Rehearsal rebuilt: work/rh_ext (rh/ byte-equal to fix21 rh_ext, rh_SHA256SUMS OK; s/mk_orchard.sh -> F=lane, J=174444, A15_JOB passed in env to go.sh and stop.sh); s/o_start.sh, o_poll.sh, o_stop.sh, o_pull.sh built for 174444.

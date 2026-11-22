@@ -118,7 +118,7 @@ print('PASS toy served store: h1 == a on 117 items (cells and gaps)', flush=True
 
 # 3. dump pool store -> parity passes on every operand-frame
 par = RJ.parity(R, rows, items, objects, Toy(pool_text))
-assert par['passed'] and par['matched'] == par['operand_frames'] and par['operand_frames'] == 32*(len(objects)-par['operands_without_ground_call'])
+assert par['passed'] and par['matched'] == par['operand_frames'] == par['strict_matched'] and par['operand_frames'] == 32*(len(objects)-par['operands_without_ground_call'])
 print('PASS parity matcher on the dump pool against itself: every operand-frame matches (%d operand-frames, %d operands without '
       'a ground call)' % (par['operand_frames'], par['operands_without_ground_call']), flush=True)
 

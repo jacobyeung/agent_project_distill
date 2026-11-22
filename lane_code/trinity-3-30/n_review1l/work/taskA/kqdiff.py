@@ -10,7 +10,8 @@ def dec(p):
             except Exception: return raw
         else: d=json.loads(raw)
     return d
+NEWDIR=sys.argv[1] if len(sys.argv)>1 else 'kq/new/'
 for n in ['BUILD.json','k/7.json','k/a.json','k/c.json','k/c0.json','k/n.json','k/p.json']:
-    a,b=dec('kq/old/'+n),dec('kq/new/'+n); out=[]; walk(a,b,'',out)
+    a,b=dec('kq/old/'+n),dec(NEWDIR+n); out=[]; walk(a,b,'',out)
     print('==',n,len(out),'differences')
     for p,x,y in out[:12]: print('   ',p,str(x)[:70],'->',str(y)[:70])

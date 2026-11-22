@@ -1,0 +1,132 @@
+{
+ "1_config_fields": {
+  "k/c.json": {
+   "milestones": [
+    100,
+    200
+   ],
+   "recipe_milestones": [
+    100,
+    200
+   ],
+   "guard": {
+    "extra_full_states": 2,
+    "planned_full_states": 14,
+    "planned_weight_exports": 3,
+    "reserve_bytes": 200000000000,
+    "retained_archive_copies": 1
+   }
+  },
+  "k/n.json": {
+   "milestones": [
+    100,
+    200
+   ],
+   "recipe_milestones": [
+    100,
+    200
+   ],
+   "guard": {
+    "extra_full_states": 2,
+    "planned_full_states": 14,
+    "planned_weight_exports": 3,
+    "reserve_bytes": 200000000000,
+    "retained_archive_copies": 1
+   }
+  },
+  "job v (174246 + [100,200])": {
+   "milestones": [
+    100,
+    200
+   ],
+   "recipe_milestones": [
+    100,
+    200
+   ],
+   "guard": {
+    "extra_full_states": 2,
+    "planned_full_states": 14,
+    "planned_weight_exports": 3,
+    "reserve_bytes": 200000000000,
+    "retained_archive_copies": 1
+   }
+  }
+ },
+ "2_recipe_for": {
+  "c": [
+   100,
+   200
+  ],
+  "n": [
+   100,
+   200
+  ],
+  "v": [
+   100,
+   200
+  ],
+  "P": [
+   400,
+   600
+  ]
+ },
+ "3_disk_plan_entry_check_host_runtime_assertion": {
+  "c": true,
+  "n": true,
+  "v": true
+ },
+ "3b_entry_check_host_runtime_on_c": {
+  "disk_plan": true,
+  "rest": "returned"
+ },
+ "4_r1_training_validate_line98": {
+  "c": "PASS",
+  "n": "PASS"
+ },
+ "5_trainer_export_schedule_run_steps": {
+  "m0_export_at_start": false,
+  "milestone_exports": [
+   100,
+   200
+  ],
+  "stop_export": true,
+  "budget_pending_export_steps": [
+   100,
+   200
+  ],
+  "note": "carrier_c1_run.py:2359 (0 in milestones), 2438 (pending), 2440 (next_cost: step+1 in milestones or export_at_stop, the latter true so unchanged), 2456 (export at step in milestones or at the stop)"
+ },
+ "6_compare_configs_P_vs": {
+  "v": "PASS",
+  "n": "PASS"
+ },
+ "6b_milestones_is_handover_variable": true,
+ "8_r1_persisted_122_reads_P_config": {
+  "P_milestones": [
+   400,
+   600
+  ],
+  "init_step_400_in": true
+ },
+ "10_upload_planner_sessions": {
+  "objects": 28,
+  "sessions": 112,
+  "milestone_objects": [
+   "m100",
+   "m1000",
+   "m200",
+   "m400",
+   "m600",
+   "m800"
+  ],
+  "written_by_this_leg": [
+   "m100",
+   "m200",
+   "mstop/mstopB/mstopC for the stop export",
+   "ck00..ck15, ckstop",
+   "o",
+   "u"
+  ],
+  "note": "pc.py validate_sessions requires exactly 4 sessions per k/y.json object; k/y.json is unchanged, so the count stays 112 and m400, m600, m800, m1000 (16 sessions) go unused"
+ }
+}

@@ -4,6 +4,7 @@ Every capsule is rewritten by the writer that reproduces its base bytes (support
 import sys, json, shutil, hashlib, base64, subprocess, tempfile, py_compile, copy
 from pathlib import Path
 BASE, NEW, TD, IN = (Path(a).resolve() for a in sys.argv[1:5]); OUT = NEW.parent
+ARM = Path(sys.argv[5]).resolve() if len(sys.argv) > 5 else None
 BASESEAL = '7e23bbddb052a6f3ddb1915858dc03e8951d35d87cc9a3cd276f8853414d5771'
 OLD_TAR = 'k/t_e047002134f979bd.tar'; OLD_C0 = '53faadaa0fe7f198369ecc2cd15a01a663cf26e968ffdca6dea686fece36b47e'
 def sha(p): return hashlib.sha256(Path(p).read_bytes()).hexdigest()
@@ -23,7 +24,7 @@ out['tree'] = dict(seal=NEWSEAL, tar=NEWTARNAME, tar_sha256=NEWTARSHA, changed=t
 assert not NEW.exists()
 shutil.copytree(BASE, NEW, copy_function=shutil.copy2, ignore=lambda d, names: [n for n in names if Path(d, n) == BASE/OLD_TAR])
 shutil.copy2(TAR, NEW/NEWTARNAME); (NEW/NEWTARNAME).chmod((BASE/OLD_TAR).stat().st_mode & 0o777)
-for name in ('k/c.json', 'k/n.json', 'k/p.json', 'k/a.json', 'k/7.json', 'k/c0.json', 'BUILD.json'):
+for name in ('k/c.json', 'k/n.json', 'k/p.json', 'k/a.json', 'k/7.json', 'k/c0.json', 'k/h.json', 'k/r.json', 'BUILD.json'):
     assert cap(load(BASE/name)) == (BASE/name).read_bytes(), name
 out['capsule_writer_reproduces_base'] = True
 INV = {}
@@ -65,6 +66,34 @@ p['pin_paths'] = dict(sorted(pp.items()))
 idx = [i for i, u in enumerate(p['uploads']) if u['sha256'] == OLD_C0]; assert len(idx) == 1
 p['uploads'][idx[0]] = dict(bytes=C0BYTES, opaque_name='u/' + C0SHA, sha256=C0SHA)
 (NEW/'k/p.json').write_bytes(cap(p))
+# arming: the reviewed regenerated selection (task A strict diff PASS 0642Z) replaces a49f117f in k/h.json, k/r.json, k/p.json
+OLD_SEL = 'a49f117f60add326e1ef3e8eb2b92a73ec299425e8efb477fa9e84d462789e73'
+if ARM is not None:
+    sel_raw = (ARM/'routing_selection.json').read_bytes(); SEL = hashlib.sha256(sel_raw).hexdigest()
+    sel = json.loads(sel_raw); rec_raw = (ARM/'receipt.json').read_bytes(); dbb = json.loads((ARM/'db_bytes.json').read_text())
+    ip = sel['inputs_pinned']
+    checks = dict(
+        selection_c672ad47=SEL.startswith('c672ad47'),
+        regenerated_e9b6b268=sel['regenerated_sha256'].startswith('e9b6b268'),
+        receipt_e3598dcd=hashlib.sha256(rec_raw).hexdigest().startswith('e3598dcd') and sel['regenerated_receipt']['sha256'] == hashlib.sha256(rec_raw).hexdigest(),
+        generated_db_5e35c3ce=[f['sha256'][:8] for f in dbb['files'] if f['path'].endswith('selection/rows.sqlite')] == ['5e35c3ce'],
+        base_db_4e8e6c04=dbb['expected'].startswith('4e8e6c04') and dbb['equal_target'] is True,
+        rows_43101=sel['rows'] == 43101, row_id_bdd91b75=sel['row_id_digest'].startswith('bdd91b75'), row_bytes_802414c8=sel['row_bytes_sha256'].startswith('802414c8'),
+        p_regeneration_876be23d=sel['p_regeneration']['regenerated_sha256'].startswith('876be23d'))
+    pk = load(NEW/'k/p.json'); ups = {u['sha256']: u for u in pk['uploads']}
+    checks['routing_base_in_uploads'] = ip['routing_base']['sha256'] in ups and ip['routing_base']['sha256'] == load(BASE/'k/r.json')['routing_base']['sha256']
+    checks['routing_database_in_uploads'] = ip['routing_database']['sha256'] in ups and ups[ip['routing_database']['sha256']]['bytes'] == 837255168
+    assert all(checks.values()), checks
+    out['arm'] = dict(selection=SEL, bytes=len(sel_raw), checks=checks, install_upload=f'n_root/u/{SEL} (bytes of {OUT}/u_{SEL})')
+    (OUT/('u_' + SEL)).write_bytes(sel_raw)
+    h = load(BASE/'k/h.json'); assert h['routing_selection'] == dict(path='u/' + OLD_SEL, sha256=OLD_SEL)
+    h['routing_selection'] = dict(path='u/' + SEL, sha256=SEL); (NEW/'k/h.json').write_bytes(cap(h))
+    r = load(BASE/'k/r.json'); assert r['routing_selection'] == dict(path='u/' + OLD_SEL, sha256=OLD_SEL) and r['staged_pins'][0] == r['routing_selection']
+    r['routing_selection'] = dict(path='u/' + SEL, sha256=SEL); r['staged_pins'][0] = dict(path='u/' + SEL, sha256=SEL); (NEW/'k/r.json').write_bytes(cap(r))
+    pp = pk['pin_paths']; assert pp.pop(OLD_SEL) == pk['namespace'] + '/u/' + OLD_SEL; pp[SEL] = pk['namespace'] + '/u/' + SEL; pk['pin_paths'] = dict(sorted(pp.items()))
+    i = [n for n, u in enumerate(pk['uploads']) if u['sha256'] == OLD_SEL]; assert len(i) == 1
+    pk['uploads'][i[0]] = dict(bytes=len(sel_raw), opaque_name='u/' + SEL, sha256=SEL); (NEW/'k/p.json').write_bytes(cap(pk))
+    for name in ('k/h.json', 'k/r.json', 'k/p.json'): assert OLD_SEL not in base64.b64decode(json.loads((NEW/name).read_text())['payload']).decode()
 # configs: milestones [100, 200] top level and recipe, plan exports 3, code pins; nothing else
 MS = [100, 200]
 def reconfig(cfg, code):

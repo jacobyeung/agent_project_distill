@@ -49,7 +49,7 @@ def to_grid(mask480):
 def iou(a, b):
     a = np.asarray(a, bool); b = np.asarray(b, bool)
     u = np.count_nonzero(a | b)
-    return np.count_nonzero(a & b)/u if u else 0.
+    return np.count_nonzero(a & b)/u if u else 1.   # two empty masks are identical (the dump holds 9 empty proposal masks)
 
 
 def top1(props):

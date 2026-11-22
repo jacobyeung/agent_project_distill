@@ -1,0 +1,514 @@
+diff -ruN fix15b/rh/go.sh fix21/rh_ext/rh/go.sh
+--- fix15b/rh/go.sh	2026-11-21 22:00:23.516010757 -0500
++++ fix21/rh_ext/rh/go.sh	2026-11-22 00:51:57.612938183 -0500
+@@ -2,20 +2,25 @@
+ # Training-start rehearsal for job $A15_JOB (default 174246), run on its node inside
+ #   srun --overlap --jobid <job> -N1 -n1 timeout -s TERM -k 30 900 bash /tmp/a15_rh_<job>/rh/go.sh
+ # during the job's review wait. Steps: guards; scratch layout; post-PASS acceptance with a stand-in record
+-# (not a review); the kit's launch line (t2.py) on four ranks for A15_STEPS (2) optimizer steps; GPU samples;
+-# stop of everything it started, with proof; summary.json. Writes only under /tmp/a15_rh_<job>.
++# (not a review); the kit's launch line (t2.py) on four ranks for A15_STEPS (2) optimizer steps, then (A15_SAVE=1,
++# the default) the first save in the ranks: one checkpoint and one export through the job's disk guard, each with
++# its archive copy, into the scratch sink $RUN/w/sink (sx.py); then one pass of the kit's upload planner (pc.py)
++# over that sink with a local session map and writer, in a sandbox without network (up.py, sw.py); GPU samples;
++# stop of everything it started, with proof; summary.json. Writes only under /tmp/a15_rh_<job>. The sink holds
++# about 270 GB on the real node (state + its archive copy, export + its archive copy) and is NOT cleared.
+ set -uo pipefail
+ export TZ=UTC
+ umask 077
+ JOB=${A15_JOB:-174246}
+ D=${A15_D:-/tmp/a15_rh_$JOB}; RH=$D/rh
+-HARD=${A15_HARD_S:-1800}             # training budget from driver start; then its own cleanup (srun timeout 870 -k 20 is the backstop)
++HARD=${A15_HARD_S:-3600}             # budget from driver start (steps, save, export, archive copies, planner); then its own cleanup (srun timeout 3660 -k 20 is the backstop)
+ T0=$(date +%s); T_END=$((T0 + HARD))
+ RUN=$D/run_$(date -u +%Y%m%dT%H%M%SZ); LOG=$RUN/log
+ mkdir -p "$LOG" && chmod 700 "$D" "$RUN" && ln -sfn "$RUN" "$D/last"
+ say() { echo "$(date -u +%FT%TZ) $*" | tee -a "$LOG/go.log"; }
+ export A15_LOG="$LOG" A15_STEPS=${A15_STEPS:-2}   # A15_RUN reaches only the sandbox (bwrap --setenv), so it marks exactly the rehearsal's processes
+-PG=''; SMI=''; WATCH=''; RESULT=unknown
++export A15_SAVE=${A15_SAVE:-1} A15_SINK="$RUN/w/sink"   # the first save's scratch sink (never cleared by the rehearsal)
++PG=''; SMI=''; WATCH=''; PLAN=''; RESULT=unknown
+ marked() {  # pids of this rehearsal: every process whose environment carries A15_RUN=$RUN (the job's never do)
+     local p
+     for p in /proc/[0-9]*; do
+@@ -28,6 +33,7 @@
+     say "cleanup ($1)"
+     [[ -n "$WATCH" ]] && kill "$WATCH" 2>/dev/null
+     if [[ -n "$PG" ]]; then kill -TERM -- "-$PG" 2>/dev/null; fi
++    if [[ -n "$PLAN" ]]; then kill -TERM -- "-$PLAN" 2>/dev/null; fi
+     local left; left=$(marked | tr '\n' ' ')
+     if [[ -n "$left" ]]; then say "TERM to marked pids: $left"; kill -TERM $left 2>/dev/null; sleep 10; fi
+     left=$(marked | tr '\n' ' ')
+@@ -45,7 +51,7 @@
+     exit 0
+ }
+ trap 'cleanup exit' EXIT; trap 'RESULT="stopped by TERM (stop.sh or the srun timeout) while: $RESULT"; cleanup TERM' TERM INT
+-say "start on $(hostname -s) job $JOB run $RUN budget ${HARD}s steps $A15_STEPS"
++say "start on $(hostname -s) job $JOB run $RUN budget ${HARD}s steps $A15_STEPS save $A15_SAVE sink $A15_SINK"
+ # the job's own variables, from its running inner shell j.sh (x.py's launch_shell); defaults otherwise
+ JSH=$(pgrep -u "$(id -u)" -f "^/bin/bash /tmp/q_22c714e1_$JOB/j.sh$" | head -1)
+ envof() { [[ -n "$JSH" ]] && tr '\0' '\n' < "/proc/$JSH/environ" 2>/dev/null | sed -n "s/^$1=//p" | head -1; }
+@@ -97,6 +103,7 @@
+ cp -p "$Q_ROOT/v.json" "$RUN/v.json.orig"
+ source "$RH/L.sh" || fail "sandbox build failed"
+ cp -p "$Q_ROOT/v.json" "$W/top/v.json"
++mkdir -p "$A15_SINK" "$RUN/pc"
+ printf '%s\n' "${BW[@]}" > "$LOG/bwrap_args.txt"
+ say "sandbox: $(grep -c . "$LOG/bwrap_args.txt") args; job folder read-only at $Q_ROOT, $Q_NS, $Q_NJ; scratch upper $W"
+ env | grep -E '^(Q_|TK_|R1_|C1_|PYTHONPATH|OMP|HF_|TMPDIR|XDG|TORCH|TRITON|CUDA|PATH|A15_)' | sort > "$LOG/env.txt"
+@@ -109,13 +116,13 @@
+ # ---- training start, as j.sh line 439 (8 threads), through t2.py; GPU samples every 2 s
+ nvidia-smi --query-gpu=timestamp,index,memory.used,utilization.gpu --format=csv,noheader,nounits -lms 2000 > "$LOG/smi.csv" 2>&1 &
+ SMI=$!; echo "$SMI" > "$LOG/smi.pid"
+-say "training start (four ranks, $A15_STEPS steps)"
++say "training start (four ranks, $A15_STEPS steps; first save into the sink: $A15_SAVE)"
+ date +%s > "$LOG/t0"
+ setsid bash -c 'echo $$ > "$A15_LOG/pgid"; "$@" 2>&1 | tee "$A15_LOG/t.raw.log" | /usr/bin/python3 -B "$Q_KIT/b/l.py" "$Q_KIT" > "$A15_LOG/t.log"; echo "${PIPESTATUS[0]}" > "$A15_LOG/t.rc"' \
+     bash "${BW[@]}" "$PILOT_VENV/bin/python" -B -s "$RH/t2.py" "$Q_NS/p" "$Q_NS/v.json" &
+ sleep 1; PG=$(cat "$LOG/pgid" 2>/dev/null)
+ # ---- watch: end, steps, the job's own start (stop at once), budget
+-RESULT=running; seen=0
++RESULT=running; seen=0; saw=''; guards=0; declare -A PS_DONE PS_WARN
+ while :; do
+     sleep 5
+     if [[ -s "$LOG/t.rc" ]]; then RESULT="ended rc=$(cat "$LOG/t.rc")"; say "training ended by itself: rc $(cat "$LOG/t.rc")"; break; fi
+@@ -123,9 +130,45 @@
+     if (( $(date +%s) >= T_END )); then RESULT="stopped: budget ${HARD}s reached"; say "$RESULT"; break; fi
+     n=$(cat "$LOG"/ev_rank*.jsonl 2>/dev/null | grep -c '"kind": "STEP"')
+     if (( n != seen )); then say "step records $n (of $((4 * A15_STEPS)))"; seen=$n; fi
+-    if (( n >= 4 * A15_STEPS )) && [[ -z "${DONE_AT:-}" ]]; then DONE_AT=$(date +%s); fi
++    if [[ "$A15_SAVE" == 1 ]]; then   # save progress (rank 0's stages) and every disk guard result, once each
++        s=$(grep -ho '"stage": "\(save_checkpoint\|persist_checkpoint\|save_export\|persist_export\)"' "$LOG"/ev_rank0.jsonl 2>/dev/null | tr -d '"' | tr '\n' ' ')
++        [[ "$s" != "$saw" ]] && { say "save stages (rank 0 begins and ends): $s"; saw=$s; }
++        g=$(grep -c '"kind": "DISK_GUARD"' "$LOG"/ev_rank0.jsonl 2>/dev/null); g=${g:-0}
++        (( g > guards )) && { say "disk guard: $(grep -h '"kind": "DISK_GUARD"' "$LOG"/ev_rank0.jsonl | tail -n 1 | cut -c1-700)"; guards=$g; }
++        for st in persist_checkpoint persist_export; do   # rank 0 archives while ranks 1-3 wait in an NCCL broadcast (timeout 900 s)
++            e=$(grep -h "\"kind\": \"END\", \"stage\": \"$st\"" "$LOG"/ev_rank0.jsonl 2>/dev/null | head -1 | sed -n 's/.*"seconds": \([0-9.]*\).*/\1/p')
++            if [[ -n "$e" && -z "${PS_DONE[$st]:-}" ]]; then PS_DONE[$st]=1
++                v="OK under a 900 s and an 1800 s process-group timeout"
++                awk -v x="$e" 'BEGIN{exit !(x > 800)}' && v="DANGER under a 900 s timeout (tree 9d2bbb8a); OK under 1800 s (tree db42866f) only below 1600 s"
++                awk -v x="$e" 'BEGIN{exit !(x > 1600)}' && v="DANGER under both the 900 s and the 1800 s timeout"
++                say "########## PERSIST_SECONDS $st=$e s on rank 0 ($v) ##########"
++            fi
++            b=$(grep -h "\"kind\": \"BEGIN\", \"stage\": \"$st\"" "$LOG"/ev_rank0.jsonl 2>/dev/null | head -1 | sed -n 's/.*"t": \([0-9]*\).*/\1/p')
++            if [[ -n "$b" && -z "$e" && -z "${PS_WARN[$st]:-}" ]] && (( $(date +%s) - b > 800 )); then PS_WARN[$st]=1
++                say "########## PERSIST_SECONDS $st still running after 800 s (DANGER under a 900 s timeout; watch for 1600 s under 1800 s) ##########"; fi
++        done
++        sd=$(cat "$LOG"/ev_rank*.jsonl 2>/dev/null | grep -c '"kind": "SAVE_DONE"')
++        if (( sd >= 4 )) && [[ -z "${DONE_AT:-}" ]]; then DONE_AT=$(date +%s); fi
++    elif (( n >= 4 * A15_STEPS )) && [[ -z "${DONE_AT:-}" ]]; then DONE_AT=$(date +%s); fi
+     if [[ -n "${DONE_AT:-}" ]] && (( $(date +%s) - DONE_AT > 90 )); then RESULT="stopped: steps done, no exit in 90 s"; say "$RESULT"; break; fi
+ done
++# ---- the kit's upload planner, one pass over the sink, local sessions and writer, no network namespace route
++if [[ "$A15_SAVE" == 1 && "$RESULT" == "ended rc=0" ]]; then
++    left=$(( T_END - $(date +%s) ))
++    if (( left < 60 )); then say "planner skipped: ${left}s of budget left"; else
++        say "planner start (kit pc.py Copier pass over $A15_SINK, writer rh/sw.py, --unshare-net, timeout ${left}s)"
++        setsid bash -c 'echo $$ > "$A15_LOG/plan.pgid"; "$@" > "$A15_LOG/plan.log" 2>&1; echo $? > "$A15_LOG/plan.rc"' \
++            bash timeout -s TERM -k 10 "$left" "${BW[@]}" --unshare-net "$PILOT_VENV/bin/python" -B -I -s "$RH/up.py" "$A15_SINK" "$RUN/pc" "$JOB" &
++        sleep 1; PLAN=$(cat "$LOG/plan.pgid" 2>/dev/null)
++        while [[ ! -s "$LOG/plan.rc" ]]; do
++            sleep 5
++            m=$(started_marks); if [[ -n "$m" ]]; then RESULT="stopped during the planner: the job's own start began:$m"; say "STOP NOW: $RESULT"; break; fi
++            if (( $(date +%s) >= T_END )); then RESULT="stopped: budget ${HARD}s reached in the planner"; say "$RESULT"; break; fi
++        done
++        [[ -s "$LOG/plan.rc" ]] && { say "planner rc=$(cat "$LOG/plan.rc"): $(tail -c 1500 "$LOG/plan.log")"; [[ "$(cat "$LOG/plan.rc")" == 0 ]] || RESULT="ended rc=0, planner rc=$(cat "$LOG/plan.rc")"; PLAN=''; }
++    fi
++fi
++say "sink $A15_SINK holds $(du -sb "$A15_SINK" 2>/dev/null | cut -f1) bytes (not cleared by the rehearsal)"
+ snap "$LOG/job_after.txt"
+ cmp -s "$LOG/job_before.txt" "$LOG/job_after.txt" && say "job folder top, p, p/q and hashes unchanged" || say "NOTE job folder listing changed (the job itself writes there too): $(diff "$LOG/job_before.txt" "$LOG/job_after.txt" | head -5 | tr '\n' '|')"
+ exit 0
+diff -ruN fix15b/rh/pre.sh fix21/rh_ext/rh/pre.sh
+--- fix15b/rh/pre.sh	2026-11-21 16:47:55.261190955 -0500
++++ fix21/rh_ext/rh/pre.sh	2026-11-21 23:32:24.260475218 -0500
+@@ -15,5 +15,9 @@
+ source "$RH/L.sh" || { echo "sandbox build failed"; exit 3; }
+ printf '%s\n' "${BW[@]}" > "$RUN/log/bwrap_args.txt"; echo "sandbox args: ${#BW[@]}"
+ "${BW[@]}" nice -n 10 "$PILOT_VENV/bin/python" -B -s "$RH/pre.py" "$RUN/seal_copy.json" 2>&1 | tail -c 4000; echo "pre rc=${PIPESTATUS[0]}"
++echo "planner sandbox (--unshare-net) devices: $("${BW[@]}" --unshare-net /bin/cat /proc/self/net/dev 2>&1 | tail -n +3 | cut -d: -f1 | tr -d ' ' | tr '\n' ' ')(expect: lo only)"
++# persistence hashes the ~113 GB state four times on one thread (rank 0) while ranks 1-3 wait (NCCL timeout 900 s)
++r=$(/usr/bin/python3 -B -I -c 'import hashlib,os,time; b=os.urandom(1<<28); t=time.time(); h=hashlib.sha256(); [h.update(b) for _ in range(4)]; print(round(4*len(b)/(time.time()-t)/1e9,2))')
++echo "sha256 one thread ${r} GB/s, sha_ni flag on $(grep -c sha_ni /proc/cpuinfo) cpus; 4 passes over 113.4 GB = $(awk -v r="$r" 'BEGIN{printf "%d", 4*113.4/r}') s before the tar copy (danger above about 800 s)"
+ echo "host side: job folder has a15probe/a15new/a15x files: [$(ls "$Q_ROOT"/a15probe "$Q_ROOT"/p/a15probe "$Q_ROOT"/p/a15new "$Q_ROOT"/p/q/r/a15probe "$Q_ROOT"/p/q/f/a15x "$Q_ROOT"/j/tmp/a15probe "$Q_ROOT"/cache/a15probe "$Q_ROOT"/t.log 2>/dev/null | tr '\n' ' ')]"
+ echo "scratch side: $(cd "$RUN/w" && find . -name 'a15*' | tr '\n' ' ')"
+diff -ruN fix15b/rh/stop.sh fix21/rh_ext/rh/stop.sh
+--- fix15b/rh/stop.sh	2026-11-21 16:47:55.260190874 -0500
++++ fix21/rh_ext/rh/stop.sh	2026-11-21 23:20:46.534410631 -0500
+@@ -1,7 +1,7 @@
+ #!/bin/bash
+ # Stop the rehearsal of job $A15_JOB (default 174246) at once and prove it: TERM then KILL to its driver,
+ # its process group and every process whose environment carries A15_RUN=<its run folder>; then ps and
+-# nvidia-smi. Touches nothing of the job. usage: stop.sh [run folder] (default: the latest run)
++# nvidia-smi. Touches nothing of the job and clears nothing (the save sink stays). usage: stop.sh [run folder] (default: the latest run)
+ export TZ=UTC
+ JOB=${A15_JOB:-174246}; D=${A15_D:-/tmp/a15_rh_$JOB}
+ RUN=$(readlink -f "${1:-$D/last}"); LOG=$RUN/log
+@@ -9,14 +9,16 @@
+ say() { echo "$(date -u +%FT%TZ) stop.sh: $*" | tee -a "$LOG/go.log"; }
+ marked() { local p; for p in /proc/[0-9]*; do [[ -O "$p" ]] || continue; tr '\0' '\n' 2>/dev/null < "$p/environ" | grep -qx "A15_RUN=$RUN" && echo "${p#/proc/}"; done; }
+ drv=$(pgrep -u "$(id -u)" -f "bash $D/rh/go.sh" | tr '\n' ' ')
+-pg=$(cat "$LOG/pgid" 2>/dev/null)
++pg=$(cat "$LOG/pgid" 2>/dev/null); pl=$(cat "$LOG/plan.pgid" 2>/dev/null)
+ say "driver [$drv] group [$pg] marked [$(marked | tr '\n' ' ')]"
+ [[ -n "$drv" ]] && kill -TERM $drv 2>/dev/null          # the driver's trap runs its own cleanup
+ [[ -n "$pg" ]] && kill -TERM -- "-$pg" 2>/dev/null
++[[ -n "$pl" ]] && kill -TERM -- "-$pl" 2>/dev/null       # the planner's group (up.py, sw.py)
+ left=$(marked | tr '\n' ' '); [[ -n "$left" ]] && kill -TERM $left 2>/dev/null
+ sleep 15
+ left=$(marked | tr '\n' ' '); [[ -n "$left" ]] && { say "KILL [$left]"; kill -KILL $left 2>/dev/null; }
+ [[ -n "$pg" ]] && kill -KILL -- "-$pg" 2>/dev/null
++[[ -n "$pl" ]] && kill -KILL -- "-$pl" 2>/dev/null
+ smi=$(cat "$LOG/smi.pid" 2>/dev/null); [[ -n "$smi" ]] && grep -q nvidia-smi "/proc/$smi/cmdline" 2>/dev/null && kill "$smi"
+ sleep 3
+ say "proof: marked left [$(marked | tr '\n' ' ')]; driver left [$(pgrep -u "$(id -u)" -f "bash $D/rh/go.sh" | tr '\n' ' ')]"
+diff -ruN fix15b/rh/sum.py fix21/rh_ext/rh/sum.py
+--- fix15b/rh/sum.py	2026-11-21 13:17:15.088113523 -0500
++++ fix21/rh_ext/rh/sum.py	2026-11-21 23:29:30.264724836 -0500
+@@ -56,7 +56,28 @@
+     tree_metrics_files=[str(p) for p in metrics], tree_smoke_report=str(smoke[0]) if smoke else None,
+     t_rc=(log / 't.rc').read_text().strip() if (log / 't.rc').exists() else None,
+     errors=errors, tracebacks_in_output=tbs[:6], accept=(log / 'accept.log').read_text(errors='replace')[-1500:] if (log / 'accept.log').exists() else None)
++# the first save (sx.py), the planner (up.py) and the sink, which the rehearsal never clears
++guards = [{k: v for k, v in r.items() if k not in ('utc', 'rank', 'kind')} for r in ev.get('0', []) if r['kind'] == 'DISK_GUARD']
++save_stages = {rk: {k: v for k, v in st['stage_seconds'].items() if k in ('save_checkpoint', 'persist_checkpoint', 'save_export', 'persist_export')}
++               for rk, st in ranks.items()}
++sink = run / 'w/sink'
++inventory = {}
++for p in sorted(sink.rglob('*')) if sink.exists() else []:
++    if p.is_file() and not p.is_symlink():
++        top = p.relative_to(sink).parts[0]
++        inventory.setdefault(top, [0, 0]); inventory[top][0] += 1; inventory[top][1] += p.stat().st_size
++plan = json.loads((log / 'plan.json').read_text()) if (log / 'plan.json').exists() else None
++out_save = dict(save_done_ranks=sorted(rk for rk, rs in ev.items() if any(r['kind'] == 'SAVE_DONE' for r in rs)),
++    save_stage_seconds=save_stages, disk_guards=guards, persist=[{k: v for k, v in r.items() if k not in ('utc', 'rank')} for r in ev.get('0', []) if r['kind'] == 'PERSIST'],
++    sink=str(sink), sink_bytes=sum(v[1] for v in inventory.values()), sink_files_and_bytes=inventory, sink_cleared=False,
++    planner=None if plan is None else {k: plan.get(k) for k in ('status', 'network_devices', 'seconds', 'sent', 'order', 'receipt_paths', 'network_events', 'foreign_spawn', 'outside_run', 'session_labels')},
++    planner_rc=(log / 'plan.rc').read_text().strip() if (log / 'plan.rc').exists() else None)
++ps = {st: max((r['seconds'] for r in ev.get('0', []) if r['kind'] == 'END' and r.get('stage') == st), default=None)
++      for st in ('save_checkpoint', 'persist_checkpoint', 'save_export', 'persist_export')}
++out_save = dict(PERSIST_SECONDS=ps, PERSIST_OVER_800S=any(v is not None and v > 800 for k, v in ps.items() if k.startswith('persist')),
++                persist_note='rank 0 archives while ranks 1-3 wait in an NCCL broadcast; process-group timeout 900 s', **out_save)
++out.update(out_save)
+ (run / 'summary.json').write_text(json.dumps(out, indent=1, default=str) + '\n')
+-short = {k: v for k, v in out.items() if k not in ('errors', 'tracebacks_in_output', 'ranks', 'accept')}
++short = {k: v for k, v in out.items() if k not in ('errors', 'tracebacks_in_output', 'ranks', 'accept', 'persist')}
+ short['errors'] = [dict(rank=e['rank'], where=e['where'], type=e['type'], message=(e['message'] or '')[:300]) for e in errors][:8]
+-print(json.dumps(short, default=str)[:6000])
++print(json.dumps(short, default=str)[:9000])
+diff -ruN fix15b/rh/sw.py fix21/rh_ext/rh/sw.py
+--- fix15b/rh/sw.py	1969-12-31 19:00:00.000000000 -0500
++++ fix21/rh_ext/rh/sw.py	2026-11-21 23:24:08.462442335 -0500
+@@ -0,0 +1,58 @@
++"""The rehearsal planner's writer (pc.py runs it as a test writer: <python> -I -s -B sw.py <mode> SESSIONS KEY FILE 4 4).
++It runs the kit's own b/gc.py main (its part names, byte ranges, prior-receipt skip and receipts file) with
++one change: gc.py's HTTPS PUT is replaced by a local recorder that reads the byte range, takes its sha256 and
++writes one small record under $A15_UPSINK. No byte leaves the node and no connection is opened (an audit
++hook refuses any connect or name lookup and logs it to $A15_UPSINK/audit_<pid>.jsonl). Session URLs must be
++the planner's local labels under the scratch run folder, else the part fails."""
++import hashlib, json, os, runpy, sys, time
++from concurrent.futures import ThreadPoolExecutor
++from pathlib import Path
++
++NOUPLOAD = 'https://a15-local-sink.invalid'
++NET = {'socket.connect', 'socket.getaddrinfo', 'socket.gethostbyname', 'socket.gethostbyaddr', 'socket.sendto',
++       'socket.sendmsg', 'http.client.connect', 'urllib.Request'}
++up = Path(os.environ['A15_UPSINK']); run = os.environ['A15_RUN'].rstrip('/')
++audit = up / f'audit_{os.getpid()}.jsonl'
++
++
++def note(row):
++    with open(audit, 'a') as f:
++        f.write(json.dumps(row) + '\n')
++
++
++def hook(name, args):
++    if name in NET:
++        note(dict(event=name, args=repr(args)[:300], refused=True))
++        raise RuntimeError('A15: network refused in the rehearsal writer: ' + name)
++    if name.startswith('socket.'):
++        note(dict(event=name, args=repr(args)[:300]))
++
++
++sys.addaudithook(hook)
++note(dict(event='start', argv=sys.argv[1:], pid=os.getpid()))
++gc = runpy.run_path(os.environ['Q_KIT'] + '/b/gc.py', run_name='gc_runtime')
++g = gc['main'].__globals__
++
++
++def local(uri, path, offset, length, name):
++    if not uri.startswith(NOUPLOAD + run + '/'):
++        raise ValueError('A15: session outside the local sink for ' + name)
++    t = time.time(); h = hashlib.sha256(); left = length
++    with open(path, 'rb') as f:
++        f.seek(offset)
++        while left:
++            b = f.read(min(1 << 24, left))
++            if not b:
++                raise IOError('short read')
++            h.update(b); left -= len(b)
++    row = dict(name=name, bytes=length, offset=offset, md5=None, sha256=h.hexdigest(), generation='a15-local-sink',
++               seconds=round(time.time() - t, 1), local_sink=str(up / (name + '.json')), uri=uri)
++    rec = up / (name + '.json')            # object names carry folders (q9/<kit>/...): the record mirrors them
++    rec.parent.mkdir(parents=True, exist_ok=True)
++    rec.write_text(json.dumps(row, sort_keys=True) + '\n')
++    return row
++
++
++g['upload'] = local
++g['ProcessPoolExecutor'] = ThreadPoolExecutor
++sys.exit(gc['main'](sys.argv[1:]))
+diff -ruN fix15b/rh/sx.py fix21/rh_ext/rh/sx.py
+--- fix15b/rh/sx.py	1969-12-31 19:00:00.000000000 -0500
++++ fix21/rh_ext/rh/sx.py	2026-11-21 23:24:08.462442335 -0500
+@@ -0,0 +1,127 @@
++"""The rehearsal's first save, run on every rank after the tree's own two smoke steps (u2.py calls it).
++It calls the tree's writers exactly as run_steps does, but into a scratch sink:
++  checkpoint(<sink>/checkpoint_<step>, wrapped, optimizer, bound, step, rotate=True, disk_guard=<Budget>)
++  milestone(<cfg with output=sink>, <state folder>, 'checkpoint')    (launch_r2.persistence: the archive copy)
++  export(<sink>/m<step>, wrapped, model, cfg, step, optimizer=optimizer, disk_guard=<the same Budget>)
++  milestone(<cfg with output=sink>, <sink>/m<step>, 'export')
++The Budget is Budget(cfg['checkpoint_disk_guard']), one per run as in run_steps, so both writes pass the
++job's own disk guard (checkpoint_space.check); every guard result is logged. If the config names a durable
++upload binding (r2_persistence), the archive copy is handed to a local recorder instead of the pinned
++uploader: it records the four byte ranges and their sha256 under <sink>/up and moves no byte. The sink is
++never cleared. Words the kit screens are spelled through bytes.fromhex."""
++import hashlib, importlib, json, os, time
++from pathlib import Path
++
++PK = bytes.fromhex('73747564656e745f70696c6f74').decode()
++GX = bytes.fromhex('67656f6d657472795f6f6e6c696e65').decode()
++NOUPLOAD = 'https://a15-local-sink.invalid'
++
++
++def ranges(size, parts=4):
++    step = -(-size // parts)
++    return [(k * step, max(0, min(step, size - k * step))) for k in range(parts)]
++
++
++def local_recorder(sink):
++    """Stand-in for persistence.upload's pinned uploader: reads the archive, writes small records only."""
++    def record(path, key):
++        out = Path(sink) / 'up'
++        out.mkdir(parents=True, exist_ok=True)
++        rows = []
++        size = Path(path).stat().st_size
++        with open(path, 'rb') as f:
++            for k, (offset, length) in enumerate(ranges(size)):
++                h, left = hashlib.sha256(), length
++                f.seek(offset)
++                while left:
++                    b = f.read(min(1 << 24, left))
++                    if not b:
++                        raise IOError('short read')
++                    h.update(b); left -= len(b)
++                name = f'{key}.part{k:02d}-of-04'
++                row = dict(name=name, offset=offset, bytes=length, sha256=h.hexdigest(), generation='a15-local-sink',
++                           uri=NOUPLOAD + str(out / name), local_sink=True, file=str(path))
++                (out / (name + '.json')).parent.mkdir(parents=True, exist_ok=True)
++                (out / (name + '.json')).write_text(json.dumps(row, sort_keys=True) + '\n')
++                rows.append(row)
++        return rows
++    return record
++
++
++def save_export(C, model, wrapped, optimizer, cfg, bound, rank, step, sink, ev=None, persist_cfg=None, distributed=True):
++    import torch.distributed as dist
++    ev = ev or (lambda kind, **kw: None)
++    CS = importlib.import_module(PK + '.checkpoint_space')
++    P = importlib.import_module('launch_r2.persistence')
++    if cfg.get(GX):
++        raise ValueError('A15: this rehearsal save does not carry the online history of that mode')
++    sink = Path(sink)
++    pcfg = dict(cfg if persist_cfg is None else persist_cfg, output=str(sink))
++    native_check = CS.check
++    guards = []
++
++    def check(*a, **kw):
++        try:
++            r = native_check(*a, **kw)
++        except BaseException as e:
++            ev('DISK_GUARD', write=kw.get('kind', 'checkpoint'), directory=str(a[0]), refused=f'{type(e).__name__}: {e}'[:2000])
++            raise
++        row = dict(write=kw.get('kind', 'checkpoint'), directory=str(a[0]), required_bytes=r['required_bytes'],
++                   available_bytes=r['available_bytes'], margin_bytes=r['available_bytes'] - r['required_bytes'],
++                   state_tensor_bytes=r['state_tensor_bytes'], export_tensor_bytes=r['export_tensor_bytes'],
++                   state_bytes=r['state_bytes'], export_bytes=r['export_bytes'],
++                   remaining_full_states=r['remaining_full_states'], remaining_weight_exports=r['remaining_weight_exports'],
++                   retained_archive_bytes=r['retained_archive_bytes'], native_remaining_bytes=r['native_remaining_bytes'],
++                   policy=r['policy'], completed=r['completed'])
++        guards.append(row)
++        ev('DISK_GUARD', **row)
++        return r
++
++    def stage(name, fn, *a, **kw):
++        t = time.time(); ev('BEGIN', stage=name)
++        out = fn(*a, **kw)
++        ev('END', stage=name, seconds=round(time.time() - t, 3))
++        return out
++
++    def persist(directory, kind):
++        if 'r2_identity' not in pcfg:
++            ev('PERSIST', write=kind, note='milestone() is a no-op without r2_identity, as in the job')
++            return
++        if 'r2_persistence' not in pcfg:
++            P.milestone(pcfg, directory, kind, rank, distributed)      # local_only: archive copy, no uploader
++        else:
++            result = [None]
++            if rank == 0:
++                try:
++                    P.upload(pcfg, directory, kind, uploader=local_recorder(sink))
++                except Exception as error:
++                    result[0] = str(error)
++            if distributed:
++                dist.broadcast_object_list(result, src=0)
++            if result[0]:
++                raise ValueError('Durable persistence refused: ' + result[0])
++        if rank == 0:
++            receipts = sorted(str(p) for p in (sink / 'persist').glob('*.json'))
++            ev('PERSIST', write=kind, directory=str(directory), receipts=receipts,
++               local_only='r2_persistence' not in pcfg)
++
++    CS.check = check
++    try:
++        budget = CS.Budget(cfg.get('checkpoint_disk_guard'))
++        ev('SAVE_BEGIN', step=step, sink=str(sink), policy=cfg.get('checkpoint_disk_guard'))
++        if rank == 0:
++            sink.mkdir(parents=True, exist_ok=True)
++            C.bind_output(sink, bound)          # the binding run_steps' output has (train writes it for a full run)
++        if distributed:
++            dist.barrier()
++        saved = stage('save_checkpoint', C.checkpoint, sink / f'checkpoint_{step:06d}', wrapped, optimizer, bound, step,
++                      rotate=True, disk_guard=budget)
++        state = Path(saved['path']).parent
++        stage('persist_checkpoint', persist, state, 'checkpoint')
++        stage('save_export', C.export, sink / f'm{step}', wrapped, model, cfg, step, optimizer=optimizer, disk_guard=budget)
++        stage('persist_export', persist, sink / f'm{step}', 'export')
++        ev('SAVE_DONE', step=step, state=str(state), export=str(sink / f'm{step}'), guards=len(guards),
++           completed=dict(budget.completed))
++        return dict(state=state, export=sink / f'm{step}', guards=guards)
++    finally:
++        CS.check = native_check
+diff -ruN fix15b/rh/u2.py fix21/rh_ext/rh/u2.py
+--- fix15b/rh/u2.py	2026-11-21 13:18:30.612231511 -0500
++++ fix21/rh_ext/rh/u2.py	2026-11-21 23:18:41.954907415 -0500
+@@ -2,7 +2,8 @@
+ # Differences: the kit is $Q_KIT; train(cfg, smoke_steps=A15_STEPS) (the tree's own two-step length) in
+ # place of the full schedule; every stage and optimizer step is timed into $A15_LOG/ev_rank<r>.jsonl
+ # (wrappers log and re-raise, they change no value); A15_DRY=1 (Trinity test only) stops after the tree's
+-# authenticate() under the layout, before anything needs a GPU.
++# authenticate() under the layout, before anything needs a GPU; A15_SAVE=1 (go.sh's default) adds the first save
++# after the two steps: sx.save_export (checkpoint, export, their archive copies) into the scratch sink $A15_SINK.
+ import sys,os,json,time,traceback,importlib,math,functools
+ from pathlib import Path
+ RANK=os.environ.get('RANK','x');EV=Path(os.environ['A15_LOG'])/('ev_rank%s.jsonl'%RANK)
+@@ -58,6 +59,17 @@
+      skipped=info.get('skipped_microsteps'))
+   return info,extra
+  C.optimize_step=step
++ if os.environ.get('A15_SAVE')=='1':
++  # after the tree's own smoke steps: one checkpoint and one export through the job's disk guard, each with its
++  # archive copy, into the scratch sink $A15_SINK (sx.py); the job's own output and upload sessions are not used
++  import sx
++  native_rs=C.run_steps
++  def rs(model,wrapped,optimizer,rows,counts,output,cfg_,bound,device,rank=0,start_step=0,smoke_steps=None,*a,**kw):
++   report=native_rs(model,wrapped,optimizer,rows,counts,output,cfg_,bound,device,rank,start_step,smoke_steps,*a,**kw)
++   try:sx.save_export(C,model,wrapped,optimizer,cfg_,bound,rank,report['last_step'],Path(os.environ['A15_SINK']),ev=ev,distributed=kw.get('distributed',True))
++   except BaseException as e:err('save',e);raise
++   return report
++  C.run_steps=rs
+  E.admit=timed('admit',E.admit)
+  with scope(request['_paths']),scope(cfg['r1_training']['persisted_files']):
+   timed('verify_staging',PP.verify_staging)(request)
+diff -ruN fix15b/rh/up.py fix21/rh_ext/rh/up.py
+--- fix15b/rh/up.py	1969-12-31 19:00:00.000000000 -0500
++++ fix21/rh_ext/rh/up.py	2026-11-21 23:25:20.331515338 -0500
+@@ -0,0 +1,88 @@
++"""The rehearsal's upload planner pass: the kit's own b/pc.py Copier, one pass as its --loop runs it
++(pass_once(final=False, small=False): stop, exports, checkpoints), over the rehearsal's scratch sink.
++usage (inside the rehearsal sandbox, started with --unshare-net): up.py <sink> <copier root> <job>
++Differences from the job's loop, all on purpose: train is the sink (not p/q/r); the root holding
++live_spool is scratch; the session map is a local one written here (every part the kit's names allow, each
++URL a label https://a15-local-sink.invalid/<local record path>), so the job's session file is never read;
++the writer is rh/sw.py (the kit's gc.py with its transport replaced by a local recorder), never gc.py over
++HTTPS. A Python audit hook refuses and records every connect or name lookup; the process has no network
++namespace route anyway. Writes log/plan.json (what was planned, sent and where) and prints a short form."""
++import json, os, sys, time
++from pathlib import Path
++
++NOUPLOAD = 'https://a15-local-sink.invalid'
++NET = {'socket.connect', 'socket.getaddrinfo', 'socket.gethostbyname', 'socket.gethostbyaddr', 'socket.sendto',
++       'socket.sendmsg', 'http.client.connect', 'urllib.Request', 'ftplib.connect', 'smtplib.connect', 'nntplib.connect'}
++SPAWN = {'subprocess.Popen', 'os.posix_spawn', 'os.exec', 'os.system', 'os.spawn', 'os.fork'}
++events = []
++
++
++def hook(name, args):
++    if name in NET:
++        events.append(dict(event=name, args=repr(args)[:300], refused=True))
++        raise RuntimeError('A15: network refused in the rehearsal planner: ' + name)
++    if name.startswith('socket.') or name in SPAWN:   # argv only: a process environment is never logged
++        shown = args[1] if name in ('subprocess.Popen', 'os.posix_spawn', 'os.exec') and len(args) > 1 else args
++        events.append(dict(event=name, args=repr(shown)[:800]))
++
++
++sys.addaudithook(hook)
++t0 = time.time()
++# the network namespace this pass runs in: only the loopback device may exist (bwrap --unshare-net)
++ifaces = sorted(x.partition(':')[0].strip() for x in Path('/proc/self/net/dev').read_text().splitlines()[2:] if x.strip())
++log = Path(os.environ['A15_LOG']); run = Path(os.environ['A15_RUN']).resolve()
++kit = Path(os.environ['Q_KIT']).resolve(); sys.path.insert(0, str(kit / 'b'))
++from z import seal
++seal(kit)
++import pc
++sink, root, job = Path(sys.argv[1]).resolve(), Path(sys.argv[2]).resolve(), sys.argv[3]
++for p in (sink, root):
++    if not (p == run or run in p.parents):
++        raise ValueError('A15: planner path outside the scratch run folder: ' + str(p))
++here = Path(__file__).resolve().parent
++up = sink / 'up'
++up.mkdir(parents=True, exist_ok=True)
++names = pc.read(kit / 'k/y.json')
++keys = sorted(v + '.j' + job + f'.part{i:02d}-of-04' for v in names['objects'].values() for i in range(4))
++private = root / 'live_spool/private'
++private.mkdir(parents=True, exist_ok=True, mode=0o700); os.chmod(private, 0o700)
++sess = private / 'sess.json'
++if not sess.exists():
++    fd = os.open(sess, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
++    with os.fdopen(fd, 'w') as f:
++        f.write(json.dumps({k: NOUPLOAD + str(up / k) for k in keys}, sort_keys=True))
++os.environ['A15_UPSINK'] = str(up)
++c = pc.Copier(kit, root, job, train=sink, writer=here / 'sw.py')
++markers = sorted([*sink.glob('checkpoint_*/complete.json'), *sink.glob('m*/artifact.json')])
++c.pass_once(final=False, small=False)
++spool = root / 'live_spool'
++
++
++def lines(p):
++    return [json.loads(x) for x in p.read_text().splitlines() if x.strip()] if p.exists() else []
++
++
++state = {p.name: (pc.read(p) if p.suffix in ('.json', '.done') else None) for p in sorted((spool / 'state').glob('*'))}
++receipts = lines(Path(str(spool / 'private/sess.json') + '.receipts.jsonl'))
++writer_audit = [r for p in sorted(up.glob('audit_*.jsonl')) for r in lines(p)]
++created = sorted(str(p) for base in (root, sink) for p in base.rglob('*') if p.is_file())
++outside = [p for p in created if not Path(p).resolve().is_relative_to(run)]
++receipt_paths = sorted({r.get('file') for r in receipts} | {r.get('local_sink') for r in receipts})
++net = [e for e in events + writer_audit if e['event'] in NET or e['event'].startswith('socket.')]
++spawned = [e for e in events if e['event'] in SPAWN]
++foreign_spawn = [e for e in spawned if e['event'] == 'subprocess.Popen' and (str(here / 'sw.py') not in e['args'] or 'gc.py' in e['args'])]
++done = {k: v for k, v in state.items() if k.endswith('.done')}
++sent = {m.parent.name: ('gcs_' + m.parent.name + '.done') in done for m in markers}
++ok = (ifaces == ['lo'] and bool(markers) and all(sent.values()) and not net and not foreign_spawn and not outside
++      and all(str(r.get('local_sink', '')).startswith(str(up) + '/') and str(r.get('file', '')).startswith(str(run) + '/') for r in receipts))
++out = dict(schema='a15-planner-v1', status='PASS' if ok else ('NOTHING_TO_SEND' if not markers and ifaces == ['lo'] else 'FAIL'),
++           network_devices=ifaces,
++           seconds=round(time.time() - t0, 1), sink=str(sink), root=str(root), markers=[str(m) for m in markers], sent=sent,
++           order=[r.get('phase') for r in lines(spool / 'final_order.jsonl')], state=state, receipts=receipts,
++           receipt_paths=receipt_paths, session_labels=dict(count=len(keys), prefix=NOUPLOAD + str(up) + '/'),
++           network_events=net, spawned=spawned, foreign_spawn=foreign_spawn, files_created=created, outside_run=outside,
++           retry_log=(spool / 'retry.log').read_text()[-4000:] if (spool / 'retry.log').exists() else '',
++           writer_log=(spool / 'upload.log').read_text()[-4000:] if (spool / 'upload.log').exists() else '')
++(log / 'plan.json').write_text(json.dumps(out, indent=1, default=str) + '\n')
++print(json.dumps({k: out[k] for k in ('status', 'network_devices', 'seconds', 'sent', 'order', 'receipt_paths', 'network_events', 'foreign_spawn', 'outside_run')}, default=str)[:3000], flush=True)
++sys.exit(0 if out['status'] in ('PASS', 'NOTHING_TO_SEND') else 1)

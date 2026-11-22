@@ -1,0 +1,313 @@
+# kit w35 vs 7e23bbdd: member changes (sha256)
+
+BUILD.json: 3cdcf5345a0963f89ab2544c9320cf75f9ef619dba975b30974d5a7290df5d5b -> 86393eab30db95b44cb750910b9785cef780200bdec1806368af1055d279188e
+SHA256SUMS.txt: 7e23bbddb052a6f3ddb1915858dc03e8951d35d87cc9a3cd276f8853414d5771 -> ea058fed0495be92fd22c71546fd1bbab449970c566319fc857ddd2a6a551591
+b/dp.py: (absent) -> 56d56112690b933a7f5fcd6b8600e7e7c5f713469a512cb9add353cb513d96a0
+b/il.py: (absent) -> 9d310f19bfb9c22a37b51f879e52c61a312e6220daaa9ec052328cd500330b2d
+b/pc.py: 000c23a44265764abfc845a6b18f2b17186efde8628fde146340770d3972d6a6 -> 3fe4eed4fa257363b421f8dc56fea268b14b8bba330943585f97561fb06f3a43
+k/7.json: b2ba52d6b630a492c9a7ac3899894841139799fe67c470f5b3067a16ab273202 -> 66de88aa6c26efa75622e13ae486ff98c6a11db22b91b3a7a2d68244a890aea2
+k/a.json: 829fae6a4f1349f072797548f9460cfc3afa44e9845b708a0cfa6aea79b78aa8 -> 9268ee7934d22a0895be9dacb38c6d8b45d024356ac276cf763d27dcaa3add9b
+k/c.json: 76de3706b8eba5b8e0c6317f96a48d432f597358dfcda94bf1445589c6199bd7 -> 64a6465b5b6e2ce370120a94307fa7ad1caea7c1a869ce1a28b876c504c65b5d
+k/c0.json: 9c0593cf6b302c2fda48a6c1659f24510819802bff216ddba7e3e0f8288c1120 -> 27d781b89b255c41453d567102d109afcc94e3d4e5bfa11ce17724abb85240c0
+k/h.json: e693876efa3dea18d717d948db5bdd43111f128560e47a1c17822675343231fe -> ae72bfeedff16feff306b24895e5333096cf52981c0f0066e7d7f1973a25675d
+k/j.json: 2ca9c9bd75e78580dcc2540335882143a9683b011dc2da23cd68ccf6a3160821 -> 5c2b00754f8a772a82279c8cb0ae6aca67cb53854cf017dc291194f08c10fb82
+k/n.json: 4b8b9533eb12434186a9f42a06b44962574c3dedd51f9b8405d1f7e33d2504b9 -> dca3400c6d535957866ea3526962efe9f0712e20c300716dea9a214c89b209ff
+k/p.json: 77525f28cdbc24b8b1ce918460c91878708e200ebc05c7a17725a10787712694 -> 1031e0409a0ff66fc5fa9d061726e5bea8edb3c6afaa0712498a540fc8219056
+k/r.json: 955564f3a7e5097055d03e771bbabbd0b55018303642b59ab8ae33dab74e4c58 -> 2f693cd05bda0e0480ca592f4b49aae770e0856f098ab9b0418e34d99a81afff
+k/t_db42866fd9e8d009.tar: (absent) -> f5db525fc8efcf69c99ec43fd29ba029f6fd54fc0465c0431780643ecf8e47d5
+k/t_e047002134f979bd.tar: 5f2d77c4bc9905d877a259b666ac4a7fa6005de538730b806ceb249468699e38 -> (absent)
+
+--- a/k/a.json:decoded
++++ b/k/a.json:decoded
+@@ -14,7 +14,7 @@
+   "review_wait_seconds": 7200,
+   "source": {
+-    "path": "k/t_e047002134f979bd.tar",
+-    "sha256": "5f2d77c4bc9905d877a259b666ac4a7fa6005de538730b806ceb249468699e38",
+-    "tree_sha256": "9d2bbb8ad209d91e21e56121785f62b0dddf3c8d9f14db8d23daf6dcd1d3591b"
++    "path": "k/t_db42866fd9e8d009.tar",
++    "sha256": "f5db525fc8efcf69c99ec43fd29ba029f6fd54fc0465c0431780643ecf8e47d5",
++    "tree_sha256": "db42866fd9e8d0090276686527e8ebd8837ab2a9401609d81039b8784187f034"
+   }
+ }
+
+--- a/k/c.json:decoded
++++ b/k/c.json:decoded
+@@ -19,5 +19,5 @@
+     "extra_full_states": 2,
+     "planned_full_states": 14,
+-    "planned_weight_exports": 7,
++    "planned_weight_exports": 3,
+     "reserve_bytes": 200000000000,
+     "retained_archive_copies": 1
+@@ -25,5 +25,5 @@
+   "code": {
+     "path": "k/7.json",
+-    "sha256": "b2ba52d6b630a492c9a7ac3899894841139799fe67c470f5b3067a16ab273202"
++    "sha256": "66de88aa6c26efa75622e13ae486ff98c6a11db22b91b3a7a2d68244a890aea2"
+   },
+   "depth_enabled": true,
+@@ -79,9 +79,5 @@
+   "milestones": [
+     100,
+-    200,
+-    400,
+-    600,
+-    800,
+-    1000
++    200
+   ],
+   "min_pixels": null,
+@@ -350,9 +346,5 @@
+     "milestones": [
+       100,
+-      200,
+-      400,
+-      600,
+-      800,
+-      1000
++      200
+     ],
+     "mix": [
+
+--- a/k/n.json:decoded
++++ b/k/n.json:decoded
+@@ -19,11 +19,11 @@
+     "extra_full_states": 2,
+     "planned_full_states": 14,
+-    "planned_weight_exports": 7,
++    "planned_weight_exports": 3,
+     "reserve_bytes": 200000000000,
+     "retained_archive_copies": 1
+   },
+   "code": {
+-    "path": "u/53faadaa0fe7f198369ecc2cd15a01a663cf26e968ffdca6dea686fece36b47e",
+-    "sha256": "53faadaa0fe7f198369ecc2cd15a01a663cf26e968ffdca6dea686fece36b47e"
++    "path": "u/da19bb3ad9e9227e12bc28161713ae6a1f2a680e559039e290caa2cff0bc6eca",
++    "sha256": "da19bb3ad9e9227e12bc28161713ae6a1f2a680e559039e290caa2cff0bc6eca"
+   },
+   "depth_enabled": true,
+@@ -79,9 +79,5 @@
+   "milestones": [
+     100,
+-    200,
+-    400,
+-    600,
+-    800,
+-    1000
++    200
+   ],
+   "min_pixels": null,
+@@ -350,9 +346,5 @@
+     "milestones": [
+       100,
+-      200,
+-      400,
+-      600,
+-      800,
+-      1000
++      200
+     ],
+     "mix": [
+
+--- a/k/h.json:decoded
++++ b/k/h.json:decoded
+@@ -25,6 +25,6 @@
+   "routing_base": null,
+   "routing_selection": {
+-    "path": "u/a49f117f60add326e1ef3e8eb2b92a73ec299425e8efb477fa9e84d462789e73",
+-    "sha256": "a49f117f60add326e1ef3e8eb2b92a73ec299425e8efb477fa9e84d462789e73"
++    "path": "u/c672ad47b28d05d81e524baddb6d164f0f41c0b23a8cf0a1f49bfd045e93ec46",
++    "sha256": "c672ad47b28d05d81e524baddb6d164f0f41c0b23a8cf0a1f49bfd045e93ec46"
+   },
+   "schema": "r1-host-request-v1",
+
+--- a/k/r.json:decoded
++++ b/k/r.json:decoded
+@@ -11,11 +11,11 @@
+   },
+   "routing_selection": {
+-    "path": "u/a49f117f60add326e1ef3e8eb2b92a73ec299425e8efb477fa9e84d462789e73",
+-    "sha256": "a49f117f60add326e1ef3e8eb2b92a73ec299425e8efb477fa9e84d462789e73"
++    "path": "u/c672ad47b28d05d81e524baddb6d164f0f41c0b23a8cf0a1f49bfd045e93ec46",
++    "sha256": "c672ad47b28d05d81e524baddb6d164f0f41c0b23a8cf0a1f49bfd045e93ec46"
+   },
+   "staged_pins": [
+     {
+-      "path": "u/a49f117f60add326e1ef3e8eb2b92a73ec299425e8efb477fa9e84d462789e73",
+-      "sha256": "a49f117f60add326e1ef3e8eb2b92a73ec299425e8efb477fa9e84d462789e73"
++      "path": "u/c672ad47b28d05d81e524baddb6d164f0f41c0b23a8cf0a1f49bfd045e93ec46",
++      "sha256": "c672ad47b28d05d81e524baddb6d164f0f41c0b23a8cf0a1f49bfd045e93ec46"
+     },
+     {
+
+--- a/k/p.json:decoded
++++ b/k/p.json:decoded
+@@ -1,4 +1,4 @@
+ {
+-  "code_sha256": "53faadaa0fe7f198369ecc2cd15a01a663cf26e968ffdca6dea686fece36b47e",
++  "code_sha256": "da19bb3ad9e9227e12bc28161713ae6a1f2a680e559039e290caa2cff0bc6eca",
+   "frame_roots": [
+     "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/data2root",
+@@ -244,5 +244,4 @@
+     "524b14f9f180ba7d2c1c860cab294145b7370f3f1282960a55bbcbc6c5657634": "/tmp/q_22c714e1/u/524b14f9f180ba7d2c1c860cab294145b7370f3f1282960a55bbcbc6c5657634",
+     "5257a29705d1eb6a8c6cb2604eb7c6a3af74483438964921f084dcdc3864699d": "/tmp/q_22c714e1/u/5257a29705d1eb6a8c6cb2604eb7c6a3af74483438964921f084dcdc3864699d",
+-    "53faadaa0fe7f198369ecc2cd15a01a663cf26e968ffdca6dea686fece36b47e": "/tmp/q_22c714e1/u/53faadaa0fe7f198369ecc2cd15a01a663cf26e968ffdca6dea686fece36b47e",
+     "550a74347ff6323c9eb33584ea670d002890325e40328498a8dfca4cf301ecb7": "/tmp/q_22c714e1/u/550a74347ff6323c9eb33584ea670d002890325e40328498a8dfca4cf301ecb7",
+     "569da570556ab2b9aa3bbf9c112eb7758fda1b25d4cc4670bb764211e41ade4e": "/tmp/q_22c714e1/u/569da570556ab2b9aa3bbf9c112eb7758fda1b25d4cc4670bb764211e41ade4e",
+@@ -313,5 +312,4 @@
+     "a2f3fdbdab06ab81942d44044d85090df8ec5b86908cf010cdbcb17e35637f5e": "/tmp/q_22c714e1/u/a2f3fdbdab06ab81942d44044d85090df8ec5b86908cf010cdbcb17e35637f5e",
+     "a30e6f15ad3fc449bf618f89a204a293a08af70e4bf9622b268ae3c29c072cbd": "/tmp/q_22c714e1/u/a30e6f15ad3fc449bf618f89a204a293a08af70e4bf9622b268ae3c29c072cbd",
+-    "a49f117f60add326e1ef3e8eb2b92a73ec299425e8efb477fa9e84d462789e73": "/tmp/q_22c714e1/u/a49f117f60add326e1ef3e8eb2b92a73ec299425e8efb477fa9e84d462789e73",
+     "a5bbef1b865fd98aa398ded3e31ab60ed40848917646299ffc0ccc15c283ccda": "/tmp/q_22c714e1/u/a5bbef1b865fd98aa398ded3e31ab60ed40848917646299ffc0ccc15c283ccda",
+     "a7682dae68defb91ed5e19120e8f53c149016d70728c417c817c6c408020a22a": "/tmp/q_22c714e1/u/a7682dae68defb91ed5e19120e8f53c149016d70728c417c817c6c408020a22a",
+@@ -342,4 +340,5 @@
+     "c47c5fcd242edc12396cfc47c300da24d3dd2e68aa6ee24abed965f78c84a11b": "/tmp/q_22c714e1/u/c47c5fcd242edc12396cfc47c300da24d3dd2e68aa6ee24abed965f78c84a11b",
+     "c52aba27b43d8eba72262358bb3f14ba1be953c477d1da35d6aad9a20640d42d": "/tmp/q_22c714e1/u/c52aba27b43d8eba72262358bb3f14ba1be953c477d1da35d6aad9a20640d42d",
++    "c672ad47b28d05d81e524baddb6d164f0f41c0b23a8cf0a1f49bfd045e93ec46": "/tmp/q_22c714e1/u/c672ad47b28d05d81e524baddb6d164f0f41c0b23a8cf0a1f49bfd045e93ec46",
+     "c68f306cbeaa669f3b91c1fd6480a81ae7d8883723f4f5460d5d2e9fccd9a0d1": "/tmp/q_22c714e1/u/c68f306cbeaa669f3b91c1fd6480a81ae7d8883723f4f5460d5d2e9fccd9a0d1",
+     "c82c2da1a0933207fbf60ba82f6c5172509c96d715620efe7495d0014c9aeaf9": "/tmp/q_22c714e1/u/c82c2da1a0933207fbf60ba82f6c5172509c96d715620efe7495d0014c9aeaf9",
+@@ -357,4 +356,5 @@
+     "d8c3837019d29e9c8b7916a7e8b3c3d595890b6cad32c7dc72ba5f871a0a5108": "/tmp/q_22c714e1/u/d8c3837019d29e9c8b7916a7e8b3c3d595890b6cad32c7dc72ba5f871a0a5108",
+     "d8d33340aabfe1e58d4bc81cd3b2c4919510c38c419ea9d81abe520844f6a1a9": "/tmp/q_22c714e1/u/d8d33340aabfe1e58d4bc81cd3b2c4919510c38c419ea9d81abe520844f6a1a9",
++    "da19bb3ad9e9227e12bc28161713ae6a1f2a680e559039e290caa2cff0bc6eca": "/tmp/q_22c714e1/u/da19bb3ad9e9227e12bc28161713ae6a1f2a680e559039e290caa2cff0bc6eca",
+     "dafa4a9c8ffd1e063e0a98c5ae6087d911b74f864932e530f24d45b816cca6fb": "/tmp/q_22c714e1/u/dafa4a9c8ffd1e063e0a98c5ae6087d911b74f864932e530f24d45b816cca6fb",
+     "db0952e1fb49e4125753a756132514fd0714a49417abf60f8172bfeab9d5dc2c": "/tmp/q_22c714e1/u/db0952e1fb49e4125753a756132514fd0714a49417abf60f8172bfeab9d5dc2c",
+@@ -789,6 +789,6 @@
+     {
+       "bytes": 129141,
+-      "opaque_name": "u/53faadaa0fe7f198369ecc2cd15a01a663cf26e968ffdca6dea686fece36b47e",
+-      "sha256": "53faadaa0fe7f198369ecc2cd15a01a663cf26e968ffdca6dea686fece36b47e"
++      "opaque_name": "u/da19bb3ad9e9227e12bc28161713ae6a1f2a680e559039e290caa2cff0bc6eca",
++      "sha256": "da19bb3ad9e9227e12bc28161713ae6a1f2a680e559039e290caa2cff0bc6eca"
+     },
+     {
+@@ -1134,6 +1134,6 @@
+     {
+       "bytes": 10997,
+-      "opaque_name": "u/a49f117f60add326e1ef3e8eb2b92a73ec299425e8efb477fa9e84d462789e73",
+-      "sha256": "a49f117f60add326e1ef3e8eb2b92a73ec299425e8efb477fa9e84d462789e73"
++      "opaque_name": "u/c672ad47b28d05d81e524baddb6d164f0f41c0b23a8cf0a1f49bfd045e93ec46",
++      "sha256": "c672ad47b28d05d81e524baddb6d164f0f41c0b23a8cf0a1f49bfd045e93ec46"
+     },
+     {
+
+# k/7.json decoded: keys changed ['archive', 'commit', 'files', 'operation_sources', 'sources', 'tree_sha256']; files changed ['student_pilot/carrier_c1_run.py', 'student_pilot/r1_training.py']; sources changed ['student_pilot/carrier_c1_run.py', 'student_pilot/r1_training.py']; tree_sha256 9d2bbb8a -> db42866f; archive {'path': 'k/t_e047002134f979bd.tar', 'sha256': '5f2d77c4bc9905d877a259b666ac4a7fa6005de538730b806ceb249468699e38'} -> {'path': 'k/t_db42866fd9e8d009.tar', 'sha256': 'f5db525fc8efcf69c99ec43fd29ba029f6fd54fc0465c0431780643ecf8e47d5'}; decoded sha256 2f50771b -> 6f9dcd2d
+# k/c0.json decoded: keys changed ['archive', 'commit', 'files', 'sources', 'tree_sha256']; files changed ['student_pilot/carrier_c1_run.py', 'student_pilot/r1_training.py']; sources changed ['student_pilot/carrier_c1_run.py', 'student_pilot/r1_training.py']; tree_sha256 9d2bbb8a -> db42866f; archive {'path': '/tmp/q_22c714e1/p/q/t.tar', 'sha256': '5f2d77c4bc9905d877a259b666ac4a7fa6005de538730b806ceb249468699e38'} -> {'path': '/tmp/q_22c714e1/p/q/t.tar', 'sha256': 'f5db525fc8efcf69c99ec43fd29ba029f6fd54fc0465c0431780643ecf8e47d5'}; decoded sha256 53faadaa -> da19bb3a
+
+--- a/k/j.json:decoded
++++ b/k/j.json:decoded
+@@ -414,6 +414,16 @@
+     /usr/bin/python3 -B "$Q_KIT/b/w.py" "$Q_ROOT/args.json" "${BW[@]}"
+     exit 0
+ fi
++# Whole-leg disk plan right after staging: the tree's own plan on the kit configuration against the free space of
++# the job folder's filesystem (the run output's); free must exceed the plan by 300 GB.
++if [[ "${Q_MODE:-q}" != r ]]; then
++set +e
++"${BW[@]}" "$PILOT_VENV/bin/python" -B -s "$Q_KIT/b/dp.py" preflight "$Q_KIT" "$Q_NS" 300000000000 2>&1 | /usr/bin/python3 -B "$Q_KIT/b/l.py" "$Q_KIT" > "$Q_ROOT/dp.log"
++rc=${PIPESTATUS[0]}
++set -e
++tk_step "disk plan after staging rc=$rc: $(tail -n 1 "$Q_ROOT/dp.log" | cut -c1-900)"
++if [[ "$rc" != 0 ]]; then exit "$rc"; fi
++fi
+ if [[ "${Q_MODE:-q}" != r ]]; then
+ "${BW[@]}" "$PILOT_VENV/bin/python" -B -s "$Q_KIT/b/g.py"
+ fi
+@@ -436,6 +446,18 @@
+ "${BW[@]}" nice -n 10 "$PILOT_VENV/bin/python" -B -s "$Q_KIT/b/rv.py" "$Q_NS" "$Q_NS/v.json" "${SLURM_JOB_ID:?}" 2>&1 | /usr/bin/python3 -B "$Q_KIT/b/l.py" "$Q_KIT" > "$Q_ROOT/rv.log"
+ rc=${PIPESTATUS[0]}
+ fi
++# Ranks 1-3 read the init artifact's own weight and head paths under the mount's runs folder: link them to the
++# staged copies named by the persisted-file map (b/il.py), then recheck the disk plan on the job configuration.
++if [[ "$rc" == 0 ]]; then
++"${BW[@]}" "$PILOT_VENV/bin/python" -B -s "$Q_KIT/b/il.py" "$Q_NS/v.json" "$X" 2>&1 | /usr/bin/python3 -B "$Q_KIT/b/l.py" "$Q_KIT" > "$Q_ROOT/il.log"
++rc=${PIPESTATUS[0]}
++tk_step "init links rc=$rc: $(tail -n 1 "$Q_ROOT/il.log" | cut -c1-900)"
++fi
++if [[ "$rc" == 0 ]]; then
++"${BW[@]}" "$PILOT_VENV/bin/python" -B -s "$Q_KIT/b/dp.py" train "$Q_KIT" - 0 "$Q_NS/v.json" "$Q_NS/p/s" 2>&1 | /usr/bin/python3 -B "$Q_KIT/b/l.py" "$Q_KIT" > "$Q_ROOT/dp2.log"
++rc=${PIPESTATUS[0]}
++tk_step "disk plan at training start rc=$rc: $(tail -n 1 "$Q_ROOT/dp2.log" | cut -c1-900)"
++fi
+ if [[ "$rc" == 0 ]]; then
+ export OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8
+ "${BW[@]}" "$PILOT_VENV/bin/python" -B -s "$Q_KIT/b/t.py" "$Q_NS/p" "$Q_NS/v.json" 2>&1 | /usr/bin/python3 -B "$Q_KIT/b/l.py" "$Q_KIT" > "$Q_ROOT/t.log"
+
+--- a/b/pc.py
++++ b/b/pc.py
+@@ -22,6 +22,9 @@
+ 
+ CAP = 50_000_000
+ LOG_CAP = 40_000_000
++# The leg's metrics leave the node gzip-compressed every METRICS_SECONDS, outside copy.json's CAP, each at most METRICS_CAP.
++METRICS_CAP = 45_000_000
++METRICS_SECONDS = 300
+ RESERVE = 50 * 1024**3
+ 
+ 
+@@ -293,6 +296,40 @@
+             fcntl.flock(lock, fcntl.LOCK_EX)
+             return self._small()
+ 
++    def metrics_only(self):
++        self.paths()
++        with (self.spool/'small.lock').open('a') as lock:
++            fcntl.flock(lock, fcntl.LOCK_EX)
++            return self.metrics()
++
++    def metrics(self):
++        # Each metrics_<attempt>.jsonl of the run folder goes, gzip-compressed, to the live folder on X as
++        # metrics_<attempt>.jsonl.gz, beside copy.json and outside its byte budget, so a job that dies mid-leg has left
++        # its losses on X. Whole lines only; a file whose compressed copy would exceed METRICS_CAP keeps its newest lines
++        # and records how many leading bytes it left out. metrics.json lists what was written.
++        import gzip
++        self.live.mkdir(parents=True, exist_ok=True)
++        rows = []
++        for p in sorted(self.train.glob('metrics_*.jsonl')):
++            if not p.is_file() or p.is_symlink():
++                continue
++            with p.open('rb') as f:
++                source = f.read()
++            raw = source[:source.rfind(b'\n')+1]
++            omitted = 0
++            data = gzip.compress(raw, compresslevel=6, mtime=0)
++            while len(data) > METRICS_CAP and raw:
++                cut = raw.find(b'\n', len(raw)//4)
++                drop = len(raw) if cut < 0 else cut+1
++                raw = raw[drop:]; omitted += drop
++                data = gzip.compress(raw, compresslevel=6, mtime=0)
++            name = p.name+'.gz'
++            atomic(self.live/name, data)
++            rows.append(dict(name=name, source=p.name, source_bytes=len(source), kept_bytes=len(raw),
++                             omitted_head_bytes=omitted, bytes=len(data), sha256=hashlib.sha256(data).hexdigest()))
++        put(self.live/'metrics.json', dict(time=int(time.time()), files=rows, cap_bytes=METRICS_CAP, every_seconds=METRICS_SECONDS))
++        return rows
++
+     def _small(self):
+         # Each publication has one shared byte budget, including its manifest.
+         self.live.mkdir(parents=True, exist_ok=True)
+@@ -352,6 +389,7 @@
+         raw = (json.dumps(record, sort_keys=True)+'\n').encode()
+         assert total + len(raw) <= CAP
+         atomic(self.live/'copy.json',raw)
++        self.attempt('metrics', self.metrics)
+         self.copy_exit()
+         return total + len(raw)
+ 
+@@ -744,9 +782,13 @@
+     for sig in (signal.SIGTERM,signal.SIGUSR1,signal.SIGINT):
+         signal.signal(sig, lambda *_:stop.__setitem__(0,True))
+     if args.loop_small:
++        # The full small copy every 600 s as before; the compressed metrics alone in between, so every 300 s.
++        tick = 0
+         while not stop[0]:
+-            c.attempt('small', c.small)
+-            for _ in range(600):
++            if tick % 2 == 0:c.attempt('small', c.small)
++            else:c.attempt('metrics', c.metrics_only)
++            tick += 1
++            for _ in range(METRICS_SECONDS):
+                 if stop[0]:break
+                 time.sleep(1)
+         c.attempt('small', c.small)

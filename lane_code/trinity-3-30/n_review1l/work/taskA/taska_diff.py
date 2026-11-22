@@ -34,6 +34,21 @@ def main(old, new):
     mapping = {a: b for a, b in ALLOWED.values()}
     problems, explained = [], []
     for n in CHAIN:
+        if n == 'materialization.json' and (new / 'relocation.json').is_file():
+            # The reviewed job's relocation.json was not kept; its sha is pinned in the old materialization.
+            # Undo every mapped change in the new file; the bytes must hash to exactly the old pin.
+            pin_old = json.loads((old / n).read_text())['relocation']['sha256']
+            raw = (new / 'relocation.json').read_text()
+            back = raw
+            for a, b in mapping.items():
+                back = back.replace(b, a)
+            ok = hashlib.sha256(back.encode()).hexdigest() == pin_old
+            print('relocation.json new %s; reverse-mapped sha %s; old pin %s; %s' % (
+                sha(new / 'relocation.json')[:8], hashlib.sha256(back.encode()).hexdigest()[:8], pin_old[:8], 'EQUAL' if ok else 'DIFFERS'))
+            if ok:
+                mapping.setdefault(pin_old, sha(new / 'relocation.json'))
+            else:
+                problems.append(('relocation.json', 'reverse map', 'does not reproduce old pin', pin_old[:16]))
         so, sn = sha(old / n), sha(new / n)
         vo, vn = json.loads((old / n).read_text()), json.loads((new / n).read_text())
         do, dn = digest(vo), digest(vn)

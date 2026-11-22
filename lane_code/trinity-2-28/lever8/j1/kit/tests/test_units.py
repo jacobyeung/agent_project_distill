@@ -88,6 +88,7 @@ assert S.frame_match([Q(A)], [Q(A), Q(C, .9, .066)])[0]                      # j
 assert not S.frame_match([Q(A)], [Q(A), Q(C, .9, .07)])[0]                   # joint 0.063: clear, must pair
 assert not S.frame_match([Q(A, .29)], [Q(B)])[0]                             # the clear dump proposal B has no partner
 assert S.frame_match([Q(A94, .2)], [Q(A, .25)])[0]                           # both in the tail: unpaired allowed
+assert S.iou(np.zeros(S.CANVAS, bool), np.zeros(S.CANVAS, bool)) == 1. and S.frame_match([Q(np.zeros(S.CANVAS, bool))], [Q(np.zeros(S.CANVAS, bool))])[0]   # empty == empty
 ok('parity_matcher')
 
 # precision / recall toy and the empty-GT count

@@ -1,4 +1,4 @@
-# n_review1l STATUS (successor resumes from this file alone) — 06:00Z 2026-11-22
+# n_review1l STATUS (successor resumes from this file alone) — 07:30Z 2026-11-22
 Lane n_review1l: headless Claude Code Opus, trinity-3-30, started 03:47Z 11-22, 10 h timeout (rotate by ~11:47Z or at 8 h).
 Brief B/briefs/n_review1l_c.md. B = /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30.
 Predecessor: B/events/n_review/STATUS_n_review1k.md (= n_review1l/STATUS_n_review1k.md); its inbox copied to inbox_from_1k/.
@@ -10,7 +10,7 @@ Lanes: tree_rebuild29 (inbox /scratch/jjyeung/orch_n30/tree_rebuild29/inbox; eve
 
 ## Tools
 - CURRENT GATE KIT (tree db42866f): 3-30 /scratch/jjyeung/orch_n30/n_review1l/work/gate: gate.py f9acc04f (TREE db42866f), test_gate.py a2e7a663 (24 cases ALL_OK on 1-18, work/t2.out), run_gate.sh d4634dea (admit test -> 1-18 n_review1l/w24z14b), make_review.py 03af0d38 (reviewer n_review1l), spell.py 227b866b, USAGE.md 1bb49d7e. On 1-18: n_review1l/in/t_db42866fd9e8d009.tar (f5db525f); w24z12b/work/tree_r1c2 (seal reproduced 945 files db42866f); w24z12b/out/TREE_SEAL.json = db42866f; w24z14b/out/admit_test.py J/BASE/TREE(tree_r1c2)/SEAL repointed. TODO before gate: w24z12b/out/kit_n{,_go}/k/7.json <- new kit k/7.json; then run the admit test once on the new v.json.
-- Task A tool: work/taskA/taska_diff.py 779e0f19 (allows exactly r1_training b05f1704->91cdac91 and carrier_c1_run be11454e->711f091f; --config-derived for routing_selection config_sha256; self-tests old/syn/syn2 PASS, synneg/synneg2/syn2neg FAIL). Reviewed set work/taskA/old (X/o/173912). Kit-derivation check kqdiff.py (qd vs c_<seal>r/qd) — rerun for mode r #2 kit.
+- Task A tool: work/taskA/taska_diff.py 2a3dcb73 (+ relocation.json reverse-map check) (allows exactly r1_training b05f1704->91cdac91 and carrier_c1_run be11454e->711f091f; --config-derived for routing_selection config_sha256; self-tests old/syn/syn2 PASS, synneg/synneg2/syn2neg FAIL). Reviewed set work/taskA/old (X/o/173912). Kit-derivation check kqdiff.py (qd vs c_<seal>r/qd) — rerun for mode r #2 kit.
 - Gate kit by path /scratch/jjyeung/orch_n30/n_review1k/work/gate/: gate.py 390f9f14, test_gate.py 9dacbfc5, run_gate.sh ab0c8a3d, spell.py 227b866b, make_review.py b709850e (checked 03:48Z). Writer table n_review1k/GATE_INPUT_WRITERS.md. Templates n_review1k/work/{o_confirm.sh, expect_n34.txt, fspell.sh, s21.sh, wait2.sh}.
 - My copies: work/t34 = tree of 7e23bbdd (t_e047...tar sha 5f2d77c4); work/kd = decoded kit k/*.json (kd/j.sh = j.sh); work/kb = decoded kit b/*; work/dec.py decoder.
 
@@ -39,6 +39,19 @@ Lanes: tree_rebuild29 (inbox /scratch/jjyeung/orch_n30/tree_rebuild29/inbox; eve
 
 - 05:51Z candidate db42866f (T-mil + timeout); 05:53Z my GO (RESULT). Mode r #2 next (fix22, c_<qdseal>r, package s29r2); 174369 superseded.
 - 05:52Z ORCH ORDER: rotate at 8.5 h (n_review1l start 03:47Z -> 12:17Z; killed 13:48Z) or earlier at a quiet point before gate; write B/briefs/n_review1m_c.md, RESULT_rotate; if no successor 15 min after, start it: pgrep -u jjyeung -f "distillation lane n_review1m " empty, then bash B/tools/claude_bg.sh n_review1m <brief> claude-opus-5-5 high 36000. Rulings in force: 0348Z, 0412Z item 5, 0420Z, 0436Z, 0442Z, 0507Z, 0514Z. ORCH state: /data2/.../ORCH_STATE_SNAPSHOT_20261122T0550Z.md.
+
+- 06:07Z tree db42866f SEALED (tar f5db525f; mirrors 3-30 n30_mirror/tree_rebuild29/tree_db42866f, 1-18 W/w35/tree2). Mode r #2 = 174415 COMPLETED 06:38Z (kit X/c_01d9f931r).
+- 06:42Z RESULT task A PASS on 174415: new selection c672ad47, regenerated_sha256 e9b6b268, receipt e3598dcd, rows 5e35c3ce; disclosed side leaf: refresh receipt's pool config 4e8a5987->207c2deb not byte-proven (old file not kept); default treat as derived. Evidence B/evidence/n_review1l/taskA/174415/.
+- Forecast (tree_rebuild29 0607Z): kit seal ~07:30Z; my kit+jn8 review ~08:15Z; release ~08:30-08:45Z; gate ~13:00-13:15Z. => I must rotate BEFORE the gate (kill 13:48Z): rotate ~11:30Z with n_review1m brief.
+- jn8 pre-read (fix21/jn8/jn8.sh 2de401bd, diff vs jn7 read): post-start hold only when no $N/p/q/r/{checkpoint_*/complete.json, m*/artifact.json, run_*.json}; TERM/USR1 set J7_SIG -> no hold; path matches pl.py:247 and pc.py:209; kit sets no stop file. Re-check on sealed member.
+
+- 07:00Z kit w35 SEALED ea058fed (mirror 3-30 /scratch/jjyeung/n30_mirror/tree_rebuild29/w35/s35_n_go.tar 3c3b91eb; packet B/events/tree_rebuild/n35_review), jn8.sh 2de401bd. tree_rebuild29 rotated -> tree_rebuild30.
+- 07:07Z RESULT GO on w35 + jn8 (record work/REVIEW_n35_ea058fed.md = B/evidence/n_review1l/). Admit test copy on 1-18 now has w35 k/7.json (66de88aa) in w24z12b/out/kit_n{,_go}/k/ (old saved as 7.json.9d2bbb8a); files+seal check True.
+- NEXT: Orchard byte check when tree_rebuild30/n_ops12 say installed + held: timeout 300 bash B/tools/ossh.sh 'bash -s' < work/o_confirm35.sh > work/o_confirm35.out; compare with work/expect_n35.txt (also expect ALL_MEMBERS_OK, unlisted/missing empty, only t_db42866fd9e8d009.tar in k/).
+
+- 07:18Z kit ea058fed installed (tree_rebuild30); job 174444 (a15_cot_apb2edfac4, advanced) HELD on X/jn8.sh. 07:22Z my RESULT Orchard bytes ALL_EQUAL (work/o_confirm35.out, 21 hashes = expect_n35.txt).
+- 07:2xZ smoke: my 1-18 admit copy on 174246's v.json: tree_seal PASS (db42866f + w35 7.json), stop_and_milestones PASS; rest as expected offline (w24z14b/work/smoke_*).
+- PLAN: gate at 174444 WAITING_REVIEW (~11:55Z): bash work/gate/run_gate.sh 174444 <fresh out dir> (n_review1l copy!), fspell (n_review1k/work/fspell.sh with JOB sed), make_review.py -> review_174444.json -> n_ops12/inbox; then rotate to n_review1m (kill 13:48Z).
 
 ## Owed (in order)
 1. Compare tree_rebuild29's disk-plan RESULT with mine; name every difference (post RESULT).

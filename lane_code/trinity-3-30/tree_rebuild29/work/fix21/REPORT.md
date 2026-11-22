@@ -1,4 +1,4 @@
-STATUS 2026-11-22T05:58Z fix21: tree db42866f SEALED and mirrored. The TEST kit on db42866f (seal 5d2e9b5d, not for review) passes the full suite on trinity-1-18. The rehearsal is DONE. ORDER 0556Z is answered. The final kit seal, tar, mirror and packet wait for task A and the arming.
+STATUS 2026-11-22T06:51Z fix21: DONE. FINAL kit w35 is sealed (ea058fed), tar 3c3b91eb is mirrored, and the packet events/tree_rebuild/n35_review is written. Not installed.
 
 # fix21 kit w35 build report
 ## Item 1 (held)
@@ -202,3 +202,11 @@ Every /project write during training comes from separate processes:
   - tmil, compare_configs, mreaders, dp (preflight, bar edge, 7e23bbdd control, train), til, the jn8 matrix with its jn7 control, tmet (metrics);
   - the gloo timeout harness: new 607.9 PASS, new 1900 FAIL, old 1200 FAIL.
 - Still owed before the final seal (the coordinator's order of work): task A on the mode r output, the arming (any new k/h.json routing-selection pin and its upload), the final b35 build with those inputs, the tar, the IB mirror, and the n35_review packet (README with criteria and the ORDER 1857Z item 4 table above, INSTALL.md with the move of the old tar and the X/n/u code record).
+
+## FINAL kit w35 (06:46-06:50Z, trinity-1-18; s/final.sh = s/body35c.sh plus stage_final; output rd/final.out, rd/t18f2/final/)
+- Arming (task A strict diff PASS 0642Z): in/arm holds X/o/174415's routing_selection.json c672ad47, receipt.json e3598dcd and db_bytes.json 638a604e (one read-only Orchard call). b35 checks the chain (README criterion 5) and replaces a49f117f in k/h.json, k/r.json and k/p.json.
+- Kit W/w35/final/n_go, seal ea058fed0495be92fd22c71546fd1bbab449970c566319fc857ddd2a6a551591 (the local test6 build has the same seal).
+- Tar W/w35/s35_n_go.tar, 5,980,160 B, sha256 3c3b91ebda00a4278f4e50ffe0774d79233c2413482e0d202dd95e7811f2b404. Mirrored over IB to trinity-3-30:/scratch/jjyeung/n30_mirror/tree_rebuild29/w35/ (with final/ BUILD35.json, u_ files, j_old/j_new); same sha256 on both ends. The extract fix21/kfinal/n_go passes sha256sum -c.
+- Full suite on the final kit: all pass (README criteria 1-12).
+- Packet: /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/events/tree_rebuild/n35_review/ (50 files; SHA256SUMS.txt checks OK). README.md, INSTALL.md, jn8.sh (2de401bd).
+- Correction to the coordinator's wording: the n_root upload folder is X/u (k/p.json n_root = X), not X/n/u.
