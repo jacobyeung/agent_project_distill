@@ -7,3 +7,5 @@
 - 07:37:50Z 174444 RUNNING orchard-community-3. 07:48:41Z moved stale X/n_r/review.json (174246, 476d17bd) -> X/n_r_old/review_174246.json (rv.py:284-296 would have refused at the gate); RESULT 0749Z. Every resubmission: check X/n_r empty before release.
 - 07:58:55Z staging disk plan PASS: free 6,001,253,548,032 B, plan 5,218,717,972,092, bar 300 GB, margin 782.5 GB.
 - 08:0xZ resume kit (ORDER 0600Z) DONE by subagent resume36: kit copy seal dc38194d (changes tar a547fc4e; rs.py, u.py, k/j.json), CPU 20/20, not submitted; works only with an equal binding (pr.json byte-equal; carrier_c1_run.py:2056-2058). Mirror trinity-1-18 /scratch/jjyeung/n30_mirror/tree_rebuild30/resume36 (equal). Record distill_design/N_174444_RESUME_KIT_20261122.md. RESULT 0808Z. QUESTION 0736Z default taken at 08:05Z: I do n_ops12's duties (review.json install, first-steps readings).
+- 08:48Z 174444 at admission (prep 47 min), no alarm; mem cur 678 G of 800 G (file cache 653 G).
+- 09:17Z 174444 admission (prep 77 min), no alarm.

@@ -1,4 +1,4 @@
-# n_review1l STATUS (successor resumes from this file alone) — 07:30Z 2026-11-22
+# n_review1l STATUS (successor resumes from this file alone) — 08:55Z 2026-11-22
 Lane n_review1l: headless Claude Code Opus, trinity-3-30, started 03:47Z 11-22, 10 h timeout (rotate by ~11:47Z or at 8 h).
 Brief B/briefs/n_review1l_c.md. B = /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30.
 Predecessor: B/events/n_review/STATUS_n_review1k.md (= n_review1l/STATUS_n_review1k.md); its inbox copied to inbox_from_1k/.
@@ -52,6 +52,9 @@ Lanes: tree_rebuild29 (inbox /scratch/jjyeung/orch_n30/tree_rebuild29/inbox; eve
 - 07:18Z kit ea058fed installed (tree_rebuild30); job 174444 (a15_cot_apb2edfac4, advanced) HELD on X/jn8.sh. 07:22Z my RESULT Orchard bytes ALL_EQUAL (work/o_confirm35.out, 21 hashes = expect_n35.txt).
 - 07:2xZ smoke: my 1-18 admit copy on 174246's v.json: tree_seal PASS (db42866f + w35 7.json), stop_and_milestones PASS; rest as expected offline (w24z14b/work/smoke_*).
 - PLAN: gate at 174444 WAITING_REVIEW (~11:55Z): bash work/gate/run_gate.sh 174444 <fresh out dir> (n_review1l copy!), fspell (n_review1k/work/fspell.sh with JOB sed), make_review.py -> review_174444.json -> n_ops12/inbox; then rotate to n_review1m (kill 13:48Z).
+
+- 07:35:42Z 174444 released (tree_rebuild30 minted sessions 4f989518; n_ops12 died 06:00Z "Not logged in"; tree_rebuild30 carries ops). RUNNING 07:37:50Z orchard-community-3; X/n_r stale review.json moved aside 07:48Z. Gate forecast ~12:02Z.
+- Copies: gate kit -> B/evidence/n_review1l/gate/ (f9acc04f etc.); admit copy edits -> B/evidence/n_review1l/admit_1_18/ (admit_test.py a0f69818, .sh a9d58809, TREE_SEAL d6238b18, 7.json 66de88aa). Design record distill_design/N_W35_LAUNCH_REVIEW_20261122.md (+INDEX line).
 
 ## Owed (in order)
 1. Compare tree_rebuild29's disk-plan RESULT with mine; name every difference (post RESULT).
