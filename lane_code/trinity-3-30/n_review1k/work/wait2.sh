@@ -10,7 +10,7 @@ while [ $(date +%s) -lt $end ]; do sleep 30
   [ -z "$new" ] && continue
   hit=""; for f in $new; do
     [ "$f" = INBOX ] && continue
-    case "$f" in *n_review1k*|*WAITING*|*BLOCKER*|*FAIL*|*gate*|*review*) hit="$hit $f";; esac
+    case "$f" in *n_review1k*|*WAITING*|*BLOCKER*|*FAIL*|*gate*|*review*|*rehearsal*|*ORCH*|*H_*) hit="$hit $f";; esac
     for d in tree_rebuild n_review n_ops; do [ -f $B/events/$d/$f ] && grep -q -E 'n_review1k|WAITING_REVIEW' $B/events/$d/$f 2>/dev/null && hit="$hit $f"; done
   done
   echo "$new" | grep -q '^INBOX' && hit="$hit inbox"

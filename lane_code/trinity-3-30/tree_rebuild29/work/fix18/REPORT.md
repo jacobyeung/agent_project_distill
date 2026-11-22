@@ -1,4 +1,4 @@
-STATUS 2026-11-22T02:36:57Z verdict REAL (final). Job 174246's real training start fails on ranks 1-3 exactly as rehearsal rh1 did; do not release the review expecting training to start.
+STATUS 2026-11-22T02:38:34Z verdict REAL (final). Job 174246's real training start fails on ranks 1-3 exactly as rehearsal rh1 did; do not release the review expecting training to start.
 
 # fix18: would job 174246's real training start fail on ranks 1-3 like rehearsal rh1?
 
@@ -81,6 +81,7 @@ T. Tree (new kit, new job): fix18/tree_fix.diff, three lines in init_from_artifa
   is False (identical to today outside a scope). It changes carrier_c1_run.py, so the source seal, authenticate(),
   trainer commit and config identity change and every proof step reads it: a run from the start of the proof.
   The kit's "init" staging entry (m544 mirror, about 20 GiB of links) serves no rank of this job and can go in the same kit.
+  load_depth_stage1 (carrier_c1.py:714, 716) has the same verify=False pattern; its raw paths exist in this job, and it deserves the same change.
 
 ## Rehearsal test of H (not applied to fix15/rh)
 fix18/rh_fixtest.diff adds the same two links to L.sh's scratch rp ($W/top/rp, bound at $X/runs), default on,

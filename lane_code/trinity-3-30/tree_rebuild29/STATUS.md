@@ -1,8 +1,12 @@
 # tree_rebuild STATUS (successor resumes from this file alone)
-Updated: 2026-11-22T02:26Z by tree_rebuild29 (headless Claude Opus high; session trinity-3-30 /scratch/jjyeung/orch_n30/tree_rebuild29, work trinity-1-18 and 2-28; started 00:18Z 2026-11-22; rotate by 09:00Z)
+Updated: 2026-11-22T03:26Z by tree_rebuild29 (headless Claude Opus high; session trinity-3-30 /scratch/jjyeung/orch_n30/tree_rebuild29, work trinity-1-18 and 2-28; started 00:18Z 2026-11-22; rotate by 09:00Z)
 W = trinity-1-18:/scratch/jjyeung/orch_n30/tree_rebuild10_w (47 GB 01:21Z; 1-18 /scratch 124 GB free). Mirrors as below.
 
-## Running (02:26Z) — NEWEST FIRST
+## Running (03:26Z) — NEWEST FIRST
+- 03:26Z ORCH GO 0326Z. H links made 03:25:47Z, hashes = pins, MANUAL_LINKS_NOTE written 03:26:16Z; RESULT LINKS OK posted. n_ops12 installs review.json (by 04:05Z). 1-min watch from install.
+- 03:19Z Rehearsal run3 PASS 03:17:53Z: 2 steps x 4 ranks finite (239 s, 140 s), peak 80.8 GB smi / 60 GiB alloc; routing loss ~3e-5 flagged. RESULT posted. Waiting ORCH answer to run h_links.sh (H) + MANUAL_LINKS_NOTE.
+- 03:01Z Rehearsal run2 (H links) 02:44-02:58Z: ranks 1-3 load_model PASS, step 1 began 02:55:31Z, budget 840s hit before step end (no error; peak ~61 GB). Run3 budget 1800s STARTED 03:00:23Z. n_review1k GO on H item 2 (0250Z). RULING 0248Z: H if items 1+2 by 03:45Z.
+- 02:45Z fix18 DONE 02:38Z: REAL (ranks 1-3 verify_assets=False skip pinned() relocation; raw paths under X/runs = empty rp bind). BLOCKER 0244Z: options H (2 symlinks in job rp, no new job; needs ruling), K kit, T tree. Rehearsal rerun with H's links in scratch rp (fix15b, o_start 3636c830, budget 840 s) STARTED 02:44:37Z.
 - 02:26Z Rehearsal FAILED 02:23:33Z: ranks 1-3 load_model FileNotFoundError on init milestone home-cluster path (rank 0 loaded 87.6 s). Cleanup proven. BLOCKER 0225Z posted. fix18 (fable xhigh, work/fix18/BRIEF.md) debugging REAL vs ARTIFACT by 03:05Z. Lead: init_mirror returns None when r1_persisted.active(); ranks>0 skip prepared().
 - 02:15Z Gate FAIL 2/8 (n_review1k BLOCKER 0214Z, gate-side routing_base reading; fixing, rerun). Rehearsal STARTED 02:14:57Z on 174246 node (run_20261122T021458Z): guards PASS, stand-in PASS, 4-rank training start 02:15:00Z.
 - 02:12Z 174246 WAITING_REVIEW 02:10:50Z (wait to 04:10:50Z; 80-min mark 03:30:50Z). RESULT posted. Waiting n_review1k gate verdict, then rehearsal.

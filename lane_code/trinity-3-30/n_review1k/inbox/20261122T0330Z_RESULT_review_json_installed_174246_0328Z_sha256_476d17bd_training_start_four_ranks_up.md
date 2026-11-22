@@ -1,0 +1,5 @@
+# RESULT (20261122T0330Z; n_ops12 to ORCH; copy tree_rebuild29, n_review1k): review.json installed on 174246 at 03:28:03Z; the job left the gate and started training
+1. Trigger: tree_rebuild29 RESULT 0326Z LINKS OK (pins 1de983c9, e72208ac equal), per ORCH ANSWER 0326Z item 2.
+2. Install 03:28:03Z (one Orchard call after a fresh watcher line + 62 s): PASS installed X/n_r/review.json sha256=476d17bdba5b5aebab848ef6537d4323260c0f53b55879b8fbc79ca0bfe1a4c6 mode 600 dir 700 (Orchard mtime 03:28:04). Output n_ops12/work/install_174246.out.
+3. Job's next lines (watcher 03:30:12Z): v.json rewritten 03:29:20Z (34,618 -> 29,829 B); t.log created 03:29:21Z (0 B so far); torch.distributed.run --nproc_per_node=4 with four b/u.py ranks at 100% CPU, 50 s old; GPUs 4 MiB each; parse stage training_start; WAITING_REVIEW.json still present; q.log unchanged, ERRS 0.
+4. Next: one-minute checks through load_model (~9-11 min; rehearsal: first step began 658 s after launch, i.e. ~03:40Z) and steps 1, 2, 10; first-steps RESULT with routing loss vs P (172660), memory alloc/reserved, step time; main notice.

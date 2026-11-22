@@ -1,7 +1,7 @@
-# n_review1k STATUS (successor resumes from this file alone) — 02:20Z 2026-11-22
+# n_review1k STATUS (successor resumes from this file alone) — 03:29Z 2026-11-22
 Lane n_review1k: headless Claude Code Opus high, trinity-3-30, started 2026-11-21 19:02Z, 10 h timeout (rotate by ~04:00Z 11-22). Brief B/briefs/n_review1k_c.md. B = /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30.
 Predecessor state: STATUS_n_review1j.md here (copy of n_review1j STATUS 19:01Z; full history there). n_review1j inbox copied to inbox_from_1j/.
-Lanes: tree_rebuild29 from 00:18Z 11-22 (inbox /scratch/jjyeung/orch_n30/tree_rebuild29/inbox; events B/events/tree_rebuild), n_ops11 (inbox /scratch/jjyeung/orch_n30/n_ops11/inbox). Carriers Claude only.
+Lanes: tree_rebuild29 from 00:18Z 11-22 (inbox /scratch/jjyeung/orch_n30/tree_rebuild29/inbox; events B/events/tree_rebuild), n_ops12 (inbox /scratch/jjyeung/orch_n30/n_ops12/inbox). Carriers Claude only.
 
 ## Job
 - NOW: 174246 (kit X/n 7e23bbdd, jn7.sh 98edfd9e) RUNNING orchard-community-3 since 21:46:55Z; host selection passed ~22:56Z; 23:58Z prep 75% (n_ops11 NOTE). n_ops11 tells me at WAITING_REVIEW (X/o/174246_gate check; else run_pull.sh folder). Gate ~02:20-03:00Z.
@@ -45,7 +45,14 @@ Lanes: tree_rebuild29 from 00:18Z 11-22 (inbox /scratch/jjyeung/orch_n30/tree_re
 
 - 02:22Z ORCH ANSWER: PASS accepted with gate change (card review row cites gate.py 390f9f14, test_gate.py 9dacbfc5 and my pin sentence). n_ops11 installs review.json after ORCH answers rehearsal or at 03:30:50Z. First boundary item: reconcile gate and kit population schema in one place.
 
+- 02:25Z rehearsal BLOCKER (tree_rebuild29): ranks 1-3 load_model raw init paths unrelocated (X/runs -> empty rp). ORCH 0226Z: no install until ORCH answers. 0244Z BLOCKER: real; option H (2 symlinks in rp) recommended. My RESULT ~02:47Z: independent read, H's 2 links cover all load_model raw reads landing in rp; depth stage-1 resolves via j.sh:346 (files present, heads sha 07c2d3b0 = pin) (work/w5.out, w7.out); + correction: training write paths under X/runs not verified.
+
+- 02:48Z ORCH RULING 0248Z option H on 3 conditions (rehearsal PASS; my independent check; record). My item-2 RESULT posted 02:50Z: GO (targets = rank-0 verified init 6ed2c7aa m400 by hash, work/w8.out; no reader of rp/X/runs). Owed after H is made: an addendum naming H in the review row (RULING 0248Z item 3). n_ops12 replaced n_ops11 (holds review_174246.json in /scratch/jjyeung/orch_n30/n_ops12/inbox).
+
+- 03:19Z rehearsal with H PASS (2 steps, 4 ranks). 03:26Z ORCH GO; links made 03:25:47Z, verified 03:26:14Z (LINKS OK, X/o/174246/MANUAL_LINKS_NOTE.txt); n_ops12 installs review.json. My review-row addendum posted ~03:28Z (REVIEW_n34_7e23bbdd.md appended).
+
 ## Owed (in order)
-1. DONE (GO 7e23bbdd).
-2. Orchard bytes confirm before each new job release.
-3. DONE for 174246 (PASS 02:16Z). Next job: gate at WAITING_REVIEW (bash /scratch/jjyeung/orch_n30/n_review1k/work/gate/run_gate.sh <job> /scratch/jjyeung/orch_n30/n_review1k/gate_<job> [--local DIR]); PASS -> make_review.py -> n_ops11/inbox (installed only after ORCH answers rehearsal, ORDER 1757Z); FAIL -> BLOCKER.
+1. Nothing open for 174246 (gate PASS, H checked, addendum posted). Watch events; training first-steps RESULT is tree_rebuild29's.
+2. Before each release of a NEW job: Orchard bytes check (work/o_confirm.sh vs an expect file from the new kit; expect_n34.txt for 7e23bbdd).
+3. Gate at the next job's WAITING_REVIEW: bash /scratch/jjyeung/orch_n30/n_review1k/work/gate/run_gate.sh <job> /scratch/jjyeung/orch_n30/<lane>/gate_<job>; then work/fspell.sh (sed JOB) for the frames.json spelling; PASS -> python3 -I work/gate/make_review.py <run dir> <kit seal> <lane>/review_<job>.json -> n_ops12/inbox; FAIL -> BLOCKER. Gate kit: gate.py 390f9f14, test_gate.py 9dacbfc5 (23 cases; run on trinity-1-18 with F=/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24z14/work/build24m4z14/{standin,negative}_verified/ADMIT.json), run_gate.sh ab0c8a3d, spell.py 227b866b, make_review.py b709850e. Copies evidence/n_review1k/gate.
+4. First boundary items (ORCH): fix T in the tree (verify-off relocation) with a four-rank start test; gate and kit population schema reconciled in one place; census moves into the tree. Review each once under ORDER 1857Z item 4.

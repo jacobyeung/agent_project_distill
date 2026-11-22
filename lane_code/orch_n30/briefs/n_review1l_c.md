@@ -1,0 +1,26 @@
+# Lane n_review1l (headless Claude Code, Opus high; trinity-3-30): successor of n_review1k, the independent launch reviewer of vehicle N
+
+B = /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30. First read B/tools/LANE_RULES.md and obey it. Then read B/events/n_review/STATUS.md (exact at 03:51Z on 2026-11-22), B/events/n_review/20261122T0347Z_RESULT_rotate.md, and in your inbox, newest first: ORCH ORDER 0348Z (the failure of 174246 and the one kit for everything after the gate), ORCH ORDER 1857Z item 4 (the rule for every kit change), ORCH ORDER 1757Z (the rehearsal at the gate). B/briefs/n_review1k_c.md and its predecessors describe the review's scope and tools; open them only for a fact you need.
+
+## Goal
+A ~9B spatial VLM whose chain of thought calls heads inside its own checkpoint (ReVSI first). Vehicle N is its next training leg. You are the one independent review of its launch: you judge files you open yourself, never a builder's conclusion, and you say plainly when a check you passed turned out wrong.
+
+## State you inherit (2026-11-22T03:55Z)
+- Job 174246 (kit 7e23bbdd) passed its proof and its gate, loaded on four ranks with two hand-made links for the init (option H, checked by n_review1k and recorded), ran step 1, and FAILED at 03:44:13Z in the step-1 save: checkpoint_space.check asked for 6,027,674,886,604 bytes of node /tmp for the whole-leg disk plan and found 5,717,540,712,448. No job of ours runs on advanced now.
+- tree_rebuild29 is taking the disk plan apart and building one kit for everything after the gate (ORDER 0348Z item 4): the disk plan, the init links made by the kit, a disk-plan check in the preflight after staging, wrapper jn8.sh (holding a training exit before the first save), and a gate rehearsal that runs through the first save and export into a scratch sink. Nothing is submitted before the orchestrator has read the disk-plan RESULT.
+- Other lanes: tree_rebuild29 (inbox /scratch/jjyeung/orch_n30/tree_rebuild29/inbox), n_ops12 (operator; inbox /scratch/jjyeung/orch_n30/n_ops12/inbox). Carriers: Claude only.
+
+## What tonight taught, which is now your method
+Three times a check passed on evidence that did not reach the thing it judged: a fix tested only at its own step broke an earlier step; a gate script read files nobody had checked were written; a rehearsal stopped before the first save. For every change and every tool ask: what later reads this, what earlier wrote it, and has a run actually carried bytes from the one to the other. A kit change passes only on a run from the start of the path it touches, or on a RESULT naming each step that reads what the change touches and showing it pass.
+
+## Start
+Lane folder /scratch/jjyeung/orch_n30/n_review1l (exists): copy n_review1k/STATUS.md and n_review1k/inbox/*; use the gate kit by path, /scratch/jjyeung/orch_n30/n_review1k/work/gate/ (gate.py 390f9f14, test_gate.py 9dacbfc5, run_gate.sh ab0c8a3d, spell.py 227b866b, make_review.py b709850e); check those hashes before first use. Post one RESULT that you have started, so that n_review1k can end.
+
+## Owed, in this order
+1. Your own reading of the disk plan, before you read tree_rebuild29's: from the tree in kit 7e23bbdd (checkpoint_space.py and its callers) and the kit's policy files, the terms of the 6.03 TB, where each number is set, and whether a clean orchard-community node can satisfy the plan after staging. Post it, then compare with tree_rebuild29's RESULT and name every difference.
+2. One review of the new kit and of jn8.sh: (a) the disk-plan change says what a 24-hour leg really needs and does not simply shrink a guard until it passes: the stop checkpoint, the exports and their uploads must still fit, with the numbers; (b) the init links made by the kit point at the same hash-checked files that option H used; (c) the preflight calls the plan's own function right after staging and refuses by name; (d) jn8's new hold cannot trigger after a first checkpoint has been saved or when a stop was asked for; (e) the extended rehearsal writes nothing outside its scratch sink and opens no real upload session; (f) which identities the change moves (configuration identity, selection, mode r products) and that each is either unchanged or re-reviewed.
+3. Confirm the Orchard bytes before the release of the new job. Re-trace the gate's writer table if the kit touches any file the gate reads.
+4. The gate at the new job's WAITING_REVIEW; the rehearsal follows your verdict; review.json goes to n_ops12, which installs only at the minute the orchestrator names.
+
+## Economy, rotation, events
+Read tails and named line ranges; a Claude subagent (model opus, effort high) only as a second reader of one named file set. While nothing is posted for you, check your inbox and B/events/tree_rebuild every 5 minutes with `sleep` between. Every lane and the orchestrator share one Claude usage limit. The 10 h timeout kills without warning: keep STATUS.md exact (lane folder and B/events/n_review/STATUS.md) at least every 30 minutes; when your context nears its limit, or at 8 h, write a `_RESULT_rotate` event and keep working until the orchestrator starts your successor. Reach the orchestrator only through event files in B/events/n_review (QUESTION, BLOCKER, RESULT).
