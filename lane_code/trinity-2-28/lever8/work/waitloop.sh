@@ -7,6 +7,6 @@ for i in 1 2 3 4 5 6; do
   out=$(bash /scratch/jjyeung/orch_n30/lever8/work/tick.sh 2>&1)
   echo "$out" > /scratch/jjyeung/orch_n30/lever8/work/last_tick.txt
   n=$(ls $E | grep -c 'ORCH.*lever8')
-  if ! echo "$out" | grep -q '^174328 .*PENDING' || [ "$n" != "$n0" ] || [ -n "$(ls /scratch/jjyeung/orch_n30/lever8/inbox)" ]; then echo "$out"; exit 0; fi
+  if ! echo "$out" | grep -q "^174328 .*${1:-PENDING}" || [ "$n" != "$n0" ] || [ -n "$(ls /scratch/jjyeung/orch_n30/lever8/inbox)" ]; then echo "$out"; exit 0; fi
 done
 echo "$out"

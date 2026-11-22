@@ -1,0 +1,41 @@
+17c17,18
+< # jn7 node hold: a failure before training keeps the job (and its node directory) for at most 180 min.
+---
+> # jn8 node hold: a failure before training, or a training exit before the first checkpoint was saved, keeps the job
+> # (and its node directory) for at most 180 min. The stop path (TERM/USR1) and any written export stay unheld.
+22c23
+<     local status=$1 now deadline reason='' pid rc job=${SLURM_JOB_ID:-0}
+---
+>     local status=$1 now deadline reason='' pid rc job=${SLURM_JOB_ID:-0} phase=${step:-setup} m
+26c27,34
+<     if [[ -e $N/t.log || -L $N/t.log || -e $N/p/rv.json || -L $N/p/rv.json ]]; then return 0; fi
+---
+>     if [[ -e $N/t.log || -L $N/t.log || -e $N/p/rv.json || -L $N/p/rv.json ]]; then
+>         # jn8: after the start, hold only while the run folder holds no completed checkpoint, no export and no
+>         # final run report (the trainer's output p/q/r: checkpoint_*/complete.json, m*/artifact.json, run_*.json).
+>         for m in "$N"/p/q/r/checkpoint_*/complete.json "$N"/p/q/r/m*/artifact.json "$N"/p/q/r/run_*.json; do
+>             if [[ -e $m || -L $m ]]; then return 0; fi
+>         done
+>         phase=train_pre_save
+>     fi
+32c40
+<     if ! timeout --signal=KILL 30s python3 -B -I -s "$N/j7.py" hold "$N" "$X" "$job" "$status" "${step:-setup}" "$now" "$deadline" </dev/null >/dev/null 2>&1; then
+---
+>     if ! timeout --signal=KILL 30s python3 -B -I -s "$N/j7.py" hold "$N" "$X" "$job" "$status" "$phase" "$now" "$deadline" </dev/null >/dev/null 2>&1; then
+35c43
+<     echo "$(date -u +%FT%TZ) HOLD status=$status until $(date -u -d "@$deadline" +%FT%TZ) or $X/o/$job/RELEASE"
+---
+>     echo "$(date -u +%FT%TZ) HOLD status=$status phase=$phase until $(date -u -d "@$deadline" +%FT%TZ) or $X/o/$job/RELEASE"
+343c351
+< # jn7 helper for the batch shell: traceback copy (tb), node hold record (hold), release poll (poll), hold end (end).
+---
+> # jn8 helper for the batch shell: traceback copy (tb), node hold record (hold), release poll (poll), hold end (end).
+386c394
+<         'The job failed before training; the wrapper keeps the node and the node directory until the deadline,\n'
+---
+>         ('The job failed before training' if step!='train_pre_save' else 'Training exited before its first saved checkpoint, with no stop asked for')+'; the wrapper keeps the node and the node directory until the deadline,\n'
+397c405,406
+<         'training markers (absent, else no hold): %s %s\n'%(node/'t.log',node/'p'/'rv.json'))
+---
+>         'training markers: %s %s; after them the hold needs no %s, %s or %s\n'%(node/'t.log',node/'p'/'rv.json',
+>             node/'p/q/r/checkpoint_*/complete.json',node/'p/q/r/m*/artifact.json',node/'p/q/r/run_*.json'))

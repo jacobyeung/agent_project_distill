@@ -1,0 +1,14 @@
+--- a/student_pilot/carrier_c1_run.py
++++ b/student_pilot/carrier_c1_run.py
+@@ -2871,9 +2871,9 @@
+     if not cpu:
+         torch.cuda.set_device(local)
+     import datetime
+-    # Training collectives fail fast (15 min). Only the startup barriers and broadcasts, while
++    # Training collectives fail fast (30 min). Only the startup barriers and broadcasts, while
+     # rank 0 hashes and loads assets, may wait longer (a separate gloo group, 60 min).
+-    dist.init_process_group('gloo' if cpu else 'nccl', timeout=datetime.timedelta(seconds=30 if cpu else 900))
++    dist.init_process_group('gloo' if cpu else 'nccl', timeout=datetime.timedelta(seconds=30 if cpu else 1800))
+     startup=dist.new_group(backend='gloo', timeout=datetime.timedelta(seconds=30 if cpu else 3600))
+     started=time.monotonic()
+     if os.environ.get('TK_JOB_START','').isdecimal():

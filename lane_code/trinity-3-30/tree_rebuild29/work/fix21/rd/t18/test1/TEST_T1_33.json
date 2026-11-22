@@ -1,0 +1,41 @@
+{
+ "kit": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w35/test1/n_go",
+ "cn_sha256": "90b3ca6cfa75b13eabb22f8a2c49c6ece0cf1b62156aea3f52e6aba8bf637d0d",
+ "T1_view_equivalent": true,
+ "T2_whole_eq_admitted_plus_outside": {
+  "whole": [
+   1200,
+   600
+  ],
+  "admitted": [
+   800,
+   400
+  ],
+  "outside": [
+   400,
+   200
+  ],
+  "ok": true
+ },
+ "T3_admitted_census": "PASS {\"pose\": [800, 400, 800, 400]}",
+ "T4_whole_store_census_control": "REFUSE ValueError: Filter differs from independent scene census: pose",
+ "T5_leak_control": {
+  "planted_row": 0,
+  "census": [
+   801,
+   400
+  ],
+  "result": "REFUSE ValueError: Filter differs from independent scene census: pose"
+ },
+ "T6_pool_count_equals_plain_count": {
+  "pool": [
+   360,
+   180
+  ],
+  "plain": [
+   360,
+   180
+  ],
+  "ok": true
+ }
+}

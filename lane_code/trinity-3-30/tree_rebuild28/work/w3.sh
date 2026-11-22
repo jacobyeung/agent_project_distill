@@ -8,5 +8,3 @@ g=$(grep -v '^utc' $L/gate.txt 2>/dev/null | tr '\n' ';'); kl=$(ls $X/o/$J/live 
 echo "$(date -u +%TZ) state=$s n=$n last=$lu $mem lim=$lim tmp_freeK=$tmp j2=$j2 tq=$ql kitlive=$kl alarm=[$al] gate=[$g] hold=$(test -e $X/o/$J/HOLD.txt && echo YES || echo no)"
 echo "  q: $(tail -c 300 $L/t_q.log 2>/dev/null | tail -2 | tr '\n' '|' | cut -c1-260)"
 echo "  j2: $(tail -2 $X/o/$J/j2.log 2>/dev/null | tr '\n' '|' | cut -c1-260)"
-echo "  kq: $(stat -c %s $X/o/$J/live/q.log 2>/dev/null) $(ls $X/o/$J/live 2>/dev/null | tr "\n" ,) | $(tail -c 400 $X/o/$J/live/q.log 2>/dev/null | tr -c "[:print:]\n" "?" | tail -1 | cut -c1-200)"
-echo "  kt: $(stat -c %s $X/o/$J/live/t.log 2>/dev/null) | $(tail -c 1500 $X/o/$J/live/t.log 2>/dev/null | tr -c "[:print:]\n" "?" | tail -3 | tr "\n" "|" | cut -c1-900)"

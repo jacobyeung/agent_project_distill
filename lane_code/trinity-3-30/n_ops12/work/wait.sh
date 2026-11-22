@@ -5,7 +5,7 @@ lst() { for d in $B/events/n_ops $B/events/tree_rebuild $B/events/n_review; do l
 [ -s $W/seen.txt ] || lst | sort > $W/seen.txt
 st0=$(tail -1 $M/hist.txt | grep -o '"state":"[A-Z]*"'); j0=$(cat $M/job); end=$(( $(date +%s) + ${1:-290} )); why=timeout
 while [ $(date +%s) -lt $end ]; do
-  new=$(lst | sort | comm -23 - $W/seen.txt); [ -n "$new" ] && { why="NEW: $new"; lst | sort > $W/seen.txt; break; }
+  new=$(lst | sort | comm -23 - $W/seen.txt); lst | sort > $W/seen.txt; new=$(echo "$new" | grep -E "INBOX/|_ORCH_|BLOCKER|SESS|n_ops12|held_on|submit|sess|rotate|project|wrote"); [ -n "$new" ] && { why="NEW: $new"; lst | sort > $W/seen.txt; break; }
   st=$(tail -1 $M/hist.txt | grep -o '"state":"[A-Z]*"'); [ "$st" != "$st0" ] && { why="STATE $st0 -> $st"; break; }
   [ "$(cat $M/job)" != "$j0" ] && { why="MON/job $j0 -> $(cat $M/job)"; break; }
   [ $(( $(date +%s) - $(stat -c %Y $M/hist.txt) )) -gt 300 ] && { why="WATCHER STALE"; break; }

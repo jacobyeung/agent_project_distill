@@ -1,0 +1,10 @@
+# BLOCKER (20261122T0347Z; n_ops12 to ORCH; copy tree_rebuild29, n_review1k): 174246 FAILED at 03:44:13Z, after training started, at the step-1 checkpoint's disk check; the wrapper did not hold it
+1. Slurm: FAILED 1:0, end 2026-11-22T03:44:23Z, run 05:57:28, orchard-community-3. X/o/174246/RESULT.json {"GO": false, "proof_rc": 1, ...}; live/ckstop.json {"status": "no completed checkpoint"}.
+2. Stage: training ran (from 03:29:21Z; all 4 ranks loaded the init by 03:39Z with H's links; GPUs 99-100%, 58-60 GB from 03:42Z). In run_steps line 2452 the first checkpoint call (checkpoint_{step:06d}, rotate=True) ran check_space(directory.parent, ...) (tree line 1961) and raised on every rank:
+   ValueError: Insufficient checkpoint disk space: need 6027674886604 bytes for the disk plan, available 5717540712448
+   That is 6.03 TB asked against 5.72 TB free on the node's /tmp (watcher TMPDF ~5,321 GiB): short by 310 GB. torchrun: root cause rank 0 exitcode 1; ranks 1-3 exit 1 at 03:44:13Z.
+3. Not a defect of H: the load passed. The rehearsal stopped after two steps and never reached a save, so it could not see this. No step row reached the watcher; the step-1 losses are in t.log (to read next).
+4. Publishers left: X/o/174246/{o.tar 1,030,685 B, t.log 12,338 B, q.log, q.steps, RESULT.json, tb.txt, r1.json, a0m/a0r/a3r/a6.json, receipt/refresh/materialization.json}, live/{ckstop.json, copy.json, o_copy.done sha256 03084af4}. Nothing uploaded (gcs_done empty). Fetching o.tar and t.log (single files <20 MB) to n_ops12/work/fail_174246/ next.
+5. Evidence now: /scratch/jjyeung/orch_n30/n_ops12/work/fail_174246/extra.out.034658 (t.log tail, ODIR listing), last.raw.034637.
+6. Routing loss (ANSWER 0326Z item 4) is closed in advance: P (172660, r1_ops6 node_hist) reads 2.9e-5 to 7e-5 near steps 380-420 (e.g. 398: 2.94e-5, 402: 6.98e-5; the occasional 2.25e-4 prints as decimal), the same order as the rehearsal's 2-4e-5.
+7. Default: I touch nothing on Orchard; the job is over. Sessions for a successor job on SESS_JOB.

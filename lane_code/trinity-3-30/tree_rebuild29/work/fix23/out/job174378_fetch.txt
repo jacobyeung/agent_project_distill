@@ -1,0 +1,99 @@
+05:05:07Z
+Submitted batch job 174381
+=====MAIN
+host orchard-community-3 start 04:48:53Z job 174378 cpus 8 SLURM_TMPDIR=unset TMPDIR=/tmp
+work folder /tmp/a15_c6b1_174378
+8
+               total        used        free      shared  buff/cache   available
+Mem:     1978431508480 207767580672 832999862272 10170634240 958369497088 1770663927808
+/dev/md127     6388345036800 29483089920 6358845169664   1% /tmp
+loop1        49.3M loop  /snap/snapd/26865
+nvme0n1       375G disk  
+└─md127       5.9T raid0 /mnt/localssd
+nvme1n1       100G disk  
+├─nvme1n1p1    99G part  /
+--
+└─nvme1n1p16  913M part  /boot
+nvme2n1       375G disk  
+└─md127       5.9T raid0 /mnt/localssd
+nvme4n1       375G disk  
+└─md127       5.9T raid0 /mnt/localssd
+nvme6n1       375G disk  
+model name	: Intel(R) Xeon(R) Platinum 8481C CPU @ 2.70GHz
+flags: avx2 avx512f sha_ni vaes 
+0::/system.slice/slurmstepd.scope/s8FXM80SB90A00/step_batch/user/task_0
+max
+sha t.tar 30c4d56426af1a3c4f7420430ab4771e38476863394b1cb059c5fc305332fff2
+sha c.json 76de3706b8eba5b8e0c6317f96a48d432f597358dfcda94bf1445589c6199bd7
+sha m.py 70591ea406d84c5636d1729f9db69b6bfe081456128b183c0df57d1d7ae55b8f
+-rw-r--r-- 2 jjyeung users 8105379840 Nov  3 19:38 /project/community/jjyeung/cp4tk_rt/kit/venv_rwtrain_torch211_cu129.tar
+venv extracted in 79 s
+lrwxrwxrwx 1 jjyeung users  7 Oct 27 08:52 /tmp/a15_c6b1_174378/venv/rwtrain_torch211_cu129/bin/python -> python3
+lrwxrwxrwx 1 jjyeung users 16 Oct 27 08:52 /tmp/a15_c6b1_174378/venv/rwtrain_torch211_cu129/bin/python3 -> /usr/bin/python3
+lrwxrwxrwx 1 jjyeung users  7 Oct 27 08:52 /tmp/a15_c6b1_174378/venv/rwtrain_torch211_cu129/bin/python3.12 -> python3
+home = /usr/bin
+include-system-site-packages = false
+version = 3.12.3
+executable = /usr/bin/python3.12
+py 3.12.3 torch 2.11.0+cu129
+== rate 04:50:23Z
+{"sha256_1MiB_blocks_bytes": 4294967296, "seconds": 2.413, "GBps": 1.78, "sha_ni": true, "avx2": true, "avx512f": true, "cpu": "Intel(R) Xeon(R) Platinum 8481C CPU @ 2.70GHz", "openssl": "OpenSSL 3.0.13 30 Jan 2024", "python": "3.12.3", "nproc": 208, "affinity": 8}
+== synth 04:50:31Z
+{"kind": "SYNTH", "state": "/tmp/a15_c6b1_174378/sink/checkpoint_000600_9c9624749aca44b2ada471748707cb31", "files": 9, "bytes": 113383976000, "seconds": 94.52, "write_GBps": 1.2, "cg_before": {"v": 2, "file": 16279527424, "max": "max"}, "cg_after_write": {"v": 2, "file": 32640036864, "max": "max"}, "cg_after_evict": {"v": 2, "file": 32206848, "max": "max"}, "note": "5 writer threads, each generates+hashes+writes its own file, fsync at end", "t": 1795323128.673}
+/tmp/a15_c6b1_174378/sink/checkpoint_000600_9c9624749aca44b2ada471748707cb31:
+total 8050868
+drwx------ 3 jjyeung users       4096 Nov 22 04:52 .
+drwx------ 3 jjyeung users       4096 Nov 22 04:50 ..
+-rw------- 1 jjyeung users       1420 Nov 22 04:52 complete.json
+-rw------- 1 jjyeung users 8244000000 Nov 22 04:51 replicated.pt
+-rw------- 1 jjyeung users      15653 Nov 22 04:50 rng000.pt
+-rw------- 1 jjyeung users      15653 Nov 22 04:50 rng001.pt
+-rw------- 1 jjyeung users      15653 Nov 22 04:50 rng002.pt
+-rw------- 1 jjyeung users      15589 Nov 22 04:50 rng003.pt
+drwx------ 2 jjyeung users       4096 Nov 22 04:50 shards
+
+/tmp/a15_c6b1_174378/sink/checkpoint_000600_9c9624749aca44b2ada471748707cb31/shards:
+total 102675756
+drwx------ 2 jjyeung users        4096 Nov 22 04:50 .
+drwx------ 3 jjyeung users        4096 Nov 22 04:52 ..
+-rw------- 1 jjyeung users 26284978363 Nov 22 04:52 rank000.pt
+-rw------- 1 jjyeung users 26284978363 Nov 22 04:52 rank001.pt
+-rw------- 1 jjyeung users 26284978363 Nov 22 04:52 rank002.pt
+-rw------- 1 jjyeung users 26284978363 Nov 22 04:52 rank003.pt
+/dev/md127     6388345036800 151545581568 6236782678016   3% /tmp
+== cold 04:52:12Z
+{"kind": "COLD_READ", "file": "shards/rank000.pt", "bytes": 21474836480, "seconds": 5.4, "read_GBps": 3.979, "cg_before": {"v": 2, "file": 32571392, "max": "max"}, "cg_after": {"v": 2, "file": 21524205568, "max": "max"}, "cg_after_evict": {"v": 2, "file": 32591872, "max": "max"}, "t": 1795323137.969}
+== run 4 ranks 04:52:17Z port 24378
+== ranks done 05:02:28Z
+-- r0
+{"kind": "MILESTONE", "rank": 0, "seconds": 607.912, "start": 1795323139.8924522, "error": null, "role": "calls upload() then broadcast", "cg_before": {"v": 2, "file": 1286983680, "max": "max"}, "cg_after": {"v": 2, "file": 33090928640, "max": "max"}, "t": 1795323747.805}
+-- r1
+{"kind": "MILESTONE", "rank": 1, "seconds": 607.913, "start": 1795323139.8924518, "error": null, "role": "waits in broadcast_object_list(src=0)", "cg_before": {"v": 2, "file": 493563904, "max": "max"}, "cg_after": {"v": 2, "file": 33090928640, "max": "max"}, "t": 1795323747.806}
+-- r2
+{"kind": "MILESTONE", "rank": 2, "seconds": 607.913, "start": 1795323139.8924077, "error": null, "role": "waits in broadcast_object_list(src=0)", "cg_before": {"v": 2, "file": 493563904, "max": "max"}, "cg_after": {"v": 2, "file": 33078964224, "max": "max"}, "t": 1795323747.805}
+-- r3
+{"kind": "MILESTONE", "rank": 3, "seconds": 607.913, "start": 1795323139.8924518, "error": null, "role": "waits in broadcast_object_list(src=0)", "cg_before": {"v": 2, "file": 493563904, "max": "max"}, "cg_after": {"v": 2, "file": 33090928640, "max": "max"}, "t": 1795323747.805}
+total 110726616
+drwx------ 2 jjyeung users         4096 Nov 22 05:02 .
+drwx------ 4 jjyeung users         4096 Nov 22 04:53 ..
+-rw------- 1 jjyeung users           64 Nov 22 04:53 4e7c39aa617eceafb8a7931c7969d1aede785026bdff203566fbc62006244b1a.local.claim
+-rw------- 1 jjyeung users          461 Nov 22 05:02 4e7c39aa617eceafb8a7931c7969d1aede785026bdff203566fbc62006244b1a.local.json
+-rw------- 1 jjyeung users 113383997440 Nov 22 04:57 4e7c39aa617eceafb8a7931c7969d1aede785026bdff203566fbc62006244b1a.tar
+/dev/md127     6388345036800 251194765312 6137133494272   4% /tmp
+end 05:02:31Z; synthetic data left in /tmp/a15_c6b1_174378 (234932609024 B) for the epilog or a queued removal
+=====o_174378/ev.jsonl
+{"kind": "SYNTH", "state": "/tmp/a15_c6b1_174378/sink/checkpoint_000600_9c9624749aca44b2ada471748707cb31", "files": 9, "bytes": 113383976000, "seconds": 94.52, "write_GBps": 1.2, "cg_before": {"v": 2, "file": 16279527424, "max": "max"}, "cg_after_write": {"v": 2, "file": 32640036864, "max": "max"}, "cg_after_evict": {"v": 2, "file": 32206848, "max": "max"}, "note": "5 writer threads, each generates+hashes+writes its own file, fsync at end", "t": 1795323128.673}
+{"kind": "COLD_READ", "file": "shards/rank000.pt", "bytes": 21474836480, "seconds": 5.4, "read_GBps": 3.979, "cg_before": {"v": 2, "file": 32571392, "max": "max"}, "cg_after": {"v": 2, "file": 21524205568, "max": "max"}, "cg_after_evict": {"v": 2, "file": 32591872, "max": "max"}, "t": 1795323137.969}
+=====o_174378/ev_rank0.jsonl
+{"kind": "MILESTONE", "rank": 0, "seconds": 607.912, "start": 1795323139.8924522, "error": null, "role": "calls upload() then broadcast", "cg_before": {"v": 2, "file": 1286983680, "max": "max"}, "cg_after": {"v": 2, "file": 33090928640, "max": "max"}, "t": 1795323747.805}
+{"kind": "PHASES", "total_seconds": 607.91, "phases": {"verify": {"bytes": 113383977420, "seconds": 99.62, "calls": 10, "GBps": 1.138}, "pin_sources": {"bytes": 113383977420, "seconds": 100.06, "calls": 10, "GBps": 1.133}, "tar_write": {"bytes": 0, "seconds": 100.13, "calls": 1}, "readback_source": {"bytes": 113383977420, "seconds": 100.5, "calls": 10, "GBps": 1.128}, "readback": {"bytes": 0, "seconds": 208.42, "calls": 1}, "after_readback_pin": {"bytes": 1420, "seconds": 0.0, "calls": 1, "GBps": null}, "pin_archive": {"bytes": 113383997440, "seconds": 99.66, "calls": 1, "GBps": 1.138}, "readback_archive_hash": {"bytes": null, "calls": null, "seconds": 107.91}}, "rows": [{"phase": "verify", "op": "sha256", "name": "replicated.pt", "bytes": 8244000000, "seconds": 7.301904857042246, "cg_file_before": 1286983680}, {"phase": "verify", "op": "sha256", "name": "rng000.pt", "bytes": 15653, "seconds": 0.0009100969764403999, "cg_file_before": 9531002880}, {"phase": "verify", "op": "sha256", "name": "rng001.pt", "bytes": 15653, "seconds": 0.0004097320488654077, "cg_file_before": 9531002880}, {"phase": "verify", "op": "sha256", "name": "rng002.pt", "bytes": 15653, "seconds": 0.00048809900181367993, "cg_file_before": 9531002880}, {"phase": "verify", "op": "sha256", "name": "rng003.pt", "bytes": 15589, "seconds": 0.0003106609801761806, "cg_file_before": 9531002880}, {"phase": "verify", "op": "sha256", "name": "rank000.pt", "bytes": 26284978363, "seconds": 23.127751974971034, "cg_file_before": 9531002880}, {"phase": "verify", "op": "sha256", "name": "rank001.pt", "bytes": 26284978363, "seconds": 22.903672974964138, "cg_file_before": 33101463552}, {"phase": "verify", "op": "sha256", "name": "rank002.pt", "bytes": 26284978363, "seconds": 23.09256452100817, "cg_file_before": 33082425344}, {"phase": "verify", "op": "sha256", "name": "rank003.pt", "bytes": 26284978363, "seconds": 23.196070844947826, "cg_file_before": 33082425344}, {"phase": "verify", "op": "sha256", "name": "complete.json", "bytes": 1420, "seconds": 0.0004840429755859077, "cg_file_before": 33088000000}, {"phase": "pin_sources", "op": "file_pin", "name": "rng002.pt", "bytes": 15653, "seconds": 0.0005656820139847696, "cg_file_before": 33088000000}, {"phase": "pin_sources", "op": "file_pin", "name": "rng003.pt", "bytes": 15589, "seconds": 0.00036984297912567854, "cg_file_before": 33088000000}, {"phase": "pin_sources", "op": "file_pin", "name": "complete.json", "bytes": 1420, "seconds": 0.0001611759653314948, "cg_file_before": 33088000000}, {"phase": "pin_sources", "op": "file_pin", "name": "rng000.pt", "bytes": 15653, "seconds": 0.00037710502510890365, "cg_file_before": 33088000000}, {"phase": "pin_sources", "op": "file_pin", "name": "rng001.pt", "bytes": 15653, "seconds": 0.00035747099900618196, "cg_file_before": 33088000000}, {"phase": "pin_sources", "op": "file_pin", "name": "replicated.pt", "bytes": 8244000000, "seconds": 7.392560591979418, "cg_file_before": 33088000000}, {"phase": "pin_sources", "op": "file_pin", "name": "rank000.pt", "bytes": 26284978363, "seconds": 22.84055902896216, "cg_file_before": 33095180288}, {"phase": "pin_sources", "op": "file_pin", "name": "rank001.pt", "bytes": 26284978363, "seconds": 23.195002642984036, "cg_file_before": 33090920448}, {"phase": "pin_sources", "op": "file_pin", "name": "rank003.pt", "bytes": 26284978363, "seconds": 23.296719538979232, "cg_file_before": 33085902848}, {"phase": "pin_sources", "op": "file_pin", "name": "rank002.pt", "bytes": 26284978363, "seconds": 23.33732204401167, "cg_file_before": 33098485760}, {"phase": "tar_write", "op": "tar_block", "seconds": 100.13353368104436, "cg_file_before": 33094295552}, {"phase": "readback_source", "op": "sha256", "name": "complete.json", "bytes": 1420, "seconds": 0.00023385795066133142, "cg_file_before": 32477814784}, {"phase": "readback_source", "op": "sha256", "name": "replicated.pt", "bytes": 8244000000, "seconds": 7.709769053035416, "cg_file_before": 32604372992}, {"phase": "readback_source", "op": "sha256", "name": "rng000.pt", "bytes": 15653, "seconds": 0.0010415699798613787, "cg_file_before": 32728199168}, {"phase": "readback_source", "op": "sha256", "name": "rng001.pt", "bytes": 15653, "seconds": 0.0005609900108538568, "cg_file_before": 32728199168}, {"phase": "readback_source", "op": "sha256", "name": "rng002.pt", "bytes": 15653, "seconds": 0.0005207539652474225, "cg_file_before": 32728199168}, {"phase": "readback_source", "op": "sha256", "name": "rng003.pt", "bytes": 15589, "seconds": 0.0002960630226880312, "cg_file_before": 32728199168}, {"phase": "readback_source", "op": "sha256", "name": "rank000.pt", "bytes": 26284978363, "seconds": 23.271732441033237, "cg_file_before": 33014116352}, {"phase": "readback_source", "op": "sha256", "name": "rank001.pt", "bytes": 26284978363, "seconds": 23.162739814957604, "cg_file_before": 33076146176}, {"phase": "readback_source", "op": "sha256", "name": "rank002.pt", "bytes": 26284978363, "seconds": 23.124336150009185, "cg_file_before": 33086631936}, {"phase": "readback_source", "op": "sha256", "name": "rank003.pt", "bytes": 26284978363, "seconds": 23.23189730301965, "cg_file_before": 33092300800}, {"phase": "readback", "op": "tar_block", "seconds": 208.41794746898813, "cg_file_before": 32477814784}, {"phase": "after_readback_pin", "op": "file_pin", "name": "complete.json", "bytes": 1420, "seconds": 0.000421410019043833, "cg_file_before": 33086009344}, {"phase": "pin_archive", "op": "file_pin", "name": "4e7c39aa617eceafb8a7931c7969d1aede785026bdff203566fbc62006244b1a.tar", "bytes": 113383997440, "seconds": 99.66103609796846, "cg_file_before": 33086009344}], "persist_files": ["4e7c39aa617eceafb8a7931c7969d1aede785026bdff203566fbc62006244b1a.local.claim", "4e7c39aa617eceafb8a7931c7969d1aede785026bdff203566fbc62006244b1a.local.json", "4e7c39aa617eceafb8a7931c7969d1aede785026bdff203566fbc62006244b1a.tar"], "archive_bytes": 113383997440, "t": 1795323747.806}
+=====o_174378/ev_rank1.jsonl
+{"kind": "MILESTONE", "rank": 1, "seconds": 607.913, "start": 1795323139.8924518, "error": null, "role": "waits in broadcast_object_list(src=0)", "cg_before": {"v": 2, "file": 493563904, "max": "max"}, "cg_after": {"v": 2, "file": 33090928640, "max": "max"}, "t": 1795323747.806}
+=====o_174378/ev_rank2.jsonl
+{"kind": "MILESTONE", "rank": 2, "seconds": 607.913, "start": 1795323139.8924077, "error": null, "role": "waits in broadcast_object_list(src=0)", "cg_before": {"v": 2, "file": 493563904, "max": "max"}, "cg_after": {"v": 2, "file": 33078964224, "max": "max"}, "t": 1795323747.805}
+=====o_174378/ev_rank3.jsonl
+{"kind": "MILESTONE", "rank": 3, "seconds": 607.913, "start": 1795323139.8924518, "error": null, "role": "waits in broadcast_object_list(src=0)", "cg_before": {"v": 2, "file": 493563904, "max": "max"}, "cg_after": {"v": 2, "file": 33090928640, "max": "max"}, "t": 1795323747.805}
+=====o_174378/rate.json
+{"sha256_1MiB_blocks_bytes": 4294967296, "seconds": 2.413, "GBps": 1.78, "sha_ni": true, "avx2": true, "avx512f": true, "cpu": "Intel(R) Xeon(R) Platinum 8481C CPU @ 2.70GHz", "openssl": "OpenSSL 3.0.13 30 Jan 2024", "python": "3.12.3", "nproc": 208, "affinity": 8}
+=====o_174378/receipt.json
+{"archive":{"path":"/tmp/a15_c6b1_174378/sink/persist/4e7c39aa617eceafb8a7931c7969d1aede785026bdff203566fbc62006244b1a.tar","sha256":"9009acd17a2526ca1d07e13ee67767cd85ac5031afeefa699e7151a2154c1cb9"},"durable":false,"kind":"checkpoint","parts":[],"project_required":false,"source":{"path":"/tmp/a15_c6b1_174378/sink/checkpoint_000600_9c9624749aca44b2ada471748707cb31/complete.json","sha256":"4e7c39aa617eceafb8a7931c7969d1aede785026bdff203566fbc62006244b1a"}}

@@ -1,0 +1,56 @@
+--- a/student_pilot/extent_receipt.py
++++ b/student_pilot/extent_receipt.py
+@@ -22,12 +22,29 @@
+ 
+ 
+ class Extents:
+-    def __init__(self, pin):
++    def __init__(self, pin, pool_sources=None):
++        if pool_sources is not None and (not isinstance(pool_sources, list)
++                or any(not isinstance(name, str) or not name for name in pool_sources)):
++            raise ValueError('EXTENT_POOL_SOURCES_INVALID')
++        self.pool_sources = frozenset(pool_sources or ())
++        self.exempted = 0
+         self.receipt = load(pinned(pin)) if pin else None
+         if self.receipt is not None and self.receipt.get('schema') != 'full-extent-receipt-v1':
+             raise ValueError('EXTENT_RECEIPT_SCHEMA')
+ 
++    def exempt(self, row, stream):
++        # The native pool builder writes this field from its pinned selection;
++        # callers authenticate database bytes or sealed row membership first.
++        source = row.get('s1_source')
++        return bool(self.pool_sources and stream == 'routing'
++                    and not str(row.get('qid', '')).startswith('a0_')
++                    and 'r1_source' not in row and isinstance(source, dict)
++                    and source.get('name') in self.pool_sources)
++
+     def check(self, row, stream):
++        if self.exempt(row, stream):
++            self.exempted += 1
++            return
+         if not required(row, stream):
+             return
+         if self.receipt is None:
+--- a/student_pilot/carrier_c1_run.py
++++ b/student_pilot/carrier_c1_run.py
+@@ -1068,7 +1068,7 @@
+         from .r1_coverage import validate_binding
+         self.wording_exclusion = validate_binding(receipt)
+         from .extent_receipt import Extents
+-        self.extents = Extents(receipt.get('extent_receipt'))
++        self.extents = Extents(receipt.get('extent_receipt'), (self.r1_training or {}).get('extent_pool_sources'))
+         self.placement = receipt.get('carrier_placement', data.C1_A)
+         self.receipt_pointing_weights = receipt.get('pointing_weights')
+         self.tool_flag = receipt.get('tool_mode_flag')
+--- a/student_pilot/r1_routing.py
++++ b/student_pilot/r1_routing.py
+@@ -156,7 +156,8 @@
+     result = dict(schema=ROUTING_SCHEMA, stream='routing', count=n, scenes=len(scenes),
+         database=file_pin(output/'rows.sqlite'), division=base['division'], heldout_overlap=0, scene_role='train',
+         source_membership=file_pin(output/'membership.json'), base=base_pin,
+-        per_source=dict(counts), refused=dict(refused), intake_evidence=evidence)
++        per_source=dict(counts), refused=dict(refused), intake_evidence=evidence,
++        **({'extent_exempted': reader.extents.exempted} if reader.extents.pool_sources else {}))
+     write(output/'receipt.json', result)
+     return result
+ 

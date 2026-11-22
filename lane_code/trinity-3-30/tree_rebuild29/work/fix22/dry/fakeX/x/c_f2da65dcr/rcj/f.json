@@ -1,0 +1,156 @@
+{
+  "allowed_metadata_classes": {
+    "copied": {
+      "effective_exemption": false,
+      "paths": [
+        "/row/source_qid",
+        "/row/candidate_id",
+        "/row/question",
+        "/row/question_type",
+        "/row/answer",
+        "/row/gt_answer",
+        "/row/ground_record",
+        "/row/provenance",
+        "/row/tool_output_spans"
+      ],
+      "reader": "extent_receipt.py:16; r1_training.py:12; r0_exclusion.py:49"
+    },
+    "fps_source": {
+      "effective_exemption": false,
+      "paths": [
+        "/row/s1_source/frame_binding/fps_source"
+      ],
+      "reader": "r0_exclusion.py:49"
+    },
+    "ordinal": {
+      "effective_exemption": false,
+      "paths": [
+        "/i"
+      ],
+      "reader": "carrier_c1_run.py:1120; r1_population.py:184; r1_mix.py:70"
+    },
+    "paths": {
+      "effective_exemption": false,
+      "paths": [
+        "/row/s1_source/source/path",
+        "/row/s1_source/frame_binding/authority/map/path",
+        "/row/s1_source/frame_binding/authority/plan/path",
+        "/row/s1_source/frame_binding/authority/fps_authority/path"
+      ],
+      "reader": "r0_exclusion.py:49"
+    }
+  },
+  "comparison": "exact raw JSON value text; typed SQL columns; missing differs from null",
+  "content_field_paths": [
+    "/target",
+    "/row/student_input",
+    "/row/routing/events",
+    "/row/routing/answer",
+    "/row/routing/category",
+    "/row/category",
+    "/row/pose_sample",
+    "/row/provenance/input",
+    "/row/pointing"
+  ],
+  "coverage": "All matched routing rows; exact lexical values and raw typed SQL target. Identity and absence are checked separately. Refusals are checked by the complete native chain.",
+  "derivation": [
+    {
+      "code": [
+        "carrier_c1_routing.py:511",
+        "carrier_c1_data.py:113",
+        "carrier_c1_data.py:207",
+        "batches.py:102",
+        "batches.py:132",
+        "pose_samples.py:301",
+        "gf1.py:302",
+        "gf1_cache.py:220"
+      ],
+      "effect": "Prompt tokens, options, frame bytes, frame indices, timestamps, fps, frame layouts and anchors.",
+      "paths": [
+        "/row/student_input"
+      ]
+    },
+    {
+      "code": [
+        "carrier_c1_routing.py:138",
+        "carrier_c1_routing.py:555",
+        "carrier_c1_routing.py:529",
+        "ground_rows.py:13"
+      ],
+      "effect": "Target tokens, loss masks, tool spans and segment tags.",
+      "paths": [
+        "/row/routing/events",
+        "/row/routing/answer"
+      ]
+    },
+    {
+      "code": [
+        "carrier_c1_routing.py:97",
+        "carrier_c1_run.py:1139"
+      ],
+      "effect": "Prompt flag.",
+      "paths": [
+        "/row/routing/category"
+      ]
+    },
+    {
+      "code": [
+        "carrier_c1_data.py:167",
+        "carrier_c1_data.py:189"
+      ],
+      "effect": "Pose augmentation branch and frame arrays.",
+      "paths": [
+        "/row/category",
+        "/row/pose_sample"
+      ]
+    },
+    {
+      "code": [
+        "carrier_c1_data.py:363",
+        "carrier_c1_data.py:443"
+      ],
+      "effect": "Single-image encoding branch.",
+      "paths": [
+        "/row/provenance/input"
+      ]
+    },
+    {
+      "code": [
+        "carrier_c1_run.py:1120",
+        "carrier_c1_run.py:1137"
+      ],
+      "effect": "Raw SQL target identity required by ANSWER 1226Z, including formatting and SQL type.",
+      "paths": [
+        "/target"
+      ]
+    },
+    {
+      "code": [
+        "carrier_c1_data.py:365"
+      ],
+      "effect": "Presence controls the single-image branch.",
+      "paths": [
+        "/row/pointing"
+      ]
+    }
+  ],
+  "direct_row_fields": [
+    "student_input",
+    "routing",
+    "category",
+    "pose_sample",
+    "provenance/input",
+    "pointing"
+  ],
+  "excluded_outputs": "qid is an audit identifier; SQL ordinal selects a row, not its encoding. The routing encoder replaces top-level target with the rendering of routing.events/answer. Admission-only fields are covered by (b) and (c).",
+  "identity_field_paths": [
+    "/row/dataset",
+    "/row/scene",
+    "/row/qid",
+    "/row/s1_source/name"
+  ],
+  "precedence": "An encode field difference fails (a), including any overlap with a metadata class. Every other difference must belong to one of the four classes for (b).",
+  "ruling": "ANSWER 1226Z; ANSWER 1938Z",
+  "schema": "f-v2",
+  "tree_sha256": "9d2bbb8ad209d91e21e56121785f62b0dddf3c8d9f14db8d23daf6dcd1d3591b"
+}

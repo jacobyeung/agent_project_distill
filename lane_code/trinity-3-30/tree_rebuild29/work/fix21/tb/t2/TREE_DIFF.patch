@@ -1,0 +1,11 @@
+--- a/student_pilot/r1_training.py
++++ b/student_pilot/r1_training.py
+@@ -95,7 +95,7 @@
+     stop = value.get('stop_after_step')
+     if stop is not None and (type(stop) is not int or not 1 <= stop <= 1000):
+         raise ValueError('R1_STOP_STEP_INVALID')
+-    if recipe['milestones'] != [100, 200, 400, 600, 800, 1000]:
++    if not recipe['milestones'] or recipe['milestones'] != sorted(set(recipe['milestones'])) or not set(recipe['milestones']) <= {100, 200, 400, 600, 800, 1000}:
+         raise ValueError('R1_MILESTONES_DIFFER')
+     return value
+ 

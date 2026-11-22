@@ -1,0 +1,8 @@
+C'' de202f58 verified unchanged; kits q 098987e2, n a4554161, n_go f62a1c8a, qd 022c1c7a.
+The CPU job checks every N routing row through native Rows.row with current pins, samples 20,000 rows per other stream, and publishes chain counts, full first-ten refusals and timing status independently of later publication failures.
+The unbound candidate carries authenticated audit entries using native content digests; cand_cmp.json proves P-source agreement, exact N pool QIDs and unchanged non-content entry fields.
+Both processor children receive only authenticated metadata at read-only logical roots; final traceback extraction, native type classification, Reserve.check citation and timing-byte accounting are fixed.
+Local checks pass: 15 chain/integration, 11 content/type, 10 publication, 4 recorder tests; actual sandbox loaders pass 40+40 and 80 fallback and refuse mismatch; staging, sample, contract, mounts, naming and exact delta replay pass.
+Mode b bytes match; qd and all kits are unchanged from 24m4p. UPLOADS_24M4Q.json/.list contain exactly 17 changed files against the requested Orchard pins, including inherited planner fixes.
+QUALIFIED: no native receipt rebuilder or authentic source receipt is supplied; CHAIN_24M4Q.md states the implemented audit carry and unresolved provenance. Mode r reports native population NOT_REACHED. The existing aggregate publication cap remains unmet and is counted including timings.
+No production reconstruction, full-row production verdict, upload, submission, training or arming ran; VALIDATION.json and FAILURES.json retain scope and failed-test output. The package is independently verified and its .sha256 is written last.

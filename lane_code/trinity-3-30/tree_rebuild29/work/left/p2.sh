@@ -1,0 +1,1 @@
+export TZ=UTC; date -u +%TZ; X=/project/community/jjyeung/okh7/x_22c714e1; timeout 60 du -sB1M $X/j $X/o/174369 2>&1 | head; ls $X/j | head; scontrol show job 174381 | grep -oE "StdOut=[^ ]+|WorkDir=[^ ]+|Command=[^ ]+" 

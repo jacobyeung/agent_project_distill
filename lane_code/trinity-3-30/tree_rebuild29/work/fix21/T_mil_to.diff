@@ -1,0 +1,25 @@
+--- a/student_pilot/r1_training.py
++++ b/student_pilot/r1_training.py
+@@ -95,7 +95,7 @@
+     stop = value.get('stop_after_step')
+     if stop is not None and (type(stop) is not int or not 1 <= stop <= 1000):
+         raise ValueError('R1_STOP_STEP_INVALID')
+-    if recipe['milestones'] != [100, 200, 400, 600, 800, 1000]:
++    if not (recipe['milestones'] and all(type(m) is int for m in recipe['milestones']) and list(recipe['milestones']) == sorted(set(recipe['milestones'])) and set(recipe['milestones']) <= {100, 200, 400, 600, 800, 1000}):
+         raise ValueError('R1_MILESTONES_DIFFER')
+     return value
+ 
+--- a/student_pilot/carrier_c1_run.py
++++ b/student_pilot/carrier_c1_run.py
+@@ -2871,9 +2871,9 @@
+     if not cpu:
+         torch.cuda.set_device(local)
+     import datetime
+-    # Training collectives fail fast (15 min). Only the startup barriers and broadcasts, while
++    # Training collectives fail fast (30 min). Only the startup barriers and broadcasts, while
+     # rank 0 hashes and loads assets, may wait longer (a separate gloo group, 60 min).
+-    dist.init_process_group('gloo' if cpu else 'nccl', timeout=datetime.timedelta(seconds=30 if cpu else 900))
++    dist.init_process_group('gloo' if cpu else 'nccl', timeout=datetime.timedelta(seconds=30 if cpu else 1800))
+     startup=dist.new_group(backend='gloo', timeout=datetime.timedelta(seconds=30 if cpu else 3600))
+     started=time.monotonic()
+     if os.environ.get('TK_JOB_START','').isdecimal():
