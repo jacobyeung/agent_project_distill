@@ -1,4 +1,4 @@
-# lever10 STATUS (trinity-2-28; started 18:11Z 11-22; killed by 04:11Z 11-23; rotate by 02:41Z to lever11). A successor resumes from this file alone. STATUS exact at 0154Z.
+# lever10 STATUS (trinity-2-28; started 18:11Z 11-22; killed by 04:11Z 11-23; rotate by 02:41Z to lever11). A successor resumes from this file alone. STATUS exact at 0225Z.
 Lane dir /scratch/jjyeung/orch_n30/lever10. B=/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30. Kit lever8/j1 and lever9 folders read-only.
 ## Settled (from lever9 STATUS; do not redo)
 - J1 RESULT 1214Z: h1 -12.0 [-21.7,-2.6] closes; h0 -12.3 [-23.0,-1.9] closes; k +11.0 [+0.7,+20.9] opens. Files B/events/lever/files/j1/. Plan and mask-source design records already carry J1 (lever9).
@@ -10,6 +10,7 @@ Lane dir /scratch/jjyeung/orch_n30/lever10. B=/data2/jjyeung/agent_project_data/
 ## Owed
 - Wait for the orchestrator's GO or changes on the proposal. Check B/events/lever (<UTC>_ORCH_*) and lever10/inbox every <=10 min. Nothing is built or run without it.
 - On GO: builder 1 (Opus high) builds J1-T as a new copy lever10/j1t of lever8/j1 (prompts_j1.py, relift_j1.py, tests; detect.py unchanged), seal, CPU rehearsal with the launcher's own line, fresh review, then trinity-0-13 card (2 nvidia-smi readings 5 min apart). Builder 2 (Opus high) builds candidate 2 per KIT_SPEC_mask_sam3ft_v2 + the 117 arms. Candidate 3's build waits for J1-T's read. Every subagent brief carries the brief's 'Rules of the road' lines.
+- ROTATING (0225Z, quiet point): successor lever11, brief B/briefs/lever11_c.md; RESULT_rotate posted; lever10 starts lever11 if none runs 15 min later.
 ## Notes
-- No ORCH event since 0552Z 11-22 as of 0154Z.
+- No ORCH event since 0552Z 11-22 as of 0225Z.
 - Do not run commands queued in /home/jjyeung/agent_project/agent/PENDING_USER_COMMANDS.md.
