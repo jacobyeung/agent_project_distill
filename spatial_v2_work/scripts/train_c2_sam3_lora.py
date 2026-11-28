@@ -1023,6 +1023,9 @@ def _fresh_relift(R) -> dict[str, Any]:
     return captured["result"]
 
 
+_DEV117_STATIC_OPERAND_CACHE: dict[tuple[str, str], dict[str, tuple[Any, int, list[dict[str, Any]], bytes]]] = {}
+
+
 @torch.no_grad()
 def evaluate_dev_mask_117(
     model: nn.Module,
@@ -1244,26 +1247,40 @@ def evaluate_dev_mask_117(
                 target = (inst_arr == o["instance_id"])
                 obj_a = served.get(prompt)
 
-                # 1. Baseline a, GT e, Oracle k
-                m_a = R.masks_array(obj_a["selected_masks"]) if obj_a else np.zeros((32, GRID_H, GRID_W), dtype=bool)
-                m_e = target
-                m_k = k_masks_by_iid[int(o["instance_id"])]
+                op_cache_key = (iid, prompt)
+                static_op = _DEV117_STATIC_OPERAND_CACHE.get(op_cache_key)
+                if static_op is None:
+                    # 1. Baseline a, GT e, Oracle k
+                    m_a = R.masks_array(obj_a["selected_masks"]) if obj_a else np.zeros((32, GRID_H, GRID_W), dtype=bool)
+                    m_e = target
+                    m_k = k_masks_by_iid[int(o["instance_id"])]
 
-                # 2. Banked J1 h1 and h0
-                j1_frames = j1_text[prompt]
-                m_j1_h1 = np.zeros((32, GRID_H, GRID_W), dtype=bool)
-                m_j1_h0 = np.zeros((32, GRID_H, GRID_W), dtype=bool)
-                for f_i in range(32):
-                    j1_p_grid = [
-                        dict(score=p["score"], presence=p["presence"], mask=S.to_grid(G.unpack(p["mask"])))
-                        for p in j1_frames[f_i]
-                    ]
-                    i_h1 = S.top1(j1_p_grid)
-                    if i_h1 is not None:
-                        m_j1_h1[f_i] = j1_p_grid[i_h1]["mask"]
-                    i_h0 = _oracle_h0_idx(j1_p_grid, target[f_i])
-                    if i_h0 is not None:
-                        m_j1_h0[f_i] = j1_p_grid[i_h0]["mask"]
+                    # 2. Banked J1 h1 and h0
+                    j1_frames = j1_text[prompt]
+                    m_j1_h1 = np.zeros((32, GRID_H, GRID_W), dtype=bool)
+                    m_j1_h0 = np.zeros((32, GRID_H, GRID_W), dtype=bool)
+                    for f_i in range(32):
+                        j1_p_grid = [
+                            dict(score=p["score"], presence=p["presence"], mask=S.to_grid(G.unpack(p["mask"])))
+                            for p in j1_frames[f_i]
+                        ]
+                        i_h1 = S.top1(j1_p_grid)
+                        if i_h1 is not None:
+                            m_j1_h1[f_i] = j1_p_grid[i_h1]["mask"]
+                        i_h0 = _oracle_h0_idx(j1_p_grid, target[f_i])
+                        if i_h0 is not None:
+                            m_j1_h0[f_i] = j1_p_grid[i_h0]["mask"]
+
+                    static_op = {}
+                    for sc_name, sm_arr in (("a", m_a), ("e", m_e), ("k", m_k), ("j1_h1", m_j1_h1), ("j1_h0", m_j1_h0)):
+                        s_val, _ = R.fit_lift(name, sm_arr, g)
+                        s_empty = 0 if sm_arr.any() else 1
+                        s_fr = G.precision_recall(sm_arr, target)
+                        static_op[sc_name] = (s_val, s_empty, s_fr, sm_arr.tobytes())
+                    static_op["_m_a"] = m_a
+                    _DEV117_STATIC_OPERAND_CACHE[op_cache_key] = static_op
+                else:
+                    m_a = static_op["_m_a"]
 
                 # 3. C2 LoRA arms: c2_h1, c2_h1_cal, c2_h1_hi, c2_h0, and a_c2_rescue
                 c2_frames = c2_proposals_by_prompt[prompt]
@@ -1292,27 +1309,34 @@ def evaluate_dev_mask_117(
                 # a_c2_rescue: use StageOne's 3D-linked selected masks when non-empty; rescue empty operands with c2_h1_hi (or c2_h1_cal)
                 m_a_rescue = m_a if m_a.any() else (m_c2_h1_hi if m_c2_h1_hi.any() else m_c2_h1_cal)
 
-                masks_map = {
-                    "a": m_a,
-                    "e": m_e,
-                    "k": m_k,
-                    "j1_h1": m_j1_h1,
-                    "j1_h0": m_j1_h0,
+                for sc_name in ("a", "e", "k", "j1_h1", "j1_h0"):
+                    s_val, s_empty, s_fr, _ = static_op[sc_name]
+                    pair_lifts[sc_name].append(s_val)
+                    empty_operands[sc_name] += s_empty
+                    pr_records[sc_name] += s_fr
+
+                dyn_seen: dict[bytes, tuple[Any, int, list[dict[str, Any]]]] = {
+                    static_op["a"][3]: (static_op["a"][0], static_op["a"][1], static_op["a"][2])
+                }
+                dyn_masks = {
                     "c2_h1": m_c2_h1,
                     "c2_h1_cal": m_c2_h1_cal,
                     "c2_h1_hi": m_c2_h1_hi,
                     "c2_h0": m_c2_h0,
                     "a_c2_rescue": m_a_rescue,
                 }
-
-                for c in cells:
-                    mc = masks_map[c]
-                    val, _ = R.fit_lift(name, mc, g)
-                    pair_lifts[c].append(val)
-                    if not mc.any():
-                        empty_operands[c] += 1
-                    fr = G.precision_recall(mc, target)
-                    pr_records[c] += fr
+                for c, mc in dyn_masks.items():
+                    mb = mc.tobytes()
+                    if mb in dyn_seen:
+                        d_val, d_empty, d_fr = dyn_seen[mb]
+                    else:
+                        d_val, _ = R.fit_lift(name, mc, g)
+                        d_empty = 0 if mc.any() else 1
+                        d_fr = G.precision_recall(mc, target)
+                        dyn_seen[mb] = (d_val, d_empty, d_fr)
+                    pair_lifts[c].append(d_val)
+                    empty_operands[c] += d_empty
+                    pr_records[c] += d_fr
 
             truth = float(ref["task"]["ground_truth"])
             factor = R.unit_factor(ref["task"]["question"])
@@ -1345,7 +1369,7 @@ def evaluate_dev_mask_117(
         m_vs_a = boot.metric([dict(r, delta=r[c] - r["a"]) for r in out_rows], "delta")
         m_vs_h1 = boot.metric([dict(r, delta=r[c] - r["j1_h1"]) for r in out_rows], "delta")
         m_vs_k = boot.metric([dict(r, delta=r[c] - r["k"]) for r in out_rows], "delta")
-        pr_agg = G.aggregate_pr(pr_records[c])
+        pr_agg = G.summarize_pr(pr_records[c])
         summary_cells[c] = {
             "mra": round(float(m_abs["mean"]), 2),
             "ci95": [round(float(m_abs["ci95"][0]), 2), round(float(m_abs["ci95"][1]), 2)],
@@ -1357,7 +1381,7 @@ def evaluate_dev_mask_117(
             "delta_vs_k_ci95": [round(float(m_vs_k["ci95"][0]), 2), round(float(m_vs_k["ci95"][1]), 2)],
             "frame_precision": round(float(pr_agg["precision"]) * 100.0, 2) if pr_agg["precision"] is not None else 0.0,
             "frame_recall": round(float(pr_agg["recall"]) * 100.0, 2) if pr_agg["recall"] is not None else 0.0,
-            "empty_gt_fp_anchors": int(pr_agg["empty_gt_with_pred"]),
+            "empty_gt_fp_anchors": int(pr_agg["pred_on_empty_gt"]),
             "empty_operands_of_234": int(empty_operands[c]),
         }
 
@@ -1624,8 +1648,49 @@ def main(argv=None) -> int:
 
         (out_dir / "metrics_history.json").write_text(json.dumps(history, indent=2) + "\n")
 
-    # 6. Step 0 Evaluation (Frozen SAM 3 baseline before any weight update)
-    run_eval_at_step(0)
+    # 6. Step 0 Evaluation (Frozen SAM 3 baseline before any weight update; reuse saved Step 0 if present)
+    hist_file = out_dir / "metrics_history.json"
+    if hist_file.is_file():
+        try:
+            prev_hist = json.loads(hist_file.read_text())
+            if "0" in prev_hist.get("k1_heldout_evals", {}) and "0" in prev_hist.get("dev_mask_117_evals", {}):
+                history["k1_heldout_evals"]["0"] = prev_hist["k1_heldout_evals"]["0"]
+                history["dev_mask_117_evals"]["0"] = prev_hist["dev_mask_117_evals"]["0"]
+                print(json.dumps({"event": "EVAL_K1_HELDOUT", "step": 0, **history["k1_heldout_evals"]["0"], "reused_from_cache": True}), flush=True)
+                dev0 = history["dev_mask_117_evals"]["0"]
+                print(json.dumps({
+                    "event": "EVAL_DEV_MASK_117",
+                    "step": 0,
+                    "reused_from_cache": True,
+                    "cal_tau": dev0["cal_tau"],
+                    "a": dev0["cells"]["a"]["mra"],
+                    "j1_h1": dev0["cells"]["j1_h1"]["mra"],
+                    "c2_h1": dev0["cells"]["c2_h1"]["mra"],
+                    "c2_h1_vs_a": dev0["cells"]["c2_h1"]["delta_vs_a"],
+                    "c2_h1_vs_j1_h1": dev0["cells"]["c2_h1"]["delta_vs_j1_h1"],
+                    "c2_h1_cal": dev0["cells"]["c2_h1_cal"]["mra"],
+                    "c2_h1_cal_vs_a": dev0["cells"]["c2_h1_cal"]["delta_vs_a"],
+                    "c2_h1_hi": dev0["cells"]["c2_h1_hi"]["mra"],
+                    "c2_h1_hi_vs_a": dev0["cells"]["c2_h1_hi"]["delta_vs_a"],
+                    "a_c2_rescue": dev0["cells"]["a_c2_rescue"]["mra"],
+                    "a_c2_rescue_vs_a": dev0["cells"]["a_c2_rescue"]["delta_vs_a"],
+                    "c2_h0": dev0["cells"]["c2_h0"]["mra"],
+                    "j1_h0": dev0["cells"]["j1_h0"]["mra"],
+                    "k": dev0["cells"]["k"]["mra"],
+                    "e": dev0["cells"]["e"]["mra"],
+                    "c2_h1_empty_gt_fp": dev0["cells"]["c2_h1"]["empty_gt_fp_anchors"],
+                    "c2_h1_cal_empty_gt_fp": dev0["cells"]["c2_h1_cal"]["empty_gt_fp_anchors"],
+                    "c2_h1_hi_empty_gt_fp": dev0["cells"]["c2_h1_hi"]["empty_gt_fp_anchors"],
+                    "c2_h0_empty_operands": dev0["cells"]["c2_h0"]["empty_operands_of_234"],
+                    "box_iou": dev0["box_iou_on_k_anchors"],
+                    "eval_seconds": dev0["eval_seconds"],
+                }), flush=True)
+            else:
+                run_eval_at_step(0)
+        except Exception:
+            run_eval_at_step(0)
+    else:
+        run_eval_at_step(0)
 
     # 7. Training loop
     t_train_start = time.perf_counter()
