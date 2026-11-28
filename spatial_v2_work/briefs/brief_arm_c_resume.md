@@ -1,0 +1,6 @@
+Recon is DONE — STOP inspecting extra files and move immediately to writing code and running on `trinity-2-28` GPU `4`!
+1. Note: the DA3 source tree is under `/scratch/jjyeung/geo_bakeoff_kit/assets/da3-src/` (not `site-packages`).
+2. Immediately implement `/scratch/jjyeung/orch_home_distill/spatial_v2/stage1a_arm_c.py` and `train_arm_c.py` (do NOT modify `stage1a_model.py`, `train_stage1a.py`, `eval_stage1a.py`, `data_k1_local.py` while GPUs 5 & 7 are running!):
+   - `Arm C`: Pre-trained multi-view `DA3-Nested` alternating-attention trunk (frozen or LoRA/selective last-`k`-block unfreeze) + VLM visual bridge + `GeoHeads` (plus all 3 Codex Stage-1A fixes: `depth_valid -> pmap_valid`, deterministic paired seed, explicit non-finite denominators).
+3. Run **step-0 zero-shot baseline** of `Arm C` on `K1-heldout` (`n=53` unseen rooms, exact same split `fcaee4f9...`) on `trinity-2-28` GPU `4` wrapped in `/data3/shared/scripts/vnice/vnice.sh` (`CUDA_VISIBLE_DEVICES=4`), then train on the `233` clean train rooms for `1,000`–`2,000` steps (`eval_every=250`), comparing head-to-head against `Arm A` (`rot_med 58.8°`, `delta1 77.4%` @ 1500) and `Arm B` (`rot_med 45.3°`, `rot_acc_15 21.3%`, `delta1 88.4%` @ 1750)!
+4. Write verified report to `/scratch/jjyeung/orch_home_distill/bluesky_20261128/reports/result_kt6_arm_c.md`.

@@ -1,0 +1,113 @@
+{
+  "status": "PASS",
+  "verified_rows": 28,
+  "target_rows": 28,
+  "unique_clean_scenes_used": 12,
+  "unique_clean_rooms_used": 11,
+  "exported_ownhead_boxes": 39,
+  "exclusion_proof": {
+    "manifest_sha256": "1e1169ac8f129ad95b4239741695c0f67e1cc5076c2fad027857a8fc1b7d6f22",
+    "canaries_passed": "9/9",
+    "pinned_input_captures": 239,
+    "clean_train_captures": 233,
+    "blocked_withheld_captures": 6,
+    "emitted_rows_hitting_any_exclusion": 0
+  },
+  "quality_gates": {
+    "math_recompute_pass_rate_emitted": 1.0,
+    "visual_checks_total": 44,
+    "visual_checks_agreed": 39,
+    "argon_carbon_agreement_rate": 0.8864,
+    "emitted_argon_carbon_mean_iou": 0.967,
+    "reject_breakdown": {
+      "argon_carbon_disagreed_or_occluded": 10
+    }
+  },
+  "distribution": {
+    "by_dataset": {
+      "arkitscenes": 3,
+      "scannetpp": 16,
+      "scannet": 9
+    },
+    "by_task_family": {
+      "metric_distance": 8,
+      "camera_motion_forward": 2,
+      "chiral_direction_away": 2,
+      "ego_polar_out_of_view_cam_k": 3,
+      "large_set_count_ge5": 3,
+      "chiral_direction_toward": 2,
+      "small_object_size_lt30cm": 2,
+      "multi_instance_disambig": 2,
+      "relative_size_neighbor_guard": 3,
+      "camera_motion_reversed": 1
+    },
+    "by_epistemic_mode": {
+      "CLEAN_1PASS": 10,
+      "UNSEEN_BOX_HINT_RECOVERY": 4,
+      "CHIRAL_180_TWIN": 4,
+      "OUT_OF_VIEW_PERSISTENT_3D": 3,
+      "MULTI_SLOT_DEDUP_COUNT": 3,
+      "MULTI_SLOT_BEV_RECOVERY": 2,
+      "TEMPORAL_REVERSAL_INVARIANCE": 1,
+      "LOW_PARALLAX_WIDE_BASELINE": 1
+    },
+    "by_unit": {
+      "m": 8,
+      "cm": 4,
+      "in": 4,
+      "deg": 4,
+      "ft": 5,
+      "count": 3
+    },
+    "by_author_model": {
+      "gemini-4-carbon": 21,
+      "gemini-4-neon": 7
+    }
+  },
+  "throughput_and_api": {
+    "wall_seconds": 238.63,
+    "calls_total": 185,
+    "calls_ok": 119,
+    "http_429": 0,
+    "http_503": 7,
+    "http_other_err": 0,
+    "timeouts": 39,
+    "rate_429_503": 0.0378,
+    "neon_to_carbon_fallbacks": 9,
+    "prompt_tokens": 214125,
+    "output_tokens": 10320,
+    "thought_tokens": 24320,
+    "outbound_mb": 10.759,
+    "inbound_mb": 0.231,
+    "internet_mb_per_s": 0.0461,
+    "file_api_bytes_uploaded": 0,
+    "latency_p50_s": 11.82,
+    "latency_p90_s": 36.97,
+    "per_model": {
+      "gemini-4-argon": {
+        "ok_calls": 47,
+        "median_s": 11.04,
+        "mean_s": 16.41
+      },
+      "gemini-4-carbon": {
+        "ok_calls": 65,
+        "median_s": 12.03,
+        "mean_s": 16.74
+      },
+      "gemini-4-neon": {
+        "ok_calls": 7,
+        "median_s": 11.53,
+        "mean_s": 12.04
+      }
+    },
+    "workers": 20,
+    "rows_per_min": 7.04,
+    "projected_rows_24h_at_current_workers": 10138,
+    "projected_rows_24h_at_32_workers": 16221
+  },
+  "artifacts": {
+    "smoke_jsonl": "/scratch/jjyeung/orch_home_distill/e05_api_factory/pilot0_smoke.jsonl",
+    "ownhead_boxes_jsonl": "/scratch/jjyeung/orch_home_distill/e05_api_factory/pilot0_ownhead_boxes.jsonl",
+    "summary_json": "/scratch/jjyeung/orch_home_distill/e05_api_factory/pilot0_smoke_summary.json"
+  }
+}

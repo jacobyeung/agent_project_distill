@@ -1,0 +1,36 @@
+{
+  "arm": "epi_vit",
+  "world_size": 1,
+  "device": "cuda:0",
+  "metric_3d_rope": false,
+  "delta_geo_bias": false,
+  "split_summary": {
+    "train_captures": 233,
+    "train_rooms": 214,
+    "val_captures": 53,
+    "val_rooms": 50,
+    "room_overlap": 0,
+    "skipped_missing_local": 4,
+    "excluded_blocked_rooms": 10,
+    "split_sha256": "fcaee4f9b02b4ecbc125e5bc7c9a1c2067d322a52df33ec9c59dfa8cf1ec8436"
+  },
+  "param_counts": {
+    "encoder_total": 415891440,
+    "encoder_trainable": 385412432,
+    "epi_adapter_total": 66415104,
+    "epi_adapter_trainable": 60115456,
+    "pose_head": 30449306,
+    "depth_head": 2646026,
+    "sf2_probes": 3936256,
+    "total_trainable": 482543337
+  },
+  "num_views": 8,
+  "grid_hw": [
+    20,
+    20
+  ],
+  "steps": 10,
+  "batch_size_per_gpu": 1,
+  "grad_accum": 2,
+  "effective_batch_size": 2
+}

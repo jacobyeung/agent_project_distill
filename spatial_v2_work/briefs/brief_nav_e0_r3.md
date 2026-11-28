@@ -1,0 +1,4 @@
+All 4 scripts in `/scratch/jjyeung/orch_home_distill/work_nav_e0_probe/` are written and **`trinity-2-28` GPU `5` is now 100% FREE (`0%, 2 MiB`)**!
+1. Run `export_habitat_rgb_depth20.py`, `run_depth_scale_diagnostic.py`, and `run_r2rce_closed_loop_probe.py` (`n=20` fast check -> full `rand100` `n=100`!) directly on **`trinity-2-28` GPU `5` wrapped in `/data3/shared/scripts/vnice/vnice.sh` (`CUDA_VISIBLE_DEVICES=5`)**. Do NOT touch any other GPU (`0..4, 6, 7`).
+2. Compare directly: (a) `oracle-depth` ceiling, (b) `V-C` raw depth (verify the `1.94×` Habitat scale drift!), (c) `V-C + FoVFix`, and (d) `DA3-Nested` (+ `ScaleAnchor` camera height `1.25 m`, zero GT depth).
+3. Verify all metrics from saved per-episode JSONL outputs (paired bootstrap 95% CI, `0` EGL crashes, `0` NaNs) and write `/scratch/jjyeung/orch_home_distill/bluesky_20261128/reports/result_nav_e0_fovfix_da3.md`.

@@ -1,0 +1,26 @@
+# Lane: w1_cleansheet_vla_data (Unanchored Pie-in-the-Sky Ideation — Data, API Trace Engines, RL & VLA Co-Training)
+
+## Goal
+Think completely BLUE-SKY and PIE-IN-THE-SKY from first principles about **DATA, API TRACE COLLECTION (unlimited Google Gemini API key — Neon, Carbon, Argon, Flash!), VERIFIABLE GEOMETRIC RL, AND VLA CO-TRAINING** to build the strongest specialized spatial understanding model in the world — one that ALSO dominates as a VLA fine-tuning backbone!
+
+The user explicitly emphasized:
+> "Remember we want to have a strong specialized fine-tuned spatial understanding model that ideally would be better for fine-tuning for VLAs. Pie in the sky ideas now. Anything that can improve our performance. Again, I think the idea is still to use depth heads, camera pose heads. With these I think you can analyze and find out / answer any sort of spatial question I believe... And again you can collect additional traces or whatever you need with the API key."
+
+## Grounding Constraint (Minimal)
+Do NOT get bogged down in old operational logs. No file edits, no git, no broad NFS scans. You may optionally skim `/data2/jjyeung/agent_project_data/distill_design/SOTA_SURVEY_GEOMETRY_VLMS_20261109.md` (first 120 lines only) to know rough open-source data scale (~590K+ VQA rows), then go FULL BLUE SKY!
+
+## What to Invent & Push to the Limit
+Propose **6–8 radically ambitious, high-leverage data / trace / RL / VLA-bridge engines** that exploit **unlimited Gemini API (Neon/Carbon/Argon/Flash) + 3D reconstruction pipelines (ViPE / DA3 / G3T / Pi3 / SAM3 / ScanNet / ARKit / Ego-Exo4D / Droid / OXE / AgiBot / Ego4D / Epic-Kitchens / synthetic 3D engines)**:
+1. **Inverse-Geometric Program Synthesis & Verified Reasoning Factory (API Key at Massive Scale)**: Instead of only static VSI templates, use Gemini Neon/Carbon + ground-truth/reconstructed 3D geometry (depth + pose + tracks) to generate **millions of diverse, open-ended, self-verifying spatial programs & chain-of-thought traces** where EVERY intermediate geometric step (frame selection, 2D-to-3D lift, coordinate-frame transform, distance/angle/volume/visibility/trajectory math) is verified by an exact 3D engine — including **active error recovery ("my depth/pose reprojection is inconsistent on frame 12 -> switch to frame 19 and re-verify")**!
+2. **Embodied / Egocentric / Robot-Video 4D Spatial Corpus (Bridging Indoor Rooms -> Robot Workspaces)**: Why indoor ScanNet/ARKit rooms aren't enough for VLAs! How to mine **OXE / DROID / BridgeV2 / Ego4D / Ego-Exo4D / HD-EPIC / ManiSkill / Isaac / Habitat** with ViPE/DA3/CoTracker3 + Gemini Neon/Carbon to create **Unified Spatial-Action Pre-Training** (3D tabletop object pose & relative distance, metric camera-to-wrist & ego-to-exo transforms, 3D keypoint/end-effector trajectory forecasting, collision/clearance & grasp-affordance QA, future 3D point-flow prediction, multi-step spatial subgoal planning).
+3. **Verifiable Geometric RLVR / GRPO Where the Student Learns to *Use* AND *Calibrate* Its Own Depth & Pose Heads**: Beyond SFT imitation! What if RL rewards not only final answer accuracy, but **online tool/head query efficiency, self-consistency across multiple camera frames, multi-view triangulation agreement, and uncertainty-calibrated switching** (when to trust heads vs re-query another view vs abstain/re-estimate)? Can RL even backprop or evolutionary-align head-query policies + visual zoom/crop policies?
+4. **3D-Consistent Counterfactual & Multi-Perspective Augmentation Engine**: Turning every posed video + depth map into 10x richer supervision: novel ego-centric perspective transforms ("if you stand at the robot gripper / chair facing the door..."), synthetic occlusions, synthetic camera perturbations, multi-camera pairing (simulating wrist + third-person views from single-room scans!), and counterfactual "what fits / what blocks line-of-sight / what happens if you move 0.5m left" questions!
+5. **Cross-Teacher Distillation Beyond Imitating One Frontier Model**: Using **Gemini Neon/Carbon + exact 3D geometry + multi-model consensus + adversarial self-play** where one API agent invents the hardest spatial questions that fool our current student (Active Curriculum / Hard-Negative Spatial Red-Teaming!), a 3D verifier checks ground truth, and we continuously close every failure mode!
+6. **Direct VLA Transfer Acceleration Tasks (Auxiliary Spatial Heads That Directly Predict VLA Primitives)**: Training the depth+pose model on **3D Affordance Points, 3D End-Effector Delta-Pose Prediction from Human Hand Videos (Ego4D/Ego-Exo4D/Something-Something/Epic-Kitchens -> universal retargetable 3D hand-pose trajectories!)**, and **Dense 3D Metric Scene Graphs** — so fine-tuning on 5–50 robot demos transfers immediately!
+
+## Deliverable
+Write a rich, fearless, deeply actionable blue-sky manifesto (max ~300 lines) to:
+`/scratch/jjyeung/orch_home_distill/bluesky_20261128/reports/w1_cleansheet_vla_data.md`
+For each idea: **(a) Core Idea & Pipeline**, **(b) Exact Role of Unlimited Gemini API + Depth/Pose Heads**, **(c) Expected Impact on Spatial Benchmarks AND VLA Transfer**, **(d) Hidden Trap / Risk**, **(e) Fast Decisive Pilot (48–72h)**.
+
+Print a concise <=20-line summary to stdout when done.
