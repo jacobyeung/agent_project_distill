@@ -361,7 +361,7 @@ def run_linear_3d_geometry_probe(
             valid_20 = batch_gpu["depth_valid"][0].float()       # [16, 20, 20]
             d_gt_20 = batch_gpu["depth_gt"][0].float()           # [16, 20, 20]
             pw_gt_20 = batch_gpu["pmap_gt"][0].float()           # [16, 20, 20, 3]
-            eye_r = torch.eye(3, device=device, dtype=torch.float32).view(1, 16, 3, 3)
+            eye_r = torch.eye(3, device=device, dtype=torch.float32).view(1, 1, 3, 3).expand(1, 16, 3, 3)
             zero_t = torch.zeros((1, 16, 3), device=device, dtype=torch.float32)
             pc_gt_20 = unproject_depth(
                 d_gt_20.unsqueeze(0).clamp(min=1e-2),
