@@ -6,8 +6,8 @@ Follows GEMINI_NATIVE_LABELING_20261111.md and cluster IO/rate governance:
   - Inline base64 JPEGs ONLY (0.0 bytes uploaded to Gemini File API!).
   - Image-first part ordering, systemInstruction rules, [ymin, xmin, ymax, xmax] 0-1000 boxes,
     and strict responseJsonSchema structured outputs.
-  - Polls OVER_CAP every 15 s, logs token usage to GEMINI_USAGE_LOG & GEMINI_USAGE_SHARED,
-    and applies exponential backoff + jitter on HTTP 429/503 (with optional Neon -> Carbon fallback).
+  - Shared-TTL (>=30s) OVER_CAP check, local-only /scratch usage logging (zero per-call NFS writes),
+    and exponential backoff + jitter on HTTP 429/503/timeouts (with optional Neon -> Carbon fallback).
 """
 from __future__ import annotations
 
@@ -29,6 +29,7 @@ from PIL import Image, ImageDraw
 from geo_solver import box_iou_1000
 
 GEMINI_API_BASE = "https://generativelanguage.googleapis.com/v1beta/models"
+_HOST_SHORT = socket.gethostname().split(".")[0]
 DEFAULT_OVER_CAP_PATH = Path(
     os.environ.get(
         "GEMINI_OVER_CAP",
@@ -36,12 +37,9 @@ DEFAULT_OVER_CAP_PATH = Path(
     )
 )
 DEFAULT_LOCAL_USAGE_LOG = Path(
-    os.environ.get("GEMINI_USAGE_LOG", f"/scratch/{os.environ.get('USER', 'jjyeung')}/gemini_runs/usage.jsonl")
-)
-DEFAULT_SHARED_USAGE_LOG = Path(
     os.environ.get(
-        "GEMINI_USAGE_SHARED",
-        f"/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/lanes/gemini_subagents/usage/usage.{socket.gethostname().split('.')[0]}.jsonl",
+        "GEMINI_USAGE_LOG",
+        f"/scratch/{os.environ.get('USER', 'jjyeung')}/orch_home_distill/e05_api_factory/usage.{_HOST_SHORT}.jsonl",
     )
 )
 
@@ -203,6 +201,7 @@ class APITelemetry:
             "http_503": self.http_503,
             "http_other_err": self.http_other_err,
             "timeouts": self.timeouts,
+            "timeout_rate": round(self.timeouts / total_attempts, 4),
             "rate_429_503": round((self.http_429 + self.http_503) / total_attempts, 4),
             "neon_to_carbon_fallbacks": self.neon_to_carbon_fallbacks,
             "prompt_tokens": self.prompt_tokens,
@@ -228,28 +227,39 @@ class GeminiInlineClient:
         self,
         api_key: Optional[str] = None,
         concurrency: int = 16,
-        request_timeout_s: float = 180.0,
+        request_timeout_s: float = 120.0,
         max_retries: int = 4,
         caller_tag: str = "e05_api_factory",
         over_cap_path: Path = DEFAULT_OVER_CAP_PATH,
+        over_cap_ttl_s: float = 30.0,
+        local_usage_log: Path = DEFAULT_LOCAL_USAGE_LOG,
         enable_usage_log: bool = True,
     ) -> None:
         self.api_key = api_key or os.environ.get("GOOGLE_API_KEY", "")
         if not self.api_key:
             raise RuntimeError("GOOGLE_API_KEY is required for live Gemini API calls")
-        self.semaphore = asyncio.Semaphore(concurrency)
-        self.request_timeout_s = request_timeout_s
+        self.concurrency = int(concurrency)
+        self.semaphore = asyncio.Semaphore(self.concurrency)
+        self.request_timeout_s = float(request_timeout_s)
         self.max_retries = max_retries
         self.caller_tag = caller_tag
-        self.over_cap_path = over_cap_path
+        self.over_cap_path = Path(over_cap_path)
+        self.over_cap_ttl_s = max(30.0, float(over_cap_ttl_s))
+        self.local_usage_log = Path(local_usage_log)
+        if str(self.local_usage_log).startswith(("/data", "/home")):
+            raise ValueError(f"Per-call usage log must reside on local /scratch, not NFS: {self.local_usage_log}")
         self.enable_usage_log = enable_usage_log
         self.telemetry = APITelemetry()
         self._last_cap_check = 0.0
         self._over_cap_cached = False
+        self._cap_lock = asyncio.Lock()
         self._client: Optional[httpx.AsyncClient] = None
 
     async def __aenter__(self) -> "GeminiInlineClient":
-        limits = httpx.Limits(max_keepalive_connections=32, max_connections=64)
+        limits = httpx.Limits(
+            max_keepalive_connections=max(32, self.concurrency * 2),
+            max_connections=max(64, self.concurrency * 3),
+        )
         self._client = httpx.AsyncClient(timeout=self.request_timeout_s, limits=limits)
         return self
 
@@ -258,15 +268,23 @@ class GeminiInlineClient:
             await self._client.aclose()
             self._client = None
 
-    async def _respect_over_cap(self) -> None:
+    async def _refresh_over_cap_if_stale(self) -> bool:
         now = time.monotonic()
-        if now - self._last_cap_check >= 15.0:
-            self._last_cap_check = now
-            self._over_cap_cached = self.over_cap_path.exists()
-        if self._over_cap_cached:
-            # Polite auto-throttle when Main/subagent OVER_CAP marker is active
+        if self._last_cap_check > 0.0 and (now - self._last_cap_check) < self.over_cap_ttl_s:
+            return self._over_cap_cached
+        async with self._cap_lock:
+            now2 = time.monotonic()
+            if self._last_cap_check > 0.0 and (now2 - self._last_cap_check) < self.over_cap_ttl_s:
+                return self._over_cap_cached
+            self._over_cap_cached = await asyncio.to_thread(self.over_cap_path.exists)
+            self._last_cap_check = time.monotonic()
+            return self._over_cap_cached
+
+    async def _respect_over_cap(self) -> None:
+        if await self._refresh_over_cap_if_stale():
+            # Polite auto-throttle without stampeding NFS stat calls across workers
             await asyncio.sleep(5.0)
-            self._over_cap_cached = self.over_cap_path.exists()
+            await self._refresh_over_cap_if_stale()
 
     async def generate_json(
         self,
@@ -324,7 +342,7 @@ class GeminiInlineClient:
                         json=payload,
                     )
                     dt = time.monotonic() - t0
-                except (httpx.ReadTimeout, httpx.ConnectTimeout, httpx.PoolTimeout):
+                except (httpx.ReadTimeout, httpx.ConnectTimeout, httpx.PoolTimeout, httpx.WriteTimeout, httpx.TimeoutException):
                     self.telemetry.timeouts += 1
                     if fallback_model and active_model != fallback_model:
                         self.telemetry.neon_to_carbon_fallbacks += 1
@@ -332,7 +350,7 @@ class GeminiInlineClient:
                     elif active_model == "gemini-4-argon" and thinking_level in ("AUTO", "HIGH"):
                         thinking_level = "MEDIUM"
                     if attempt < self.max_retries:
-                        await asyncio.sleep(min(8.0, (1.5 ** attempt) + random.uniform(0.1, 0.5)))
+                        await asyncio.sleep(min(12.0, (1.8 ** attempt) + random.uniform(0.2, 0.8)))
                         continue
                     raise
                 except httpx.HTTPError:
@@ -401,8 +419,8 @@ class GeminiInlineClient:
                     "output_tokens": c_tok,
                     "thought_tokens": t_tok,
                 }) + "\n"
-                _append_usage_line(DEFAULT_LOCAL_USAGE_LOG, rec)
-                _append_usage_line(DEFAULT_SHARED_USAGE_LOG, rec)
+                # Local /scratch ONLY — zero per-call NFS writes!
+                _append_usage_line(self.local_usage_log, rec)
 
             candidates = doc.get("candidates") or []
             if not candidates or "content" not in candidates[0]:
@@ -485,19 +503,45 @@ class GeminiInlineClient:
         c_box = [max(0, min(1000, int(v))) for v in carbon_res.get("box_2d", [0, 0, 0, 0])]
         ac_iou = box_iou_1000(a_box, c_box) if (a_pres and c_pres) else 0.0
 
-        consensus_box = [int(round((a_box[i] + c_box[i]) / 2.0)) for i in range(4)]
-        gt_iou = box_iou_1000(consensus_box, gt_box_1000) if (gt_box_1000 and a_pres and c_pres) else None
-
-        # Multi-instance scenes may have Argon & Carbon pick two visible chairs unless spatial_hint binds one;
-        # require both present + Argon∩Carbon IoU >= min_ac_iou (or either matches GT target >=0.55 when multi-inst).
+        # Multi-instance scenes may have Argon & Carbon pick two different visible instances:
+        # NEVER average two disjoint boxes! Only average when ac_iou >= min_ac_iou; otherwise
+        # under multi_vis select the single model unambiguously matching GT (>= 0.55), or reject.
         multi_vis = int(argon_res.get("visible_count", 1)) > 1 or int(carbon_res.get("visible_count", 1)) > 1
-        gt_match_ok = False
-        if gt_box_1000 and multi_vis and a_pres and c_pres:
-            gt_match_ok = max(box_iou_1000(a_box, gt_box_1000), box_iou_1000(c_box, gt_box_1000)) >= 0.55
+        a_gt_iou = box_iou_1000(a_box, gt_box_1000) if (gt_box_1000 and a_pres) else 0.0
+        c_gt_iou = box_iou_1000(c_box, gt_box_1000) if (gt_box_1000 and c_pres) else 0.0
 
-        agreed = bool(a_pres and c_pres and (ac_iou >= min_ac_iou or gt_match_ok))
+        consensus_source = "rejected"
+        if a_pres and c_pres and ac_iou >= min_ac_iou:
+            consensus_box = [int(round((a_box[i] + c_box[i]) / 2.0)) for i in range(4)]
+            agreed = True
+            consensus_source = "argon_carbon_avg"
+        elif a_pres and c_pres and multi_vis and gt_box_1000:
+            a_ok = a_gt_iou >= 0.55
+            c_ok = c_gt_iou >= 0.55
+            if a_ok and not c_ok:
+                consensus_box = list(a_box)
+                agreed = True
+                consensus_source = "argon_gt_selected"
+            elif c_ok and not a_ok:
+                consensus_box = list(c_box)
+                agreed = True
+                consensus_source = "carbon_gt_selected"
+            elif a_ok and c_ok and abs(a_gt_iou - c_gt_iou) >= 0.05:
+                consensus_box = list(a_box) if a_gt_iou > c_gt_iou else list(c_box)
+                agreed = True
+                consensus_source = "argon_gt_selected" if a_gt_iou > c_gt_iou else "carbon_gt_selected"
+            else:
+                consensus_box = [0, 0, 0, 0]
+                agreed = False
+                consensus_source = "rejected_ambiguous_multi"
+        else:
+            consensus_box = [0, 0, 0, 0]
+            agreed = False
+
+        gt_iou = box_iou_1000(consensus_box, gt_box_1000) if (gt_box_1000 and agreed) else None
         return {
             "agreed": agreed,
+            "consensus_source": consensus_source,
             "argon_present": a_pres,
             "carbon_present": c_pres,
             "argon_box_1000": a_box,
@@ -530,7 +574,10 @@ class GeminiInlineClient:
             "4. When a tool returns UNSEEN, LOW_PARALLAX, or MULTI_SLOT, briefly diagnose the epistemic state "
             "and justify the recovery action (inspect frame + box_hint, wide-baseline frames, or slot binding).\n"
             "5. Keep total words across ALL `think_steps` combined <= 110 words (crisp, zero fluff, zero frame loops).\n"
-            "6. Only mention frame numbers that actually appear in the contact sheet or tool outputs."
+            "6. Only mention frame numbers that actually appear in the contact sheet or tool outputs.\n"
+            "7. NEVER emit generic filler or boilerplate such as 'Standard measurement processing applied' or "
+            "'Processing complete'. Every step must cite the concrete object, slot, frame, or tool value for this scene.\n"
+            "8. Never claim a slot ID before locate() returns that slot ID; after RGB inspect, localize the object visually."
         )
 
         steps_desc = []

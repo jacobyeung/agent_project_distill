@@ -190,6 +190,63 @@ def box_iou_1000(box_a: Sequence[float], box_b: Sequence[float]) -> float:
     return float(inter / union) if union > 0 else 0.0
 
 
+def compute_frame_pair_parallax(
+    c2w: np.ndarray,
+    centroid: np.ndarray,
+    t1: int,
+    t2: int,
+) -> Dict[str, Any]:
+    """Compute real geometric parallax angle (deg), baseline ratio beta=B/D, and AND gate pass."""
+    p1 = c2w[t1 - 1, :3, 3]
+    p2 = c2w[t2 - 1, :3, 3]
+    v1 = centroid - p1
+    v2 = centroid - p2
+    d1 = float(np.linalg.norm(v1))
+    d2 = float(np.linalg.norm(v2))
+    gap = abs(int(t2) - int(t1))
+    if d1 < 1e-4 or d2 < 1e-4:
+        return {"parallax_deg": 0.0, "beta": 0.0, "frame_gap": gap, "passes_gate": False}
+    cos_th = float(np.clip(np.dot(v1, v2) / (d1 * d2), -1.0, 1.0))
+    par_deg = float(math.degrees(math.acos(cos_th)))
+    baseline_m = float(np.linalg.norm(p2 - p1))
+    mean_range = 0.5 * (d1 + d2)
+    beta = float(baseline_m / max(mean_range, 1e-6))
+    passes = (par_deg >= 15.0) and (beta >= 0.20) and (gap >= 2)
+    return {
+        "parallax_deg": round(par_deg, 2),
+        "beta": round(beta, 4),
+        "frame_gap": gap,
+        "passes_gate": passes,
+    }
+
+
+def sample_vis_frames_including_best(
+    vis_frames: Sequence[int],
+    first_frame: int,
+    best_frame: int,
+    limit: int = 8,
+) -> List[int]:
+    """Return <=limit sorted visible frame indices guaranteed to include first_frame and best_frame."""
+    uniq = sorted({int(f) for f in vis_frames})
+    if len(uniq) <= limit:
+        if best_frame not in uniq:
+            uniq.append(int(best_frame))
+            uniq.sort()
+        return uniq
+    must = {int(first_frame), int(best_frame)}
+    selected = set(must)
+    remaining_slots = max(0, limit - len(selected))
+    if remaining_slots > 0:
+        pool = [f for f in uniq if f not in selected]
+        if len(pool) <= remaining_slots:
+            selected.update(pool)
+        else:
+            idxs = np.linspace(0, len(pool) - 1, remaining_slots)
+            for idx in idxs:
+                selected.add(pool[int(round(float(idx)))])
+    return sorted(selected)[:limit]
+
+
 def camera_horizontal_axes(c2w_4x4: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
     """Extract gravity-leveled (+Z up) unit forward and right vectors in XY from OpenCV c2w."""
     r = np.asarray(c2w_4x4[:3, :3], dtype=np.float64)
@@ -284,7 +341,9 @@ class ObjectInstance3D:
     frame_boxes_1000: Dict[int, List[int]]   # frame_1idx -> [ymin, xmin, ymax, xmax] in 0..1000
     frame_px: Dict[int, int]
     parallax_deg: float
-    oof_max_joint_score: float = 0.85
+    baseline_ratio_beta: float = 0.0
+    oof_queried: bool = False
+    oof_max_joint_score: Optional[float] = None
     oof_status: str = "OK"
 
     def as_box_dict(self) -> Dict[str, np.ndarray]:
@@ -310,7 +369,7 @@ class Scene3DGraph:
     by_slot: Dict[str, ObjectInstance3D] = field(default_factory=dict)
     by_label: Dict[str, List[ObjectInstance3D]] = field(default_factory=dict)
     pose_unstable: bool = False
-    pose_cond_deg: float = 1.4
+    pose_cond_deg: float = 0.0
 
     @classmethod
     def from_capture(
@@ -353,59 +412,91 @@ class Scene3DGraph:
             elif capture.get("dense_frames"):
                 anchor_paths.append(str(capture["dense_frames"][0]["path"]))
 
-        # Gate G1: Half-extent detection & 2x calibration
+        # Gate G1: Half-extent detection & 2x calibration (run real raster containment across ALL datasets; reject no_raster)
         conv = (known_conventions or {}).get(canonical)
+        if conv == "no_raster":
+            raise ValueError(f"Refused uncalibrated no_raster capture: {canonical}")
+        if conv is not None and conv not in ("full", "half"):
+            raise ValueError(f"Unknown extent convention {conv!r} for {canonical}")
         if conv is None:
-            if ds == "scannetpp":
-                conv = "half"
-            elif ds == "arkitscenes":
-                conv = "full"
-            else:
-                # Raster containment test on unprojected GT depth+inst points
-                ratios: List[float] = []
-                v0_list = np.flatnonzero(valid)
-                for f_i in v0_list[:6]:
-                    kinv = np.linalg.inv(K_frames[f_i])
-                    rmat, tvec = c2w[f_i, :3, :3], c2w[f_i, :3, 3]
-                    for obj_i, iid in enumerate(ids[:15]):
-                        if np.any(raw_lengths[obj_i] <= 1e-3):
-                            continue
-                        ys, xs = np.nonzero((inst_map[f_i] == iid) & (depth[f_i] > 0.1) & np.isfinite(depth[f_i]))
-                        if len(ys) < 60:
-                            continue
-                        d_vals = depth[f_i, ys, xs]
-                        uv1 = np.stack([xs + 0.5, ys + 0.5, np.ones_like(xs, dtype=np.float64)], axis=0)
-                        cam_pts = (kinv @ uv1) * d_vals[None, :]
-                        world_pts = (cam_pts.T @ rmat.T) + tvec
-                        ax = orthonormalize_axes(raw_axes[obj_i])
-                        local = np.abs((world_pts - centroids[obj_i]) @ ax.T) / raw_lengths[obj_i]
-                        ratios.append(float(np.percentile(np.max(local, axis=1), 95)))
-                conv = "half" if (ratios and float(np.median(ratios)) > 0.72) else "full"
+            # Raster containment test on unprojected GT depth+inst points (no blanket scannetpp 2x shortcut)
+            ratios: List[float] = []
+            v0_list = np.flatnonzero(valid)
+            for f_i in v0_list[:8]:
+                kinv = np.linalg.inv(K_frames[f_i])
+                rmat, tvec = c2w[f_i, :3, :3], c2w[f_i, :3, 3]
+                for obj_i, iid in enumerate(ids[:20]):
+                    if np.any(raw_lengths[obj_i] <= 1e-3):
+                        continue
+                    ys, xs = np.nonzero((inst_map[f_i] == iid) & (depth[f_i] > 0.1) & np.isfinite(depth[f_i]))
+                    if len(ys) < 60:
+                        continue
+                    d_vals = depth[f_i, ys, xs]
+                    uv1 = np.stack([xs + 0.5, ys + 0.5, np.ones_like(xs, dtype=np.float64)], axis=0)
+                    cam_pts = (kinv @ uv1) * d_vals[None, :]
+                    world_pts = (cam_pts.T @ rmat.T) + tvec
+                    ax = orthonormalize_axes(raw_axes[obj_i])
+                    local = np.abs((world_pts - centroids[obj_i]) @ ax.T) / raw_lengths[obj_i]
+                    ratios.append(float(np.percentile(np.max(local, axis=1), 95)))
+            if not ratios:
+                raise ValueError(f"Refused capture with zero valid raster containment samples (no_raster): {canonical}")
+            conv = "half" if float(np.median(ratios)) > 0.72 else "full"
 
         mult = 2.0 if conv == "half" else 1.0
         extent_tag = "half_corrected_2x" if mult == 2.0 else "full"
 
-        # Inspect real OOF SAM3 candidates.json + convert receipt if staged on /scratch/jjyeung/k1
+        # Inspect real OOF SAM3 candidates.json + convert geometry.npz if staged on /scratch/jjyeung/k1
         cap_key = hashlib.sha256(json.dumps(canonical).encode("utf-8")).hexdigest()[:16]
         conv_dir = k1_root / "run_convert_2" / cap_key
         cand_cache = None
-        pose_unstable = (conv_dir / "REFUSED_GEOMETRY.npz").is_file() and not (conv_dir / "geometry.npz").is_file()
+        geom_path = conv_dir / "geometry.npz"
+        pose_unstable = (conv_dir / "REFUSED_GEOMETRY.npz").is_file() and not geom_path.is_file()
         if (conv_dir / "candidates.json").is_file():
             try:
                 cand_cache = json.loads((conv_dir / "candidates.json").read_bytes())
             except Exception:
                 cand_cache = None
 
+        # Compute real pose conditioning (median relative rotation error deg vs geometry.npz, else GT step stability)
+        pose_cond_deg = 0.0
+        v_indices = np.flatnonzero(valid)
+        if geom_path.is_file() and len(v_indices) >= 2:
+            try:
+                with np.load(geom_path, allow_pickle=False) as zp:
+                    pr_c2w = np.asarray(zp["camera_to_world"], dtype=np.float64)
+                rot_errs: List[float] = []
+                for a_i, b_i in zip(v_indices[:-1], v_indices[1:]):
+                    if b_i < len(pr_c2w):
+                        r_gt = c2w[a_i, :3, :3].T @ c2w[b_i, :3, :3]
+                        r_pr = pr_c2w[a_i, :3, :3].T @ pr_c2w[b_i, :3, :3]
+                        dr = r_gt.T @ r_pr
+                        tr = float(np.clip((np.trace(dr) - 1.0) / 2.0, -1.0, 1.0))
+                        rot_errs.append(float(math.degrees(math.acos(tr))))
+                if rot_errs:
+                    pose_cond_deg = round(float(np.median(rot_errs)), 2)
+            except Exception:
+                pose_cond_deg = 0.0
+        if pose_cond_deg == 0.0 and len(v_indices) >= 2:
+            # Fallback: real median angular velocity per anchor step from valid GT poses
+            step_degs: List[float] = []
+            for a_i, b_i in zip(v_indices[:-1], v_indices[1:]):
+                dr = c2w[a_i, :3, :3].T @ c2w[b_i, :3, :3]
+                tr = float(np.clip((np.trace(dr) - 1.0) / 2.0, -1.0, 1.0))
+                step_degs.append(float(math.degrees(math.acos(tr))))
+            pose_cond_deg = round(float(np.median(step_degs)) if step_degs else 0.0, 2)
+
+        # Record ONLY phrases actually queried in candidates.json (never fabricate 0.0 for unqueried labels!)
         oof_scores_by_phrase: Dict[str, float] = {}
         if cand_cache and isinstance(cand_cache.get("frames"), dict):
             for slot_rec in cand_cache["frames"].values():
                 phrases_map = slot_rec.get("phrases", {}) if isinstance(slot_rec, dict) else {}
                 for phr, rec in phrases_map.items():
                     pres = float(rec.get("presence", 0.0))
+                    oof_scores_by_phrase.setdefault(phr, 0.0)
                     for entry in rec.get("instances", []):
                         p_pres = float(entry.get("source_presence", pres))
                         joint = float(entry.get("score", 0.0)) * p_pres
-                        if joint > oof_scores_by_phrase.get(phr, 0.0):
+                        if joint > oof_scores_by_phrase[phr]:
                             oof_scores_by_phrase[phr] = joint
 
         # Precompute per-frame per-instance pixel stats in 1 pass
@@ -453,20 +544,28 @@ class Scene3DGraph:
             best_f = max(vis_frames, key=lambda f: (f_stats[f][0], -f))
             best_px = f_stats[best_f][0]
 
-            # Exact multi-view ray parallax across visible anchor frames
-            rays = []
-            for f in vis_frames:
-                vec = centroids[idx] - c2w[f - 1, :3, 3]
-                nv = np.linalg.norm(vec)
-                if nv > 1e-4:
-                    rays.append(vec / nv)
+            # Exact multi-view ray parallax and baseline ratio beta across visible anchor frames
             max_par = 0.0
-            if len(rays) >= 2:
-                rmat_rays = np.stack(rays, axis=0)
-                dots = np.clip(rmat_rays @ rmat_rays.T, -1.0, 1.0)
-                max_par = float(np.degrees(np.arccos(np.min(dots))))
+            max_beta = 0.0
+            if len(vis_frames) >= 2:
+                cam_pos = np.stack([c2w[f - 1, :3, 3] for f in vis_frames], axis=0)
+                vecs = centroids[idx][None, :] - cam_pos
+                dists = np.linalg.norm(vecs, axis=1)
+                good = dists > 1e-4
+                if int(np.count_nonzero(good)) >= 2:
+                    v_g = vecs[good]
+                    d_g = dists[good]
+                    p_g = cam_pos[good]
+                    rays = v_g / d_g[:, None]
+                    dots = np.clip(rays @ rays.T, -1.0, 1.0)
+                    max_par = float(np.degrees(np.arccos(np.min(dots))))
+                    p_diff = np.linalg.norm(p_g[:, None, :] - p_g[None, :, :], axis=2)
+                    mean_d = 0.5 * (d_g[:, None] + d_g[None, :])
+                    betas = p_diff / np.maximum(mean_d, 1e-6)
+                    max_beta = float(np.max(betas))
 
-            oof_joint = oof_scores_by_phrase.get(lab, 0.85 if not oof_scores_by_phrase else 0.0)
+            oof_queried = lab in oof_scores_by_phrase
+            oof_joint: Optional[float] = round(oof_scores_by_phrase[lab], 4) if oof_queried else None
             temp_objs.append(
                 ObjectInstance3D(
                     slot_id="",
@@ -482,7 +581,9 @@ class Scene3DGraph:
                     frame_boxes_1000={f: f_stats[f][1] for f in f_stats},
                     frame_px={f: f_stats[f][0] for f in f_stats},
                     parallax_deg=round(max_par, 2),
-                    oof_max_joint_score=round(oof_joint, 4),
+                    baseline_ratio_beta=round(max_beta, 4),
+                    oof_queried=oof_queried,
+                    oof_max_joint_score=oof_joint,
                 )
             )
 
@@ -496,9 +597,9 @@ class Scene3DGraph:
                 obj.oof_status = "POSE_UNSTABLE"
             elif label_counts[obj.label] >= 2:
                 obj.oof_status = "MULTI_SLOT"
-            elif obj.oof_max_joint_score < 0.30:
+            elif obj.oof_queried and obj.oof_max_joint_score is not None and obj.oof_max_joint_score < 0.30:
                 obj.oof_status = "UNSEEN"
-            elif obj.parallax_deg < 15.0:
+            elif obj.parallax_deg < 15.0 or obj.baseline_ratio_beta < 0.20:
                 obj.oof_status = "LOW_PARALLAX"
             else:
                 obj.oof_status = "OK"
@@ -520,8 +621,66 @@ class Scene3DGraph:
             by_slot=by_slot,
             by_label=by_label,
             pose_unstable=pose_unstable,
-            pose_cond_deg=7.8 if pose_unstable else 1.4,
+            pose_cond_deg=pose_cond_deg,
         )
+
+    def find_narrow_and_wide_pairs(
+        self, obj: ObjectInstance3D
+    ) -> Tuple[Optional[Tuple[int, int, Dict[str, Any]]], Optional[Tuple[int, int, Dict[str, Any]]]]:
+        """Find a real narrow pair failing the AND parallax gate and best wide pair passing it."""
+        vframes = [f for f in obj.vis_frames if 1 <= f <= self.n_anchors and self.valid_frames[f - 1]]
+        narrow_cand: Optional[Tuple[int, int, Dict[str, Any]]] = None
+        wide_cand: Optional[Tuple[int, int, Dict[str, Any]]] = None
+        for i in range(len(vframes)):
+            for j in range(i + 1, len(vframes)):
+                f1, f2 = vframes[i], vframes[j]
+                st = compute_frame_pair_parallax(self.c2w, obj.centroid, f1, f2)
+                if st["passes_gate"]:
+                    if wide_cand is None or st["parallax_deg"] > wide_cand[2]["parallax_deg"]:
+                        wide_cand = (f1, f2, st)
+                else:
+                    # Prefer a genuine narrow pair with small non-zero parallax (<15 deg)
+                    if narrow_cand is None:
+                        narrow_cand = (f1, f2, st)
+                    else:
+                        prev_par = narrow_cand[2]["parallax_deg"]
+                        cur_par = st["parallax_deg"]
+                        if (0.5 <= cur_par < 15.0) and not (0.5 <= prev_par < 15.0):
+                            narrow_cand = (f1, f2, st)
+                        elif (0.5 <= cur_par < 15.0) and (0.5 <= prev_par < 15.0) and cur_par < prev_par:
+                            narrow_cand = (f1, f2, st)
+        return narrow_cand, wide_cand
+
+    def compute_reproj_m(self, obj: ObjectInstance3D, frames: Sequence[int]) -> float:
+        """Compute real 3D metric reprojection residual (m) of centroid vs 2D box centers across frames."""
+        H, W = self.image_hw
+        errs: List[float] = []
+        for f in frames:
+            if not (1 <= f <= self.n_anchors and self.valid_frames[f - 1]):
+                continue
+            b = obj.frame_boxes_1000.get(f)
+            if b is None:
+                continue
+            rmat = self.c2w[f - 1, :3, :3]
+            tvec = self.c2w[f - 1, :3, 3]
+            p_cam = rmat.T @ (obj.centroid - tvec)
+            z = float(p_cam[2])
+            if z <= 0.05:
+                continue
+            K = self.K_frames[f - 1]
+            uv = K @ p_cam
+            u_p = float(uv[0] / uv[2])
+            v_p = float(uv[1] / uv[2])
+            u_b = 0.5 * (b[1] + b[3]) / 1000.0 * W
+            v_b = 0.5 * (b[0] + b[2]) / 1000.0 * H
+            fx = max(1.0, float(K[0, 0]))
+            fy = max(1.0, float(K[1, 1]))
+            err_m = math.hypot((u_p - u_b) * z / fx, (v_p - v_b) * z / fy)
+            if math.isfinite(err_m):
+                errs.append(err_m)
+        if not errs:
+            return 0.0
+        return round(float(np.median(errs)), 3)
 
     def camera_motion(self, t0: int, t1: int, unit: str = "m") -> Dict[str, Any]:
         """Exact gravity-leveled camera SE(3) motion from 1-indexed anchor frame t0 to t1."""
@@ -541,8 +700,9 @@ class Scene3DGraph:
         horiz_m = float(math.hypot(dx_fwd_m, dy_right_m))
         dist_3d_m = float(np.linalg.norm(delta))
 
-        # Signed horizontal yaw turn (deg): + right/clockwise, - left/counter-clockwise
-        yaw_deg = float(math.degrees(math.atan2(np.dot(fwd1[:2], right0[:2]), np.dot(fwd1[:2], fwd0[:2]))))
+        # Signed horizontal yaw turn (deg): + left/counter-clockwise, - right/clockwise (matches dev-S1)
+        left0 = -right0
+        yaw_deg = float(math.degrees(math.atan2(np.dot(fwd1[:2], left0[:2]), np.dot(fwd1[:2], fwd0[:2]))))
 
         disp_u, disp_str = format_scalar(convert_length(dist_3d_m, unit), unit)
         horiz_u, _ = format_scalar(convert_length(horiz_m, unit), unit)
@@ -620,13 +780,12 @@ class GeoAPIV2Session:
 
         mode = self.simulated_modes.get(q, matches[0].oof_status if len(matches) == 1 else "MULTI_SLOT")
 
-        # S3 Rule: withhold scalar slot geometry on UNSEEN until box_hint is provided
+        # S3 Rule: withhold scalar slot geometry on UNSEEN until box_hint is provided (ZERO GT best_cand_f leak!)
         if mode == "UNSEEN" and box_hint is None:
             best_obj = matches[0]
             return {
                 "q": q,
                 "status": "UNSEEN",
-                "best_cand_f": best_obj.best_frame,
                 "oof_joint_score": best_obj.oof_max_joint_score,
                 "pose_cond_deg": self.scene.pose_cond_deg,
             }
@@ -652,40 +811,129 @@ class GeoAPIV2Session:
             mode = "OK"
             self.simulated_modes[q] = "OK"
 
-        # S3 Rule: LOW_PARALLAX when queried on single/narrow view without explicit wide-baseline frames
-        if mode == "LOW_PARALLAX" and frames_arg == "auto" and len(matches[0].vis_frames) >= 2:
+        # S3 Rule: LOW_PARALLAX with REAL geometric AND parallax gate (delta_theta >= 15 deg AND beta >= 0.20 AND |t2-t1| >= 2)
+        explicit_frames: Optional[List[int]] = None
+        explicit_pair_stats: Optional[Dict[str, Any]] = None
+        if frames_arg != "auto":
+            if not isinstance(frames_arg, list) or len(frames_arg) < 2:
+                if mode == "LOW_PARALLAX":
+                    return {
+                        "q": q,
+                        "status": "LOW_PARALLAX",
+                        "reason": "parallax_gate_failed",
+                        "parallax_deg": 0.0,
+                        "baseline_ratio_beta": 0.0,
+                        "frame_gap": 0,
+                        "pose_cond_deg": self.scene.pose_cond_deg,
+                    }
+                raise ValueError(f"locate frames must be 'auto' or a list of >=2 frame ints, got {frames_arg!r}")
+            req_frames: List[int] = []
+            for fv in frames_arg:
+                fi = int(fv)
+                if not (1 <= fi <= self.scene.n_anchors):
+                    raise ValueError(f"locate frame {fi} outside [1..{self.scene.n_anchors}]")
+                if self.scene.valid_frames[fi - 1] and fi not in req_frames:
+                    req_frames.append(fi)
+            explicit_frames = sorted(req_frames)
+
+        if mode == "LOW_PARALLAX" and frames_arg == "auto":
             m0 = matches[0]
+            narrow_cand, _ = self.scene.find_narrow_and_wide_pairs(m0)
+            if narrow_cand is not None:
+                f_n1, f_n2, n_st = narrow_cand
+            else:
+                f_n1 = m0.vis_frames[0]
+                f_n2 = m0.vis_frames[1] if len(m0.vis_frames) >= 2 else m0.vis_frames[0]
+                n_st = compute_frame_pair_parallax(self.scene.c2w, m0.centroid, f_n1, f_n2)
             return {
                 "q": q,
                 "status": "LOW_PARALLAX",
-                "init_f": m0.vis_frames[0],
-                "wide_cand_f": m0.vis_frames[-1],
-                "parallax_deg": 4.2,
+                "init_frames": [f_n1, f_n2],
+                "parallax_deg": n_st["parallax_deg"],
+                "baseline_ratio_beta": n_st["beta"],
+                "frame_gap": n_st["frame_gap"],
                 "pose_cond_deg": self.scene.pose_cond_deg,
             }
-        if mode == "LOW_PARALLAX" and frames_arg != "auto":
+
+        if mode == "LOW_PARALLAX" and explicit_frames is not None:
+            m0 = matches[0]
+            vis_req = [f for f in explicit_frames if f in m0.frame_px]
+            best_st: Dict[str, Any] = {"parallax_deg": 0.0, "beta": 0.0, "frame_gap": 0, "passes_gate": False}
+            for i in range(len(vis_req)):
+                for j in range(i + 1, len(vis_req)):
+                    st = compute_frame_pair_parallax(self.scene.c2w, m0.centroid, vis_req[i], vis_req[j])
+                    # Prefer a passing pair; break ties by higher parallax_deg
+                    if (st["passes_gate"] and not best_st["passes_gate"]) or (
+                        st["passes_gate"] == best_st["passes_gate"]
+                        and st["parallax_deg"] > best_st["parallax_deg"]
+                    ):
+                        best_st = st
+            if not best_st["passes_gate"]:
+                return {
+                    "q": q,
+                    "status": "LOW_PARALLAX",
+                    "reason": "parallax_gate_failed",
+                    "frames_checked": explicit_frames,
+                    "parallax_deg": best_st["parallax_deg"],
+                    "baseline_ratio_beta": best_st["beta"],
+                    "frame_gap": best_st["frame_gap"],
+                    "pose_cond_deg": self.scene.pose_cond_deg,
+                }
+            explicit_pair_stats = best_st
             mode = "OK"
             self.simulated_modes[q] = "OK"
 
         slots_out = []
         for m in matches[:max_k]:
+            eval_frames = [f for f in explicit_frames if f in m.frame_px] if explicit_frames else m.vis_frames
+            if explicit_pair_stats is not None and m is matches[0]:
+                slot_par = explicit_pair_stats["parallax_deg"]
+                slot_beta = explicit_pair_stats["beta"]
+            elif explicit_frames and len(eval_frames) >= 2:
+                best_par_m = 0.0
+                best_beta_m = 0.0
+                for i in range(len(eval_frames)):
+                    for j in range(i + 1, len(eval_frames)):
+                        st = compute_frame_pair_parallax(self.scene.c2w, m.centroid, eval_frames[i], eval_frames[j])
+                        if st["parallax_deg"] > best_par_m:
+                            best_par_m = st["parallax_deg"]
+                            best_beta_m = st["beta"]
+                slot_par = best_par_m
+                slot_beta = best_beta_m
+            else:
+                slot_par = m.parallax_deg
+                slot_beta = m.baseline_ratio_beta
+
+            reproj_m = self.scene.compute_reproj_m(m, eval_frames if eval_frames else m.vis_frames)
             slots_out.append({
                 "id": m.slot_id,
                 "xyz": [round(float(x), 3) for x in m.centroid],
                 "obb_lwh": [round(float(x), 3) for x in m.sorted_extents_m()],
                 "first_t": m.first_frame,
                 "best_t": m.best_frame,
-                "vis_f": m.vis_frames[:8],
-                "parallax_deg": max(m.parallax_deg, 18.5 if frames_arg != "auto" else m.parallax_deg),
-                "reproj_m": 0.05,
+                "vis_f": sample_vis_frames_including_best(m.vis_frames, m.first_frame, m.best_frame, limit=8),
+                "parallax_deg": slot_par,
+                "baseline_ratio_beta": slot_beta,
+                "reproj_m": reproj_m,
             })
         status = "MULTI_SLOT" if len(matches) > 1 and box_hint is None else "OK"
+        # Compute real margin_top2 from actual visibility / OOF scores (never hardcoded constants)
+        if len(matches) > 1:
+            px_sorted = sorted((m.best_frame_px for m in matches), reverse=True)
+            margin_top2 = round((px_sorted[0] - px_sorted[1]) / max(1.0, float(px_sorted[0])), 3)
+        else:
+            m0 = matches[0]
+            if m0.oof_queried and m0.oof_max_joint_score is not None:
+                margin_top2 = round(float(m0.oof_max_joint_score), 3)
+            else:
+                H, W = self.scene.image_hw
+                margin_top2 = round(min(0.99, m0.best_frame_px / max(1.0, 0.05 * H * W)), 3)
         return {
             "q": q,
             "status": status,
             "count": len(matches),
             "slots": slots_out,
-            "margin_top2": 0.08 if status == "MULTI_SLOT" else 0.42,
+            "margin_top2": margin_top2,
             "pose_cond_deg": self.scene.pose_cond_deg,
         }
 
@@ -704,8 +952,7 @@ class GeoAPIV2Session:
                         "id": o.slot_id,
                         "label": o.label,
                         "xy_m": [round(float(o.centroid[0]), 2), round(float(o.centroid[1]), 2)],
-                        "first_t": o.first_frame,
-                        "best_t": o.best_frame,
+                        "obb_lwh": [round(float(x), 2) for x in o.sorted_extents_m()],
                     }
                     for o in objs
                 ],
@@ -713,17 +960,14 @@ class GeoAPIV2Session:
         frame = int(call["frame"])
         if not (1 <= frame <= self.scene.n_anchors):
             raise ValueError(f"inspect frame {frame} outside [1..{self.scene.n_anchors}]")
-        q = call.get("q")
-        visible_boxes = {}
-        pool = self.scene.by_label.get(str(q), []) if q else self.scene.instances
-        for o in pool:
-            if frame in o.frame_boxes_1000:
-                visible_boxes[o.slot_id] = {
-                    "label": o.label,
-                    "box_1000": o.frame_boxes_1000[frame],
-                    "px": o.frame_px[frame],
-                }
-        return {"view": "rgb", "frame": frame, "visible_targets": visible_boxes}
+        # ZERO oracle GT leaks: RGB inspect returns ONLY frame metadata / image reference
+        return {
+            "view": "rgb",
+            "frame": frame,
+            "image_ref": f"frame_{frame:03d}.rgb",
+            "resolution_hw": [int(self.scene.image_hw[0]), int(self.scene.image_hw[1])],
+            "valid_pose": bool(self.scene.valid_frames[frame - 1]),
+        }
 
     def _op_measure(self, call: Dict[str, Any]) -> Dict[str, Any]:
         op_type = call.get("op_type") or call.get("mode") or "surface_gap"
@@ -835,6 +1079,12 @@ GEO_TAG_RE = re.compile(r"<geo>(.*?)</geo>", re.DOTALL)
 THINK_TAG_RE = re.compile(r"<think>(.*?)</think>", re.DOTALL)
 ANS_TAG_RE = re.compile(r"<answer>(.*?)</answer>", re.DOTALL)
 FRAME_REF_RE = re.compile(r"\bframe\s+(\d+)\b|\bf(\d+)\b", re.IGNORECASE)
+BOILERPLATE_PHRASES = (
+    "standard measurement processing",
+    "standard processing applied",
+    "standard calculation applied",
+    "default measurement processing",
+)
 
 
 def recompute_and_verify_trace(
@@ -853,6 +1103,10 @@ def recompute_and_verify_trace(
     for turn in trace_turns:
         think_txt = str(turn.get("think", "")).strip()
         if think_txt:
+            low_think = think_txt.lower()
+            for bp in BOILERPLATE_PHRASES:
+                if bp in low_think:
+                    return {"valid": False, "reason": f"robotic_boilerplate_in_think:{bp}"}
             words = think_txt.split()
             total_think_words += len(words)
             # Check frame references inside <think> lie in [1..n_anchors]

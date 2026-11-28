@@ -4,9 +4,9 @@
 Enforces zero overlap against:
   1. BENCH v2 (VSI-Bench, ReVSI, VSTI-Bench, STI-Bench/ReSTI, MindCube-Tiny, + other_corpora)
   2. ReSTI ScanNet explicit train-split trap (all 150 rooms scene0000..scene0149, any visit _NN)
-  3. R0-dev / R0 reserve (372 R0_ROOMS.txt + r0_scenes union)
+  3. R0-dev (100 scannetpp rooms) & R0-rl (272 rooms) reserve (372 total partitioned cleanly)
   4. dev-S1 internal development rooms (100 rooms / 35+ active captures)
-  5. K1-heldout rooms (50 held-out rooms / 58 captures incl. no_raster 45261532)
+  5. K1-heldout rooms (55 held-out rooms; SHA256-pinned K1_CAPTURES_HELDOUT_57.txt & K1_EXCLUSIONS.json)
   6. withheld-80 rooms (80 withheld grounding rooms; removes 6 of 239 K1 pinned_train captures)
 """
 from __future__ import annotations
@@ -23,6 +23,11 @@ from typing import Any, Dict, Iterable, List, Optional, Set, Tuple
 DEFAULT_EXCLUSION_BASE = Path("/scratch/jjyeung/orch_n30/sb_ktfix2/inputs/exclusions")
 DEFAULT_K1_ROWSETS = Path("/scratch/jjyeung/n30_mirror/sb_headacc2/K1_ROWSETS")
 DEFAULT_PINNED_TRAIN = Path("/scratch/jjyeung/orch_n30/sb_kbox4/pinned_train.json")
+
+K1_ROWSETS_PINS: Dict[str, str] = {
+    "K1_CAPTURES_HELDOUT_57.txt": "702b0d9f7bac16095ad24fd3625e6f71289ba78dc2ac402527f46efc431522fb",
+    "K1_EXCLUSIONS.json": "52fdfd0ad21daff49e7750917cf6abd251d8511cb9f476ac624a8c539f6fb5e0",
+}
 
 DATASET_MAP = {
     "d1": "scannet",
@@ -115,22 +120,39 @@ class RoomExclusionGuard:
         for corp, items in bench_doc.get("other_corpora", {}).items():
             self.other_corpora[corp.lower()] = {str(v).strip() for v in items}
 
-        # 3b. R0-dev / R0 reserve (R0_ROOMS.txt + split r0_scenes)
+        # 3b. R0-dev (100 scannetpp rooms) & R0-rl (272 rooms) — partitioned cleanly from authority split
         r0_pin = manifest["lists"]["R0"]
         r0_lines = self._read_pinned(lists_dir / r0_pin["path"], r0_pin["sha256"]).decode("utf-8").split()
+        r0_all_rooms = {self._room_from_list_entry(x) for x in r0_lines}
         split_pin = manifest["authority"]["split"]
         split_doc = self._read_json(lists_dir / split_pin["path"], split_pin["sha256"])
-        r0_rooms = {self._room_from_list_entry(x) for x in r0_lines}
+        r0_dev_rooms: Set[str] = set()
+        r0_rl_rooms: Set[str] = set()
         for cap_info in split_doc.get("r0_scenes", {}).get("captures", {}).values():
-            r0_rooms.add(self._room_from_list_entry(cap_info["room"]))
-        self.sets["R0_dev"] = r0_rooms
+            room_id = self._room_from_list_entry(cap_info["room"])
+            r0_split = cap_info.get("r0_split")
+            if r0_split == "R0-dev":
+                r0_dev_rooms.add(room_id)
+            elif r0_split == "R0-rl":
+                r0_rl_rooms.add(room_id)
+            else:
+                raise LeakageFatalError(f"Unknown r0_split {r0_split!r} for room {room_id}")
+        if r0_dev_rooms & r0_rl_rooms:
+            raise LeakageFatalError(
+                f"Overlap between R0_dev and R0_rl rooms: {sorted(r0_dev_rooms & r0_rl_rooms)[:5]}"
+            )
+        if (r0_dev_rooms | r0_rl_rooms) != r0_all_rooms:
+            diff = sorted((r0_dev_rooms | r0_rl_rooms) ^ r0_all_rooms)
+            raise LeakageFatalError(f"R0_dev | R0_rl partition mismatch vs R0_ROOMS.txt: {diff[:5]}")
+        self.sets["R0_dev"] = r0_dev_rooms
+        self.sets["R0_rl"] = r0_rl_rooms
 
         # 3c. dev-S1
         devs1_pin = manifest["lists"]["dev-S1"]
         devs1_doc = self._read_json(lists_dir / devs1_pin["path"], devs1_pin["sha256"])
         self.sets["dev_S1"] = {self._room_from_list_entry(x) for x in devs1_doc["physical_groups"]}
 
-        # 3d. K1-heldout (from TEACHER_K1.raw + K1_CAPTURES_HELDOUT_57.txt + K1_EXCLUSIONS heldout)
+        # 3d. K1-heldout (from TEACHER_K1.raw + REQUIRED SHA256-pinned K1_CAPTURES_HELDOUT_57.txt & K1_EXCLUSIONS.json)
         k1_pin = manifest["lists"]["K1"]
         k1_doc = self._read_json(lists_dir / k1_pin["path"], k1_pin["sha256"])
         k1_rooms: Set[str] = set()
@@ -138,15 +160,15 @@ class RoomExclusionGuard:
             if cap.get("k1_split") == "heldout":
                 k1_rooms.add(self._room_from_canonical(self._normalize_canonical_pair(cap["canonical"])))
         heldout_57 = self.k1_rowsets_dir / "K1_CAPTURES_HELDOUT_57.txt"
-        if heldout_57.is_file():
-            for line in self._read_pinned(heldout_57).decode("utf-8").splitlines():
-                if line.strip():
-                    k1_rooms.add(self._room_from_canonical(self._normalize_canonical_pair(line.strip())))
+        for line in self._read_pinned(
+            heldout_57, K1_ROWSETS_PINS["K1_CAPTURES_HELDOUT_57.txt"]
+        ).decode("utf-8").splitlines():
+            if line.strip():
+                k1_rooms.add(self._room_from_canonical(self._normalize_canonical_pair(line.strip())))
         k1_excl = self.k1_rowsets_dir / "K1_EXCLUSIONS.json"
-        if k1_excl.is_file():
-            for entry in self._read_json(k1_excl):
-                if entry.get("split") == "heldout":
-                    k1_rooms.add(self._room_from_canonical(self._normalize_canonical_pair(entry["capture"])))
+        for entry in self._read_json(k1_excl, K1_ROWSETS_PINS["K1_EXCLUSIONS.json"]):
+            if entry.get("split") == "heldout":
+                k1_rooms.add(self._room_from_canonical(self._normalize_canonical_pair(entry["capture"])))
         self.sets["K1_heldout"] = k1_rooms
 
         # 3e. withheld-80
@@ -158,9 +180,10 @@ class RoomExclusionGuard:
         expected_min = {
             "BENCH_v2": 511,
             "ReSTI_ScanNet": 150,
-            "R0_dev": 372,
+            "R0_dev": 100,
+            "R0_rl": 272,
             "dev_S1": 35,
-            "K1_heldout": 48,
+            "K1_heldout": 55,
             "withheld_80": 80,
         }
         for name, floor in expected_min.items():
@@ -366,9 +389,10 @@ class RoomExclusionGuard:
         return verdict
 
     def assert_canaries(self) -> Dict[str, Any]:
-        """Inject 8 planted canary leaks across all exclusion families; abort unless 8/8 raise."""
+        """Inject 10 planted canary leaks across all exclusion families; abort unless 11/11 checks raise."""
         bench_spp = next(r for r in sorted(self.sets["BENCH_v2"]) if r.startswith("scannetpp/"))
-        r0_sample = next(r for r in sorted(self.sets["R0_dev"]) if r.startswith("scannet/"))
+        r0_dev_sample = next(r for r in sorted(self.sets["R0_dev"]) if r.startswith("scannetpp/"))
+        r0_rl_sample = next(r for r in sorted(self.sets["R0_rl"]) if r.startswith("scannet/"))
         devs1_sample = next(r for r in sorted(self.sets["dev_S1"]) if r.startswith("scannet/"))
         waymo_seg = next(iter(sorted(self.other_corpora["waymo"])))
 
@@ -379,15 +403,19 @@ class RoomExclusionGuard:
             ("BENCH_v2_scannetpp", bench_spp, "BENCH_v2"),
             # 3. ReSTI ScanNet train-split trap with synthetic rescan suffix _99
             ("ReSTI_ScanNet_train_trap", "scannet/scene0042_99", "ReSTI_ScanNet"),
-            # 4. R0-dev room with synthetic rescan suffix _99
-            ("R0_dev_room", f"{r0_sample}_99", "R0_dev"),
-            # 5. dev-S1 calibration room
+            # 4. R0-dev scannetpp room
+            ("R0_dev_scannetpp_room", r0_dev_sample, "R0_dev"),
+            # 5. R0-rl room with synthetic rescan suffix _99
+            ("R0_rl_room", f"{r0_rl_sample}_99", "R0_rl"),
+            # 6. dev-S1 calibration room
             ("dev_S1_room", f"{devs1_sample}_00", "dev_S1"),
-            # 6. K1-heldout capture
+            # 7. K1-heldout capture (base manifest)
             ("K1_heldout_capture", "arkitscenes/41069175", "K1_heldout"),
-            # 7. withheld-80 room inside pinned_train.json
+            # 8. K1-heldout capture from pinned K1_ROWSETS (45261532)
+            ("K1_rowsets_heldout_capture", "arkitscenes/45261532", "K1_heldout"),
+            # 9. withheld-80 room inside pinned_train.json
             ("withheld_80_room", "scannet/scene0201_02", "withheld_80"),
-            # 8. Waymo ReSTI segment in other_corpora
+            # 10. Waymo ReSTI segment in other_corpora
             ("BENCH_v2_waymo_segment", f"waymo/{waymo_seg}", "BENCH_v2_other_corpora:waymo"),
         ]
 
